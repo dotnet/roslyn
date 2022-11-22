@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => _projectAccessor.WriteStreamAsync((projectKey, name), stream, checksum, cancellationToken);
 
+        private readonly record struct ProjectPrimaryKey(int ProjectPathId, int ProjectNameId);
+
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and
         /// retrieving data from <see cref="ProjectDataTableName"/>.
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private class ProjectAccessor : Accessor<
             (ProjectKey projectKey, string name),
             (ProjectId projectId, string name),
-            long>
+            (ProjectPrimaryKey projectKeyId, int dataNameId)>
         {
             public ProjectAccessor(SQLitePersistentStorage storage) : base(storage)
             {
@@ -41,11 +43,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override (ProjectId projectId, string name) GetWriteQueueKey((ProjectKey projectKey, string name) key)
                 => (key.projectKey.Id, key.name);
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite, out long dataId)
+            protected override bool TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite, out (ProjectPrimaryKey projectKeyId, int dataNameId) dataId)
                 => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, allowWrite, out dataId);
 
-            protected override void BindFirstParameter(SqlStatement statement, long dataId)
-                => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);
+            protected override int BindParameters(SqlStatement statement, (ProjectPrimaryKey projectKeyId, int dataNameId) dataId)
+            {
+                var ((projectPathId, projectNameId), dataNameId) = dataId;
+
+                statement.BindInt64Parameter(parameterIndex: 1, projectPathId);
+                statement.BindInt64Parameter(parameterIndex: 2, projectNameId);
+                statement.BindInt64Parameter(parameterIndex: 3, dataNameId);
+
+                return 3;
+            }
 
             protected override bool TryGetRowId(SqlConnection connection, Database database, long dataId, out long rowId)
                 => GetAndVerifyRowId(connection, database, dataId, out rowId);

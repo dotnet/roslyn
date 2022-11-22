@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // totally clear as there's only one source of truth.
             connection.ExecuteCommand(
 $@"create table if not exists {StringInfoTableName}(
-""{DataIdColumnName}"" integer primary key autoincrement not null,
+""{StringDataIdColumnName}"" integer primary key autoincrement not null,
 ""{DataColumnName}"" varchar)");
 
             // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
@@ -188,23 +188,37 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             static void EnsureTables(SqlConnection connection, Database database)
             {
                 var dbName = database.GetName();
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{SolutionDataTableName}(
-    ""{DataIdColumnName}"" varchar primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
+                connection.ExecuteCommand($"""
+                create table if not exists {dbName}.{SolutionDataTableName}(
+                    ""{SolutionDataIdColumnName}"" varchar primary key not null,
+                    ""{ChecksumColumnName}"" blob,
+                    ""{DataColumnName}"" blob
+                )
+                """);
 
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{ProjectDataTableName}(
-    ""{DataIdColumnName}"" integer primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
+                connection.ExecuteCommand($"""
+                    create table if not exists {dbName}.{ProjectDataTableName}(
+                        "{ProjectPathIdColumnName}" integer not null,
+                        "{ProjectNameIdColumnName}" integer not null,
+                        "{DataNameIdColumnName}" integer not null,
+                        "{ChecksumColumnName}" blob,
+                        "{DataColumnName}" blob,
+                        PRIMARY KEY("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DataNameIdColumnName}")
+                    )
+                    """);
 
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{DocumentDataTableName}(
-    ""{DataIdColumnName}"" integer primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
+                connection.ExecuteCommand($"""
+                    create table if not exists {dbName}.{DocumentDataTableName}(
+                        "{ProjectPathIdColumnName}" integer not null,
+                        "{ProjectNameIdColumnName}" integer not null,
+                        "{DocumentPathIdColumnName}" integer not null,
+                        "{DocumentNameIdColumnName}" integer not null,
+                        "{DataNameIdColumnName}" integer not null,
+                        "{ChecksumColumnName}" blob,
+                        "{DataColumnName}" blob,
+                        PRIMARY KEY("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DocumentPathIdColumnName}", "{DocumentNameIdColumnName}, "{DataNameIdColumnName}")
+                    )
+                    """);
             }
         }
     }

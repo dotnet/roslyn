@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         // 3. Use an in-memory DB to cache writes before flushing to disk.
         // 4. Store checksums directly inline (i.e. 20 bytes), instead of usign ObjectWriter serialization (which adds
         //    more data to the checksum).
-        private const string Version = "4";
+        // 5. Use individual columns for primary keys.
+        private const string Version = "5";
 
         /// <summary>
         /// Inside the DB we have a table dedicated to storing strings that also provides a unique
@@ -36,9 +37,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// The format of the table is:
         ///
         ///  StringInfo
-        ///  --------------------------------------------------------------
-        ///  | Id (integer, primary key, auto increment) | Data (varchar) |
-        ///  --------------------------------------------------------------
+        ///  --------------------------------------------------------------------
+        ///  | StringDataId (int, primary key, auto increment) | Data (varchar) |
+        ///  --------------------------------------------------------------------
         /// </summary>
         public const string StringInfoTableName = "StringInfo" + Version;
 
@@ -50,9 +51,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// The format of the table is:
         ///
         ///  SolutionData
-        ///  -------------------------------------------------------------------
-        ///  | DataId (primary key, varchar) | | Checksum (blob) | Data (blob) |
-        ///  -------------------------------------------------------------------
+        ///  -------------------------------------------------------------------------
+        ///  | SolutionDataId (primary key, varchar) | Checksum (blob) | Data (blob) |
+        ///  -------------------------------------------------------------------------
         /// </summary>
         public const string SolutionDataTableName = "SolutionData" + Version;
 
@@ -67,9 +68,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// The format of the table is:
         ///
         ///  ProjectData
-        ///  -------------------------------------------------------------------
-        ///  | DataId (primary key, integer) | | Checksum (blob) | Data (blob) |
-        ///  -------------------------------------------------------------------
+        ///  ------------------------------------------------------------------------------------------------
+        ///  | ProjectPathId (int) | ProjectNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  ------------------------------------------------------------------------------------------------
+        ///  | Primary Key                                                  |
+        ///  ----------------------------------------------------------------
+        ///  
         /// </summary>
         public const string ProjectDataTableName = "ProjectData" + Version;
 
@@ -84,13 +88,23 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// The format of the table is:
         ///
         ///  DocumentData
-        ///  -------------------------------------------------------------------
-        ///  | DataId (primary key, integer) | | Checksum (blob) | Data (blob) |
-        ///  -------------------------------------------------------------------
+        ///  ----------------------------------------------------------------------------------------------------------------------------------------------
+        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentPathId (int) | DocumentNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  ----------------------------------------------------------------------------------------------------------------------------------------------
+        ///  | Primary Key                                                                                                |
+        ///  --------------------------------------------------------------------------------------------------------------
         /// </summary>
         public const string DocumentDataTableName = "DocumentData" + Version;
 
-        public const string DataIdColumnName = "DataId";
+        public const string StringDataIdColumnName = "StringDataId";
+        public const string SolutionDataIdColumnName = "SolutionDataId";
+
+        public const string ProjectPathIdColumnName = "ProjectPathId";
+        public const string ProjectNameIdColumnName = "ProjectNameId";
+        public const string DocumentPathIdColumnName = "DocumentPathId";
+        public const string DocumentNameIdColumnName = "DocumentNameId";
+        public const string DataNameIdColumnName = "DataNameId";
+
         public const string ChecksumColumnName = "Checksum";
         public const string DataColumnName = "Data";
     }

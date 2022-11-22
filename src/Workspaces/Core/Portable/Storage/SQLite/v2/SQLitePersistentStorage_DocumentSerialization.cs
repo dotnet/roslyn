@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         protected override Task<bool> WriteStreamAsync(DocumentKey documentKey, Document? document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => _documentAccessor.WriteStreamAsync((documentKey, name), stream, checksum, cancellationToken);
 
+        private readonly record struct DocumentPrimaryKey(ProjectPrimaryKey ProjectPrimaryKey, int DocumentPathId, int DocumentNameId);
+
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and 
         /// retrieving data from <see cref="DocumentDataTableName"/>.
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private class DocumentAccessor : Accessor<
             (DocumentKey documentKey, string name),
             (DocumentId, string),
-            long>
+            (DocumentPrimaryKey documentkeyId, int dataNameId)>
         {
             public DocumentAccessor(SQLitePersistentStorage storage) : base(storage)
             {
@@ -41,11 +43,21 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override (DocumentId, string) GetWriteQueueKey((DocumentKey documentKey, string name) key)
                 => (key.documentKey.Id, key.name);
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, bool allowWrite, out long dataId)
+            protected override bool TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, bool allowWrite, out (DocumentPrimaryKey documentkeyId, int dataNameId) dataId)
                 => Storage.TryGetDocumentDataId(connection, key.documentKey, key.name, allowWrite, out dataId);
 
-            protected override void BindFirstParameter(SqlStatement statement, long dataId)
-                => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);
+            protected override int BindParameters(SqlStatement statement, (DocumentPrimaryKey documentkeyId, int dataNameId) dataId)
+            {
+                var (((projectPathId, projectNameId), documentPathId, documentNameId), dataNameId) = dataId;
+
+                statement.BindInt64Parameter(parameterIndex: 1, projectPathId);
+                statement.BindInt64Parameter(parameterIndex: 2, projectNameId);
+                statement.BindInt64Parameter(parameterIndex: 3, documentPathId);
+                statement.BindInt64Parameter(parameterIndex: 4, documentNameId);
+                statement.BindInt64Parameter(parameterIndex: 5, dataNameId);
+
+                return 5;
+            }
 
             protected override bool TryGetRowId(SqlConnection connection, Database database, long dataId, out long rowId)
                 => GetAndVerifyRowId(connection, database, dataId, out rowId);
