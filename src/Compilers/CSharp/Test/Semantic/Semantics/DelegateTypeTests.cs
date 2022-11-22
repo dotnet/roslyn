@@ -13989,7 +13989,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 """;
             var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
             comp2.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
-            comp2.VerifyEmitDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 9));
         }
 
         [Fact]
