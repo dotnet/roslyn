@@ -12,6 +12,9 @@ dotnet_diagnostic.CA2012.severity = warning
 # IDE0055: Fix formatting
 dotnet_diagnostic.IDE0055.severity = warning
 
+# IDE0060: Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = warning
+
 # IDE0073: File header
 dotnet_diagnostic.IDE0073.severity = warning
 
@@ -33,6 +36,9 @@ dotnet_diagnostic.IDE0051.severity = warning
 
 # IDE0170: Prefer extended property pattern
 dotnet_diagnostic.IDE0170.severity = warning
+
+# dotnet_style_allow_multiple_blank_lines_experimental
+dotnet_diagnostic.IDE2000.severity = warning
 
 # dotnet_style_allow_statement_immediately_after_block_experimental
 dotnet_diagnostic.IDE2003.severity = warning
