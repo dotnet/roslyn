@@ -101,10 +101,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             /// langword="false"/> then failing to find the key will result in <see langword="false"/> being returned.
             /// </param>
             protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite, out TDatabaseId dataId);
-
-            /// <summary>
-            /// Returns the number of parameters bound.
-            /// </summary>
             protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
             protected abstract bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId);
