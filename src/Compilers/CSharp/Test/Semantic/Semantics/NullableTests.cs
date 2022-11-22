@@ -977,7 +977,6 @@ class C
                 { "float", "float" },
            };
 
-
             string[,] shift1 =
             {
                 { "sbyte", "sbyte" },
@@ -1148,7 +1147,6 @@ class C
                 { "Base64FormattingOptions", "Base64FormattingOptions"},
             };
 
-
             // Use 2 instead of 0 so that we don't get divide by zero errors.
             var twos = new Dictionary<string, string>()
             {
@@ -1197,8 +1195,6 @@ class C
                 { "|", "or" },
                 { "^", "xor" }
             };
-
-
 
             var source = new StringBuilder(@"
 using System; 
@@ -1267,8 +1263,6 @@ class C
     F(31, (x1 OP ynn).HasValue);
   }";
 
-
-
             List<Tuple<string, string[,]>> items = new List<Tuple<string, string[,]>>()
             {
                 Tuple.Create("*", numerics1),
@@ -1287,7 +1281,6 @@ class C
                 Tuple.Create("|", logical2),
                 Tuple.Create("^", logical3)
             };
-
 
             int m = 0;
 
@@ -1412,7 +1405,6 @@ class C
                 F((sxnn << null).HasValue);";
 
             source += "}}";
-
 
             var verifier = CompileAndVerify(source: source, expectedOutput: "");
         }
@@ -2037,7 +2029,6 @@ tttftfffnntnfnn
 ttttfnnnn
 tttftfffnntnfnn
 ttttfnnnn";
-
 
             CompileAndVerify(source, expectedOutput: expected);
         }

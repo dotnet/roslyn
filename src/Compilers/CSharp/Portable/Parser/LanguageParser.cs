@@ -2584,6 +2584,15 @@ parse_member_name:;
                     TypeParameterListSyntax typeParameterListOpt;
                     this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
 
+                    if (!haveModifiers && !haveAttributes && !IsScript &&
+                        explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null &&
+                        !type.IsMissing && type.Kind != SyntaxKind.RefType &&
+                        !isFollowedByPossibleUsingDirective() &&
+                        tryParseLocalDeclarationStatementFromStartPoint<LocalDeclarationStatementSyntax>(attributes, ref afterAttributesPoint, out result))
+                    {
+                        return result;
+                    }
+
                     // First, check if we got absolutely nothing.  If so, then 
                     // We need to consume a bad member and try again.
                     if (IsNoneOrIncompleteMember(parentKind, attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
@@ -2614,13 +2623,22 @@ parse_member_name:;
                         return result;
                     }
 
-                    // treat anything else as a method.
-
-                    if (!IsScript && explicitInterfaceOpt is null &&
-                        tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(attributes, ref afterAttributesPoint, out result))
+                    if (!IsScript)
                     {
-                        return result;
+                        if (explicitInterfaceOpt is null &&
+                            tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(attributes, ref afterAttributesPoint, out result))
+                        {
+                            return result;
+                        }
+
+                        if (!haveModifiers &&
+                            tryParseStatement(attributes, ref afterAttributesPoint, out result))
+                        {
+                            return result;
+                        }
                     }
+
+                    // treat anything else as a method.
 
                     return this.ParseMethodDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 }
@@ -2650,6 +2668,43 @@ parse_member_name:;
                 {
                     result = CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
                     return true;
+                }
+
+                result = null;
+                return false;
+            }
+
+            bool tryParseStatement(SyntaxList<AttributeListSyntax> attributes, ref ResetPoint afterAttributesPoint, out MemberDeclarationSyntax result)
+            {
+                var resetOnFailurePoint = this.GetResetPoint();
+                try
+                {
+                    this.Reset(ref afterAttributesPoint);
+
+                    if (this.IsPossibleStatement(acceptAccessibilityMods: false))
+                    {
+                        var saveTerm = _termState;
+                        _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
+                        bool wasInAsync = IsInAsync;
+                        IsInAsync = true; // We are implicitly in an async context
+
+                        var statement = this.ParseStatementCore(attributes, isGlobal: true);
+
+                        IsInAsync = wasInAsync;
+                        _termState = saveTerm;
+
+                        if (statement is not null)
+                        {
+                            result = CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+                            return true;
+                        }
+                    }
+
+                    this.Reset(ref resetOnFailurePoint);
+                }
+                finally
+                {
+                    this.Release(ref resetOnFailurePoint);
                 }
 
                 result = null;
@@ -2699,6 +2754,32 @@ parse_member_name:;
                     default:
                         return true;
                 }
+            }
+
+            bool isFollowedByPossibleUsingDirective()
+            {
+                if (CurrentToken.Kind == SyntaxKind.UsingKeyword)
+                {
+                    return !IsPossibleTopLevelUsingLocalDeclarationStatement();
+                }
+
+                if (CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword && this.PeekToken(1).Kind == SyntaxKind.UsingKeyword)
+                {
+                    var resetPoint = this.GetResetPoint();
+                    try
+                    {
+                        // Skip 'global' keyword
+                        EatToken();
+                        return !IsPossibleTopLevelUsingLocalDeclarationStatement();
+                    }
+                    finally
+                    {
+                        this.Reset(ref resetPoint);
+                        this.Release(ref resetPoint);
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -9304,7 +9385,6 @@ tryAgain:
                         decl.Designation);
                 }
 
-
                 if (decl.designation.Kind != SyntaxKind.ParenthesizedVariableDesignation)
                 {
                     // if we see a foreach declaration that isn't a deconstruction, we use the old form of foreach syntax node.
@@ -13543,24 +13623,13 @@ tryAgain:
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(ref identifier, out var equalsToken);
 
-            // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
-            // not legal code.  But we detect it so that we can give the user a good message, and so we don't go
-            // completely off the rails.
-            //
-            // Note: we add the `= value` as skipped trivia to either the identifier or `!!` (if we have the latter).
-            // This allows us to handle this code without ever showing it the binding phases.  We could consider
-            // actually binding this in the future if it would be helpful and if we're ok paying the testing cost of
-            // checking this at the semantic layers.
+            // Parse default value if any
             equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+            var equalsValueClause = equalsToken == null
+                ? null
+                : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore());
 
-            if (equalsToken != null)
-            {
-                equalsToken = AddError(equalsToken, ErrorCode.ERR_DefaultValueNotAllowed);
-
-                identifier = AddTrailingSkippedSyntax(identifier, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
-            }
-
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: null);
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: equalsValueClause);
             _pool.Free(modifiers);
             return parameter;
         }

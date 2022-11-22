@@ -386,7 +386,6 @@ Public MustInherit Class BasicTestBase
             compilationVerifier(compilation)
         End If
 
-
         Return CompileAndVerify(compilation, expectedOutput:=expectedOutput)
     End Function
 
@@ -909,7 +908,6 @@ Public MustInherit Class BasicTestBase
         Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
         VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode)(compilation, expectedFlowGraph, expectedDiagnostics, which)
     End Sub
-
 
     Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
         Return DumpAllDiagnostics(allDiagnostics, suppressInfos)

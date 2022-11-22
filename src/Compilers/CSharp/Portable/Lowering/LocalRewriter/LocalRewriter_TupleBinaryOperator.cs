@@ -469,7 +469,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-
             BoundExpression MakeBoundConversion(BoundExpression expr, Conversion conversion, TypeWithAnnotations type, BoundConversion enclosing)
             {
                 return new BoundConversion(

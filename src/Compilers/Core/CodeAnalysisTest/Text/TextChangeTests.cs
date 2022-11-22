@@ -1118,7 +1118,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("aaaaa12aaaa45aaaaa7", change1.ToString());
             Assert.Equal("baababbbbbaabbbbba7", change2.ToString());
 
-
             var changes = change2.GetTextChanges(originalText);
             Assert.Equal("baababbbbbaabbbbba7", originalText.WithChanges(changes).ToString());
         }

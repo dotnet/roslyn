@@ -1571,7 +1571,6 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-
         [Fact]
         public void NameofInPattern_01()
         {

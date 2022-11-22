@@ -2409,8 +2409,6 @@ s3:
 s4: _").VerifyDiagnostics();
         }
 
-
-
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestDelegate3()
         {
@@ -4326,7 +4324,6 @@ member:
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-
         [Fact]
         public void TestCallerMemberNameConversion()
         {
@@ -4430,7 +4427,6 @@ class Test
             Assert.Equal(1, attr.CommonConstructorArguments[0].Value);
         }
 
-
         [Fact]
         public void TestRecursiveAttributeMetadata()
         {
@@ -4476,7 +4472,6 @@ class Driver {
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-
         [Fact]
         public void TestMemberNameLookup()
         {
@@ -4511,7 +4506,6 @@ class Driver
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-
 
         [Fact]
         public void TestDuplicateCallerInfoMetadata()
@@ -4817,7 +4811,6 @@ class Program
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-
         [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
         public void TestBadAttributeParameterTypeWithCallerLineNumber()
         {
@@ -4861,7 +4854,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2ValueType").WithArguments("lineNumber", "System.ValueType"));
         }
 
-
         [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void Repro_17457()
         {
@@ -4901,7 +4893,6 @@ class Test
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-
 
         [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void InvalidDecimalInCustomAttributeParameterWithCallerLineNumber()

@@ -519,7 +519,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
 
-
             // ===== WHEN NOT NULL 
             if (nullCheckOnCopy)
             {
@@ -1261,7 +1260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // I do not know how to hit this, since value__ is not bindable in C#, but Dev12 has code to handle this
             return type.IsEnumType();
         }
-
 
         private static int ParameterSlot(BoundParameter parameter)
         {
