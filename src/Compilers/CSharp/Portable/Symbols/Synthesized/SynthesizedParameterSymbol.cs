@@ -179,9 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (this.IsParams)
+            if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
             {
-                Debug.Assert(this.ContainingSymbol is SynthesizedDelegateInvokeMethod);
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
         }
@@ -310,7 +309,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!refCustomModifiers.IsDefault);
             Debug.Assert(isParams || !refCustomModifiers.IsEmpty || baseParameterForAttributes is object || defaultValue is not null);
             Debug.Assert(baseParameterForAttributes is null || baseParameterForAttributes.ExplicitDefaultConstantValue == defaultValue);
-            Debug.Assert(!isParams || container is SynthesizedDelegateInvokeMethod, "Synthesized params array parameter is only supported on delegates");
 
             _refCustomModifiers = refCustomModifiers;
             _baseParameterForAttributes = baseParameterForAttributes;
