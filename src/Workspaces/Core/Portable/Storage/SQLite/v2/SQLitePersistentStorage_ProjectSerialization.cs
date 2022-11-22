@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
@@ -34,7 +35,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             (ProjectId projectId, string name),
             (ProjectPrimaryKey projectKeyId, int dataNameId)>
         {
-            public ProjectAccessor(SQLitePersistentStorage storage) : base(storage)
+            public ProjectAccessor(SQLitePersistentStorage storage)
+                : base(storage, ImmutableArray.Create(
+                    ProjectPathIdColumnName,
+                    ProjectNameIdColumnName,
+                    DataNameIdColumnName))
             {
             }
 
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return 3;
             }
 
-            protected override bool TryGetRowId(SqlConnection connection, Database database, long dataId, out long rowId)
+            protected override bool TryGetRowId(SqlConnection connection, Database database, (ProjectPrimaryKey projectKeyId, int dataNameId) dataId, out long rowId)
                 => GetAndVerifyRowId(connection, database, dataId, out rowId);
         }
     }

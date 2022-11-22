@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Linq;
 
 #if DEBUG
 using System.Diagnostics;
@@ -45,7 +47,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private readonly string _delete_from_writecache_table;
             private readonly string _insert_or_replace_into_main_table_select_star_from_writecache_table;
 
-            public Accessor(SQLitePersistentStorage storage)
+            public Accessor(
+                SQLitePersistentStorage storage,
+                ImmutableArray<string> idColumnNames)
             {
                 var main = Database.Main.GetName();
                 var writeCache = Database.WriteCache.GetName();
@@ -59,9 +63,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 };
 
                 Storage = storage;
-                _select_rowid_from_main_table_where_0 = $@"select rowid from {main}.{dataTableName} where ""{DataIdColumnName}"" = ?";
-                _select_rowid_from_writecache_table_where_0 = $@"select rowid from {writeCache}.{dataTableName} where ""{DataIdColumnName}"" = ?";
-                _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{dataTableName}(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
+
+                // "X" = ? and "Y" = ? and "Z" = ?
+                var whereIdColumnsClause = string.Join(" and ", idColumnNames.Select(id => $@"""{id}"" = ?"));
+
+                _select_rowid_from_main_table_where_0 = $"select rowid from {main}.{dataTableName} where {whereIdColumnsClause}";
+                _select_rowid_from_writecache_table_where_0 = $"select rowid from {writeCache}.{dataTableName} where {whereIdColumnsClause}";
+
+                var allColumnNames = idColumnNames.Add(ChecksumColumnName).Add(DataColumnName);
+                var quotedColumnNames = string.Join(",", allColumnNames.Select(n => $@"""{n}"""));
+                var questions = string.Join(",", allColumnNames.Select(n => "?"));
+
+                _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{dataTableName}({quotedColumnNames}) values ({questions})";
                 _delete_from_writecache_table = $"delete from {writeCache}.{dataTableName};";
                 _insert_or_replace_into_main_table_select_star_from_writecache_table = $"insert or replace into {main}.{dataTableName} select * from {writeCache}.{dataTableName};";
             }
@@ -283,9 +296,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
 #pragma warning disable CA1822 // Mark members as static - instance members used in Debug
-            protected bool GetAndVerifyRowId(SqlConnection connection, Database database, long dataId, out long rowId)
+            protected bool GetAndVerifyRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
 #pragma warning restore CA1822 // Mark members as static
             {
+#if false
+
                 // For the Document and Project tables, our dataId is our rowId:
                 //
                 // https://sqlite.org/lang_createtable.html
@@ -308,6 +323,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // database at all.
                 rowId = dataId;
                 return true;
+#else
+                return GetActualRowIdFromDatabase(connection, database, dataId, out rowId);
+#endif
             }
 
             protected bool GetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
@@ -326,7 +344,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 var statement = resettableStatement.Statement;
 
-                BindFirstParameter(statement, dataId);
+                BindParameters(statement, dataId);
 
                 var stepResult = statement.Step();
                 if (stepResult == Result.ROW)
@@ -352,9 +370,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     var statement = resettableStatement.Statement;
 
                     // Binding indices are 1 based.
-                    BindFirstParameter(statement, dataId);
-                    statement.BindBlobParameter(parameterIndex: 2, checksumBytes);
-                    statement.BindBlobParameter(parameterIndex: 3, dataBytes);
+                    var parameterCount = BindParameters(statement, dataId);
+                    statement.BindBlobParameter(parameterIndex: parameterCount + 1, checksumBytes);
+                    statement.BindBlobParameter(parameterIndex: parameterCount + 2, dataBytes);
 
                     statement.Step();
                 }
