@@ -190,9 +190,10 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
                 var dbName = database.GetName();
                 connection.ExecuteCommand($"""
                     create table if not exists {dbName}.{SolutionDataTableName}(
-                        "{SolutionDataIdColumnName}" varchar primary key not null,
+                        "{SolutionDataIdColumnName}" varchar not null,
                         "{ChecksumColumnName}" blob,
-                        "{DataColumnName}" blob
+                        "{DataColumnName}" blob,
+                        primary key("{SolutionDataIdColumnName}")
                     )
                     """);
 
@@ -203,7 +204,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
                         "{DataNameIdColumnName}" integer not null,
                         "{ChecksumColumnName}" blob,
                         "{DataColumnName}" blob,
-                        PRIMARY KEY("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DataNameIdColumnName}")
+                        primary key("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DataNameIdColumnName}")
                     )
                     """);
 
@@ -216,7 +217,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
                         "{DataNameIdColumnName}" integer not null,
                         "{ChecksumColumnName}" blob,
                         "{DataColumnName}" blob,
-                        PRIMARY KEY("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DocumentPathIdColumnName}", "{DocumentNameIdColumnName}", "{DataNameIdColumnName}")
+                        primary key("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DocumentPathIdColumnName}", "{DocumentNameIdColumnName}", "{DataNameIdColumnName}")
                     )
                     """);
             }

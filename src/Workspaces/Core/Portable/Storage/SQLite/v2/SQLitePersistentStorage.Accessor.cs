@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             public Accessor(
                 SQLitePersistentStorage storage,
-                ImmutableArray<string> idColumnNames)
+                ImmutableArray<string> primaryKeyNames)
             {
                 var main = Database.Main.GetName();
                 var writeCache = Database.WriteCache.GetName();
@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 Storage = storage;
 
                 // "X" = ? and "Y" = ? and "Z" = ?
-                var whereIdColumnsClause = string.Join(" and ", idColumnNames.Select(id => $@"""{id}"" = ?"));
+                var whereClause = string.Join(" and ", primaryKeyNames.Select(id => $@"""{id}"" = ?"));
 
-                _select_rowid_from_main_table_where_0 = $"select rowid from {main}.{dataTableName} where {whereIdColumnsClause}";
-                _select_rowid_from_writecache_table_where_0 = $"select rowid from {writeCache}.{dataTableName} where {whereIdColumnsClause}";
+                _select_rowid_from_main_table_where_0 = $"select rowid from {main}.{dataTableName} where {whereClause}";
+                _select_rowid_from_writecache_table_where_0 = $"select rowid from {writeCache}.{dataTableName} where {whereClause}";
 
-                var allColumnNames = idColumnNames.Add(ChecksumColumnName).Add(DataColumnName);
+                var allColumnNames = primaryKeyNames.Add(ChecksumColumnName).Add(DataColumnName);
                 var quotedColumnNames = string.Join(",", allColumnNames.Select(n => $@"""{n}"""));
                 var questions = string.Join(",", allColumnNames.Select(n => "?"));
 
