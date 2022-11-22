@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// logic around cancellation/pooling/error-handling/etc, while still hitting different
         /// db tables.
         /// </summary>
-        private abstract class Accessor<TKey, TWriteQueueKey, TDatabaseId>
+        private abstract class Accessor<TKey, TWriteQueueKey, TDatabaseId> 
+            where TDatabaseId : struct
         {
             protected readonly SQLitePersistentStorage Storage;
 
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             /// being generated and stored for this component key when it currently does not exist.  If <see
             /// langword="false"/> then failing to find the key will result in <see langword="false"/> being returned.
             /// </param>
-            protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite, out TDatabaseId dataId);
+            protected abstract TDatabaseId? TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite);
             protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
             protected abstract bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId);
@@ -181,18 +182,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // data that either exists in the DB or not.  If it doesn't exist in the DB, then it's fine to fail
                     // to map from the key to a DB id (since there's nothing to lookup anyways).  And if it does exist
                     // in the db then finding the ID would succeed (without writing) and we could continue.
-                    if (TryGetDatabaseId(connection, key, allowWrite: false, out var dataId))
+                    var dataId = TryGetDatabaseId(connection, key, allowWrite: false);
+                    if (dataId != null)
                     {
                         try
                         {
                             // First, try to see if there was a write to this key in our in-memory db.
                             // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
 
-                            var optional = ReadColumnHelper(connection, Database.WriteCache, dataId);
+                            var optional = ReadColumnHelper(connection, Database.WriteCache, dataId.Value);
                             if (optional.HasValue)
                                 return optional;
 
-                            optional = ReadColumnHelper(connection, Database.Main, dataId);
+                            optional = ReadColumnHelper(connection, Database.Main, dataId.Value);
                             if (optional.HasValue)
                                 return optional;
                         }
@@ -237,7 +239,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // Determine the appropriate data-id to store this stream at.  We already are running
                     // with an exclusive write lock on the DB, so it's safe for us to write the data id to 
                     // the db on this connection if we need to.
-                    if (TryGetDatabaseId(connection, key, allowWrite: true, out var dataId))
+                    var dataId = TryGetDatabaseId(connection, key, allowWrite: true);
+                    if (dataId != null)
                     {
                         checksum ??= Checksum.Null;
                         Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
@@ -248,7 +251,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         // Write the information into the in-memory write-cache.  Later on a background task
                         // will move it from the in-memory cache to the on-disk db in a bulk transaction.
                         InsertOrReplaceBlobIntoWriteCache(
-                            connection, dataId,
+                            connection, dataId.Value,
                             checksumBytes,
                             new ReadOnlySpan<byte>(dataBytes, 0, dataLength));
 

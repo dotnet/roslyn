@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override (DocumentId, string) GetWriteQueueKey((DocumentKey documentKey, string name) key)
                 => (key.documentKey.Id, key.name);
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, bool allowWrite, out (DocumentPrimaryKey documentkeyId, int dataNameId) dataId)
-                => Storage.TryGetDocumentDataId(connection, key.documentKey, key.name, allowWrite, out dataId);
+            protected override (DocumentPrimaryKey documentkeyId, int dataNameId)? TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, bool allowWrite)
+                => Storage.TryGetDocumentDataId(connection, key.documentKey, key.name, allowWrite);
 
             protected override void BindPrimaryKeyParameters(SqlStatement statement, (DocumentPrimaryKey documentkeyId, int dataNameId) dataId)
             {

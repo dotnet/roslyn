@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// retrieving data from <see cref="SolutionDataTableName"/>.  Note that with the Solution 
         /// table there is no need for key->id translation.  i.e. the key acts as the ID itself.
         /// </summary>
-        private class SolutionAccessor : Accessor<string, string, string>
+        private class SolutionAccessor : Accessor<string, string, (string key, bool unused)>
         {
             public SolutionAccessor(SQLitePersistentStorage storage)
                 : base(storage, ImmutableArray.Create((SolutionDataIdColumnName, "varchar")))
@@ -41,22 +41,21 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override string GetWriteQueueKey(string key)
                 => key;
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, string key, bool allowWrite, out string dataId)
+            protected override (string key, bool unused)? TryGetDatabaseId(SqlConnection connection, string key, bool allowWrite)
             {
                 // For the SolutionDataTable the key itself acts as the data-id.
-                dataId = key;
-                return true;
+                return (key, unused: false);
             }
 
-            protected override bool TryGetRowId(SqlConnection connection, Database database, string dataId, out long rowId)
+            protected override bool TryGetRowId(SqlConnection connection, Database database, (string key, bool unused) dataId, out long rowId)
             {
                 // For the solution table, we have whatever user string that was passed in as our 'key'.  So we actually
                 // have to  go to the DB to find the row for this.
                 return GetActualRowIdFromDatabase(connection, database, dataId, out rowId);
             }
 
-            protected override void BindPrimaryKeyParameters(SqlStatement statement, string dataId)
-                => statement.BindStringParameter(parameterIndex: 1, value: dataId);
+            protected override void BindPrimaryKeyParameters(SqlStatement statement, (string key, bool unused) dataId)
+                => statement.BindStringParameter(parameterIndex: 1, value: dataId.key);
         }
     }
 }

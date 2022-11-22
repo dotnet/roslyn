@@ -21,19 +21,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the DocumentData table.
         /// </summary>
-        private bool TryGetDocumentDataId(
-            SqlConnection connection, DocumentKey documentKey, string name, bool allowWrite, out (DocumentPrimaryKey documentkeyId, int dataNameId) dataId)
+        private (DocumentPrimaryKey documentkeyId, int dataNameId)? TryGetDocumentDataId(
+            SqlConnection connection, DocumentKey documentKey, string name, bool allowWrite)
         {
             var documentId = TryGetDocumentId(connection, documentKey, allowWrite);
             var nameId = TryGetStringId(connection, name, allowWrite);
-            if (documentId == null || nameId == null)
-            {
-                dataId = default;
-                return false;
-            }
-
-            dataId = (documentId.Value, nameId.Value);
-            return true;
+            return documentId == null || nameId == null
+                ?
+                null
+                : (documentId.Value, nameId.Value);
         }
 
         private DocumentPrimaryKey? TryGetDocumentId(SqlConnection connection, DocumentKey document, bool allowWrite)

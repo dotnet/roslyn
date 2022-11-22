@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override (ProjectId projectId, string name) GetWriteQueueKey((ProjectKey projectKey, string name) key)
                 => (key.projectKey.Id, key.name);
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite, out (ProjectPrimaryKey projectKeyId, int dataNameId) dataId)
-                => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, allowWrite, out dataId);
+            protected override (ProjectPrimaryKey projectKeyId, int dataNameId)? TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite)
+                => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, allowWrite);
 
             protected override void BindPrimaryKeyParameters(SqlStatement statement, (ProjectPrimaryKey projectKeyId, int dataNameId) dataId)
             {

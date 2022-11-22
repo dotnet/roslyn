@@ -21,23 +21,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Given a project, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the ProjectData table.
         /// </summary>
-        private bool TryGetProjectDataId(
-            SqlConnection connection,
-            ProjectKey project,
-            string name,
-            bool allowWrite,
-            out (ProjectPrimaryKey projectKeyId, int dataNameId) dataId)
+        private (ProjectPrimaryKey projectKeyId, int dataNameId)? TryGetProjectDataId(
+            SqlConnection connection, ProjectKey project, string name, bool allowWrite)
         {
             var projectId = TryGetProjectId(connection, project, allowWrite);
             var nameId = TryGetStringId(connection, name, allowWrite);
-            if (projectId == null || nameId == null)
-            {
-                dataId = default;
-                return false;
-            }
-
-            dataId = (projectId.Value, nameId.Value);
-            return true;
+            return projectId == null || nameId == null
+                ? null
+                : (projectId.Value, nameId.Value);
         }
 
         private ProjectPrimaryKey? TryGetProjectId(SqlConnection connection, ProjectKey project, bool allowWrite)
