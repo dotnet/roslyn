@@ -13503,6 +13503,52 @@ class Program
         }
 
         [Fact]
+        public void LambdaWithDefault_EmbeddedType_Propagated()
+        {
+            var source1 = """
+                using System.Runtime.InteropServices;
+                [assembly: PrimaryInteropAssembly(0, 0)]
+                [assembly: Guid("863D5BC0-46A1-49AC-97AA-A5F0D441A9DA")]
+                [ComImport, Guid("863D5BC0-46A1-49AD-97AA-A5F0D441A9DA")]
+                public interface MyEmbeddedType { }
+                """;
+            var comp1 = CreateCompilation(source1);
+            var ref1 = comp1.EmitToImageReference(embedInteropTypes: true);
+
+            var source2 = """
+                var l = (MyEmbeddedType t = null) => {};
+                """;
+            var comp2 = CreateCompilation(source2, new[] { ref1 });
+            CompileAndVerify(comp2, symbolValidator: static module =>
+            {
+                Assert.Contains("MyEmbeddedType", module.TypeNames);
+            });
+        }
+
+        [Fact]
+        public void LambdaWithDefault_EmbeddedType_NotPropagated_Default()
+        {
+            var source1 = """
+                using System.Runtime.InteropServices;
+                [assembly: PrimaryInteropAssembly(0, 0)]
+                [assembly: Guid("863D5BC0-46A1-49AC-97AA-A5F0D441A9DA")]
+                [ComImport, Guid("863D5BC0-46A1-49AD-97AA-A5F0D441A9DA")]
+                public interface MyEmbeddedType { }
+                """;
+            var comp1 = CreateCompilation(source1);
+            var ref1 = comp1.EmitToImageReference(embedInteropTypes: true);
+
+            var source2 = """
+                var l = (object o = default(MyEmbeddedType)) => {};
+                """;
+            var comp2 = CreateCompilation(source2, new[] { ref1 });
+            CompileAndVerify(comp2, symbolValidator: static module =>
+            {
+                Assert.DoesNotContain("MyEmbeddedType", module.TypeNames);
+            });
+        }
+
+        [Fact]
         public void LambdaWithParameterDefaultValueAttribute()
         {
             var source = """
