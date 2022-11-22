@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
                     {
                         var documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(documentsByProject);
+                        var projectId = documentsByProject.Key;
                         // Rename is going to be in 5 phases.
                         // 1st phase - Does a simple token replacement
                         // If the 1st phase results in conflict then we perform then:
@@ -156,110 +157,79 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             // 2. If we encounter a node that has to be expanded( because there was a conflict in previous phase), we expand it.
                             //    If the node happens to contain a token that needs to be renamed then we annotate it and rename it after expansion else just expand and proceed
                             // 3. Through the whole process we maintain a map of the oldspan to newspan. In case of expansion & rename, we map the expanded node and the renamed token
-                            conflictResolution.UpdateCurrentSolution(await AnnotateAndRename_WorkerAsync(
-                                baseSolution,
+                            var (partiallyRenamedSolution, unchangedDocuments) = await AnnotateAndRename_WorkerAsync(
+                                _baseSolution,
                                 conflictResolution.CurrentSolution,
                                 documentIdsThatGetsAnnotatedAndRenamed,
-                                _renameLocationSet.Locations,
+                                _conflictLocations,
                                 renamedSpansTracker,
-                                _replacementTextValid).ConfigureAwait(false));
+                                _renameAnnotations).ConfigureAwait(false);
+
+                            // If the documents do not change then remove it from the conflict checking list
+                            documentIdsThatGetsAnnotatedAndRenamed.RemoveRange(unchangedDocuments);
+                            conflictResolution.UpdateCurrentSolution(partiallyRenamedSolution);
 
                             // Step 2: Check for conflicts in the renamed solution
                             var foundResolvableConflicts = await IdentifyConflictsAsync(
                                 documentIdsForConflictResolution: documentIdsThatGetsAnnotatedAndRenamed,
                                 allDocumentIdsInProject: documentsByProject,
-                                projectId: documentsByProject.Key,
+                                projectId: projectId,
                                 conflictResolution: conflictResolution).ConfigureAwait(false);
 
                             if (!foundResolvableConflicts || phase == 3)
                             {
-                                // Step 1:
-                                // The rename process and annotation for the bookkeeping is performed in one-step
-                                // The Process in short is,
-                                // 1. If renaming a token which is no conflict then replace the token and make a map of the oldspan to the newspan
-                                // 2. If we encounter a node that has to be expanded( because there was a conflict in previous phase), we expand it.
-                                //    If the node happens to contain a token that needs to be renamed then we annotate it and rename it after expansion else just expand and proceed
-                                // 3. Through the whole process we maintain a map of the oldspan to newspan. In case of expansion & rename, we map the expanded node and the renamed token
-                                var (partiallyRenamedSolution, unchangedDocuments) = await AnnotateAndRename_WorkerAsync(
-                                    _baseSolution,
-                                    conflictResolution.CurrentSolution,
-                                    documentIdsThatGetsAnnotatedAndRenamed,
-                                    _conflictLocations,
-                                    renamedSpansTracker,
-                                    _renameAnnotations).ConfigureAwait(false);
-
-                                // If the documents do not change then remove it from the conflict checking list
-                                documentIdsThatGetsAnnotatedAndRenamed.RemoveRange(unchangedDocuments);
-                                conflictResolution.UpdateCurrentSolution(partiallyRenamedSolution);
-
-                                // Step 2: Check for conflicts in the renamed solution
-                                var foundResolvableConflicts = await IdentifyConflictsAsync(
-                                    documentIdsForConflictResolution: documentIdsThatGetsAnnotatedAndRenamed,
-                                    allDocumentIdsInProject: documentsByProject,
-                                    projectId: projectId,
-                                    conflictResolution: conflictResolution).ConfigureAwait(false);
-
-                                if (!foundResolvableConflicts || phase == 3)
-                                {
-                                    break;
-                                }
-
-                                if (phase == 0)
-                                {
-                                    _conflictLocations = conflictResolution.RelatedLocations
-                                        .Where(loc => (documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference))
-                                        .Select(loc => new ConflictLocationInfo(loc))
-                                        .ToSet();
-
-                                    // If there were no conflicting locations in references, then the first conflict phase has to be skipped.
-                                    if (_conflictLocations.Count == 0)
-                                    {
-                                        phase++;
-                                    }
-                                }
-
-                                if (phase == 1)
-                                {
-                                    _conflictLocations = _conflictLocations.Concat(conflictResolution.RelatedLocations
-                                        .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict)
-                                        .Select(loc => new ConflictLocationInfo(loc)))
-                                        .ToSet();
-                                }
-
-                                // Set the documents with conflicts that need to be processed in the next phase.
-                                // Note that we need to get the conflictLocations here since we're going to remove some locations below if phase == 2
-                                documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(_conflictLocations.Select(l => l.DocumentId));
-
-                                if (phase == 2)
-                                {
-                                    // After phase 2, if there are still conflicts then remove the conflict locations from being expanded
-                                    var unresolvedLocations = conflictResolution.RelatedLocations
-                                        .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
-                                        .Select(l => (l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
-
-                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.DocumentId == l.DocumentId && c.ComplexifiedTargetSpan.Contains(l.OriginalIdentifierSpan))).ToSet();
-                                }
-
-                                // Clean up side effects from rename before entering the next phase
-                                conflictResolution.ClearDocuments(documentIdsThatGetsAnnotatedAndRenamed);
+                                break;
                             }
 
-                            var shouldSimplify = _symbolToReplacementTextValid.All(pair => pair.Value);
-                            // Step 3: Simplify the project
-                            conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(
-                                conflictResolution.CurrentSolution,
-                                documentsByProject,
-                                shouldSimplify,
-                                _renameAnnotations,
-                                _fallbackOptions, _cancellationToken).ConfigureAwait(false));
+                            if (phase == 0)
+                            {
+                                _conflictLocations = conflictResolution.RelatedLocations
+                                    .Where(loc => (documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference))
+                                    .Select(loc => new ConflictLocationInfo(loc))
+                                    .ToSet();
 
-                            intermediateSolution = await conflictResolution.RemoveAllRenameAnnotationsAsync(
-                                intermediateSolution, documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
-                            conflictResolution.UpdateCurrentSolution(intermediateSolution);
+                                // If there were no conflicting locations in references, then the first conflict phase has to be skipped.
+                                if (_conflictLocations.Count == 0)
+                                {
+                                    phase++;
+                                }
+                            }
+
+                            if (phase == 1)
+                            {
+                                _conflictLocations = _conflictLocations.Concat(conflictResolution.RelatedLocations
+                                    .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict)
+                                    .Select(loc => new ConflictLocationInfo(loc)))
+                                    .ToSet();
+                            }
+
+                            // Set the documents with conflicts that need to be processed in the next phase.
+                            // Note that we need to get the conflictLocations here since we're going to remove some locations below if phase == 2
+                            documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(_conflictLocations.Select(l => l.DocumentId));
+
+                            if (phase == 2)
+                            {
+                                // After phase 2, if there are still conflicts then remove the conflict locations from being expanded
+                                var unresolvedLocations = conflictResolution.RelatedLocations
+                                    .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
+                                    .Select(l => (l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
+
+                                _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.DocumentId == l.DocumentId && c.ComplexifiedTargetSpan.Contains(l.OriginalIdentifierSpan))).ToSet();
+                            }
+
+                            // Clean up side effects from rename before entering the next phase
+                            conflictResolution.ClearDocuments(documentIdsThatGetsAnnotatedAndRenamed);
                         }
 
+                        var shouldSimplify = _symbolToReplacementTextValid.All(pair => pair.Value);
                         // Step 3: Simplify the project
-                        conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.CurrentSolution, documentsByProject, _replacementTextValid, _renameAnnotations, FallbackOptions, _cancellationToken).ConfigureAwait(false));
+                        conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(
+                            conflictResolution.CurrentSolution,
+                            documentsByProject,
+                            shouldSimplify,
+                            _renameAnnotations,
+                            _fallbackOptions, _cancellationToken).ConfigureAwait(false));
+
                         intermediateSolution = await conflictResolution.RemoveAllRenameAnnotationsAsync(
                             intermediateSolution, documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
                         conflictResolution.UpdateCurrentSolution(intermediateSolution);

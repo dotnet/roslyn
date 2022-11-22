@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken);
 
                     string? suffix = null;
-                    var prefix = isRenameLocation && _renameLocations[token.Span].IsRenamableAccessor
+                    var prefix = isRenamableAccessor
                         ? newToken.ValueText[..(newToken.ValueText.IndexOf('_') + 1)]
                         : null;
 
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     {
                         SyntaxKind.StringLiteralToken => SyntaxFactory.Literal,
                         SyntaxKind.InterpolatedStringTextToken => (leadingTrivia, text, value, trailingTrivia) => SyntaxFactory.Token(newToken.LeadingTrivia, SyntaxKind.InterpolatedStringTextToken, text, value, newToken.TrailingTrivia),
-                        _ => throw ExceptionUtilities.Unreachable,
+                        _ => throw ExceptionUtilities.Unreachable(),
                     };
 
                     return RenameInStringLiteral(
@@ -750,11 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 bool replacementTextValid)
             {
                 var parent = oldToken.Parent!;
-<<<<<<< HEAD
-                var currentNewIdentifier = isVerbatim ? replacementText.Substring(1) : replacementText;
-=======
-                var currentNewIdentifier = _isVerbatim ? _replacementText[1..] : _replacementText;
->>>>>>> upstream/main
+                var currentNewIdentifier = isVerbatim ? replacementText[1..] : replacementText;
                 var oldIdentifier = newToken.ValueText;
                 var isAttributeName = SyntaxFacts.IsAttributeName(parent);
 

@@ -58,14 +58,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 oldSolution,
                 symbolicRenameInfo.Symbol,
                 options,
-                _optionsService.CreateProvider(),
                 cancellationToken).ConfigureAwait(false);
 
             var renameReplacementInfo = await renameLocationSet.ResolveConflictsAsync(
-                symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(request.NewName), nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+                symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(request.NewName), nonConflictSymbolKeys: default, _optionsService.CreateProvider(), cancellationToken).ConfigureAwait(false);
 
             if (!renameReplacementInfo.IsSuccessful ||
-                !renameReplacementInfo.ReplacementTextValid)
+                !renameReplacementInfo.SymbolToReplacementTextValid[symbolicRenameInfo.Symbol])
             {
                 return null;
             }
