@@ -108,8 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
             return true;
         }
 
-        private static bool IsValidSymbolToSynchronize(ISymbol symbol) =>
-            symbol.Kind is SymbolKind.Event or
+        private static bool IsValidSymbolToSynchronize(ISymbol symbol)
+            => symbol.Kind is SymbolKind.Event or
             SymbolKind.Field or
             SymbolKind.Method or
             SymbolKind.NamedType or

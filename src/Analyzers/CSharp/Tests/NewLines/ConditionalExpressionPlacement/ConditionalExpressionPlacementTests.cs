@@ -33,7 +33,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -68,7 +68,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -91,7 +91,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -114,7 +114,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -137,7 +137,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -159,7 +159,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -181,7 +181,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -203,7 +203,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -228,7 +228,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -253,7 +253,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -278,7 +278,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -303,7 +303,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -328,7 +328,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -367,7 +367,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -406,7 +406,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -443,7 +443,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -480,7 +480,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -519,7 +519,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -556,7 +556,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -593,7 +593,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -628,7 +628,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -663,7 +663,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -698,7 +698,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -733,7 +733,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -768,7 +768,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -803,7 +803,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
