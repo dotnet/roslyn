@@ -10213,10 +10213,6 @@ tryAgain:
                     }
 
                     mod = this.EatContextualToken(k);
-                    if (k == SyntaxKind.AsyncKeyword)
-                    {
-                        mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureAsync);
-                    }
                 }
                 else
                 {
