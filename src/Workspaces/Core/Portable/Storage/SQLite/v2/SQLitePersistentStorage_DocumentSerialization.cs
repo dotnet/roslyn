@@ -63,9 +63,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 statement.BindInt64Parameter(parameterIndex: 4, documentNameId);
                 statement.BindInt64Parameter(parameterIndex: 5, dataNameId);
             }
-
-            protected override bool TryGetRowId(SqlConnection connection, Database database, (DocumentPrimaryKey documentkeyId, int dataNameId) dataId, out long rowId)
-                => GetAndVerifyRowId(connection, database, dataId, out rowId);
         }
     }
 }

@@ -41,18 +41,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override string GetWriteQueueKey(string key)
                 => key;
 
+            // For the SolutionDataTable the key itself acts as the data-id.
             protected override (string key, bool unused)? TryGetDatabaseId(SqlConnection connection, string key, bool allowWrite)
-            {
-                // For the SolutionDataTable the key itself acts as the data-id.
-                return (key, unused: false);
-            }
-
-            protected override bool TryGetRowId(SqlConnection connection, Database database, (string key, bool unused) dataId, out long rowId)
-            {
-                // For the solution table, we have whatever user string that was passed in as our 'key'.  So we actually
-                // have to  go to the DB to find the row for this.
-                return GetActualRowIdFromDatabase(connection, database, dataId, out rowId);
-            }
+                => (key, unused: false);
 
             protected override void BindPrimaryKeyParameters(SqlStatement statement, (string key, bool unused) dataId)
                 => statement.BindStringParameter(parameterIndex: 1, value: dataId.key);

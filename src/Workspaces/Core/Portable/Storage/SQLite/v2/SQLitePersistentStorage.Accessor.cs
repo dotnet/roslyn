@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected abstract TDatabaseId? TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite);
             protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
-            protected abstract bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId);
 
             public void CreateTable(SqlConnection connection, Database database)
             {
@@ -214,7 +213,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // this location.  Note that only the data for a row in our system can change, the ID will
                     // always stay the same, and the data will always be valid for our ID.  So there is no
                     // safety issue here.
-                    return TryGetRowId(connection, database, dataId, out var writeCacheRowId)
+                    return TryGetActualRowIdFromDatabase(connection, database, dataId, out var writeCacheRowId)
                         ? readColumn(data, connection, database, writeCacheRowId)
                         : default;
                 }
@@ -321,40 +320,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return storedChecksum.HasValue && checksum == storedChecksum.Value;
             }
 
-#pragma warning disable CA1822 // Mark members as static - instance members used in Debug
-            protected bool GetAndVerifyRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
-#pragma warning restore CA1822 // Mark members as static
-            {
-#if false
-
-                // For the Document and Project tables, our dataId is our rowId:
-                //
-                // https://sqlite.org/lang_createtable.html
-                // if a rowid table has a primary key that consists of a single column and the
-                // declared type of that column is "INTEGER" in any mixture of upper and lower
-                // case, then the column becomes an alias for the rowid. Such a column is usually
-                // referred to as an "integer primary key". A PRIMARY KEY column only becomes an
-                // integer primary key if the declared type name is exactly "INTEGER"
-#if DEBUG
-                // make sure that if we actually request the rowId from the database that it
-                // is equal to our data id.  Only do this in debug as this can be expensive
-                // and we definitely do not want to do this in release.
-                if (GetActualRowIdFromDatabase(connection, database, (TDatabaseId)(object)dataId, out rowId))
-                {
-                    Debug.Assert(dataId == rowId);
-                }
-#endif
-
-                // Can just return out dataId as the rowId without actually having to hit the
-                // database at all.
-                rowId = dataId;
-                return true;
-#else
-                return GetActualRowIdFromDatabase(connection, database, dataId, out rowId);
-#endif
-            }
-
-            protected bool GetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
+            private bool TryGetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
                 // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is
