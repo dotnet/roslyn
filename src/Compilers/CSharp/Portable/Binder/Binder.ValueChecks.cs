@@ -2417,11 +2417,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void inferDeclarationExpressionValEscape()
             {
-                if (argsOpt.IsDefault)
-                {
-                    return;
-                }
-
                 // find the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.
                 var inferredDestinationValEscape = CallingMethodScope;
