@@ -27,12 +27,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private readonly record struct ProjectPrimaryKey(int ProjectPathId, int ProjectNameId);
 
         /// <summary>
-        /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and
+        /// <see cref="Accessor{TKey, TDatabaseId}"/> responsible for storing and
         /// retrieving data from <see cref="ProjectDataTableName"/>.
         /// </summary>
-        private class ProjectAccessor : Accessor<
+        private sealed class ProjectAccessor : Accessor<
             (ProjectKey projectKey, string name),
-            (ProjectId projectId, string name),
             (ProjectPrimaryKey projectKeyId, int dataNameId)>
         {
             public ProjectAccessor(SQLitePersistentStorage storage)
@@ -44,9 +43,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             protected override Table Table => Table.Project;
-
-            protected override (ProjectId projectId, string name) GetWriteQueueKey((ProjectKey projectKey, string name) key)
-                => (key.projectKey.Id, key.name);
 
             protected override (ProjectPrimaryKey projectKeyId, int dataNameId)? TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite)
                 => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, allowWrite);

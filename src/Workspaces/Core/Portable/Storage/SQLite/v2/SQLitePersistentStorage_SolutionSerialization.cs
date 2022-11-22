@@ -26,21 +26,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private readonly record struct SolutionPrimaryKey(string Data);
 
         /// <summary>
-        /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and 
+        /// <see cref="Accessor{TKey, TDatabaseId}"/> responsible for storing and 
         /// retrieving data from <see cref="SolutionDataTableName"/>.  Note that with the Solution 
         /// table there is no need for key->id translation.  i.e. the key acts as the ID itself.
         /// </summary>
-        private class SolutionAccessor : Accessor<string, string, SolutionPrimaryKey>
+        private sealed class SolutionAccessor : Accessor<string, SolutionPrimaryKey>
         {
             public SolutionAccessor(SQLitePersistentStorage storage)
-                : base(storage, ImmutableArray.Create((SolutionDataIdColumnName, "varchar")))
+                : base(storage, ImmutableArray.Create((SolutionDataIdColumnName, SQLiteVarCharType)))
             {
             }
 
             protected override Table Table => Table.Solution;
-
-            protected override string GetWriteQueueKey(string key)
-                => key;
 
             // For the SolutionDataTable the key itself acts as the data-id.
             protected override SolutionPrimaryKey? TryGetDatabaseId(SqlConnection connection, string key, bool allowWrite)

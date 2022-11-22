@@ -27,28 +27,24 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private readonly record struct DocumentPrimaryKey(ProjectPrimaryKey ProjectPrimaryKey, int DocumentPathId, int DocumentNameId);
 
         /// <summary>
-        /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and 
+        /// <see cref="Accessor{TKey, TDatabaseId}"/> responsible for storing and 
         /// retrieving data from <see cref="DocumentDataTableName"/>.
         /// </summary>
-        private class DocumentAccessor : Accessor<
+        private sealed class DocumentAccessor : Accessor<
             (DocumentKey documentKey, string name),
-            (DocumentId, string),
             (DocumentPrimaryKey documentkeyId, int dataNameId)>
         {
             public DocumentAccessor(SQLitePersistentStorage storage)
                 : base(storage, ImmutableArray.Create(
-                    (ProjectPathIdColumnName, "integer"),
-                    (ProjectNameIdColumnName, "integer"),
-                    (DocumentPathIdColumnName, "integer"),
-                    (DocumentNameIdColumnName, "integer"),
-                    (DataNameIdColumnName, "integer")))
+                    (ProjectPathIdColumnName, SQLiteIntegerType),
+                    (ProjectNameIdColumnName, SQLiteIntegerType),
+                    (DocumentPathIdColumnName, SQLiteIntegerType),
+                    (DocumentNameIdColumnName, SQLiteIntegerType),
+                    (DataNameIdColumnName, SQLiteIntegerType)))
             {
             }
 
             protected override Table Table => Table.Document;
-
-            protected override (DocumentId, string) GetWriteQueueKey((DocumentKey documentKey, string name) key)
-                => (key.documentKey.Id, key.name);
 
             protected override (DocumentPrimaryKey documentkeyId, int dataNameId)? TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, bool allowWrite)
                 => Storage.TryGetDocumentDataId(connection, key.documentKey, key.name, allowWrite);

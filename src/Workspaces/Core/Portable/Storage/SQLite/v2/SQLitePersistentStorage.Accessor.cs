@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// logic around cancellation/pooling/error-handling/etc, while still hitting different
         /// db tables.
         /// </summary>
-        private abstract class Accessor<TKey, TWriteQueueKey, TDatabaseId> 
+        private abstract class Accessor<TKey, TDatabaseId>
             where TDatabaseId : struct
         {
             protected readonly SQLitePersistentStorage Storage;
@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             /// </param>
             protected abstract TDatabaseId? TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite);
             protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseId dataId);
-            protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
             public void CreateTable(SqlConnection connection, Database database)
             {
