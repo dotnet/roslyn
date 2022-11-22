@@ -323,7 +323,7 @@ namespace BoundTreeGenerator
             }
         }
 
-        private void WriteClassFooter(TreeType node)
+        private void WriteClassFooter()
         {
             switch (_targetLang)
             {
@@ -925,7 +925,7 @@ namespace BoundTreeGenerator
                 WriteUpdateMethod(node as Node);
             }
 
-            WriteClassFooter(node);
+            WriteClassFooter();
         }
 
         private void WriteUpdateMethod(Node node)
@@ -981,9 +981,9 @@ namespace BoundTreeGenerator
                         {
                             Write("If ");
                             Or(AllSpecifiableFields(node),
-                                field => IsValueType(field.Type) ?
-                                            string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name) :
-                                            string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
+                                field => IsValueType(field.Type)
+                                            ? string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name)
+                                            : string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
                             WriteLine(" Then");
                             Indent();
                             Write("Dim result = New {0}", node.Name);

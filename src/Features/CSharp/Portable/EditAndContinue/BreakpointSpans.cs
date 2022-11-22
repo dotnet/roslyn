@@ -311,9 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.LocalFunctionStatement:
                     var localFunction = (LocalFunctionStatementSyntax)node;
-                    return (localFunction.Body != null) ?
-                        TryCreateSpanForNode(localFunction.Body, position) :
-                        TryCreateSpanForNode(localFunction.ExpressionBody!.Expression, position);
+                    return (localFunction.Body != null)
+                        ? TryCreateSpanForNode(localFunction.Body, position)
+                        : TryCreateSpanForNode(localFunction.ExpressionBody!.Expression, position);
 
                 default:
                     if (node is ExpressionSyntax expression)

@@ -32,6 +32,10 @@ internal static class WorkspaceConfigurationOptionsStorage
         "WorkspaceConfigurationOptions", "DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata,
         new FeatureFlagStorageLocation("Roslyn.DisableReferenceManagerRecoverableMetadata"));
 
+    public static readonly Option2<bool> DisableBackgroundCompilation = new(
+        "WorkspaceConfigurationOptions", "DisableBackgroundCompilation", WorkspaceConfigurationOptions.Default.DisableBackgroundCompilation,
+        new FeatureFlagStorageLocation("Roslyn.DisableBackgroundCompilation"));
+
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
     /// surprised by this and we want some time to work through those issues.

@@ -420,7 +420,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 trees[i] = VisualBasic.VisualBasicSyntaxTree.ParseText(SourceText.From(files[i], encoding, SourceHashAlgorithms.Default), options: parseOptions, path: sourceFileNames?[i]);
             }
 
-
             return VisualBasic.VisualBasicCompilation.Create(assemblyName, trees, references, compilationOptions);
         }
 

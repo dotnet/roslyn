@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (nodeToSpeculate is TypeSyntax typeNode)
             {
-                var bindingOption = isInNamespaceOrTypeContext ?
-                    SpeculativeBindingOption.BindAsTypeOrNamespace :
-                    SpeculativeBindingOption.BindAsExpression;
+                var bindingOption = isInNamespaceOrTypeContext
+                    ? SpeculativeBindingOption.BindAsTypeOrNamespace
+                    : SpeculativeBindingOption.BindAsExpression;
                 semanticModel.TryGetSpeculativeSemanticModel(position, typeNode, out speculativeModel, bindingOption);
                 return speculativeModel;
             }
@@ -575,9 +575,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)
         {
             var argumentsList = GetArgumentList(expression);
-            return argumentsList != null ?
-                argumentsList.Arguments.AsImmutableOrEmpty() :
-                default;
+            return argumentsList != null
+                ? argumentsList.Arguments.AsImmutableOrEmpty()
+                : default;
         }
 
         private static BaseArgumentListSyntax GetArgumentList(ExpressionSyntax expression)

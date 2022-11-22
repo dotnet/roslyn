@@ -443,6 +443,9 @@ dotnet_diagnostic.IDE0241.severity = %value%
 # IDE0250
 dotnet_diagnostic.IDE0250.severity = %value%
 
+# IDE0260
+dotnet_diagnostic.IDE0260.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -466,6 +469,12 @@ dotnet_diagnostic.IDE2003.severity = %value%
 
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
+
+# IDE2005
+dotnet_diagnostic.IDE2005.severity = %value%
+
+# IDE2006
+dotnet_diagnostic.IDE2006.severity = %value%
 
 # RE0001
 dotnet_diagnostic.RE0001.severity = %value%
@@ -1069,6 +1078,9 @@ No editorconfig based code style option
 # IDE0250, PreferReadOnlyStruct
 csharp_style_prefer_readonly_struct = true
 
+# IDE0260, PreferPatternMatchingOverAsWithNullCheck
+csharp_style_pattern_matching_over_as_with_null_check = true
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
 
@@ -1092,6 +1104,12 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 # IDE2004, AllowBlankLineAfterColonInConstructorInitializer
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+
+# IDE2005, AllowBlankLineAfterTokenInConditionalExpression
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true
+
+# IDE2006, AllowBlankLineAfterTokenInArrowExpressionClause
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
 
 # RE0001
 No editorconfig based code style option

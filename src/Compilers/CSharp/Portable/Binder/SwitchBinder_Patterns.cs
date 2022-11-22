@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
 
             // Report subsumption errors, but ignore the input's constant value for that.
-            CheckSwitchErrors(node, boundSwitchGoverningExpression, ref switchSections, decisionDag, diagnostics);
+            CheckSwitchErrors(ref switchSections, decisionDag, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void CheckSwitchErrors(
-            SwitchStatementSyntax node,
-            BoundExpression boundSwitchGoverningExpression,
             ref ImmutableArray<BoundSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
             BindingDiagnosticBag diagnostics)
@@ -226,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-
         private BoundSwitchLabel BindSwitchSectionLabel(
             Binder sectionBinder,
             SwitchLabelSyntax node,
@@ -269,6 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CasePatternSwitchLabel:
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
+
+                        MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
+
                         BoundPattern pattern = sectionBinder.BindPattern(
                             matchLabelSyntax.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, node.HasErrors, diagnostics);
                         if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)

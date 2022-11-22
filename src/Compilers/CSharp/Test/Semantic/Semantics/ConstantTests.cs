@@ -937,7 +937,6 @@ class C
             var longValue = "-9.223372036854776E+18";
 #endif
 
-
             var expected =
 $@"(sbyte)(sbyte.MaxValue + 0.1) --> 127
 sbyte.MaxValue + 0.1 --> 127.1
@@ -1712,91 +1711,90 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-    // (7,15): error CS0283: The type 'C.S' cannot be declared const
-    //         const S s = new S();
-    Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("C.S").WithLocation(7, 15),
-    // (8,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
-    //         const double ul1 = -9223372036854775808UL + 0;
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808UL").WithArguments("-", "ulong").WithLocation(8, 28),
-    // (9,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
-    //         const double ul2 = -9223372036854775808ul + 0;
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808ul").WithArguments("-", "ulong").WithLocation(9, 28),
-    // (12,27): error CS0133: The expression being assigned to 's2' must be constant
-    //         const string s2 = s1; // Not a constant
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "s1").WithArguments("s2").WithLocation(12, 27),
-    // (14,27): error CS0134: 'o1' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
-    //         const object o1 = "hello"; // Constants of ref type other than string must be null.
-    Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""hello""").WithArguments("o1", "object").WithLocation(14, 27),
-    // (16,60): error CS0463: Evaluation of the decimal constant expression failed
-    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
-    Diagnostic(ErrorCode.ERR_DecConstError, "-79228162514264337593543950335m - 1m").WithLocation(16, 60),
-    // (16,50): error CS0020: Division by constant zero
-    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
-    Diagnostic(ErrorCode.ERR_IntDivByZero, "1M/0M").WithLocation(16, 50),
-    // (16,38): error CS0020: Division by constant zero
-    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
-    Diagnostic(ErrorCode.ERR_IntDivByZero, "1UL/0UL").WithLocation(16, 38),
-    // (16,28): error CS0020: Division by constant zero
-    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
-    Diagnostic(ErrorCode.ERR_IntDivByZero, "1L/0L").WithLocation(16, 28),
-    // (16,18): error CS0020: Division by constant zero
-    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
-    Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(16, 18),
-    // (18,28): error CS0110: The evaluation of the constant value for 'z' involves a circular definition
-    //         const int z = 1 + (z + 1);
-    Diagnostic(ErrorCode.ERR_CircConstValue, "z").WithArguments("z").WithLocation(18, 28),
-    // (20,29): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-    //         int intConversion = (int)0x8888888888888888;
-    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)0x8888888888888888").WithArguments("9838263505978427528", "int").WithLocation(20, 29),
-    // (21,31): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'uint' (use 'unchecked' syntax to override)
-    //         uint uintConversion = (uint)0x8888888888888888;
-    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(uint)0x8888888888888888").WithArguments("9838263505978427528", "uint").WithLocation(21, 31),
-    // (22,31): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'long' (use 'unchecked' syntax to override)
-    //         long longConversion = (long)0x8888888888888888;
-    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(long)0x8888888888888888").WithArguments("9838263505978427528", "long").WithLocation(22, 31),
-    // (23,33): error CS0221: Constant value '1E+50' cannot be converted to a 'ulong' (use 'unchecked' syntax to override)
-    //         ulong ulongConversion = (ulong)1E50;
-    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(ulong)1E50").WithArguments("1E+50", "ulong").WithLocation(23, 33),
-    // (25,27): error CS0220: The operation overflows at compile time in checked mode
-    //         int intOverflow = int.MaxValue + 1;
-    Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1").WithLocation(25, 27),
-    // (26,29): error CS0220: The operation overflows at compile time in checked mode
-    //         uint uintOverflow = uint.MaxValue + 1;
-    Diagnostic(ErrorCode.ERR_CheckedOverflow, "uint.MaxValue + 1").WithLocation(26, 29),
-    // (27,29): error CS0220: The operation overflows at compile time in checked mode
-    //         long longOverflow = long.MaxValue + 1;
-    Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MaxValue + 1").WithLocation(27, 29),
-    // (28,31): error CS0220: The operation overflows at compile time in checked mode
-    //         ulong ulongOverflow = ulong.MaxValue + 1;
-    Diagnostic(ErrorCode.ERR_CheckedOverflow, "ulong.MaxValue + 1").WithLocation(28, 31),
-    // (30,28): error CS0220: The operation overflows at compile time in checked mode
-    //         int intUnderflow = int.MinValue - 1;
-    Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MinValue - 1").WithLocation(30, 28),
-    // (31,30): error CS0220: The operation overflows at compile time in checked mode
-    //         uint uintUnderflow = uint.MinValue - 1;
-    Diagnostic(ErrorCode.ERR_CheckedOverflow, "uint.MinValue - 1").WithLocation(31, 30),
-    // (32,30): error CS0220: The operation overflows at compile time in checked mode
-    //         long longUnderflow = long.MinValue - 1;
-    Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MinValue - 1").WithLocation(32, 30),
-    // (33,32): error CS0220: The operation overflows at compile time in checked mode
-    //         ulong ulongUnderflow = ulong.MinValue - 1;
-    Diagnostic(ErrorCode.ERR_CheckedOverflow, "ulong.MinValue - 1").WithLocation(33, 32),
-    // (7,17): warning CS0219: The variable 's' is assigned but its value is never used
-    //         const S s = new S();
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 17),
-    // (20,13): warning CS0219: The variable 'intConversion' is assigned but its value is never used
-    //         int intConversion = (int)0x8888888888888888;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "intConversion").WithArguments("intConversion").WithLocation(20, 13),
-    // (21,14): warning CS0219: The variable 'uintConversion' is assigned but its value is never used
-    //         uint uintConversion = (uint)0x8888888888888888;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "uintConversion").WithArguments("uintConversion").WithLocation(21, 14),
-    // (22,14): warning CS0219: The variable 'longConversion' is assigned but its value is never used
-    //         long longConversion = (long)0x8888888888888888;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "longConversion").WithArguments("longConversion").WithLocation(22, 14),
-    // (23,15): warning CS0219: The variable 'ulongConversion' is assigned but its value is never used
-    //         ulong ulongConversion = (ulong)1E50;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "ulongConversion").WithArguments("ulongConversion").WithLocation(23, 15)
-                );
+                // (7,15): error CS0283: The type 'C.S' cannot be declared const
+                //         const S s = new S();
+                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("C.S").WithLocation(7, 15),
+                // (8,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
+                //         const double ul1 = -9223372036854775808UL + 0;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808UL").WithArguments("-", "ulong").WithLocation(8, 28),
+                // (9,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
+                //         const double ul2 = -9223372036854775808ul + 0;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808ul").WithArguments("-", "ulong").WithLocation(9, 28),
+                // (12,27): error CS0133: The expression being assigned to 's2' must be constant
+                //         const string s2 = s1; // Not a constant
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "s1").WithArguments("s2").WithLocation(12, 27),
+                // (14,27): error CS0134: 'o1' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //         const object o1 = "hello"; // Constants of ref type other than string must be null.
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""hello""").WithArguments("o1", "object").WithLocation(14, 27),
+                // (16,18): error CS0020: Division by constant zero
+                //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(16, 18),
+                // (16,28): error CS0020: Division by constant zero
+                //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "1L/0L").WithLocation(16, 28),
+                // (16,38): error CS0020: Division by constant zero
+                //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "1UL/0UL").WithLocation(16, 38),
+                // (16,50): error CS0020: Division by constant zero
+                //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "1M/0M").WithLocation(16, 50),
+                // (16,60): error CS0463: Evaluation of the decimal constant expression failed
+                //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+                Diagnostic(ErrorCode.ERR_DecConstError, "-79228162514264337593543950335m - 1m").WithLocation(16, 60),
+                // (18,28): error CS0110: The evaluation of the constant value for 'z' involves a circular definition
+                //         const int z = 1 + (z + 1);
+                Diagnostic(ErrorCode.ERR_CircConstValue, "z").WithArguments("z").WithLocation(18, 28),
+                // (20,29): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         int intConversion = (int)0x8888888888888888;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)0x8888888888888888").WithArguments("9838263505978427528", "int").WithLocation(20, 29),
+                // (21,31): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'uint' (use 'unchecked' syntax to override)
+                //         uint uintConversion = (uint)0x8888888888888888;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(uint)0x8888888888888888").WithArguments("9838263505978427528", "uint").WithLocation(21, 31),
+                // (22,31): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'long' (use 'unchecked' syntax to override)
+                //         long longConversion = (long)0x8888888888888888;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(long)0x8888888888888888").WithArguments("9838263505978427528", "long").WithLocation(22, 31),
+                // (23,33): error CS0221: Constant value '1E+50' cannot be converted to a 'ulong' (use 'unchecked' syntax to override)
+                //         ulong ulongConversion = (ulong)1E50;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(ulong)1E50").WithArguments("1E+50", "ulong").WithLocation(23, 33),
+                // (25,27): error CS0220: The operation overflows at compile time in checked mode
+                //         int intOverflow = int.MaxValue + 1;
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1").WithLocation(25, 27),
+                // (26,29): error CS0220: The operation overflows at compile time in checked mode
+                //         uint uintOverflow = uint.MaxValue + 1;
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "uint.MaxValue + 1").WithLocation(26, 29),
+                // (27,29): error CS0220: The operation overflows at compile time in checked mode
+                //         long longOverflow = long.MaxValue + 1;
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MaxValue + 1").WithLocation(27, 29),
+                // (28,31): error CS0220: The operation overflows at compile time in checked mode
+                //         ulong ulongOverflow = ulong.MaxValue + 1;
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "ulong.MaxValue + 1").WithLocation(28, 31),
+                // (30,28): error CS0220: The operation overflows at compile time in checked mode
+                //         int intUnderflow = int.MinValue - 1;
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MinValue - 1").WithLocation(30, 28),
+                // (31,30): error CS0220: The operation overflows at compile time in checked mode
+                //         uint uintUnderflow = uint.MinValue - 1;
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "uint.MinValue - 1").WithLocation(31, 30),
+                // (32,30): error CS0220: The operation overflows at compile time in checked mode
+                //         long longUnderflow = long.MinValue - 1;
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MinValue - 1").WithLocation(32, 30),
+                // (33,32): error CS0220: The operation overflows at compile time in checked mode
+                //         ulong ulongUnderflow = ulong.MinValue - 1;
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "ulong.MinValue - 1").WithLocation(33, 32),
+                // (7,17): warning CS0219: The variable 's' is assigned but its value is never used
+                //         const S s = new S();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 17),
+                // (20,13): warning CS0219: The variable 'intConversion' is assigned but its value is never used
+                //         int intConversion = (int)0x8888888888888888;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "intConversion").WithArguments("intConversion").WithLocation(20, 13),
+                // (21,14): warning CS0219: The variable 'uintConversion' is assigned but its value is never used
+                //         uint uintConversion = (uint)0x8888888888888888;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "uintConversion").WithArguments("uintConversion").WithLocation(21, 14),
+                // (22,14): warning CS0219: The variable 'longConversion' is assigned but its value is never used
+                //         long longConversion = (long)0x8888888888888888;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "longConversion").WithArguments("longConversion").WithLocation(22, 14),
+                // (23,15): warning CS0219: The variable 'ulongConversion' is assigned but its value is never used
+                //         ulong ulongConversion = (ulong)1E50;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "ulongConversion").WithArguments("ulongConversion").WithLocation(23, 15));
         }
 
         [Fact]

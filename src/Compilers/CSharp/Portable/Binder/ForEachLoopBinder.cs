@@ -271,11 +271,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Check for support for 'scoped'.
                             ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedType.ScopedKeyword, diagnostics);
-
                             typeSyntax = scopedType.Type;
                         }
 
-                        typeSyntax = typeSyntax.SkipRef(out _);
+                        if (typeSyntax is RefTypeSyntax refType)
+                        {
+                            MessageID.IDS_FeatureRefForEach.CheckFeatureAvailability(diagnostics, typeSyntax);
+                            typeSyntax = refType.Type;
+                        }
 
                         bool isVar;
                         AliasSymbol alias;

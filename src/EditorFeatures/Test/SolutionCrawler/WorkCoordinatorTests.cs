@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -1476,7 +1477,7 @@ class C
             // let the test not care about cancellation or work not enqueued yet.
 
             // block solution cralwer from processing.
-            var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
+            var globalOperation = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOperationNotificationService>();
             using (var operation = globalOperation.Start("Block SolutionCrawler"))
             {
                 // make sure global operaiton is actually started
@@ -1681,7 +1682,9 @@ class C
 
         private class WorkCoordinatorWorkspace : TestWorkspace
         {
-            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService)).AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider));
+            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
+                .AddParts(typeof(TestDocumentTrackingService))
+                .AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider));
 
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;

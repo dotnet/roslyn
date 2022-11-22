@@ -367,7 +367,6 @@ namespace BuildBoss
             }
         }
 
-
         private string FindNuGetPackage(string directory, string partialName)
         {
             var regex = $@"{partialName}.\d.*\.nupkg";
