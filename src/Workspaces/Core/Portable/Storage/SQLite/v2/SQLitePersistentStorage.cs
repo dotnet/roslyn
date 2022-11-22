@@ -189,12 +189,12 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             {
                 var dbName = database.GetName();
                 connection.ExecuteCommand($"""
-                create table if not exists {dbName}.{SolutionDataTableName}(
-                    ""{SolutionDataIdColumnName}"" varchar primary key not null,
-                    ""{ChecksumColumnName}"" blob,
-                    ""{DataColumnName}"" blob
-                )
-                """);
+                    create table if not exists {dbName}.{SolutionDataTableName}(
+                        "{SolutionDataIdColumnName}" varchar primary key not null,
+                        "{ChecksumColumnName}" blob,
+                        "{DataColumnName}" blob
+                    )
+                    """);
 
                 connection.ExecuteCommand($"""
                     create table if not exists {dbName}.{ProjectDataTableName}(
