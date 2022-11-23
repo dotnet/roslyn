@@ -58,19 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
 
             // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
-            if (methodSymbol is SynthesizedDelegateInvokeMethod)
+            if (methodSymbol is SynthesizedDelegateInvokeMethod && methodSymbol.Parameters is [.., var p] && p.IsParams)
             {
-                foreach (var parameter in methodSymbol.Parameters)
-                {
-                    if (parameter.IsParams)
-                    {
-                        Binder.GetWellKnownTypeMember(Compilation,
-                            WellKnownMember.System_ParamArrayAttribute__ctor,
-                            out var memberUseSiteInfo);
-                        useSiteInfo.Add(memberUseSiteInfo);
-                        break;
-                    }
-                }
+                Binder.GetWellKnownTypeMember(Compilation,
+                    WellKnownMember.System_ParamArrayAttribute__ctor,
+                    out var memberUseSiteInfo);
+                useSiteInfo.Add(memberUseSiteInfo);
             }
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
