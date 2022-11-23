@@ -30,21 +30,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
 /// Low level tagger responsible for producing specific diagnostics tags for some particular <see
-/// cref="DiagnosticKinds"/>.
+/// cref="DiagnosticKinds"/>.  It is itself never exported, but it it is used by 
 /// </summary>
-internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousViewTaggerProvider<TTag>
+internal sealed partial class AsynchronousDiagnosticsTaggerProvider<TTag> : AsynchronousViewTaggerProvider<TTag>
     where TTag : ITag
 {
     private readonly DiagnosticKinds _diagnosticKinds;
     private readonly IDiagnosticService _diagnosticService;
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
-    private readonly IRawDiagnosticsTaggerProviderCallback<TTag> _callback;
+    private readonly ICallback _callback;
 
     protected override ImmutableArray<IOption> Options => _callback.Options;
 
-    public RawDiagnosticsTaggerProvider(
-        IRawDiagnosticsTaggerProviderCallback<TTag> configuration,
+    public AsynchronousDiagnosticsTaggerProvider(
+        ICallback callback,
         DiagnosticKinds diagnosticKinds,
         IThreadingContext threadingContext,
         IDiagnosticService diagnosticService,
@@ -54,7 +54,7 @@ internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousViewTagge
         IAsynchronousOperationListener listener)
         : base(threadingContext, globalOptions, visibilityTracker, listener)
     {
-        _callback = configuration;
+        _callback = callback;
         _diagnosticKinds = diagnosticKinds;
         _diagnosticService = diagnosticService;
         _analyzerService = analyzerService;

@@ -17,21 +17,22 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
-/// Base type for all taggers that interact with the <see cref="IDiagnosticAnalyzerService"/> and produce tags for
-/// the diagnostics with different UI presentations.
+/// Base type for all taggers that interact with the <see cref="IDiagnosticAnalyzerService"/> and produce tags for the
+/// diagnostics with different UI presentations.  It does no computation work itself, but instead defers that to it's
+/// underlying <see cref="AsynchronousDiagnosticsTaggerProvider{TTag}"/>s.
 /// </summary>
-internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
-    : IViewTaggerProvider, IRawDiagnosticsTaggerProviderCallback<TTag>
+internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
+    : IViewTaggerProvider, AsynchronousDiagnosticsTaggerProvider<TTag>.ICallback
     where TTag : ITag
 {
     /// <summary>
     /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.
     /// </summary>
-    private readonly ImmutableArray<RawDiagnosticsTaggerProvider<TTag>> _rawDiagnosticsTaggerProviders;
+    private readonly ImmutableArray<AsynchronousDiagnosticsTaggerProvider<TTag>> _diagnosticsTaggerProviders;
 
     protected readonly IGlobalOptionService GlobalOptions;
 
-    protected AbstractDiagnosticsTaggerProvider(
+    protected AbstractAggregateDiagnosticsTaggerProvider(
         IThreadingContext threadingContext,
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
@@ -41,29 +42,35 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     {
         GlobalOptions = globalOptions;
 
-        _rawDiagnosticsTaggerProviders = ImmutableArray.Create(
-            CreateRawDiagnosticsTaggerProvider(DiagnosticKinds.CompilerSyntax),
-            CreateRawDiagnosticsTaggerProvider(DiagnosticKinds.CompilerSemantic),
-            CreateRawDiagnosticsTaggerProvider(DiagnosticKinds.AnalyzerSyntax),
-            CreateRawDiagnosticsTaggerProvider(DiagnosticKinds.AnalyzerSemantic));
+        _diagnosticsTaggerProviders = ImmutableArray.Create(
+            CreateDiagnosticsTaggerProvider(DiagnosticKinds.CompilerSyntax),
+            CreateDiagnosticsTaggerProvider(DiagnosticKinds.CompilerSemantic),
+            CreateDiagnosticsTaggerProvider(DiagnosticKinds.AnalyzerSyntax),
+            CreateDiagnosticsTaggerProvider(DiagnosticKinds.AnalyzerSemantic));
 
         return;
 
-        RawDiagnosticsTaggerProvider<TTag> CreateRawDiagnosticsTaggerProvider(DiagnosticKinds diagnosticKinds)
-        {
-            return new RawDiagnosticsTaggerProvider<TTag>(
-                this,
-                diagnosticKinds,
-                threadingContext,
-                diagnosticService,
-                analyzerService,
-                globalOptions,
-                visibilityTracker,
-                listener);
-        }
+        AsynchronousDiagnosticsTaggerProvider<TTag> CreateDiagnosticsTaggerProvider(DiagnosticKinds diagnosticKinds)
+            => new(this, diagnosticKinds, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
     }
 
-    #region IRawDiagnosticsTaggerProviderCallback
+    public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+    {
+        using var _ = ArrayBuilder<ITagger<TTag>>.GetInstance(out var taggers);
+        foreach (var taggerProvider in _diagnosticsTaggerProviders)
+            taggers.AddIfNotNull(taggerProvider.CreateTagger<TTag>(textView, buffer));
+
+        var tagger = new AggregateTagger(this, taggers.ToImmutable());
+        if (tagger is not ITagger<T> genericTagger)
+        {
+            tagger.Dispose();
+            return null;
+        }
+
+        return genericTagger;
+    }
+
+    #region AsynchronousDiagnosticsTaggerProvider<TTag>.ICallback
 
     public abstract ImmutableArray<IOption> Options { get; }
     public virtual ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray<IOption>.Empty;
@@ -86,20 +93,4 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
         => diagnosticData.DataLocation is not null ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
 
     #endregion
-
-    public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
-    {
-        using var _ = ArrayBuilder<ITagger<TTag>>.GetInstance(out var taggers);
-        foreach (var tagProvider in _rawDiagnosticsTaggerProviders)
-            taggers.AddIfNotNull(tagProvider.CreateTagger<TTag>(textView, buffer));
-
-        var tagger = new AggregateTagger(this, taggers.ToImmutable());
-        if (tagger is not ITagger<T> genericTagger)
-        {
-            tagger.Dispose();
-            return null;
-        }
-
-        return genericTagger;
-    }
 }

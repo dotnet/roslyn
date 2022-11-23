@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> where TTag : ITag
+    internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag> where TTag : ITag
     {
         /// <summary>
         /// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private sealed class AggregateTagger : ITagger<TTag>, IDisposable
         {
-            private readonly AbstractDiagnosticsTaggerProvider<TTag> _taggerProvider;
+            private readonly AbstractAggregateDiagnosticsTaggerProvider<TTag> _taggerProvider;
             private readonly ImmutableArray<ITagger<TTag>> _taggers;
 
             public AggregateTagger(
-                AbstractDiagnosticsTaggerProvider<TTag> taggerProvider,
+                AbstractAggregateDiagnosticsTaggerProvider<TTag> taggerProvider,
                 ImmutableArray<ITagger<TTag>> taggers)
             {
                 _taggerProvider = taggerProvider;

@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     internal class DiagnosticTaggerWrapper<TProvider, TTag> : IDisposable
-        where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
+        where TProvider : AbstractAggregateDiagnosticsTaggerProvider<TTag>
         where TTag : ITag
     {
         private readonly TestWorkspace _workspace;
