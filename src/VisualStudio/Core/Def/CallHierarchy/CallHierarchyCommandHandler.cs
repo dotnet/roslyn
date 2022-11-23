@@ -60,30 +60,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public bool ExecuteCommand(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                context.OperationContext, _threadingContext);
-            if (document == null)
-            {
-                return true;
-            }
-
-            var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
             var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            ExecuteCommandAsync(document, caretPosition)
+            ExecuteCommandAsync(args, context)
                 .ReportNonFatalErrorAsync()
                 .CompletesAsyncOperation(token);
 
             return true;
         }
 
-        private async Task ExecuteCommandAsync(Document document, int caretPosition)
+        private async Task ExecuteCommandAsync(ViewCallHierarchyCommandArgs args, CommandExecutionContext commandExecutionContext)
         {
+            var document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                commandExecutionContext.OperationContext).ConfigureAwait(true);
+            if (document == null)
+            {
+                return;
+            }
+
             using (var context = _threadOperationExecutor.BeginExecute(
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
             {
+                var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
                 var cancellationToken = context.UserCancellationToken;
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
