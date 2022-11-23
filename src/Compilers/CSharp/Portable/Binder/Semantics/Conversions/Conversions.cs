@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
 
             // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
-            if (methodSymbol is SynthesizedDelegateInvokeMethod && methodSymbol.Parameters is [.., var p] && p.IsParams)
+            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod && methodSymbol.Parameters is [.., var p] && p.IsParams)
             {
                 Binder.GetWellKnownTypeMember(Compilation,
                     WellKnownMember.System_ParamArrayAttribute__ctor,
