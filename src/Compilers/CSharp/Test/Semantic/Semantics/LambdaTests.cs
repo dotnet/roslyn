@@ -8264,23 +8264,21 @@ class Program
                 var lam3 = (int[] xs, params int[] ys) => xs.Length + ys.Length;
                 Report(lam3);
                 """;
-            var comp = CreateCompilation(source).VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: """
+            CompileAndVerify(source, expectedOutput: """
                 <>f__AnonymousDelegate0
                 System.Func`2[System.Int32[],System.Int32]
                 <>f__AnonymousDelegate1
-                """);
-            var reference = comp.EmitToImageReference();
-            var assembly = CreateCompilation("", new[] { reference }).GetReferencedAssemblySymbol(reference);
+                """, symbolValidator: static module =>
+                {
+                    var lam1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate0");
+                    Assert.True(lam1.DelegateParameters().Single().IsParams);
 
-            var lam1 = assembly.GetTypeByMetadataName("<>f__AnonymousDelegate0");
-            Assert.True(lam1.DelegateParameters().Single().IsParams);
-
-            var lam3 = assembly.GetTypeByMetadataName("<>f__AnonymousDelegate1");
-            var lam3Parameters = lam3.DelegateParameters();
-            Assert.Equal(2, lam3Parameters.Length);
-            Assert.False(lam3Parameters[0].IsParams);
-            Assert.True(lam3Parameters[1].IsParams);
+                    var lam3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate1");
+                    var lam3Parameters = lam3.DelegateParameters();
+                    Assert.Equal(2, lam3Parameters.Length);
+                    Assert.False(lam3Parameters[0].IsParams);
+                    Assert.True(lam3Parameters[1].IsParams);
+                });
         }
 
         [Fact]
