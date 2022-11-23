@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// the diagnostics with different UI presentations.
 /// </summary>
 internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
-    : ITaggerProvider, IRawDiagnosticsTaggerProviderCallback<TTag>
+    : IViewTaggerProvider, IRawDiagnosticsTaggerProviderCallback<TTag>
     where TTag : ITag
 {
     /// <summary>
@@ -41,18 +42,18 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
         GlobalOptions = globalOptions;
 
         _rawDiagnosticsTaggerProviders = ImmutableArray.Create(
-            CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration.Syntax | RawDiagnosticTaggerConfiguration.Compiler),
-            CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration.Syntax | RawDiagnosticTaggerConfiguration.Analyzer),
-            CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration.Semantic | RawDiagnosticTaggerConfiguration.Compiler),
-            CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration.Semantic | RawDiagnosticTaggerConfiguration.Analyzer));
+            CreateRawDiagnosticsTaggerProvider(DiagnosticKinds.CompilerSyntax),
+            CreateRawDiagnosticsTaggerProvider(DiagnosticKinds.CompilerSemantic),
+            CreateRawDiagnosticsTaggerProvider(DiagnosticKinds.AnalyzerSyntax),
+            CreateRawDiagnosticsTaggerProvider(DiagnosticKinds.AnalyzerSemantic));
 
         return;
 
-        RawDiagnosticsTaggerProvider<TTag> CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration diagnosticType)
+        RawDiagnosticsTaggerProvider<TTag> CreateRawDiagnosticsTaggerProvider(DiagnosticKinds diagnosticKinds)
         {
             return new RawDiagnosticsTaggerProvider<TTag>(
                 this,
-                diagnosticType,
+                diagnosticKinds,
                 threadingContext,
                 diagnosticService,
                 analyzerService,
@@ -86,11 +87,11 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
 
     #endregion
 
-    public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
+    public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
     {
         using var _ = ArrayBuilder<ITagger<TTag>>.GetInstance(out var taggers);
         foreach (var tagProvider in _rawDiagnosticsTaggerProviders)
-            taggers.AddIfNotNull(tagProvider.CreateTagger<TTag>(buffer));
+            taggers.AddIfNotNull(tagProvider.CreateTagger<TTag>(textView, buffer));
 
         var tagger = new AggregateTagger(this, taggers.ToImmutable());
         if (tagger is not ITagger<T> genericTagger)

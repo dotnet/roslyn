@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -23,17 +24,18 @@ using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
 /// Low level tagger responsible for producing specific diagnostics tags for some particular <see
-/// cref="RawDiagnosticTaggerConfiguration"/>.
+/// cref="DiagnosticKinds"/>.
 /// </summary>
-internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerProvider<TTag>
+internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousViewTaggerProvider<TTag>
     where TTag : ITag
 {
-    private readonly RawDiagnosticTaggerConfiguration _configuration;
+    private readonly DiagnosticKinds _diagnosticKinds;
     private readonly IDiagnosticService _diagnosticService;
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
@@ -43,7 +45,7 @@ internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerPro
 
     public RawDiagnosticsTaggerProvider(
         IRawDiagnosticsTaggerProviderCallback<TTag> configuration,
-        RawDiagnosticTaggerConfiguration diagnosticType,
+        DiagnosticKinds diagnosticKinds,
         IThreadingContext threadingContext,
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
@@ -53,7 +55,7 @@ internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerPro
         : base(threadingContext, globalOptions, visibilityTracker, listener)
     {
         _callback = configuration;
-        _configuration = diagnosticType;
+        _diagnosticKinds = diagnosticKinds;
         _diagnosticService = diagnosticService;
         _analyzerService = analyzerService;
     }
@@ -80,6 +82,17 @@ internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerPro
             TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
             TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
             TaggerEventSources.OnTextChanged(subjectBuffer));
+    }
+
+    protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+    {
+        this.ThreadingContext.ThrowIfNotOnUIThread();
+        Contract.ThrowIfNull(textView);
+
+        var visibleSpan = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
+        return visibleSpan == null
+            ? base.GetSpansToTag(textView, subjectBuffer)
+            : SpecializedCollections.SingletonEnumerable(visibleSpan.Value);
     }
 
     protected sealed override Task ProduceTagsAsync(
@@ -118,7 +131,10 @@ internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerPro
         try
         {
             var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
-                document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document,
+                spanToTag.SnapshotSpan.Span.ToTextSpan(),
+                diagnosticKinds: _diagnosticKinds,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var requestedSpan = spanToTag.SnapshotSpan;
 

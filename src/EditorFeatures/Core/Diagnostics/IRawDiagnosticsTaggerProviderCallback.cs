@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
 /// Callback a particular <see cref="RawDiagnosticsTaggerProvider{TTag}"/> needs to perform some work.  This
-/// callback behaves the same regardless of the particular <see cref="RawDiagnosticTaggerConfiguration"/> the tagger
+/// callback behaves the same regardless of the particular <see cref="DiagnosticKinds"/> the tagger
 /// is computing tags for.
 /// </summary>
 internal interface IRawDiagnosticsTaggerProviderCallback<TTag> where TTag : ITag
