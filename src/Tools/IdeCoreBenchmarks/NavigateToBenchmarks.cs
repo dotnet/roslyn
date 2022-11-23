@@ -163,7 +163,12 @@ namespace IdeCoreBenchmarks
                 Console.WriteLine("Successfully got persistent storage instance");
                 var start = DateTime.Now;
                 var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
-                    async () => await SyntaxTreeIndex.GetIndexAsync(d, default))).ToList();
+                    async () =>
+                    {
+                        // var tree = await d.GetSyntaxRootAsync();
+                        await TopLevelSyntaxTreeIndex.GetIndexAsync(d, default);
+                        await SyntaxTreeIndex.GetIndexAsync(d, default);
+                    })).ToList();
                 await Task.WhenAll(tasks);
                 Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
             }

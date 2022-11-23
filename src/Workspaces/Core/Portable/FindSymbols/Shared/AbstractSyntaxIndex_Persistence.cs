@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // attempt to load from persisted state
                 using var stream = await storage.ReadStreamAsync(documentKey, s_persistenceName, checksum, cancellationToken).ConfigureAwait(false);
+                using var gzipStream = new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true);
                 using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
                 if (reader != null)
                     return read(stringTable, reader, checksum);
@@ -127,15 +129,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
-                using var stream = SerializableBytes.CreateWritableStream();
 
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                using (var stream = SerializableBytes.CreateWritableStream())
                 {
-                    WriteTo(writer);
-                }
+                    using (var gzipStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true))
+                    using (var writer = new ObjectWriter(gzipStream, leaveOpen: true, cancellationToken))
+                    {
+                        WriteTo(writer);
+                        gzipStream.Flush();
+                    }
 
-                stream.Position = 0;
-                return await storage.WriteStreamAsync(document, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
+                    stream.Position = 0;
+                    return await storage.WriteStreamAsync(document, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
+                }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
