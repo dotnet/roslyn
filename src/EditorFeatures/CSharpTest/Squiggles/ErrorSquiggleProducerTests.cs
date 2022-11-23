@@ -33,7 +33,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
     [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class ErrorSquiggleProducerTests
     {
         [WpfFact]

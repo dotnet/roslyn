@@ -30,7 +30,7 @@ using Microsoft.CodeAnalysis.Storage;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
     [UseExportProvider]
-    [Trait(Traits.Editor, Traits.Editors.Preview)]
+    [Trait(Traits.Editor, Traits.Editors.Preview), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class PreviewWorkspaceTests
     {
         [Fact]

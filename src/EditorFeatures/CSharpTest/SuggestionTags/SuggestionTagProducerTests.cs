@@ -22,9 +22,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.SuggestionTags), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class SuggestionTagProducerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SuggestionTags)]
+        [WpfFact]
         public async Task SuggestionTagTest1()
         {
             var (spans, selection) = await GetTagSpansAndSelectionAsync(

@@ -26,11 +26,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.Diagnostics)]
+    [Trait(Traits.Feature, Traits.Features.Diagnostics), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class DiagnosticsClassificationTaggerProviderTests
     {
-        [WpfTheory]
-        [CombinatorialData]
+        [WpfTheory, CombinatorialData]
         public async Task Test_FadingSpans(bool throughAdditionalLocations)
         {
             var analyzer = new Analyzer(diagnosticId: "test", throughAdditionalLocations);
