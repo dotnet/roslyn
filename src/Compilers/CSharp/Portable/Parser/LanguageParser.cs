@@ -7426,7 +7426,7 @@ done:;
                     return null;
                 }
 
-                return CheckFeatureAvailability(questionToken, MessageID.IDS_FeatureNullable);
+                return questionToken;
 
                 bool canFollowNullableType()
                 {
