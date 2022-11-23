@@ -14082,60 +14082,6 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void ParamsArray_SynthesizedClosureIL()
-        {
-            var source = """
-                var lam = (int x, params int[] ys) => { };
-                System.Console.WriteLine(lam.Target!.GetType().Name);
-                """;
-            var verifier = CompileAndVerify(source, expectedOutput: "<>c").VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>c", $$"""
-                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
-                	extends [{{s_libPrefix}}]System.Object
-                {
-                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                		01 00 00 00
-                	)
-                	// Fields
-                	.field public static initonly class Program/'<>c' '<>9'
-                	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
-                	// Methods
-                	.method private hidebysig specialname rtspecialname static 
-                		void .cctor () cil managed 
-                	{
-                		// Method begins at RVA 0x20a4
-                		// Code size 11 (0xb)
-                		.maxstack 8
-                		IL_0000: newobj instance void Program/'<>c'::.ctor()
-                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-                		IL_000a: ret
-                	} // end of method '<>c'::.cctor
-                	.method public hidebysig specialname rtspecialname 
-                		instance void .ctor () cil managed 
-                	{
-                		// Method begins at RVA 0x209c
-                		// Code size 7 (0x7)
-                		.maxstack 8
-                		IL_0000: ldarg.0
-                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
-                		IL_0006: ret
-                	} // end of method '<>c'::.ctor
-                	.method assembly hidebysig 
-                		instance void '<<Main>$>b__0_0' (
-                			int32 x,
-                			int32[] ys
-                		) cil managed 
-                	{
-                		// Method begins at RVA 0x20b0
-                		// Code size 1 (0x1)
-                		.maxstack 8
-                		IL_0000: ret
-                	} // end of method '<>c'::'<<Main>$>b__0_0'
-                } // end of class <>c
-                """);
-        }
-
-        [Fact]
         public void ParamsArray_DelegateConversions_Lambdas()
         {
             var source = """
