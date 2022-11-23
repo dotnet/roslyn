@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -24,10 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
             result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
+            var readonlyToken = modifiers.FirstOrDefault(static t => t.Kind() == SyntaxKind.ReadOnlyKeyword);
+            if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
+                modifierErrors |= MessageID.IDS_FeatureReadOnlyMembers.CheckFeatureAvailability(diagnostics, readonlyToken.Parent, readonlyToken.GetLocation());
+
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
-            {
                 result |= defaultAccess;
-            }
 
             return result;
         }
@@ -100,18 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifierErrors = true;
             }
 
-            modifierErrors |= checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected)
-                              | checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers);
-
-            if ((result & DeclarationModifiers.File) != 0)
-            {
-                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureFileTypes, diagnostics, errorLocation);
-            }
-
-            if ((result & DeclarationModifiers.Async) != 0)
-            {
-                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureAsync, diagnostics, errorLocation);
-            }
+            modifierErrors |=
+                checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected) |
+                checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers) |
+                checkFeature(DeclarationModifiers.File, MessageID.IDS_FeatureFileTypes) |
+                checkFeature(DeclarationModifiers.Async, MessageID.IDS_FeatureAsync);
 
             return result;
 
