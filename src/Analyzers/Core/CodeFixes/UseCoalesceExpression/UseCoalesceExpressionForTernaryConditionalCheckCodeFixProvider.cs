@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpression), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForTernaryConditionalCheck), Shared]
     internal class UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);

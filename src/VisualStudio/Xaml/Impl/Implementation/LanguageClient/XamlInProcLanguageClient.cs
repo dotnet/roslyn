@@ -10,12 +10,14 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Xaml;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer;
@@ -44,9 +46,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             IGlobalOptionService globalOptions,
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
+            ExportProvider exportProvider,
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
             _projectService = projectService;
             _feedbackService = feedbackService;
@@ -65,9 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
-            ILspServiceLogger logger)
+            ILspServiceLogger logger,
+            HostServices hostServices)
         {
-            return new XamlLanguageServer(LspServiceProvider, jsonRpc, capabilitiesProvider, logger, SupportedLanguages, serverKind, _projectService, _feedbackService);
+            return new XamlLanguageServer(LspServiceProvider, jsonRpc, capabilitiesProvider, logger, SupportedLanguages, serverKind, hostServices, _projectService, _feedbackService);
         }
 
         /// <summary>

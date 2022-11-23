@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression, bool isObjectOrCollectionInitializer)
+        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
         {
             switch (containingExpression.Kind)
             {
@@ -208,16 +208,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                     boundObjectInitializerMember.Expanded,
                                     boundObjectInitializerMember.Syntax);
                     }
-
-                default:
-                    return DeriveArguments(containingExpression);
-            }
-        }
-
-        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
-        {
-            switch (containingExpression.Kind)
-            {
                 case BoundKind.IndexerAccess:
                     {
                         var boundIndexer = (BoundIndexerAccess)containingExpression;

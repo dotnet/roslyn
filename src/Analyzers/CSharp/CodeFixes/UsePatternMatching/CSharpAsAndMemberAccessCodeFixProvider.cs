@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UsePatternMatchingAsAndMemberAccessId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UsePatternMatchingAsAndMemberAccessDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

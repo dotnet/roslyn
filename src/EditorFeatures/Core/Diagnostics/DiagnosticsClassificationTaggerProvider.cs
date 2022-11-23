@@ -31,15 +31,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(ClassificationTag))]
-    internal partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>
+    internal sealed partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>
     {
-        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions = ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification);
-
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
         private readonly EditorOptionsService _editorOptionsService;
 
-        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Classification);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected internal override bool IsEnabled
             => !_editorOptionsService.Factory.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        protected internal override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, diagnostic fading is handled by the lsp client.
             return mode == DiagnosticMode.Push;

@@ -251,7 +251,6 @@
     <SystemSecurityPrincipalVersion>4.3.0</SystemSecurityPrincipalVersion>
     <SystemTextEncodingCodePagesVersion>6.0.0</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
-    <SystemThreadingChannelsVersion>6.0.0</SystemThreadingChannelsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextJsonVersion>6.0.0</SystemTextJsonVersion>
     <SystemThreadingChannelsVersion>6.0.0</SystemThreadingChannelsVersion>

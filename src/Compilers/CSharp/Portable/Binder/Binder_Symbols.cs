@@ -444,6 +444,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.FunctionPointerType:
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
+                    MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, syntax, functionPointerTypeSyntax.DelegateKeyword.GetLocation());
+
                     if (GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
                         var @delegate = functionPointerTypeSyntax.DelegateKeyword;
