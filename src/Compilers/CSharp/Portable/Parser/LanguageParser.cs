@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private int _recursionDepth;
         private TerminatorState _termState; // Resettable
-        private bool _isInTry; // Resettable
         private bool _checkedTopLevelStatementsFeatureAvailability; // Resettable
 
         // NOTE: If you add new state, you should probably add it to ResetPoint as well.
@@ -2821,45 +2820,6 @@ parse_member_name:;
             }
 
             result = null;
-            return false;
-        }
-
-        private static bool ContainsErrorDiagnostic(GreenNode node)
-        {
-            // ContainsDiagnostics returns true if this node (or any descendants) contain any sort of error.  However,
-            // GetDiagnostics() only returns diagnostics at that node itself.  So we have to explicitly walk down the
-            // tree to find out if the diagnostics are error or not.
-
-            // Quick check to avoid any unnecessary work.
-            if (node.ContainsDiagnostics)
-            {
-                var stack = ArrayBuilder<GreenNode>.GetInstance();
-                try
-                {
-                    stack.Push(node);
-
-                    while (stack.Count > 0)
-                    {
-                        var current = stack.Pop();
-                        if (!current.ContainsDiagnostics)
-                            continue;
-
-                        foreach (var diagnostic in current.GetDiagnostics())
-                        {
-                            if (diagnostic.Severity == DiagnosticSeverity.Error)
-                                return true;
-                        }
-
-                        foreach (var child in current.ChildNodesAndTokens())
-                            stack.Push(child);
-                    }
-                }
-                finally
-                {
-                    stack.Free();
-                }
-            }
-
             return false;
         }
 
@@ -8840,10 +8800,6 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     return IsTrueIdentifier();
 
-                case SyntaxKind.CatchKeyword:
-                case SyntaxKind.FinallyKeyword:
-                    return !_isInTry;
-
                 // Accessibility modifiers are not legal in a statement,
                 // but a common mistake for local functions. Parse to give a
                 // better error message.
@@ -8938,74 +8894,76 @@ done:;
 
         private TryStatementSyntax ParseTryStatement(SyntaxList<AttributeListSyntax> attributes)
         {
-            var isInTry = _isInTry;
-            _isInTry = true;
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.TryKeyword or SyntaxKind.CatchKeyword or SyntaxKind.FinallyKeyword);
 
+            // We are called into on try/catch/finally, so eating the try may actually fail.
             var @try = this.EatToken(SyntaxKind.TryKeyword);
 
-            BlockSyntax block;
+            BlockSyntax tryBlock;
             if (@try.IsMissing)
             {
-                block = _syntaxFactory.Block(
-                    attributeLists: default, this.EatToken(SyntaxKind.OpenBraceToken), default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
+                // If there was no actual `try`, then we got here because of a misplaced `catch`/`finally`.  In that
+                // case just synthesize a fully missing try-block.  We will already have issued a diagnostic on the
+                // `try` keyword, so we don't need to issue any more.
+
+                Debug.Assert(@try.ContainsDiagnostics);
+                Debug.Assert(this.CurrentToken.Kind is SyntaxKind.CatchKeyword or SyntaxKind.FinallyKeyword);
+
+                tryBlock = missingBlock();
             }
             else
             {
                 var saveTerm = _termState;
                 _termState |= TerminatorState.IsEndOfTryBlock;
-                block = this.ParsePossiblyAttributedBlock();
+                tryBlock = this.ParsePossiblyAttributedBlock();
                 _termState = saveTerm;
             }
 
-            var catches = default(SyntaxListBuilder<CatchClauseSyntax>);
-            FinallyClauseSyntax @finally = null;
+            SyntaxListBuilder<CatchClauseSyntax> catchClauses = default;
+            FinallyClauseSyntax finallyClause = null;
             try
             {
-                bool hasEnd = false;
-
                 if (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
                 {
-                    hasEnd = true;
-                    catches = _pool.Allocate<CatchClauseSyntax>();
+                    catchClauses = _pool.Allocate<CatchClauseSyntax>();
                     while (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
                     {
-                        catches.Add(this.ParseCatchClause());
+                        catchClauses.Add(this.ParseCatchClause());
                     }
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.FinallyKeyword)
                 {
-                    hasEnd = true;
-                    var fin = this.EatToken();
-                    var finBlock = this.ParsePossiblyAttributedBlock();
-                    @finally = _syntaxFactory.FinallyClause(fin, finBlock);
+                    finallyClause = _syntaxFactory.FinallyClause(
+                        this.EatToken(),
+                        this.ParsePossiblyAttributedBlock());
                 }
 
-                if (!hasEnd)
+                if (catchClauses.IsNull && finallyClause == null)
                 {
-                    block = this.AddErrorToLastToken(block, ErrorCode.ERR_ExpectedEndTry);
+                    if (!ContainsErrorDiagnostic(tryBlock))
+                        tryBlock = this.AddErrorToLastToken(tryBlock, ErrorCode.ERR_ExpectedEndTry);
 
                     // synthesize missing tokens for "finally { }":
-                    @finally = _syntaxFactory.FinallyClause(
-                        SyntaxToken.CreateMissing(SyntaxKind.FinallyKeyword, null, null),
-                        _syntaxFactory.Block(
-                            attributeLists: default,
-                            SyntaxToken.CreateMissing(SyntaxKind.OpenBraceToken, null, null),
-                            default(SyntaxList<StatementSyntax>),
-                            SyntaxToken.CreateMissing(SyntaxKind.CloseBraceToken, null, null)));
+                    finallyClause = _syntaxFactory.FinallyClause(
+                        SyntaxFactory.MissingToken(SyntaxKind.FinallyKeyword),
+                        missingBlock());
                 }
 
-                _isInTry = isInTry;
-
-                return _syntaxFactory.TryStatement(attributes, @try, block, catches, @finally);
+                return _syntaxFactory.TryStatement(attributes, @try, tryBlock, catchClauses, finallyClause);
             }
             finally
             {
-                if (!catches.IsNull)
-                {
-                    _pool.Free(catches);
-                }
+                if (!catchClauses.IsNull)
+                    _pool.Free(catchClauses);
             }
+
+            BlockSyntax missingBlock()
+                => _syntaxFactory.Block(
+                    attributeLists: default,
+                    SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
+                    statements: default,
+                    SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken));
         }
 
         private bool IsEndOfTryBlock()
@@ -14046,7 +14004,6 @@ tryAgain:
             return new ResetPoint(
                 base.GetResetPoint(),
                 _termState,
-                _isInTry,
                 _syntaxFactoryContext.IsInAsync,
                 _syntaxFactoryContext.QueryDepth);
         }
@@ -14054,7 +14011,6 @@ tryAgain:
         private void Reset(ref ResetPoint state)
         {
             _termState = state.TerminatorState;
-            _isInTry = state.IsInTry;
             _syntaxFactoryContext.IsInAsync = state.IsInAsync;
             _syntaxFactoryContext.QueryDepth = state.QueryDepth;
             base.Reset(ref state.BaseResetPoint);
@@ -14069,20 +14025,17 @@ tryAgain:
         {
             internal SyntaxParser.ResetPoint BaseResetPoint;
             internal readonly TerminatorState TerminatorState;
-            internal readonly bool IsInTry;
             internal readonly bool IsInAsync;
             internal readonly int QueryDepth;
 
             internal ResetPoint(
                 SyntaxParser.ResetPoint resetPoint,
                 TerminatorState terminatorState,
-                bool isInTry,
                 bool isInAsync,
                 int queryDepth)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
-                this.IsInTry = isInTry;
                 this.IsInAsync = isInAsync;
                 this.QueryDepth = queryDepth;
             }
@@ -14103,6 +14056,45 @@ tryAgain:
             node = this.AddError(node, ErrorCode.ERR_UnexpectedToken, trailingTrash[0].ToString());
             node = this.AddTrailingSkippedSyntax(node, trailingTrash.Node);
             return node;
+        }
+
+        private static bool ContainsErrorDiagnostic(GreenNode node)
+        {
+            // ContainsDiagnostics returns true if this node (or any descendants) contain any sort of error.  However,
+            // GetDiagnostics() only returns diagnostics at that node itself.  So we have to explicitly walk down the
+            // tree to find out if the diagnostics are error or not.
+
+            // Quick check to avoid any unnecessary work.
+            if (node.ContainsDiagnostics)
+            {
+                var stack = ArrayBuilder<GreenNode>.GetInstance();
+                try
+                {
+                    stack.Push(node);
+
+                    while (stack.Count > 0)
+                    {
+                        var current = stack.Pop();
+                        if (!current.ContainsDiagnostics)
+                            continue;
+
+                        foreach (var diagnostic in current.GetDiagnostics())
+                        {
+                            if (diagnostic.Severity == DiagnosticSeverity.Error)
+                                return true;
+                        }
+
+                        foreach (var child in current.ChildNodesAndTokens())
+                            stack.Push(child);
+                    }
+                }
+                finally
+                {
+                    stack.Free();
+                }
+            }
+
+            return false;
         }
     }
 }

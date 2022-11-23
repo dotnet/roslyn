@@ -199,6 +199,8 @@ csharp_indent_labels = flush_left
 csharp_style_allow_embedded_statements_on_same_line_experimental = false
 csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = false
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = false
 
 # Prefer "var" everywhere
 csharp_style_var_for_built_in_types = true:suggestion
@@ -299,6 +301,12 @@ dotnet_diagnostic.IDE2003.severity = warning
 
 # csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental
 dotnet_diagnostic.IDE2004.severity = warning
+
+# csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental
+dotnet_diagnostic.IDE2005.severity = warning
+
+# csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental
+dotnet_diagnostic.IDE2006.severity = warning
 
 [src/{VisualStudio}/**/*.{cs,vb}]
 # CA1822: Make member static

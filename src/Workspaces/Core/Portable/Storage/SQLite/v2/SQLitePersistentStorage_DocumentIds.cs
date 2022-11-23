@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
-using Microsoft.CodeAnalysis.Storage;
+using System.IO;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
+using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
@@ -15,61 +18,38 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Kept locally so we don't have to hit the DB for the common case of trying to determine the 
         /// DB id for a document.
         /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new();
+        private readonly ConcurrentDictionary<DocumentId, DocumentPrimaryKey> _documentIdToPrimaryKeyMap = new();
 
         /// <summary>
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the DocumentData table.
         /// </summary>
-        private bool TryGetDocumentDataId(
-            SqlConnection connection, DocumentKey documentKey, string name, bool allowWrite, out long dataId)
-        {
-            dataId = 0;
-
-            var documentId = TryGetDocumentId(connection, documentKey, allowWrite);
-            var nameId = TryGetStringId(connection, name, allowWrite);
-            if (documentId == null || nameId == null)
-                return false;
-
-            // Our data ID is just a 64bit int combining the two 32bit values of our documentId and nameId.
-            dataId = CombineInt32ValuesToInt64(documentId.Value, nameId.Value);
-            return true;
-        }
-
-        private int? TryGetDocumentId(SqlConnection connection, DocumentKey document, bool allowWrite)
+        private DocumentPrimaryKey? TryGetDocumentPrimaryKey(SqlConnection connection, DocumentKey documentKey, bool allowWrite)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (_documentIdToIdMap.TryGetValue(document.Id, out var existingId))
-                return existingId;
-
-            var id = TryGetDocumentIdFromDatabase(connection, document, allowWrite);
-            if (id != null)
+            if (!_documentIdToPrimaryKeyMap.TryGetValue(documentKey.Id, out var existingId))
             {
+                // Store the document as its folder and file name.  The folder is relative to the solution path so that
+                // we're not dependent on file-system location.
+                var documentFolder =
+                    documentKey.FilePath != null && PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_solutionDirectory, documentKey.FilePath)) is { Length: > 0 } directoryName
+                        ? directoryName
+                        : documentKey.FilePath;
+
+                if (TryGetProjectPrimaryKey(connection, documentKey.Project, allowWrite) is not ProjectPrimaryKey projectPrimaryKey ||
+                    TryGetStringId(connection, documentFolder, allowWrite) is not int documentFolderId ||
+                    TryGetStringId(connection, documentKey.Name, allowWrite) is not int documentNameId)
+                {
+                    return null;
+                }
+
                 // Cache the value locally so we don't need to go back to the DB in the future.
-                _documentIdToIdMap.TryAdd(document.Id, id.Value);
+                existingId = new DocumentPrimaryKey(projectPrimaryKey, documentFolderId, documentNameId);
+                _documentIdToPrimaryKeyMap.TryAdd(documentKey.Id, existingId);
             }
 
-            return id;
-        }
-
-        private int? TryGetDocumentIdFromDatabase(SqlConnection connection, DocumentKey document, bool allowWrite)
-        {
-            var projectId = TryGetProjectId(connection, document.Project, allowWrite);
-            if (projectId == null)
-                return null;
-
-            // Key the document off its project id, and its path and name.  That way we work properly
-            // in host and test scenarios.
-            var documentPathId = TryGetStringId(connection, document.FilePath, allowWrite);
-            var documentNameId = TryGetStringId(connection, document.Name, allowWrite);
-
-            if (documentPathId == null || documentNameId == null)
-                return null;
-
-            // Unique identify the document through the key:  projectId-documentPathId-documentNameId
-            return TryGetStringId(
-                connection, GetDocumentIdString(projectId.Value, documentPathId.Value, documentNameId.Value), allowWrite);
+            return existingId;
         }
     }
 }

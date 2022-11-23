@@ -25,14 +25,13 @@ class C
 }")>
         Public Async Function TestDefinition(code As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
-                                <%= code %>
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            <%= code %>
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
@@ -100,14 +99,13 @@ class C
 }")>
         Public Async Function TestReference(code As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
-                                <%= code %>
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            <%= code %>
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
@@ -167,26 +165,25 @@ void C.M()
         <Fact>
         Public Async Function ToplevelResultsInMultipleFiles() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
-                                class A { [|string|] s; }
-                            </Document>
-                            <Document Name="B.cs" FilePath="Z:\B.cs">
-                                class B { [|string|] s; }
-                            </Document>
-                            <Document Name="C.cs" FilePath="Z:\C.cs">
-                                class C { [|string|] s; }
-                            </Document>
-                            <Document Name="D.cs" FilePath="Z:\D.cs">
-                                class D { [|string|] s; }
-                            </Document>
-                            <Document Name="E.cs" FilePath="Z:\E.cs">
-                                class E { [|string|] s; }
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            class A { [|string|] s; }
+                        </Document>
+                        <Document Name="B.cs" FilePath="Z:\B.cs">
+                            class B { [|string|] s; }
+                        </Document>
+                        <Document Name="C.cs" FilePath="Z:\C.cs">
+                            class C { [|string|] s; }
+                        </Document>
+                        <Document Name="D.cs" FilePath="Z:\D.cs">
+                            class D { [|string|] s; }
+                        </Document>
+                        <Document Name="E.cs" FilePath="Z:\E.cs">
+                            class E { [|string|] s; }
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Dim hoverVertex As Graph.HoverResult = Nothing
             For Each rangeVertex In Await lsif.GetSelectedRangesAsync()

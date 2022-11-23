@@ -981,9 +981,9 @@ namespace BoundTreeGenerator
                         {
                             Write("If ");
                             Or(AllSpecifiableFields(node),
-                                field => IsValueType(field.Type) ?
-                                            string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name) :
-                                            string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
+                                field => IsValueType(field.Type)
+                                            ? string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name)
+                                            : string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
                             WriteLine(" Then");
                             Indent();
                             Write("Dim result = New {0}", node.Name);
@@ -1533,8 +1533,8 @@ namespace BoundTreeGenerator
 
                             Unbrace();
 
-                            void writeNullabilityCheck(bool inverted) =>
-                                WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");
+                            void writeNullabilityCheck(bool inverted)
+                                => WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");
 
                             void writeUpdateAndDecl(bool decl, bool updatedType)
                             {
@@ -1591,8 +1591,8 @@ namespace BoundTreeGenerator
                                 return typeIsUpdated(f.Type);
                             }
 
-                            bool immutableArrayIsPotentiallyUpdated(Field field) =>
-                                IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType);
+                            bool immutableArrayIsPotentiallyUpdated(Field field)
+                                => IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType);
 
                             static bool typeIsUpdated(string type)
                             {
