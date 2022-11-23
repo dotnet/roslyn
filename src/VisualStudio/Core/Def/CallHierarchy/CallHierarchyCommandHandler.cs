@@ -72,16 +72,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         private async Task ExecuteCommandAsync(ViewCallHierarchyCommandArgs args, CommandExecutionContext commandExecutionContext)
         {
-            var document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                commandExecutionContext.OperationContext).ConfigureAwait(true);
-            if (document == null)
-            {
-                return;
-            }
-
             using (var context = _threadOperationExecutor.BeginExecute(
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
             {
+                var document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                commandExecutionContext.OperationContext).ConfigureAwait(true);
+                if (document == null)
+                {
+                    return;
+                }
+
                 var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
                 var cancellationToken = context.UserCancellationToken;
 
@@ -110,10 +110,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
                 // Come back to the UI thread so we can give the user an error notification.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
+                notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
             }
-
-            var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-            notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
         }
 
         public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
