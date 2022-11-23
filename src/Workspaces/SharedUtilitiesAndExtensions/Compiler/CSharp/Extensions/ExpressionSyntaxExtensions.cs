@@ -721,6 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.PostIncrementExpression:
                 case SyntaxKind.PostDecrementExpression:
                 case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
                 case SyntaxKind.TypeOfExpression:
                 case SyntaxKind.DefaultExpression:
                 case SyntaxKind.CheckedExpression:
@@ -916,8 +917,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static bool IsDirectChildOfMemberAccessExpression(this ExpressionSyntax expression) =>
-            expression?.Parent is MemberAccessExpressionSyntax;
+        public static bool IsDirectChildOfMemberAccessExpression(this ExpressionSyntax expression)
+            => expression?.Parent is MemberAccessExpressionSyntax;
 
         public static bool InsideCrefReference(this ExpressionSyntax expression)
             => expression.FirstAncestorOrSelf<XmlCrefAttributeSyntax>() != null;

@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 var hostStateSets = GetAllHostStateSets();
 
-                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry) ?
-                    hostStateSets.Concat(entry.StateSetMap.Values) :
-                    hostStateSets;
+                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry)
+                    ? hostStateSets.Concat(entry.StateSetMap.Values)
+                    : hostStateSets;
             }
 
             /// <summary>
@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
             {
-                var projectStateSets = project.SupportsCompilation ?
-                    GetOrUpdateProjectStateSets(project) :
-                    ProjectAnalyzerStateSets.Default;
+                var projectStateSets = project.SupportsCompilation
+                    ? GetOrUpdateProjectStateSets(project)
+                    : ProjectAnalyzerStateSets.Default;
                 var hostStateSets = GetOrCreateHostStateSets(project, projectStateSets);
 
                 if (!project.SupportsCompilation)

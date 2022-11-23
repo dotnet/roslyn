@@ -213,25 +213,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var spanLength = reader.ReadInt32();
 
             var inheritanceNamesLength = reader.ReadInt32();
-            var builder = ArrayBuilder<string>.GetInstance(inheritanceNamesLength);
+            using var _ = ArrayBuilder<string>.GetInstance(inheritanceNamesLength, out var inheritanceNames);
             for (var i = 0; i < inheritanceNamesLength; i++)
-                builder.Add(reader.ReadString());
+                inheritanceNames.Add(reader.ReadString());
 
             var span = new TextSpan(spanStart, spanLength);
             return Create(
                 stringTable,
-                name: name,
-                nameSuffix: nameSuffix,
-                containerDisplayName: containerDisplayName,
-                fullyQualifiedContainerName: fullyQualifiedContainerName,
-                isPartial: GetIsPartial(flags),
-                hasAttributes: GetHasAttributes(flags),
-                kind: GetKind(flags),
-                accessibility: GetAccessibility(flags),
-                span: span,
-                inheritanceNames: builder.ToImmutableAndFree(),
-                parameterCount: GetParameterCount(flags),
-                typeParameterCount: GetTypeParameterCount(flags));
+                name,
+                nameSuffix,
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                GetIsPartial(flags),
+                GetHasAttributes(flags),
+                GetKind(flags),
+                GetAccessibility(flags),
+                span,
+                inheritanceNames.ToImmutableAndClear(),
+                GetIsNestedType(flags),
+                GetParameterCount(flags),
+                GetTypeParameterCount(flags));
         }
 
         public ISymbol? TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)
