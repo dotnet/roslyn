@@ -13807,7 +13807,7 @@ $$"""
                 		) cil managed 
                 	{
                 		.param [1] = nullref
-                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+                			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
                 				01 00 00 00
                 			)
                 		// Method begins at RVA 0x2099
