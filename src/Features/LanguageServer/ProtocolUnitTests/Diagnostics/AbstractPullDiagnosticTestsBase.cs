@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
@@ -28,7 +28,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
-    using DocumentDiagnosticPartialReport = SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport, DocumentDiagnosticPartialResult>;
+    using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
+    using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
 
     public abstract class AbstractPullDiagnosticTestsBase : AbstractLanguageServerProtocolTests
     {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             if (useVSDiagnostics)
             {
-                BufferedProgress<VSInternalWorkspaceDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport>(null) : null;
+                BufferedProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport[]>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
                     VSInternalMethods.WorkspacePullDiagnosticName,
                     CreateWorkspaceDiagnosticParams(previousResults, progress),
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 if (useProgress)
                 {
                     Assert.Null(diagnostics);
-                    diagnostics = progress!.Value.GetValues();
+                    diagnostics = progress!.Value.GetFlattenedValues();
                 }
 
                 AssertEx.NotNull(diagnostics);
@@ -81,18 +82,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             }
             else
             {
-                BufferedProgress<WorkspaceDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<WorkspaceDiagnosticReport>(null) : null;
+                BufferedProgress<WorkspaceDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<WorkspaceDiagnosticPartialReport>(null) : null;
                 var returnedResult = await testLspServer.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(
-                    ExperimentalMethods.WorkspaceDiagnostic,
+                    Methods.WorkspaceDiagnosticName,
                     CreateProposedWorkspaceDiagnosticParams(previousResults, progress),
                     CancellationToken.None).ConfigureAwait(false);
 
                 if (useProgress)
                 {
-                    Assert.Null(returnedResult);
+                    Assert.Empty(returnedResult!.Items);
                     var progressValues = progress!.Value.GetValues();
                     Assert.NotNull(progressValues);
-                    return progressValues.SelectMany(value => value.Items).Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics)).ToImmutableArray();
+                    return progressValues.SelectMany(value => value.Match(v => v.Items, v => v.Items)).Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics)).ToImmutableArray();
 
                 }
 
@@ -102,10 +103,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             static WorkspaceDiagnosticParams CreateProposedWorkspaceDiagnosticParams(
                 ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
-                IProgress<WorkspaceDiagnosticReport[]>? progress = null)
+                IProgress<WorkspaceDiagnosticPartialReport>? progress = null)
             {
-                var previousResultsLsp = previousResults?.Select(r => new PreviousResultId(r.identifier.Uri, r.resultId)).ToArray() ?? Array.Empty<PreviousResultId>();
-                return new WorkspaceDiagnosticParams(identifier: null, previousResultsLsp, workDoneToken: null, partialResultToken: progress);
+                var previousResultsLsp = previousResults?.Select(r => new PreviousResultId
+                {
+                    Uri = r.identifier.Uri,
+                    Value = r.resultId
+                }).ToArray() ?? Array.Empty<PreviousResultId>();
+                return new WorkspaceDiagnosticParams
+                {
+                    PreviousResultId = previousResultsLsp,
+                    PartialResultToken = progress
+                };
             }
 
             static TestDiagnosticResult ConvertWorkspaceDiagnosticResult(SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport> workspaceReport)
@@ -189,7 +198,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             if (useVSDiagnostics)
             {
-                BufferedProgress<VSInternalDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<VSInternalDiagnosticReport>(null) : null;
+                BufferedProgress<VSInternalDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalDiagnosticReport[]>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                     VSInternalMethods.DocumentPullDiagnosticName,
                     CreateDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress),
@@ -198,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 if (useProgress)
                 {
                     Assert.Null(diagnostics);
-                    diagnostics = progress!.Value.GetValues();
+                    diagnostics = progress!.Value.GetFlattenedValues();
                 }
 
                 AssertEx.NotNull(diagnostics);
@@ -208,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             {
                 BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
-                    ExperimentalMethods.TextDocumentDiagnostic,
+                    Methods.TextDocumentDiagnosticName,
                     CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress),
                     CancellationToken.None).ConfigureAwait(false);
                 if (useProgress)
@@ -236,9 +245,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             static DocumentDiagnosticParams CreateProposedDocumentDiagnosticParams(
                 VSTextDocumentIdentifier vsTextDocumentIdentifier,
                 string? previousResultId = null,
-                IProgress<DocumentDiagnosticPartialReport[]>? progress = null)
+                IProgress<DocumentDiagnosticPartialReport>? progress = null)
             {
-                return new DocumentDiagnosticParams(vsTextDocumentIdentifier, null, previousResultId, progress, null);
+                return new DocumentDiagnosticParams
+                {
+                    Identifier = null,
+                    PreviousResultId = previousResultId,
+                    PartialResultToken = progress,
+                    TextDocument = vsTextDocumentIdentifier,
+                };
             }
         }
 

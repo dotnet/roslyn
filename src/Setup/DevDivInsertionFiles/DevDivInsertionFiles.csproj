@@ -128,6 +128,7 @@
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Collections.Immutable"/>
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
+      <_Dependency Remove="System.Drawing.Common"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Reflection.Metadata"/>
       <_Dependency Remove="System.Reflection.TypeExtensions"/>

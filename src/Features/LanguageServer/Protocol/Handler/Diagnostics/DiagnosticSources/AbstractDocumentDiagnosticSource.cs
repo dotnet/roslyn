@@ -14,20 +14,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosticSource
+internal abstract record AbstractDocumentDiagnosticSource<TDocument>(TDocument Document) : IDiagnosticSource
     where TDocument : TextDocument
 {
     private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
 
     private static Tuple<ImmutableArray<string>, ImmutableArray<TaskListItemDescriptor>> s_lastRequestedTokens =
         Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TaskListItemDescriptor>.Empty);
-
-    protected readonly TDocument Document;
-
-    protected AbstractDocumentDiagnosticSource(TDocument document)
-    {
-        this.Document = document;
-    }
 
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;

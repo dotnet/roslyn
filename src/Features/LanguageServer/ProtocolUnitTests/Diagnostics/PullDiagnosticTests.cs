@@ -643,13 +643,22 @@ class A
             var results = await RunGetDocumentPullDiagnosticsAsync(
                 testLspServer, document.GetURI(), useVSDiagnostics);
 
-            // We should have an unnecessary diagnostic marking all the usings.
-            Assert.True(results.Single().Diagnostics![0].Tags!.Contains(DiagnosticTag.Unnecessary));
-            Assert.Equal(firstLocation, results.Single().Diagnostics![1].Range);
+            if (useVSDiagnostics)
+            {
+                // We should have an unnecessary diagnostic marking all the usings.
+                Assert.True(results.Single().Diagnostics![0].Tags!.Contains(DiagnosticTag.Unnecessary));
+                Assert.Equal(firstLocation, results.Single().Diagnostics![1].Range);
 
-            // We should have a regular diagnostic marking all the usings that doesn't fade.
-            Assert.False(results.Single().Diagnostics![1].Tags!.Contains(DiagnosticTag.Unnecessary));
-            Assert.Equal(firstLocation, results.Single().Diagnostics![1].Range);
+                // We should have a regular diagnostic marking all the usings that doesn't fade.
+                Assert.False(results.Single().Diagnostics![1].Tags!.Contains(DiagnosticTag.Unnecessary));
+                Assert.Equal(firstLocation, results.Single().Diagnostics![1].Range);
+            }
+            else
+            {
+                // We should have just one diagnostic that fades since the public spec does not support fully hidden diagnostics.
+                Assert.True(results.Single().Diagnostics![0].Tags!.Contains(DiagnosticTag.Unnecessary));
+                Assert.Equal(firstLocation, results.Single().Diagnostics![0].Range);
+            }
         }
 
         [Theory, CombinatorialData]
