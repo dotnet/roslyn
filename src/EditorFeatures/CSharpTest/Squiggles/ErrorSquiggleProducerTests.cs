@@ -231,11 +231,13 @@ class Program
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
-            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
             // Initially, while the buffer is associated with a Document, we should get
@@ -243,8 +245,8 @@ class Program
             Assert.True(spans.Count > 0);
 
             // Now remove the document.
-            workspace.CloseDocument(workspace.Documents.First().Id);
-            workspace.OnDocumentRemoved(workspace.Documents.First().Id);
+            workspace.CloseDocument(firstDocument.Id);
+            workspace.OnDocumentRemoved(firstDocument.Id);
             await wrapper.WaitForTags();
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
@@ -257,11 +259,13 @@ class Program
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
-            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
             // Initially, while the buffer is associated with a Document, we should get
@@ -269,8 +273,8 @@ class Program
             Assert.True(spans.Count > 0);
 
             // Now remove the project.
-            workspace.CloseDocument(workspace.Documents.First().Id);
-            workspace.OnDocumentRemoved(workspace.Documents.First().Id);
+            workspace.CloseDocument(firstDocument.Id);
+            workspace.OnDocumentRemoved(firstDocument.Id);
             workspace.OnProjectRemoved(workspace.Projects.First().Id);
             await wrapper.WaitForTags();
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
