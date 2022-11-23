@@ -276,5 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void RemoveAnalyzerConfigFile(string filePath)
             => _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
+
+        public IAsyncDisposable CreateBatchScope() => _visualStudioProject.CreateBatchScope();
     }
 }

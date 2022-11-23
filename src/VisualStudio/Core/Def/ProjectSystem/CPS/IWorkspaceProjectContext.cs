@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
@@ -72,6 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void RemoveAnalyzerConfigFile(string filePath);
 
         void StartBatch();
+        IAsyncDisposable CreateBatchScope();
         ValueTask EndBatchAsync();
 
         void ReorderSourceFiles(IEnumerable<string> filePaths);
