@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
 
-            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
 
             var analyzerServer = (MockDiagnosticAnalyzerService)workspace.GetService<IDiagnosticAnalyzerService>();
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
             return spans;
