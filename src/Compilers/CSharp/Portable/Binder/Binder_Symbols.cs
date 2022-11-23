@@ -561,9 +561,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeOrAliasSymbolWithAnnotations bindAlias()
             {
                 var node = (AliasQualifiedNameSyntax)syntax;
+                MessageID.IDS_FeatureGlobalNamespace.CheckFeatureAvailability(diagnostics, node.Alias);
+
                 var bindingResult = BindNamespaceAliasSymbol(node.Alias, diagnostics);
-                var alias = bindingResult as AliasSymbol;
-                NamespaceOrTypeSymbol left = (alias is object) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
+                NamespaceOrTypeSymbol left = bindingResult is AliasSymbol alias ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
 
                 if (left.Kind == SymbolKind.NamedType)
                 {

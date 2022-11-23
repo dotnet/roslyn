@@ -6782,8 +6782,6 @@ tryAgain:
                             identifierLeft = _syntaxFactory.IdentifierName(ConvertToKeyword(identifierLeft.Identifier));
                         }
 
-                        identifierLeft = CheckFeatureAvailability(identifierLeft, MessageID.IDS_FeatureGlobalNamespace);
-
                         // If the name on the right had errors or warnings then we need to preserve
                         // them in the tree.
                         return WithAdditionalDiagnostics(_syntaxFactory.AliasQualifiedName(identifierLeft, separator, right), left.GetDiagnostics());

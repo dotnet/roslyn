@@ -6249,10 +6249,19 @@ class C : global::B
 }
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (2,19): error CS0400: The type or namespace name 'B' could not be found in the global namespace (are you missing an assembly reference?)
+                // class C : global::B
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 19));
+            CreateCompilation(text, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
                 // (2,11): error CS8022: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.
                 // class C : global::B
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "global").WithArguments("namespace alias qualifier", "2"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "global").WithArguments("namespace alias qualifier", "2").WithLocation(2, 11),
+                // (2,19): error CS0400: The type or namespace name 'B' could not be found in the global namespace (are you missing an assembly reference?)
+                // class C : global::B
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 19));
         }
 
         [Fact]
@@ -6264,10 +6273,19 @@ class C : A::B
 }
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (2,11): error CS0432: Alias 'A' not found
+                // class C : A::B
+                Diagnostic(ErrorCode.ERR_AliasNotFound, "A").WithArguments("A").WithLocation(2, 11));
+            CreateCompilation(text, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
                 // (2,11): error CS8022: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.
                 // class C : A::B
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "A").WithArguments("namespace alias qualifier", "2"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "A").WithArguments("namespace alias qualifier", "2").WithLocation(2, 11),
+                // (2,11): error CS0432: Alias 'A' not found
+                // class C : A::B
+                Diagnostic(ErrorCode.ERR_AliasNotFound, "A").WithArguments("A").WithLocation(2, 11));
         }
 
         [Fact]
