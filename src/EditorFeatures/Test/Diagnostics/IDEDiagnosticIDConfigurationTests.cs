@@ -446,6 +446,9 @@ dotnet_diagnostic.IDE0250.severity = %value%
 # IDE0260
 dotnet_diagnostic.IDE0260.severity = %value%
 
+# IDE0270
+dotnet_diagnostic.IDE0270.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -633,6 +636,9 @@ dotnet_diagnostic.IDE0120.severity = %value%
 
 # IDE0140
 dotnet_diagnostic.IDE0140.severity = %value%
+
+# IDE0270
+dotnet_diagnostic.IDE0270.severity = %value%
 
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
@@ -1081,6 +1087,9 @@ csharp_style_prefer_readonly_struct = true
 # IDE0260, PreferPatternMatchingOverAsWithNullCheck
 csharp_style_pattern_matching_over_as_with_null_check = true
 
+# IDE0270, PreferCoalesceExpression
+dotnet_style_coalesce_expression = true
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
 
@@ -1310,6 +1319,9 @@ No editorconfig based code style option
 
 # IDE0140, PreferSimplifiedObjectCreation
 visual_basic_style_prefer_simplified_object_creation = true
+
+# IDE0270, PreferCoalesceExpression
+dotnet_style_coalesce_expression = true
 
 # IDE2000, AllowMultipleBlankLines
 dotnet_style_allow_multiple_blank_lines_experimental = true
