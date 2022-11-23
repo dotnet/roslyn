@@ -46,25 +46,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default);
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap);
-            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             // test first update
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
             Assert.True(spans.First().Span.Contains(new Span(0, 1)));
 
             // test second update
             analyzer.ChangeSeverity();
 
-            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(firstDocument.Id);
             var text = await document.GetTextAsync();
             workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
 
             await wrapper.WaitForTags();
 
-            snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
             Assert.True(spans.First().Span.Contains(new Span(0, 1)));
         }
@@ -74,9 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
+
             // Make two taggers.
-            var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
-            var tagger2 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+            var firstDocument = workspace.Documents.First();
+            var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger2 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
 
             // But dispose the first one. We still want the second one to work.
             ((IDisposable)tagger1).Dispose();
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using var disposable = tagger2 as IDisposable;
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger2.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
             Assert.False(spans.IsEmpty());
         }
@@ -101,12 +105,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var taggerProvider = wrapper.TaggerProvider;
 
             // Make a taggers.
-            var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+            var firstDocument = workspace.Documents.First();
+            var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
             using var disposable = tagger1 as IDisposable;
             await wrapper.WaitForTags();
 
             // We should have tags at this point.
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger1.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
             Assert.False(spans.IsEmpty());
         }
@@ -132,7 +137,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
 
             // Create the tagger before the first diagnostic event has been fired.
-            var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+            var firstDocument = workspace.Documents.First();
+            var tagger = provider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
             Contract.ThrowIfNull(tagger);
 
             // Now product the first diagnostic and fire the events.
@@ -144,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
             Assert.Equal(1, spans.Count);
             Assert.Equal(span.ToSpan(), spans[0].Span.Span);
@@ -175,14 +181,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var span = TextSpan.FromBounds(0, 5);
             diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span));
 
-            var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+            var firstDocument = workspace.Documents.First();
+            var tagger = provider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
             Contract.ThrowIfNull(tagger);
 
             using var disposable = tagger as IDisposable;
             await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
             Assert.Equal(1, spans.Count);
             Assert.Equal(span.ToSpan(), spans[0].Span.Span);

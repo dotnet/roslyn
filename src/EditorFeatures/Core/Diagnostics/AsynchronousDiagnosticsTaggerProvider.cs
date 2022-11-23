@@ -29,8 +29,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
-/// Low level tagger responsible for producing specific diagnostics tags for some particular <see
-/// cref="DiagnosticKinds"/>.  It is itself never exported, but it it is used by 
+/// Low level tagger responsible for producing specific diagnostics tags for some feature for some particular <see
+/// cref="DiagnosticKinds"/>.  It is itself never exported directly, but it it is used by the <see
+/// cref="AbstractAggregateDiagnosticsTaggerProvider{TTag}"/> which aggregates its results and the results for all the
+/// other <see cref="DiagnosticKinds"/> to produce all the diagnostics for that feature.
 /// </summary>
 internal sealed partial class AsynchronousDiagnosticsTaggerProvider<TTag> : AsynchronousViewTaggerProvider<TTag>
     where TTag : ITag
