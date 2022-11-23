@@ -10490,6 +10490,115 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred").WithArguments("arg1", "<anonymous delegate>").WithLocation(7, 1));
         }
 
+        [Fact]
+        public void SynthesizedDelegateTypes_MoreThan16Parameters_DefaultParameterValue()
+        {
+            var range = Enumerable.Range(1, 17);
+            var manyParams = string.Join(", ", range.Select(i => $"int p{i}"));
+            var manyTypes = string.Join(",", range.Select(_ => "System.Int32"));
+            var source = $$"""
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = ({{manyParams}} = 1) => { };
+                Report(lam1);
+                var lam2 = ({{manyParams}} = 1) => { };
+                Report(lam2);
+                var lam3 = ({{manyParams}} = 2) => { };
+                Report(lam3);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`17[{manyTypes}]
+                <>f__AnonymousDelegate0`17[{manyTypes}]
+                <>f__AnonymousDelegate1`17[{manyTypes}]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_MoreThan16Parameters_ParamsArray()
+        {
+            var range = Enumerable.Range(1, 16);
+            var manyParams = string.Join(", ", range.Select(i => $"int p{i}"));
+            var manyTypes = string.Join(",", range.Select(_ => "System.Int32"));
+            var source = $$"""
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = ({{manyParams}}, params int[] xs) => { };
+                Report(lam1);
+                var lam2 = ({{manyParams}}, params int[] xs) => { };
+                Report(lam2);
+                var lam3 = ({{manyParams}}, int[] xs) => { };
+                Report(lam3);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`17[{manyTypes},System.Int32[]]
+                <>f__AnonymousDelegate0`17[{manyTypes},System.Int32[]]
+                <>A`17[{manyTypes},System.Int32[]]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Pointer_DefaultParameterValue()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                unsafe
+                {
+                    var lam1 = (byte* a, int b = 1) => { };
+                    Report(lam1);
+                    var lam2 = (byte* x, int y = 1) => { };
+                    Report(lam2);
+                    var lam3 = (byte* a, int b = 2) => { };
+                    Report(lam3);
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: $"""
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate1
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Pointer_ParamsArray()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                unsafe
+                {
+                    var lam1 = (byte* a, params int[] bs) => { };
+                    Report(lam1);
+                    var lam2 = (byte* x, params int[] ys) => { };
+                    Report(lam2);
+                    var lam3 = (byte* a, int[] bs) => { };
+                    Report(lam3);
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: $"""
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate1
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_SameDefaultParameterValue_DifferentType()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (object o = null) => { };
+                Report(lam1);
+                var lam2 = (string s = null) => { };
+                Report(lam2);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Object]
+                <>f__AnonymousDelegate0`1[System.String]
+                """).VerifyDiagnostics();
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
