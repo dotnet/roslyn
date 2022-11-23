@@ -72,10 +72,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         private async Task ExecuteCommandAsync(ViewCallHierarchyCommandArgs args, CommandExecutionContext commandExecutionContext)
         {
+            Document document;
+
             using (var context = _threadOperationExecutor.BeginExecute(
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
             {
-                var document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
                 commandExecutionContext.OperationContext).ConfigureAwait(true);
                 if (document == null)
                 {
@@ -85,19 +87,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
                 var cancellationToken = context.UserCancellationToken;
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
-                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(true);
+                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
 
                 if (symbolUnderCaret != null)
                 {
                     // Map symbols so that Call Hierarchy works from metadata-as-source
                     var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(true);
+                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
 
                     if (mapping.Symbol != null)
                     {
-                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(true);
+                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
 
                         if (node != null)
                         {
@@ -110,9 +112,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
                 // Come back to the UI thread so we can give the user an error notification.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-                notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
             }
+
+            var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
+            notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
         }
 
         public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
