@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [TagType(typeof(IErrorTag))]
     internal sealed partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
+        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticsSquiggleTaggerProvider(
@@ -40,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
         {
         }
-
-        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
 
         protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
