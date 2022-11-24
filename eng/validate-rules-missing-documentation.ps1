@@ -9,17 +9,23 @@ $ErrorActionPreference="Stop"
 
 Write-Host "Building Microsoft.CodeAnalysis.Features"
 try {
-    Invoke-Expression "dotnet build src/Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Failed with exit code $LASTEXITCODE."
-        exit $LASTEXITCODE
-    }
+  . (Join-Path $PSScriptRoot "build-utils.ps1")
+  Push-Location $RepoRoot
+
+  $dotnet = Ensure-DotnetSdk
+  $projectFilePath = Join-Path $RepoRoot "src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj"
+  Exec-Console $dotnet "build $projectFilePath -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
+
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "Failed with exit code $LASTEXITCODE."
+    exit $LASTEXITCODE
+  }
 }
 catch {
-    Write-Host "Error verifying rules missing documentation!"
-    Write-Host $_
-    Write-Host $_.Exception
-    Write-Host $_.ScriptStackTrace
-    $host.SetShouldExit(1)
-    exit 1
+  Write-Host "Error verifying rules missing documentation!"
+  Write-Host $_
+  Write-Host $_.Exception
+  Write-Host $_.ScriptStackTrace
+  $host.SetShouldExit(1)
+  exit 1
 }
