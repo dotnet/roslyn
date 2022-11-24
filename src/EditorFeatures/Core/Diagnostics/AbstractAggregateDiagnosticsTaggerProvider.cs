@@ -59,7 +59,7 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
         foreach (var taggerProvider in _diagnosticsTaggerProviders)
             taggers.AddIfNotNull(taggerProvider.CreateTagger<TTag>(textView, buffer));
 
-        var tagger = new AggregateTagger(this, taggers.ToImmutable());
+        var tagger = new AggregateTagger(taggers.ToImmutable());
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();
