@@ -14,7 +14,6 @@ const int expectedArguments = 4;
 const string validateOnlyPrefix = "-validateOnly:";
 const string rulesMissingDocumentationFileName = "RulesMissingDocumentation.md";
 
-
 if (args.Length != expectedArguments)
 {
     await Console.Error.WriteLineAsync($"Excepted {expectedArguments} arguments, found {args.Length}: {string.Join(';', args)}").ConfigureAwait(false);
@@ -100,7 +99,6 @@ if (!validateOnly)
 {
     File.WriteAllText(fileWithPath, builder.ToString());
 }
-
 
 async Task<bool> checkHelpLinkAsync(string helpLink)
 {
