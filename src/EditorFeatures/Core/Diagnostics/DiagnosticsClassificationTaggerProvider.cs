@@ -84,6 +84,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
+        protected sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
+            => new TagSpan<ClassificationTag>(span, _classificationTag);
+
         protected sealed override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
             if (diagnosticData.TryGetUnnecessaryDataLocations(out var locationsToTag))
@@ -94,9 +97,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Default to the base implementation for the diagnostic data
             return base.GetLocationsToTag(diagnosticData);
         }
-
-        protected sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
-            => new TagSpan<ClassificationTag>(span, _classificationTag);
 
         protected sealed override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
             => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
