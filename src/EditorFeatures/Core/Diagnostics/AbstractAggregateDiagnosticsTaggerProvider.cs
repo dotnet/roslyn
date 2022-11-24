@@ -73,16 +73,16 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
     // SingleDiagnosticKindTaggerProvider will defer to these to do the work so that they otherwise operate
     // identically.
 
-    public abstract ImmutableArray<IOption> Options { get; }
-    public virtual ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray<IOption>.Empty;
+    protected abstract ImmutableArray<IOption> Options { get; }
+    protected virtual ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray<IOption>.Empty;
 
-    public abstract bool IsEnabled { get; }
+    protected abstract bool IsEnabled { get; }
 
-    public abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
-    public abstract bool IncludeDiagnostic(DiagnosticData data);
+    protected abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
+    protected abstract bool IncludeDiagnostic(DiagnosticData data);
 
-    public abstract bool TagEquals(TTag tag1, TTag tag2);
-    public abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
+    protected abstract bool TagEquals(TTag tag1, TTag tag2);
+    protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
 
     /// <summary>
     /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
@@ -90,6 +90,6 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
     /// </summary>
     /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
     /// <returns>an array of locations that should have the tag applied.</returns>
-    public virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
+    protected virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         => diagnosticData.DataLocation is not null ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
 }

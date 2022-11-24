@@ -54,16 +54,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
-        public sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InlineDiagnosticsOptions.EnableInlineDiagnostics);
-        public sealed override ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray.Create<IOption>(InlineDiagnosticsOptions.Location);
+        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InlineDiagnosticsOptions.EnableInlineDiagnostics);
+        protected sealed override ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray.Create<IOption>(InlineDiagnosticsOptions.Location);
 
-        public sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
+        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We support inline diagnostics in both push and pull (since lsp doesn't support inline diagnostics yet).
             return true;
         }
 
-        public sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             return
                 diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error &&
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// many in a document to matter.
         /// </para>
         /// </summary>
-        public sealed override bool TagEquals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
+        protected sealed override bool TagEquals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
             => tag1 == tag2;
     }
 }

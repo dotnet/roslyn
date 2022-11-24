@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
+        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
 
-        public sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
 
-        public sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
+        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
             // lsp client.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
 
-        public sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
+        protected sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
         {
             Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
             Contract.ThrowIfFalse(tag2 is RoslynErrorTag);

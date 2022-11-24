@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
+        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
 
-        public sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
+        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, squiggles are handled by the lsp client.
             return mode == DiagnosticMode.Push;
         }
 
-        public sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
+        protected sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
         {
             Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
             Contract.ThrowIfFalse(tag2 is RoslynErrorTag);

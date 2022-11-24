@@ -56,20 +56,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         #region IRawDiagnosticsTaggerProviderCallback
 
-        public sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Classification);
+        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Classification);
 
         // If we are under high contrast mode, the editor ignores classification tags that fade things out,
         // because that reduces contrast. Since the editor will ignore them, there's no reason to produce them.
-        public sealed override bool IsEnabled
+        protected sealed override bool IsEnabled
             => !_editorOptionsService.Factory.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
 
-        public sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
+        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, diagnostic fading is handled by the lsp client.
             return mode == DiagnosticMode.Push;
         }
 
-        public sealed override bool IncludeDiagnostic(DiagnosticData data)
+        protected sealed override bool IncludeDiagnostic(DiagnosticData data)
         {
             if (!data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
             {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        public sealed override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
+        protected sealed override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
             if (diagnosticData.TryGetUnnecessaryDataLocations(out var locationsToTag))
             {
@@ -97,10 +97,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return base.GetLocationsToTag(diagnosticData);
         }
 
-        public sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
+        protected sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
             => new TagSpan<ClassificationTag>(span, _classificationTag);
 
-        public sealed override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
+        protected sealed override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
             => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
 
         #endregion
