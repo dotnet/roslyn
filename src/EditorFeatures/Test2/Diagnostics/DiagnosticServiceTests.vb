@@ -2331,16 +2331,16 @@ class MyClass
         End Function
 
         <WpfTheory>
-        <InlineData(DiagnosticKinds.CompilerSyntax)>
-        <InlineData(DiagnosticKinds.CompilerSemantic)>
-        <InlineData(DiagnosticKinds.AnalyzerSyntax)>
-        <InlineData(DiagnosticKinds.AnalyzerSemantic)>
-        <InlineData(DiagnosticKinds.AllCompiler)>
-        <InlineData(DiagnosticKinds.AllAnalyzer)>
-        <InlineData(DiagnosticKinds.AllSyntax)>
-        <InlineData(DiagnosticKinds.AllSemantic)>
-        <InlineData(DiagnosticKinds.All)>
-        Friend Async Function TestGetDiagnosticsForDiagnosticKindsAsync(diagnosticKinds As DiagnosticKinds) As Task
+        <InlineData(DiagnosticKind.CompilerSyntax)>
+        <InlineData(DiagnosticKind.CompilerSemantic)>
+        <InlineData(DiagnosticKind.AnalyzerSyntax)>
+        <InlineData(DiagnosticKind.AnalyzerSemantic)>
+        <InlineData(DiagnosticKind.AllCompiler)>
+        <InlineData(DiagnosticKind.AllAnalyzer)>
+        <InlineData(DiagnosticKind.AllSyntax)>
+        <InlineData(DiagnosticKind.AllSemantic)>
+        <InlineData(DiagnosticKind.All)>
+        Friend Async Function TestGetDiagnosticsForDiagnosticKindsAsync(diagnosticKinds As DiagnosticKind) As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document><![CDATA[
@@ -2382,22 +2382,22 @@ class MyClass
                 Dim expectedCount = 0
                 Dim expectedDiagnosticIds As New HashSet(Of String)
 
-                If (diagnosticKinds And DiagnosticKinds.CompilerSyntax) <> 0 Then
+                If (diagnosticKinds And DiagnosticKind.CompilerSyntax) <> 0 Then
                     expectedCount += 1
                     expectedDiagnosticIds.Add("CS1513")
                 End If
 
-                If (diagnosticKinds And DiagnosticKinds.CompilerSemantic) <> 0 Then
+                If (diagnosticKinds And DiagnosticKind.CompilerSemantic) <> 0 Then
                     expectedCount += 1
                     expectedDiagnosticIds.Add("CS0219")
                 End If
 
-                If (diagnosticKinds And DiagnosticKinds.AnalyzerSyntax) <> 0 Then
+                If (diagnosticKinds And DiagnosticKind.AnalyzerSyntax) <> 0 Then
                     expectedCount += 1
                     expectedDiagnosticIds.Add("ID0001")
                 End If
 
-                If (diagnosticKinds And DiagnosticKinds.AnalyzerSemantic) <> 0 Then
+                If (diagnosticKinds And DiagnosticKind.AnalyzerSemantic) <> 0 Then
                     expectedCount += 1
                     expectedDiagnosticIds.Add("ID0002")
                 End If
@@ -2448,22 +2448,22 @@ class MyClass
                 Dim root = Await document.GetSyntaxRootAsync()
 
                 ' Compiler semantic
-                Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKinds.CompilerSemantic)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKind.CompilerSemantic)
                 Dim diagnostic = Assert.Single(diagnostics)
                 Assert.Equal("CS0219", diagnostic.Id)
 
                 ' Compiler syntax
-                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKinds.CompilerSyntax)
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKind.CompilerSyntax)
                 diagnostic = Assert.Single(diagnostics)
                 Assert.Equal("CS1513", diagnostic.Id)
 
                 ' Analyzer syntax
-                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKinds.AnalyzerSyntax)
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKind.AnalyzerSyntax)
                 diagnostic = Assert.Single(diagnostics)
                 Assert.Equal("ID0001", diagnostic.Id)
 
                 ' Analyzer semantic
-                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKinds.AnalyzerSemantic)
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKind.AnalyzerSemantic)
                 diagnostic = Assert.Single(diagnostics)
                 Assert.Equal("ID0002", diagnostic.Id)
             End Using

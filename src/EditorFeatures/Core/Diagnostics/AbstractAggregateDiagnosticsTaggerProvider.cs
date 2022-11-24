@@ -19,16 +19,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <summary>
 /// Base type for all taggers that interact with the <see cref="IDiagnosticAnalyzerService"/> and produce tags for the
 /// diagnostics with different UI presentations.  It does no computation work itself, but instead defers that to it's
-/// underlying <see cref="AsynchronousDiagnosticsTaggerProvider{TTag}"/>s.
+/// underlying <see cref="SingleDiagnosticKindTaggerProvider"/>s.
 /// </summary>
-internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
-    : IViewTaggerProvider, AsynchronousDiagnosticsTaggerProvider<TTag>.ICallback
+internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag> : IViewTaggerProvider
     where TTag : ITag
 {
     /// <summary>
     /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.
     /// </summary>
-    private readonly ImmutableArray<AsynchronousDiagnosticsTaggerProvider<TTag>> _diagnosticsTaggerProviders;
+    private readonly ImmutableArray<SingleDiagnosticKindTaggerProvider> _diagnosticsTaggerProviders;
 
     protected readonly IGlobalOptionService GlobalOptions;
 
@@ -43,14 +42,14 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
         GlobalOptions = globalOptions;
 
         _diagnosticsTaggerProviders = ImmutableArray.Create(
-            CreateDiagnosticsTaggerProvider(DiagnosticKinds.CompilerSyntax),
-            CreateDiagnosticsTaggerProvider(DiagnosticKinds.CompilerSemantic),
-            CreateDiagnosticsTaggerProvider(DiagnosticKinds.AnalyzerSyntax),
-            CreateDiagnosticsTaggerProvider(DiagnosticKinds.AnalyzerSemantic));
+            CreateDiagnosticsTaggerProvider(DiagnosticKind.CompilerSyntax),
+            CreateDiagnosticsTaggerProvider(DiagnosticKind.CompilerSemantic),
+            CreateDiagnosticsTaggerProvider(DiagnosticKind.AnalyzerSyntax),
+            CreateDiagnosticsTaggerProvider(DiagnosticKind.AnalyzerSemantic));
 
         return;
 
-        AsynchronousDiagnosticsTaggerProvider<TTag> CreateDiagnosticsTaggerProvider(DiagnosticKinds diagnosticKinds)
+        SingleDiagnosticKindTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKinds)
             => new(this, diagnosticKinds, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
     }
 
@@ -70,7 +69,9 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
         return genericTagger;
     }
 
-    #region AsynchronousDiagnosticsTaggerProvider<TTag>.ICallback
+    // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual
+    // SingleDiagnosticKindTaggerProvider will defer to these to do the work so that they otherwise operate
+    // identically.
 
     public abstract ImmutableArray<IOption> Options { get; }
     public virtual ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray<IOption>.Empty;
@@ -91,6 +92,4 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
     /// <returns>an array of locations that should have the tag applied.</returns>
     public virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         => diagnosticData.DataLocation is not null ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
-
-    #endregion
 }

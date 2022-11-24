@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
             TextDocument document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, CodeActionRequestPriority priority, bool blockForData,
-            Func<string, IDisposable?>? addOperationScope, DiagnosticKinds diagnosticKinds, CancellationToken cancellationToken)
+            Func<string, IDisposable?>? addOperationScope, DiagnosticKind diagnosticKinds, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
                 this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics, includeCompilerDiagnostics,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             CodeActionRequestPriority priority,
             bool blockForData,
             Func<string, IDisposable?>? addOperationScope,
-            DiagnosticKinds diagnosticKinds,
+            DiagnosticKind diagnosticKinds,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly Func<string, IDisposable?>? _addOperationScope;
             private readonly bool _cacheFullDocumentDiagnostics;
             private readonly bool _logPerformanceInfo;
-            private readonly DiagnosticKinds _diagnosticKinds;
+            private readonly DiagnosticKind _diagnosticKinds;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  bool includeCompilerDiagnostics,
                  CodeActionRequestPriority priority,
                  Func<string, bool>? shouldIncludeDiagnostic,
-                 DiagnosticKinds diagnosticKinds,
+                 DiagnosticKind diagnosticKinds,
                  CancellationToken cancellationToken)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CodeActionRequestPriority priority,
                 bool cacheFullDocumentDiagnostics,
                 bool logPerformanceInfo,
-                DiagnosticKinds diagnosticKinds)
+                DiagnosticKind diagnosticKinds)
             {
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
@@ -194,15 +194,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             continue;
 
                         bool includeSyntax = true, includeSemantic = true;
-                        if (_diagnosticKinds != DiagnosticKinds.All)
+                        if (_diagnosticKinds != DiagnosticKind.All)
                         {
                             var isCompilerAnalyzer = analyzer.IsCompilerAnalyzer();
                             includeSyntax = isCompilerAnalyzer
-                                ? (_diagnosticKinds & DiagnosticKinds.CompilerSyntax) != 0
-                                : (_diagnosticKinds & DiagnosticKinds.AnalyzerSyntax) != 0;
+                                ? (_diagnosticKinds & DiagnosticKind.CompilerSyntax) != 0
+                                : (_diagnosticKinds & DiagnosticKind.AnalyzerSyntax) != 0;
                             includeSemantic = isCompilerAnalyzer
-                                ? (_diagnosticKinds & DiagnosticKinds.CompilerSemantic) != 0
-                                : (_diagnosticKinds & DiagnosticKinds.AnalyzerSemantic) != 0;
+                                ? (_diagnosticKinds & DiagnosticKind.CompilerSemantic) != 0
+                                : (_diagnosticKinds & DiagnosticKind.AnalyzerSemantic) != 0;
                         }
 
                         if (includeSyntax && !await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))

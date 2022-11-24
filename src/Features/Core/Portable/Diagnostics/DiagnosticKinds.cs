@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 [Flags]
-internal enum DiagnosticKinds
+internal enum DiagnosticKind
 {
     CompilerSyntax = 1 << 0,
     AnalyzerSyntax = 1 << 1,
