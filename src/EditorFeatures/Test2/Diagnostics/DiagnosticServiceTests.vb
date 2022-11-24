@@ -2340,7 +2340,7 @@ class MyClass
         <InlineData(DiagnosticKinds.AllSyntax)>
         <InlineData(DiagnosticKinds.AllSemantic)>
         <InlineData(DiagnosticKinds.All)>
-        Friend Async Function TestGetDiagnosticsForDiagnosticsKindAsync(diagnosticKinds As DiagnosticKinds) As Task
+        Friend Async Function TestGetDiagnosticsForDiagnosticKindsAsync(diagnosticKinds As DiagnosticKinds) As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document><![CDATA[
@@ -2405,6 +2405,67 @@ class MyClass
                 Assert.Equal(expectedCount, diagnostics.Length)
                 Dim actualDiagnosticIds = diagnostics.Select(Function(d) d.Id).ToHashSet()
                 Assert.Equal(expectedDiagnosticIds, actualDiagnosticIds)
+            End Using
+        End Function
+
+        <WpfFact>
+        Friend Async Function TestMultipleGetDiagnosticsForDiagnosticKindsAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    private readonly int _field;    // ID0001 (analyzer syntax warning) and ID0002 (analyzer semantic warning)
+
+    void M()
+    {
+        int x = 0;  // CS0219: unused variable (compiler semantic warning)
+        ,           // CS1513: } expected (compiler syntax error)
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                ' Add syntax and semantic analyzers
+                Dim syntaxAnalyzer = New FieldAnalyzer("ID0001", syntaxTreeAction:=True)
+                Dim semanticAnalyzer = New FieldAnalyzer("ID0002", syntaxTreeAction:=False)
+                Dim compilerAnalyzer = New CSharpCompilerDiagnosticAnalyzer()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(compilerAnalyzer, syntaxAnalyzer, semanticAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                ' Get diagnostics for span for fine grained DiagnosticKinds in random order
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+
+                ' Compiler semantic
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKinds.CompilerSemantic)
+                Dim diagnostic = Assert.Single(diagnostics)
+                Assert.Equal("CS0219", diagnostic.Id)
+
+                ' Compiler syntax
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKinds.CompilerSyntax)
+                diagnostic = Assert.Single(diagnostics)
+                Assert.Equal("CS1513", diagnostic.Id)
+
+                ' Analyzer syntax
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKinds.AnalyzerSyntax)
+                diagnostic = Assert.Single(diagnostics)
+                Assert.Equal("ID0001", diagnostic.Id)
+
+                ' Analyzer semantic
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, root.FullSpan, diagnosticKinds:=DiagnosticKinds.AnalyzerSemantic)
+                diagnostic = Assert.Single(diagnostics)
+                Assert.Equal("ID0002", diagnostic.Id)
             End Using
         End Function
 

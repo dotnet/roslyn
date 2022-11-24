@@ -187,13 +187,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     using var _1 = ArrayBuilder<StateSet>.GetInstance(out var syntaxAnalyzers);
                     using var _2 = ArrayBuilder<StateSet>.GetInstance(out var semanticSpanBasedAnalyzers);
                     using var _3 = ArrayBuilder<StateSet>.GetInstance(out var semanticDocumentBasedAnalyzers);
-                    var seenCompilerAnalyzer = false;
                     foreach (var stateSet in _stateSets)
                     {
-                        if (!ShouldIncludeAnalyzer(stateSet.Analyzer, _shouldIncludeDiagnostic, _owner))
+                        var analyzer = stateSet.Analyzer;
+                        if (!ShouldIncludeAnalyzer(analyzer, _shouldIncludeDiagnostic, _owner))
                             continue;
 
-                        var (includeSyntax, includeSemantic) = ProcessDiagnosticKinds(stateSet.Analyzer, _diagnosticKinds, ref seenCompilerAnalyzer);
+                        bool includeSyntax = true, includeSemantic = true;
+                        if (_diagnosticKinds != DiagnosticKinds.All)
+                        {
+                            var isCompilerAnalyzer = analyzer.IsCompilerAnalyzer();
+                            includeSyntax = isCompilerAnalyzer
+                                ? (_diagnosticKinds & DiagnosticKinds.CompilerSyntax) != 0
+                                : (_diagnosticKinds & DiagnosticKinds.AnalyzerSyntax) != 0;
+                            includeSemantic = isCompilerAnalyzer
+                                ? (_diagnosticKinds & DiagnosticKinds.CompilerSemantic) != 0
+                                : (_diagnosticKinds & DiagnosticKinds.AnalyzerSemantic) != 0;
+                        }
 
                         if (includeSyntax && !await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
                             syntaxAnalyzers.Add(stateSet);
@@ -203,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             !await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
                         {
                             // Check whether we want up-to-date document wide semantic diagnostics
-                            var spanBased = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
+                            var spanBased = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
                             if (!_blockForData && !spanBased)
                             {
                                 containsFullResult = false;
@@ -252,37 +262,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     return true;
-                }
-
-                static (bool includeSyntax, bool includeSemantic) ProcessDiagnosticKinds(
-                    DiagnosticAnalyzer analyzer,
-                    DiagnosticKinds diagnosticKinds,
-                    ref bool seenCompilerAnalyzer)
-                {
-                    if (diagnosticKinds == DiagnosticKinds.All)
-                    {
-                        return (true, true);
-                    }
-
-                    bool isCompilerAnalyzer;
-                    if (seenCompilerAnalyzer)
-                    {
-                        Debug.Assert(!analyzer.IsCompilerAnalyzer(), "Unexpected duplicate compiler analyzer instances");
-                        isCompilerAnalyzer = false;
-                    }
-                    else
-                    {
-                        isCompilerAnalyzer = analyzer.IsCompilerAnalyzer();
-                        seenCompilerAnalyzer = isCompilerAnalyzer;
-                    }
-
-                    var includeSyntax = isCompilerAnalyzer
-                        ? (diagnosticKinds & DiagnosticKinds.CompilerSyntax) != 0
-                        : (diagnosticKinds & DiagnosticKinds.AnalyzerSyntax) != 0;
-                    var includeSemantic = isCompilerAnalyzer
-                        ? (diagnosticKinds & DiagnosticKinds.CompilerSemantic) != 0
-                        : (diagnosticKinds & DiagnosticKinds.AnalyzerSemantic) != 0;
-                    return (includeSyntax, includeSemantic);
                 }
             }
 
