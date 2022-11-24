@@ -9,13 +9,18 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.CallHierarchy;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -30,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
     internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IUIThreadOperationExecutor _threadOperationExecutor;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly ICallHierarchyPresenter _presenter;
         private readonly CallHierarchyProvider _provider;
 
@@ -39,61 +46,75 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CallHierarchyCommandHandler(
             IThreadingContext threadingContext,
+            IUIThreadOperationExecutor threadOperationExecutor,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<ICallHierarchyPresenter> presenters,
             CallHierarchyProvider provider)
         {
             _threadingContext = threadingContext;
+            _threadOperationExecutor = threadOperationExecutor;
+            _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CallHierarchy);
             _presenter = presenters.FirstOrDefault();
             _provider = provider;
         }
 
         public bool ExecuteCommand(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
         {
-            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Computing_Call_Hierarchy_Information))
+            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                context.OperationContext, _threadingContext);
+            if (document == null)
             {
-                var cancellationToken = context.OperationContext.UserCancellationToken;
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                    context.OperationContext, _threadingContext);
-                if (document == null)
-                {
-                    return true;
-                }
+                return true;
+            }
 
-                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
 
-                var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-                var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(
-                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken)
-                    .WaitAndGetResult(cancellationToken);
+            // We're showing our own UI, ensure the editor doesn't show anything itself.
+            context.OperationContext.TakeOwnership();
+            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
+            ExecuteCommandAsync(document, caretPosition)
+                .ReportNonFatalErrorAsync()
+                .CompletesAsyncOperation(token);
+
+            return true;
+        }
+
+        private async Task ExecuteCommandAsync(Document document, int caretPosition)
+        {
+            using (var context = _threadOperationExecutor.BeginExecute(
+                ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
+            {
+                var cancellationToken = context.UserCancellationToken;
+
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
+                var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
+                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(true);
 
                 if (symbolUnderCaret != null)
                 {
                     // Map symbols so that Call Hierarchy works from metadata-as-source
                     var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-                    var mapping = mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(true);
 
                     if (mapping.Symbol != null)
                     {
-                        var node = _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).WaitAndGetResult(cancellationToken);
+                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(true);
+
                         if (node != null)
                         {
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                             _presenter.PresentRoot((CallHierarchyItem)node);
-                            return true;
+                            return;
                         }
                     }
                 }
 
-                // Haven't found suitable hierarchy -> caret wasn't on symbol that can have call hierarchy.
-                //
-                // We are about to show a modal UI dialog so we should take over the command execution
-                // wait context. That means the command system won't attempt to show its own wait dialog 
-                // and also will take it into consideration when measuring command handling duration.
-                waitScope.Context.TakeOwnership();
-                var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-                notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
+                // Come back to the UI thread so we can give the user an error notification.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             }
 
-            return true;
+            var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
+            notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
         }
 
         public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)

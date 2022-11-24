@@ -18,24 +18,24 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpression), Shared]
-    internal class UseCoalesceExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForTernaryConditionalCheck), Shared]
+    internal class UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public UseCoalesceExpressionCodeFixProvider()
+        public UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider()
         {
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression_for_non_nullable_types, nameof(AnalyzersResources.Use_coalesce_expression_for_non_nullable_types));
+            RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
             return Task.CompletedTask;
         }
 

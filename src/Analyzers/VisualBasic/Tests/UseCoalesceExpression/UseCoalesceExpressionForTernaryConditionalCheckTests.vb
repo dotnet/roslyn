@@ -10,12 +10,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
-    Public Class UseCoalesceExpressionTests
+    Public Class UseCoalesceExpressionForTernaryConditionalCheckTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicUseCoalesceExpressionDiagnosticAnalyzer(),
-                    New UseCoalesceExpressionCodeFixProvider())
+            Return (New VisualBasicUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer(),
+                    New UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider())
         End Function
 
         <Fact>

@@ -310,7 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         #region Visitors
 
         public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
@@ -412,7 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             F.CloseMethod(rewrittenHandler);
             F.CurrentFunction = origMethod;
-
 
             var bodyStatements = ArrayBuilder<BoundStatement>.GetInstance();
 

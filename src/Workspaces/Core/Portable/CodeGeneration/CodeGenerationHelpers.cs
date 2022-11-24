@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(attribute);
 
-            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
-                attribute.ApplicationSyntaxReference.GetSyntax() as T :
-                null;
+            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null
+                ? attribute.ApplicationSyntaxReference.GetSyntax() as T
+                : null;
         }
 
         public static int GetInsertionIndex<TDeclaration>(

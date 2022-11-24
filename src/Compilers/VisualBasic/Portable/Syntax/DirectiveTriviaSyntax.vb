@@ -46,7 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         d = d.GetNextPossiblyRelatedDirective()
                     End While
 
-
                 Case SyntaxKind.ElseIfDirectiveTrivia
                     While d IsNot Nothing
                         Select Case d.Kind
@@ -57,7 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         d = d.GetNextPossiblyRelatedDirective()
                     End While
 
-
                 Case SyntaxKind.ElseDirectiveTrivia
                     While d IsNot Nothing
                         If d.Kind = SyntaxKind.EndIfDirectiveTrivia Then
@@ -67,7 +65,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         d = d.GetNextPossiblyRelatedDirective()
                     End While
 
-
                 Case SyntaxKind.RegionDirectiveTrivia
                     While d IsNot Nothing
                         If d.Kind = SyntaxKind.EndRegionDirectiveTrivia Then
@@ -76,7 +73,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                         d = d.GetNextPossiblyRelatedDirective()
                     End While
-
 
             End Select
 
@@ -123,7 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         d = d.GetPreviousPossiblyRelatedDirective()
                     End While
 
-
                 Case SyntaxKind.ElseIfDirectiveTrivia
                     While d IsNot Nothing
                         If d.Kind = SyntaxKind.IfDirectiveTrivia Then
@@ -132,7 +127,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                         d = d.GetPreviousPossiblyRelatedDirective()
                     End While
-
 
                 Case SyntaxKind.ElseDirectiveTrivia
                     While d IsNot Nothing
@@ -144,7 +138,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         d = d.GetPreviousPossiblyRelatedDirective()
                     End While
 
-
                 Case SyntaxKind.EndRegionDirectiveTrivia
                     While d IsNot Nothing
                         If d.Kind = SyntaxKind.RegionDirectiveTrivia Then
@@ -153,7 +146,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                         d = d.GetPreviousPossiblyRelatedDirective()
                     End While
-
 
             End Select
 

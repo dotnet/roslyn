@@ -591,7 +591,6 @@ class Program
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
-
         [Fact, WorkItem(528052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528052")]
         public void InnerVariablesAreNotDefinitelyAssignedInBeginningOfLambdaBody()
         {

@@ -425,7 +425,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return constructors.ToImmutableAndFree()
         End Function
 
-
         ''' <summary>
         ''' Returns true if this type is known to be a reference type. It is never the case
         ''' that IsReferenceType and IsValueType both return true. However, for an unconstrained

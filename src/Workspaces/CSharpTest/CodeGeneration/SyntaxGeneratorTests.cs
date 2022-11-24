@@ -213,7 +213,7 @@ public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
 @"using System; 
 public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 @"[MyAttribute(new [] {1, 2, 3})]")),
-@"[global::MyAttribute(new[]{1, 2, 3})]");
+@"[global::MyAttribute(new[] { 1, 2, 3 })]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
 @"using System; 
@@ -382,7 +382,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<ArrayCreationExpressionSyntax>(
                 Generator.ArrayCreationExpression(Generator.IdentifierName("x"), new SyntaxNode[] { Generator.IdentifierName("y"), Generator.IdentifierName("z") }),
-                "new x[]{y, z}");
+                """
+                new x[]
+                {
+                    y,
+                    z
+                }
+                """);
         }
 
         [Fact]

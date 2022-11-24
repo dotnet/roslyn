@@ -812,11 +812,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
                         // https://github.com/dotnet/roslyn/issues/43354
-                        var argument = generateAttributeArguments ?
-                            Generator.AttributeArgument(
+                        var argument = generateAttributeArguments
+                            ? Generator.AttributeArgument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
-                                expression: expression) :
-                            Generator.Argument(
+                                expression: expression)
+                            : Generator.Argument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 refKind: RefKind.None,
                                 expression: expression);

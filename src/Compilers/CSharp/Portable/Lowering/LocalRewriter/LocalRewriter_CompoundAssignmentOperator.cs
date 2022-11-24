@@ -229,32 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverOpt = indexerAccess.ReceiverOpt;
             Debug.Assert(receiverOpt != null);
 
-            BoundExpression transformedReceiver;
-            if (CanChangeValueBetweenReads(receiverOpt))
-            {
-                BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
-
-                BoundAssignmentOperator assignmentToTemp;
-
-                // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
-                // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
-                // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
-                // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
-                // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
-                // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
-                // SPEC VIOLATION: as value types.
-                Debug.Assert(rewrittenReceiver.Type is { });
-                var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
-
-                var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
-                transformedReceiver = receiverTemp;
-                stores.Add(assignmentToTemp);
-                temps.Add(receiverTemp.LocalSymbol);
-            }
-            else
-            {
-                transformedReceiver = VisitExpression(receiverOpt);
-            }
+            BoundExpression transformedReceiver = VisitExpression(receiverOpt);
 
             // Dealing with the arguments is a bit tricky because they can be named out-of-order arguments;
             // we have to preserve both the source-code order of the side effects and the side effects
@@ -306,31 +281,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt = indexerAccess.ArgsToParamsOpt;
             ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
 
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref transformedReceiver,
+                captureReceiverForMultipleInvocations: CanChangeValueBetweenReads(receiverOpt),
                 indexerAccess.Arguments,
                 indexer,
                 argsToParamsOpt,
                 argumentRefKinds,
-                ref transformedReceiver!,
-                out ArrayBuilder<LocalSymbol>? argumentTemps);
+                stores,
+                ref temps!);
 
-            if (argumentTemps != null)
-            {
-                temps.AddRange(argumentTemps);
-                argumentTemps.Free();
-            }
-
-            if (transformedReceiver is BoundSequence receiverSequence)
-            {
-                // The receiver is a store/evaluate sequence because it was used as an argument to an interpolated
-                // string handler conversion.
-                // Pick apart the sequence, add the side effects to the containing list of stores, and set the
-                // receiver to just be the final temp to ensure we don't double-evaluate the sequence.
-
-                temps.AddRange(receiverSequence.Locals);
-                stores.AddRange(receiverSequence.SideEffects);
-                transformedReceiver = receiverSequence.Value;
-            }
+            Debug.Assert(temps is object);
 
             bool expanded = indexerAccess.Expanded;
 
@@ -356,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                BoundExpression array = BuildParamsArray(syntax, indexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                BoundExpression array = BuildParamsArray(syntax, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
                 BoundAssignmentOperator storeToTemp;
                 var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
                 stores.Add(storeToTemp);
