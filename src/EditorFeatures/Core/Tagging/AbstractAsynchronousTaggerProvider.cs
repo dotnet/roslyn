@@ -126,8 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             AsyncListener = asyncListener;
             _visibilityTracker = visibilityTracker;
 
-            Contract.ThrowIfTrue(this.Options.Any(o => o is not Option2<bool> and not PerLanguageOption2<bool>), "All options must be Option2<bool> or PerLanguageOption2<bool>");
-
 #if DEBUG
             StackTrace = new StackTrace().ToString();
 #endif
