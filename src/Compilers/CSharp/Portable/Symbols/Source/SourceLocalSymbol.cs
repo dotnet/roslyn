@@ -308,6 +308,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return false; }
+        }
+
         internal virtual void SetRefEscape(uint value)
         {
             _refEscapeScope = value;

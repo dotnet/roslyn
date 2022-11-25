@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal abstract bool IsKnownToReferToTempIfReferenceType
+        {
+            get;
+        }
+
         /// <summary>
         /// Returns false because local variable can't be defined externally.
         /// </summary>
