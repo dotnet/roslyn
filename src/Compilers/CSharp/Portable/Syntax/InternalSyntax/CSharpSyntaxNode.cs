@@ -151,8 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.GetTrailingTrivia();
         }
 
-        public abstract TResult Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument);
-
         public abstract TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
 
         public abstract void Accept(CSharpSyntaxVisitor visitor);

@@ -49,7 +49,7 @@ namespace CSharpSyntaxGenerator
             WriteLine();
             this.WriteGreenTypes();
             this.WriteGreenVisitors();
-            this.WriteGreenRewriters();
+            this.WriteGreenRewriter();
             this.WriteContextualGreenFactories();
             this.WriteStaticGreenFactories();
             CloseBlock();
@@ -444,34 +444,24 @@ namespace CSharpSyntaxGenerator
             WriteLine();
             WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
             WriteLine($"public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
-            WriteLine($"public override TResult Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.Visit{StripPost(node.Name, "Syntax")}(this, argument);");
         }
 
         private void WriteGreenVisitors()
         {
-            WriteGreenVisitor(withArgument: true, withResult: true);
-            WriteGreenVisitor(withArgument: false, withResult: true);
-            WriteGreenVisitor(withArgument: false, withResult: false);
+            WriteGreenVisitor(withResult: true);
+            WriteGreenVisitor(withResult: false);
         }
 
-        private void WriteGreenVisitor(bool withArgument, bool withResult)
+        private void WriteGreenVisitor(bool withResult)
         {
-            var genericArguments = (withArgument, withResult) switch
-            {
-                (false, false) => "",
-                (false, true) => "<TResult>",
-                (true, false) => throw new InvalidOperationException("Visitors can only have an argument type if they also have a result type."),
-                (true, true) => "<TArgument, TResult>"
-            };
-
             var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             WriteLine();
-            WriteLine($"internal partial class CSharpSyntaxVisitor{genericArguments}");
+            WriteLine($"internal partial class CSharpSyntaxVisitor{(withResult ? "<TResult>" : "")}");
             OpenBlock();
             foreach (var node in nodes.OfType<Node>())
             {
-                WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node{(withArgument ? ", TArgument argument" : "")}) => this.DefaultVisit(node{(withArgument ? ", argument" : "")});");
+                WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
         }
@@ -530,18 +520,12 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteGreenRewriters()
-        {
-            WriteGreenRewriter(false);
-            WriteGreenRewriter(true);
-        }
-
-        private void WriteGreenRewriter(bool withArgument)
+        private void WriteGreenRewriter()
         {
             var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             WriteLine();
-            WriteLine($"internal partial class CSharpSyntaxRewriter{(withArgument ? "<TArgument>": "")} : CSharpSyntaxVisitor<{(withArgument ? "TArgument, " : "")}CSharpSyntaxNode>");
+            WriteLine($"internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>");
             OpenBlock();
             int nWritten = 0;
             foreach (var node in nodes.OfType<Node>())
@@ -551,7 +535,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
-                WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node{(withArgument ? ", TArgument argument" : "")})");
+                WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
                 Indent();
 
                 if (nodeFields.Count == 0)
@@ -564,9 +548,9 @@ namespace CSharpSyntaxGenerator
                     Write(CommaJoin(node.Fields.Select(f =>
                     {
                         if (IsAnyList(f.Type))
-                            return $"VisitList(node.{f.Name}{(withArgument ? ", argument" : "")})";
+                            return $"VisitList(node.{f.Name})";
                         else if (IsNode(f.Type))
-                            return $"({f.Type})Visit(node.{f.Name}{(withArgument ? ", argument" : "")})";
+                            return $"({f.Type})Visit(node.{f.Name})";
                         else
                             return $"node.{f.Name}";
                     })));

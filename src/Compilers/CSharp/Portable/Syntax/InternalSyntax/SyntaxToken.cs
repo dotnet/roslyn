@@ -392,11 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return stack;
         }
 
-        public override TResult Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitToken(this, argument);
-        }
-
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
         {
             return visitor.VisitToken(this);

@@ -38,20 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private class VisitorResult
-        {
-            public int VisitCount { get; set; }
-        }
-
-        private class TokenDeleteRewriterWithResult : InternalSyntax.CSharpSyntaxRewriter<VisitorResult>
-        {
-            public override InternalSyntax.CSharpSyntaxNode VisitToken(InternalSyntax.SyntaxToken token, VisitorResult result)
-            {
-                result.VisitCount++;
-                return InternalSyntax.SyntaxFactory.MissingToken(token.Kind);
-            }
-        }
-
         [Fact, WorkItem(33685, "https://github.com/dotnet/roslyn/issues/33685")]
         public void ConvenienceSwitchStatementFactoriesAddParensWhenNeeded_01()
         {

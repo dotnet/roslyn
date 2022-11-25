@@ -3793,28 +3793,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIdentifierNameTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateIdentifierName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestIdentifierNameIdentityRewriter()
         {
             var oldNode = GenerateIdentifierName();
@@ -3834,28 +3812,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestQualifiedNameTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateQualifiedName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -3889,28 +3845,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGenericNameTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateGenericName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestGenericNameIdentityRewriter()
         {
             var oldNode = GenerateGenericName();
@@ -3930,28 +3864,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestTypeArgumentListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTypeArgumentList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -3985,28 +3897,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAliasQualifiedNameTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAliasQualifiedName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestAliasQualifiedNameIdentityRewriter()
         {
             var oldNode = GenerateAliasQualifiedName();
@@ -4026,28 +3916,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestPredefinedTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePredefinedType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4081,28 +3949,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestArrayTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateArrayType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestArrayTypeIdentityRewriter()
         {
             var oldNode = GenerateArrayType();
@@ -4122,28 +3968,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestArrayRankSpecifierTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateArrayRankSpecifier();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4177,28 +4001,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPointerTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePointerType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestPointerTypeIdentityRewriter()
         {
             var oldNode = GeneratePointerType();
@@ -4218,28 +4020,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestFunctionPointerTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFunctionPointerType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4273,28 +4053,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFunctionPointerParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestFunctionPointerParameterListIdentityRewriter()
         {
             var oldNode = GenerateFunctionPointerParameterList();
@@ -4314,28 +4072,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestFunctionPointerCallingConventionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFunctionPointerCallingConvention();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4369,28 +4105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestFunctionPointerUnmanagedCallingConventionListIdentityRewriter()
         {
             var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
@@ -4410,28 +4124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFunctionPointerUnmanagedCallingConvention();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4465,28 +4157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNullableTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateNullableType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestNullableTypeIdentityRewriter()
         {
             var oldNode = GenerateNullableType();
@@ -4506,28 +4176,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestTupleTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTupleType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4561,28 +4209,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTupleElementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTupleElement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestTupleElementIdentityRewriter()
         {
             var oldNode = GenerateTupleElement();
@@ -4602,28 +4228,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestOmittedTypeArgumentTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateOmittedTypeArgument();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4657,28 +4261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRefTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRefType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestRefTypeIdentityRewriter()
         {
             var oldNode = GenerateRefType();
@@ -4698,28 +4280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestParenthesizedExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateParenthesizedExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4753,28 +4313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTupleExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTupleExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestTupleExpressionIdentityRewriter()
         {
             var oldNode = GenerateTupleExpression();
@@ -4794,28 +4332,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestPrefixUnaryExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePrefixUnaryExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4849,28 +4365,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAwaitExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAwaitExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestAwaitExpressionIdentityRewriter()
         {
             var oldNode = GenerateAwaitExpression();
@@ -4890,28 +4384,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestPostfixUnaryExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePostfixUnaryExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4945,28 +4417,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMemberAccessExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateMemberAccessExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestMemberAccessExpressionIdentityRewriter()
         {
             var oldNode = GenerateMemberAccessExpression();
@@ -4986,28 +4436,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestConditionalAccessExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateConditionalAccessExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5041,28 +4469,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMemberBindingExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateMemberBindingExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestMemberBindingExpressionIdentityRewriter()
         {
             var oldNode = GenerateMemberBindingExpression();
@@ -5082,28 +4488,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestElementBindingExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateElementBindingExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5137,28 +4521,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRangeExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRangeExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestRangeExpressionIdentityRewriter()
         {
             var oldNode = GenerateRangeExpression();
@@ -5178,28 +4540,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestImplicitElementAccessTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateImplicitElementAccess();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5233,28 +4573,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBinaryExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBinaryExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestBinaryExpressionIdentityRewriter()
         {
             var oldNode = GenerateBinaryExpression();
@@ -5274,28 +4592,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestAssignmentExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAssignmentExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5329,28 +4625,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConditionalExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateConditionalExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestConditionalExpressionIdentityRewriter()
         {
             var oldNode = GenerateConditionalExpression();
@@ -5370,28 +4644,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestThisExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateThisExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5425,28 +4677,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBaseExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBaseExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestBaseExpressionIdentityRewriter()
         {
             var oldNode = GenerateBaseExpression();
@@ -5466,28 +4696,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestLiteralExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLiteralExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5521,28 +4729,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMakeRefExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateMakeRefExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestMakeRefExpressionIdentityRewriter()
         {
             var oldNode = GenerateMakeRefExpression();
@@ -5562,28 +4748,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestRefTypeExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRefTypeExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5617,28 +4781,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRefValueExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRefValueExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestRefValueExpressionIdentityRewriter()
         {
             var oldNode = GenerateRefValueExpression();
@@ -5658,28 +4800,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestCheckedExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCheckedExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5713,28 +4833,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDefaultExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDefaultExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestDefaultExpressionIdentityRewriter()
         {
             var oldNode = GenerateDefaultExpression();
@@ -5754,28 +4852,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestTypeOfExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTypeOfExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5809,28 +4885,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSizeOfExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSizeOfExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestSizeOfExpressionIdentityRewriter()
         {
             var oldNode = GenerateSizeOfExpression();
@@ -5850,28 +4904,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestInvocationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateInvocationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5905,28 +4937,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestElementAccessExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateElementAccessExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestElementAccessExpressionIdentityRewriter()
         {
             var oldNode = GenerateElementAccessExpression();
@@ -5946,28 +4956,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestArgumentListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateArgumentList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6001,28 +4989,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBracketedArgumentListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBracketedArgumentList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestBracketedArgumentListIdentityRewriter()
         {
             var oldNode = GenerateBracketedArgumentList();
@@ -6042,28 +5008,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestArgumentTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateArgument();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6097,28 +5041,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExpressionColonTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateExpressionColon();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestExpressionColonIdentityRewriter()
         {
             var oldNode = GenerateExpressionColon();
@@ -6138,28 +5060,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestNameColonTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateNameColon();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6193,28 +5093,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDeclarationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDeclarationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestDeclarationExpressionIdentityRewriter()
         {
             var oldNode = GenerateDeclarationExpression();
@@ -6234,28 +5112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestCastExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCastExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6289,28 +5145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAnonymousMethodExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAnonymousMethodExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestAnonymousMethodExpressionIdentityRewriter()
         {
             var oldNode = GenerateAnonymousMethodExpression();
@@ -6330,28 +5164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestSimpleLambdaExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSimpleLambdaExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6385,28 +5197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRefExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRefExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestRefExpressionIdentityRewriter()
         {
             var oldNode = GenerateRefExpression();
@@ -6426,28 +5216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestParenthesizedLambdaExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateParenthesizedLambdaExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6481,28 +5249,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInitializerExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateInitializerExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestInitializerExpressionIdentityRewriter()
         {
             var oldNode = GenerateInitializerExpression();
@@ -6522,28 +5268,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestImplicitObjectCreationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateImplicitObjectCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6577,28 +5301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestObjectCreationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateObjectCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestObjectCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateObjectCreationExpression();
@@ -6618,28 +5320,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestWithExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateWithExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6673,28 +5353,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAnonymousObjectMemberDeclaratorTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAnonymousObjectMemberDeclarator();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestAnonymousObjectMemberDeclaratorIdentityRewriter()
         {
             var oldNode = GenerateAnonymousObjectMemberDeclarator();
@@ -6714,28 +5372,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestAnonymousObjectCreationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAnonymousObjectCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6769,28 +5405,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestArrayCreationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateArrayCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateArrayCreationExpression();
@@ -6810,28 +5424,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestImplicitArrayCreationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateImplicitArrayCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6865,28 +5457,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestStackAllocArrayCreationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateStackAllocArrayCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestStackAllocArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateStackAllocArrayCreationExpression();
@@ -6906,28 +5476,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestImplicitStackAllocArrayCreationExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6961,28 +5509,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestQueryExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateQueryExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestQueryExpressionIdentityRewriter()
         {
             var oldNode = GenerateQueryExpression();
@@ -7002,28 +5528,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestQueryBodyTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateQueryBody();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7057,28 +5561,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFromClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFromClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestFromClauseIdentityRewriter()
         {
             var oldNode = GenerateFromClause();
@@ -7098,28 +5580,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestLetClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLetClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7153,28 +5613,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestJoinClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateJoinClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestJoinClauseIdentityRewriter()
         {
             var oldNode = GenerateJoinClause();
@@ -7194,28 +5632,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestJoinIntoClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateJoinIntoClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7249,28 +5665,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWhereClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateWhereClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestWhereClauseIdentityRewriter()
         {
             var oldNode = GenerateWhereClause();
@@ -7290,28 +5684,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestOrderByClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateOrderByClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7345,28 +5717,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestOrderingTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateOrdering();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestOrderingIdentityRewriter()
         {
             var oldNode = GenerateOrdering();
@@ -7386,28 +5736,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestSelectClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSelectClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7441,28 +5769,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGroupClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateGroupClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestGroupClauseIdentityRewriter()
         {
             var oldNode = GenerateGroupClause();
@@ -7482,28 +5788,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestQueryContinuationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateQueryContinuation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7537,28 +5821,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestOmittedArraySizeExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateOmittedArraySizeExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestOmittedArraySizeExpressionIdentityRewriter()
         {
             var oldNode = GenerateOmittedArraySizeExpression();
@@ -7578,28 +5840,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestInterpolatedStringExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateInterpolatedStringExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7633,28 +5873,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIsPatternExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateIsPatternExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestIsPatternExpressionIdentityRewriter()
         {
             var oldNode = GenerateIsPatternExpression();
@@ -7674,28 +5892,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestThrowExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateThrowExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7729,28 +5925,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWhenClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateWhenClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestWhenClauseIdentityRewriter()
         {
             var oldNode = GenerateWhenClause();
@@ -7770,28 +5944,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestDiscardPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDiscardPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7825,28 +5977,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDeclarationPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDeclarationPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestDeclarationPatternIdentityRewriter()
         {
             var oldNode = GenerateDeclarationPattern();
@@ -7866,28 +5996,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestVarPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateVarPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7921,28 +6029,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRecursivePatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRecursivePattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestRecursivePatternIdentityRewriter()
         {
             var oldNode = GenerateRecursivePattern();
@@ -7962,28 +6048,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestPositionalPatternClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePositionalPatternClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8017,28 +6081,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPropertyPatternClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePropertyPatternClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestPropertyPatternClauseIdentityRewriter()
         {
             var oldNode = GeneratePropertyPatternClause();
@@ -8058,28 +6100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestSubpatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSubpattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8113,28 +6133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConstantPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateConstantPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestConstantPatternIdentityRewriter()
         {
             var oldNode = GenerateConstantPattern();
@@ -8154,28 +6152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestParenthesizedPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateParenthesizedPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8209,28 +6185,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRelationalPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRelationalPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestRelationalPatternIdentityRewriter()
         {
             var oldNode = GenerateRelationalPattern();
@@ -8250,28 +6204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestTypePatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTypePattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8305,28 +6237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBinaryPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBinaryPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestBinaryPatternIdentityRewriter()
         {
             var oldNode = GenerateBinaryPattern();
@@ -8346,28 +6256,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestUnaryPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateUnaryPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8401,28 +6289,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestListPatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateListPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestListPatternIdentityRewriter()
         {
             var oldNode = GenerateListPattern();
@@ -8442,28 +6308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestSlicePatternTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSlicePattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8497,28 +6341,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterpolatedStringTextTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateInterpolatedStringText();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestInterpolatedStringTextIdentityRewriter()
         {
             var oldNode = GenerateInterpolatedStringText();
@@ -8538,28 +6360,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestInterpolationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateInterpolation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8593,28 +6393,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterpolationAlignmentClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateInterpolationAlignmentClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestInterpolationAlignmentClauseIdentityRewriter()
         {
             var oldNode = GenerateInterpolationAlignmentClause();
@@ -8634,28 +6412,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestInterpolationFormatClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateInterpolationFormatClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8689,28 +6445,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGlobalStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateGlobalStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestGlobalStatementIdentityRewriter()
         {
             var oldNode = GenerateGlobalStatement();
@@ -8730,28 +6464,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestBlockTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBlock();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8785,28 +6497,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLocalFunctionStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLocalFunctionStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestLocalFunctionStatementIdentityRewriter()
         {
             var oldNode = GenerateLocalFunctionStatement();
@@ -8826,28 +6516,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestLocalDeclarationStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLocalDeclarationStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8881,28 +6549,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestVariableDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateVariableDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestVariableDeclarationIdentityRewriter()
         {
             var oldNode = GenerateVariableDeclaration();
@@ -8922,28 +6568,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestVariableDeclaratorTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateVariableDeclarator();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8977,28 +6601,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEqualsValueClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateEqualsValueClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestEqualsValueClauseIdentityRewriter()
         {
             var oldNode = GenerateEqualsValueClause();
@@ -9018,28 +6620,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestSingleVariableDesignationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSingleVariableDesignation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9073,28 +6653,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDiscardDesignationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDiscardDesignation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestDiscardDesignationIdentityRewriter()
         {
             var oldNode = GenerateDiscardDesignation();
@@ -9114,28 +6672,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestParenthesizedVariableDesignationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateParenthesizedVariableDesignation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9169,28 +6705,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExpressionStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateExpressionStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestExpressionStatementIdentityRewriter()
         {
             var oldNode = GenerateExpressionStatement();
@@ -9210,28 +6724,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestEmptyStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateEmptyStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9265,28 +6757,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLabeledStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLabeledStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestLabeledStatementIdentityRewriter()
         {
             var oldNode = GenerateLabeledStatement();
@@ -9306,28 +6776,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestGotoStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateGotoStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9361,28 +6809,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBreakStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBreakStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestBreakStatementIdentityRewriter()
         {
             var oldNode = GenerateBreakStatement();
@@ -9402,28 +6828,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestContinueStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateContinueStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9457,28 +6861,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestReturnStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateReturnStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestReturnStatementIdentityRewriter()
         {
             var oldNode = GenerateReturnStatement();
@@ -9498,28 +6880,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestThrowStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateThrowStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9553,28 +6913,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestYieldStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateYieldStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestYieldStatementIdentityRewriter()
         {
             var oldNode = GenerateYieldStatement();
@@ -9594,28 +6932,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestWhileStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateWhileStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9649,28 +6965,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDoStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDoStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestDoStatementIdentityRewriter()
         {
             var oldNode = GenerateDoStatement();
@@ -9690,28 +6984,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestForStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateForStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9745,28 +7017,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestForEachStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateForEachStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestForEachStatementIdentityRewriter()
         {
             var oldNode = GenerateForEachStatement();
@@ -9786,28 +7036,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestForEachVariableStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateForEachVariableStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9841,28 +7069,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestUsingStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateUsingStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestUsingStatementIdentityRewriter()
         {
             var oldNode = GenerateUsingStatement();
@@ -9882,28 +7088,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestFixedStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFixedStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9937,28 +7121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCheckedStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCheckedStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestCheckedStatementIdentityRewriter()
         {
             var oldNode = GenerateCheckedStatement();
@@ -9978,28 +7140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestUnsafeStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateUnsafeStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10033,28 +7173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLockStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLockStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestLockStatementIdentityRewriter()
         {
             var oldNode = GenerateLockStatement();
@@ -10074,28 +7192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestIfStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateIfStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10129,28 +7225,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestElseClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateElseClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestElseClauseIdentityRewriter()
         {
             var oldNode = GenerateElseClause();
@@ -10170,28 +7244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestSwitchStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSwitchStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10225,28 +7277,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSwitchSectionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSwitchSection();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestSwitchSectionIdentityRewriter()
         {
             var oldNode = GenerateSwitchSection();
@@ -10266,28 +7296,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestCasePatternSwitchLabelTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCasePatternSwitchLabel();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10321,28 +7329,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCaseSwitchLabelTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCaseSwitchLabel();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestCaseSwitchLabelIdentityRewriter()
         {
             var oldNode = GenerateCaseSwitchLabel();
@@ -10362,28 +7348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestDefaultSwitchLabelTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDefaultSwitchLabel();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10417,28 +7381,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSwitchExpressionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSwitchExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestSwitchExpressionIdentityRewriter()
         {
             var oldNode = GenerateSwitchExpression();
@@ -10458,28 +7400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestSwitchExpressionArmTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSwitchExpressionArm();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10513,28 +7433,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTryStatementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTryStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestTryStatementIdentityRewriter()
         {
             var oldNode = GenerateTryStatement();
@@ -10554,28 +7452,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestCatchClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCatchClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10609,28 +7485,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCatchDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCatchDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestCatchDeclarationIdentityRewriter()
         {
             var oldNode = GenerateCatchDeclaration();
@@ -10650,28 +7504,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestCatchFilterClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCatchFilterClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10705,28 +7537,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFinallyClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFinallyClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestFinallyClauseIdentityRewriter()
         {
             var oldNode = GenerateFinallyClause();
@@ -10746,28 +7556,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestCompilationUnitTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCompilationUnit();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10801,28 +7589,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExternAliasDirectiveTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateExternAliasDirective();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestExternAliasDirectiveIdentityRewriter()
         {
             var oldNode = GenerateExternAliasDirective();
@@ -10842,28 +7608,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestUsingDirectiveTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateUsingDirective();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10897,28 +7641,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNamespaceDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateNamespaceDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestNamespaceDeclarationIdentityRewriter()
         {
             var oldNode = GenerateNamespaceDeclaration();
@@ -10938,28 +7660,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestFileScopedNamespaceDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFileScopedNamespaceDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -10993,28 +7693,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAttributeListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAttributeList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestAttributeListIdentityRewriter()
         {
             var oldNode = GenerateAttributeList();
@@ -11034,28 +7712,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestAttributeTargetSpecifierTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAttributeTargetSpecifier();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11089,28 +7745,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAttributeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAttribute();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestAttributeIdentityRewriter()
         {
             var oldNode = GenerateAttribute();
@@ -11130,28 +7764,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestAttributeArgumentListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAttributeArgumentList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11185,28 +7797,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAttributeArgumentTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAttributeArgument();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestAttributeArgumentIdentityRewriter()
         {
             var oldNode = GenerateAttributeArgument();
@@ -11226,28 +7816,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestNameEqualsTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateNameEquals();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11281,28 +7849,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeParameterListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTypeParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestTypeParameterListIdentityRewriter()
         {
             var oldNode = GenerateTypeParameterList();
@@ -11322,28 +7868,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestTypeParameterTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTypeParameter();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11377,28 +7901,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestClassDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateClassDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestClassDeclarationIdentityRewriter()
         {
             var oldNode = GenerateClassDeclaration();
@@ -11418,28 +7920,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestStructDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateStructDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11473,28 +7953,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterfaceDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateInterfaceDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestInterfaceDeclarationIdentityRewriter()
         {
             var oldNode = GenerateInterfaceDeclaration();
@@ -11514,28 +7972,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestRecordDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRecordDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11569,28 +8005,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEnumDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateEnumDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestEnumDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEnumDeclaration();
@@ -11610,28 +8024,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestDelegateDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDelegateDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11665,28 +8057,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEnumMemberDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateEnumMemberDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestEnumMemberDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEnumMemberDeclaration();
@@ -11706,28 +8076,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestBaseListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBaseList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11761,28 +8109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSimpleBaseTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSimpleBaseType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestSimpleBaseTypeIdentityRewriter()
         {
             var oldNode = GenerateSimpleBaseType();
@@ -11802,28 +8128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestPrimaryConstructorBaseTypeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePrimaryConstructorBaseType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11857,28 +8161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeParameterConstraintClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTypeParameterConstraintClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestTypeParameterConstraintClauseIdentityRewriter()
         {
             var oldNode = GenerateTypeParameterConstraintClause();
@@ -11898,28 +8180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestConstructorConstraintTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateConstructorConstraint();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -11953,28 +8213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestClassOrStructConstraintTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateClassOrStructConstraint();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestClassOrStructConstraintIdentityRewriter()
         {
             var oldNode = GenerateClassOrStructConstraint();
@@ -11994,28 +8232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestTypeConstraintTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTypeConstraint();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12049,28 +8265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDefaultConstraintTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDefaultConstraint();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestDefaultConstraintIdentityRewriter()
         {
             var oldNode = GenerateDefaultConstraint();
@@ -12090,28 +8284,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestFieldDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFieldDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12145,28 +8317,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEventFieldDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateEventFieldDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestEventFieldDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEventFieldDeclaration();
@@ -12186,28 +8336,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestExplicitInterfaceSpecifierTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateExplicitInterfaceSpecifier();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12241,28 +8369,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMethodDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateMethodDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestMethodDeclarationIdentityRewriter()
         {
             var oldNode = GenerateMethodDeclaration();
@@ -12282,28 +8388,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestOperatorDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateOperatorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12337,28 +8421,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConversionOperatorDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateConversionOperatorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestConversionOperatorDeclarationIdentityRewriter()
         {
             var oldNode = GenerateConversionOperatorDeclaration();
@@ -12378,28 +8440,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestConstructorDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateConstructorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12433,28 +8473,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConstructorInitializerTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateConstructorInitializer();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestConstructorInitializerIdentityRewriter()
         {
             var oldNode = GenerateConstructorInitializer();
@@ -12474,28 +8492,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestDestructorDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDestructorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12529,28 +8525,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPropertyDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePropertyDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestPropertyDeclarationIdentityRewriter()
         {
             var oldNode = GeneratePropertyDeclaration();
@@ -12570,28 +8544,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestArrowExpressionClauseTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateArrowExpressionClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12625,28 +8577,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEventDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateEventDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestEventDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEventDeclaration();
@@ -12666,28 +8596,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestIndexerDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateIndexerDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12721,28 +8629,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAccessorListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAccessorList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestAccessorListIdentityRewriter()
         {
             var oldNode = GenerateAccessorList();
@@ -12762,28 +8648,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestAccessorDeclarationTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateAccessorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12817,28 +8681,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestParameterListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestParameterListIdentityRewriter()
         {
             var oldNode = GenerateParameterList();
@@ -12858,28 +8700,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestBracketedParameterListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBracketedParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -12913,28 +8733,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestParameterTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateParameter();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestParameterIdentityRewriter()
         {
             var oldNode = GenerateParameter();
@@ -12954,28 +8752,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestFunctionPointerParameterTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateFunctionPointerParameter();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13009,28 +8785,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIncompleteMemberTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateIncompleteMember();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestIncompleteMemberIdentityRewriter()
         {
             var oldNode = GenerateIncompleteMember();
@@ -13050,28 +8804,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestSkippedTokensTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateSkippedTokensTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13105,28 +8837,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDocumentationCommentTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDocumentationCommentTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestDocumentationCommentTriviaIdentityRewriter()
         {
             var oldNode = GenerateDocumentationCommentTrivia();
@@ -13146,28 +8856,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestTypeCrefTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateTypeCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13201,28 +8889,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestQualifiedCrefTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateQualifiedCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestQualifiedCrefIdentityRewriter()
         {
             var oldNode = GenerateQualifiedCref();
@@ -13242,28 +8908,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestNameMemberCrefTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateNameMemberCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13297,28 +8941,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIndexerMemberCrefTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateIndexerMemberCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestIndexerMemberCrefIdentityRewriter()
         {
             var oldNode = GenerateIndexerMemberCref();
@@ -13338,28 +8960,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestOperatorMemberCrefTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateOperatorMemberCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13393,28 +8993,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConversionOperatorMemberCrefTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateConversionOperatorMemberCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestConversionOperatorMemberCrefIdentityRewriter()
         {
             var oldNode = GenerateConversionOperatorMemberCref();
@@ -13434,28 +9012,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestCrefParameterListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCrefParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13489,28 +9045,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCrefBracketedParameterListTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCrefBracketedParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestCrefBracketedParameterListIdentityRewriter()
         {
             var oldNode = GenerateCrefBracketedParameterList();
@@ -13530,28 +9064,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestCrefParameterTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateCrefParameter();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13585,28 +9097,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlElementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlElement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestXmlElementIdentityRewriter()
         {
             var oldNode = GenerateXmlElement();
@@ -13626,28 +9116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestXmlElementStartTagTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlElementStartTag();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13681,28 +9149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlElementEndTagTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlElementEndTag();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestXmlElementEndTagIdentityRewriter()
         {
             var oldNode = GenerateXmlElementEndTag();
@@ -13722,28 +9168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestXmlEmptyElementTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlEmptyElement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13777,28 +9201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlNameTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestXmlNameIdentityRewriter()
         {
             var oldNode = GenerateXmlName();
@@ -13818,28 +9220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestXmlPrefixTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlPrefix();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13873,28 +9253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlTextAttributeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlTextAttribute();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestXmlTextAttributeIdentityRewriter()
         {
             var oldNode = GenerateXmlTextAttribute();
@@ -13914,28 +9272,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestXmlCrefAttributeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlCrefAttribute();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13969,28 +9305,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlNameAttributeTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlNameAttribute();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestXmlNameAttributeIdentityRewriter()
         {
             var oldNode = GenerateXmlNameAttribute();
@@ -14010,28 +9324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestXmlTextTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlText();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14065,28 +9357,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlCDataSectionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlCDataSection();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestXmlCDataSectionIdentityRewriter()
         {
             var oldNode = GenerateXmlCDataSection();
@@ -14106,28 +9376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestXmlProcessingInstructionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlProcessingInstruction();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14161,28 +9409,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlCommentTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateXmlComment();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestXmlCommentIdentityRewriter()
         {
             var oldNode = GenerateXmlComment();
@@ -14202,28 +9428,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestIfDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateIfDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14257,28 +9461,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestElifDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateElifDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestElifDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateElifDirectiveTrivia();
@@ -14298,28 +9480,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestElseDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateElseDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14353,28 +9513,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEndIfDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateEndIfDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestEndIfDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateEndIfDirectiveTrivia();
@@ -14394,28 +9532,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestRegionDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateRegionDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14449,28 +9565,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEndRegionDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateEndRegionDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestEndRegionDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateEndRegionDirectiveTrivia();
@@ -14490,28 +9584,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestErrorDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateErrorDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14545,28 +9617,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWarningDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateWarningDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestWarningDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateWarningDirectiveTrivia();
@@ -14586,28 +9636,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestBadDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateBadDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14641,28 +9669,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDefineDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateDefineDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestDefineDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateDefineDirectiveTrivia();
@@ -14682,28 +9688,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestUndefDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateUndefDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14737,28 +9721,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLineDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLineDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestLineDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLineDirectiveTrivia();
@@ -14778,28 +9740,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestLineDirectivePositionTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLineDirectivePosition();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14833,28 +9773,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLineSpanDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLineSpanDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestLineSpanDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLineSpanDirectiveTrivia();
@@ -14874,28 +9792,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestPragmaWarningDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePragmaWarningDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14929,28 +9825,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPragmaChecksumDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GeneratePragmaChecksumDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestPragmaChecksumDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GeneratePragmaChecksumDirectiveTrivia();
@@ -14970,28 +9844,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestReferenceDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateReferenceDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15025,28 +9877,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLoadDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateLoadDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestLoadDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLoadDirectiveTrivia();
@@ -15066,28 +9896,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestShebangDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateShebangDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15121,28 +9929,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNullableDirectiveTriviaTokenDeleteRewriterWithResult()
-        {
-            var oldNode = GenerateNullableDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
-            }
-            else
-            {
-                Assert.True(result.VisitCount >= 0);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
         public void TestNullableDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateNullableDirectiveTrivia();
@@ -15153,8065 +9939,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         #endregion Green Rewriters
         #region Green Visitors
-        internal class AssertOnVisitVisitor<TArgument, TResult> : Syntax.InternalSyntax.CSharpSyntaxVisitor<TArgument, TResult>
-        {
-            public override TResult VisitIdentifierName(Syntax.InternalSyntax.IdentifierNameSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitIdentifierName should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitQualifiedName(Syntax.InternalSyntax.QualifiedNameSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitQualifiedName should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitGenericName(Syntax.InternalSyntax.GenericNameSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitGenericName should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTypeArgumentList(Syntax.InternalSyntax.TypeArgumentListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTypeArgumentList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAliasQualifiedName(Syntax.InternalSyntax.AliasQualifiedNameSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAliasQualifiedName should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPredefinedType(Syntax.InternalSyntax.PredefinedTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPredefinedType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitArrayType(Syntax.InternalSyntax.ArrayTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitArrayType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitArrayRankSpecifier(Syntax.InternalSyntax.ArrayRankSpecifierSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitArrayRankSpecifier should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPointerType(Syntax.InternalSyntax.PointerTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPointerType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFunctionPointerType(Syntax.InternalSyntax.FunctionPointerTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFunctionPointerType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFunctionPointerParameterList(Syntax.InternalSyntax.FunctionPointerParameterListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFunctionPointerParameterList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFunctionPointerCallingConvention(Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFunctionPointerCallingConvention should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFunctionPointerUnmanagedCallingConventionList(Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFunctionPointerUnmanagedCallingConventionList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFunctionPointerUnmanagedCallingConvention(Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFunctionPointerUnmanagedCallingConvention should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitNullableType(Syntax.InternalSyntax.NullableTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitNullableType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTupleType(Syntax.InternalSyntax.TupleTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTupleType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTupleElement(Syntax.InternalSyntax.TupleElementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTupleElement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitOmittedTypeArgument(Syntax.InternalSyntax.OmittedTypeArgumentSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitOmittedTypeArgument should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRefType(Syntax.InternalSyntax.RefTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRefType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitParenthesizedExpression(Syntax.InternalSyntax.ParenthesizedExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitParenthesizedExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTupleExpression(Syntax.InternalSyntax.TupleExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTupleExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPrefixUnaryExpression(Syntax.InternalSyntax.PrefixUnaryExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPrefixUnaryExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAwaitExpression(Syntax.InternalSyntax.AwaitExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAwaitExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPostfixUnaryExpression(Syntax.InternalSyntax.PostfixUnaryExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPostfixUnaryExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitMemberAccessExpression(Syntax.InternalSyntax.MemberAccessExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitMemberAccessExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitConditionalAccessExpression(Syntax.InternalSyntax.ConditionalAccessExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitConditionalAccessExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitMemberBindingExpression(Syntax.InternalSyntax.MemberBindingExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitMemberBindingExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitElementBindingExpression(Syntax.InternalSyntax.ElementBindingExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitElementBindingExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRangeExpression(Syntax.InternalSyntax.RangeExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRangeExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitImplicitElementAccess(Syntax.InternalSyntax.ImplicitElementAccessSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitImplicitElementAccess should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBinaryExpression(Syntax.InternalSyntax.BinaryExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBinaryExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAssignmentExpression(Syntax.InternalSyntax.AssignmentExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAssignmentExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitConditionalExpression(Syntax.InternalSyntax.ConditionalExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitConditionalExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitThisExpression(Syntax.InternalSyntax.ThisExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitThisExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBaseExpression(Syntax.InternalSyntax.BaseExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBaseExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLiteralExpression(Syntax.InternalSyntax.LiteralExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLiteralExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitMakeRefExpression(Syntax.InternalSyntax.MakeRefExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitMakeRefExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRefTypeExpression(Syntax.InternalSyntax.RefTypeExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRefTypeExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRefValueExpression(Syntax.InternalSyntax.RefValueExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRefValueExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCheckedExpression(Syntax.InternalSyntax.CheckedExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCheckedExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDefaultExpression(Syntax.InternalSyntax.DefaultExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDefaultExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTypeOfExpression(Syntax.InternalSyntax.TypeOfExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTypeOfExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSizeOfExpression(Syntax.InternalSyntax.SizeOfExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSizeOfExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitInvocationExpression(Syntax.InternalSyntax.InvocationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitInvocationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitElementAccessExpression(Syntax.InternalSyntax.ElementAccessExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitElementAccessExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitArgumentList(Syntax.InternalSyntax.ArgumentListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitArgumentList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBracketedArgumentList(Syntax.InternalSyntax.BracketedArgumentListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBracketedArgumentList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitArgument(Syntax.InternalSyntax.ArgumentSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitArgument should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitExpressionColon(Syntax.InternalSyntax.ExpressionColonSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitExpressionColon should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitNameColon(Syntax.InternalSyntax.NameColonSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitNameColon should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDeclarationExpression(Syntax.InternalSyntax.DeclarationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDeclarationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCastExpression(Syntax.InternalSyntax.CastExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCastExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAnonymousMethodExpression(Syntax.InternalSyntax.AnonymousMethodExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAnonymousMethodExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSimpleLambdaExpression(Syntax.InternalSyntax.SimpleLambdaExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSimpleLambdaExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRefExpression(Syntax.InternalSyntax.RefExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRefExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitParenthesizedLambdaExpression(Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitParenthesizedLambdaExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitInitializerExpression(Syntax.InternalSyntax.InitializerExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitInitializerExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitImplicitObjectCreationExpression(Syntax.InternalSyntax.ImplicitObjectCreationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitImplicitObjectCreationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitObjectCreationExpression(Syntax.InternalSyntax.ObjectCreationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitObjectCreationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitWithExpression(Syntax.InternalSyntax.WithExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitWithExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAnonymousObjectMemberDeclarator(Syntax.InternalSyntax.AnonymousObjectMemberDeclaratorSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAnonymousObjectMemberDeclarator should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAnonymousObjectCreationExpression(Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAnonymousObjectCreationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitArrayCreationExpression(Syntax.InternalSyntax.ArrayCreationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitArrayCreationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitImplicitArrayCreationExpression(Syntax.InternalSyntax.ImplicitArrayCreationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitImplicitArrayCreationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitStackAllocArrayCreationExpression(Syntax.InternalSyntax.StackAllocArrayCreationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitStackAllocArrayCreationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitImplicitStackAllocArrayCreationExpression(Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitImplicitStackAllocArrayCreationExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitQueryExpression(Syntax.InternalSyntax.QueryExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitQueryExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitQueryBody(Syntax.InternalSyntax.QueryBodySyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitQueryBody should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFromClause(Syntax.InternalSyntax.FromClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFromClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLetClause(Syntax.InternalSyntax.LetClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLetClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitJoinClause(Syntax.InternalSyntax.JoinClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitJoinClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitJoinIntoClause(Syntax.InternalSyntax.JoinIntoClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitJoinIntoClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitWhereClause(Syntax.InternalSyntax.WhereClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitWhereClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitOrderByClause(Syntax.InternalSyntax.OrderByClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitOrderByClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitOrdering(Syntax.InternalSyntax.OrderingSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitOrdering should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSelectClause(Syntax.InternalSyntax.SelectClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSelectClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitGroupClause(Syntax.InternalSyntax.GroupClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitGroupClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitQueryContinuation(Syntax.InternalSyntax.QueryContinuationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitQueryContinuation should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitOmittedArraySizeExpression(Syntax.InternalSyntax.OmittedArraySizeExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitOmittedArraySizeExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitInterpolatedStringExpression(Syntax.InternalSyntax.InterpolatedStringExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitInterpolatedStringExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitIsPatternExpression(Syntax.InternalSyntax.IsPatternExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitIsPatternExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitThrowExpression(Syntax.InternalSyntax.ThrowExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitThrowExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitWhenClause(Syntax.InternalSyntax.WhenClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitWhenClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDiscardPattern(Syntax.InternalSyntax.DiscardPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDiscardPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDeclarationPattern(Syntax.InternalSyntax.DeclarationPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDeclarationPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitVarPattern(Syntax.InternalSyntax.VarPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitVarPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRecursivePattern(Syntax.InternalSyntax.RecursivePatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRecursivePattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPositionalPatternClause(Syntax.InternalSyntax.PositionalPatternClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPositionalPatternClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPropertyPatternClause(Syntax.InternalSyntax.PropertyPatternClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPropertyPatternClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSubpattern(Syntax.InternalSyntax.SubpatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSubpattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitConstantPattern(Syntax.InternalSyntax.ConstantPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitConstantPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitParenthesizedPattern(Syntax.InternalSyntax.ParenthesizedPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitParenthesizedPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRelationalPattern(Syntax.InternalSyntax.RelationalPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRelationalPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTypePattern(Syntax.InternalSyntax.TypePatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTypePattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBinaryPattern(Syntax.InternalSyntax.BinaryPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBinaryPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitUnaryPattern(Syntax.InternalSyntax.UnaryPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitUnaryPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitListPattern(Syntax.InternalSyntax.ListPatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitListPattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSlicePattern(Syntax.InternalSyntax.SlicePatternSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSlicePattern should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitInterpolatedStringText(Syntax.InternalSyntax.InterpolatedStringTextSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitInterpolatedStringText should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitInterpolation(Syntax.InternalSyntax.InterpolationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitInterpolation should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitInterpolationAlignmentClause(Syntax.InternalSyntax.InterpolationAlignmentClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitInterpolationAlignmentClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitInterpolationFormatClause(Syntax.InternalSyntax.InterpolationFormatClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitInterpolationFormatClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitGlobalStatement(Syntax.InternalSyntax.GlobalStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitGlobalStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBlock(Syntax.InternalSyntax.BlockSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBlock should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLocalFunctionStatement(Syntax.InternalSyntax.LocalFunctionStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLocalFunctionStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLocalDeclarationStatement(Syntax.InternalSyntax.LocalDeclarationStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLocalDeclarationStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitVariableDeclaration(Syntax.InternalSyntax.VariableDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitVariableDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitVariableDeclarator(Syntax.InternalSyntax.VariableDeclaratorSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitVariableDeclarator should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitEqualsValueClause(Syntax.InternalSyntax.EqualsValueClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitEqualsValueClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSingleVariableDesignation(Syntax.InternalSyntax.SingleVariableDesignationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSingleVariableDesignation should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDiscardDesignation(Syntax.InternalSyntax.DiscardDesignationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDiscardDesignation should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitParenthesizedVariableDesignation(Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitParenthesizedVariableDesignation should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitExpressionStatement(Syntax.InternalSyntax.ExpressionStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitExpressionStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitEmptyStatement(Syntax.InternalSyntax.EmptyStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitEmptyStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLabeledStatement(Syntax.InternalSyntax.LabeledStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLabeledStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitGotoStatement(Syntax.InternalSyntax.GotoStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitGotoStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBreakStatement(Syntax.InternalSyntax.BreakStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBreakStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitContinueStatement(Syntax.InternalSyntax.ContinueStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitContinueStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitReturnStatement(Syntax.InternalSyntax.ReturnStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitReturnStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitThrowStatement(Syntax.InternalSyntax.ThrowStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitThrowStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitYieldStatement(Syntax.InternalSyntax.YieldStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitYieldStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitWhileStatement(Syntax.InternalSyntax.WhileStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitWhileStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDoStatement(Syntax.InternalSyntax.DoStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDoStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitForStatement(Syntax.InternalSyntax.ForStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitForStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitForEachStatement(Syntax.InternalSyntax.ForEachStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitForEachStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitForEachVariableStatement(Syntax.InternalSyntax.ForEachVariableStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitForEachVariableStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitUsingStatement(Syntax.InternalSyntax.UsingStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitUsingStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFixedStatement(Syntax.InternalSyntax.FixedStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFixedStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCheckedStatement(Syntax.InternalSyntax.CheckedStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCheckedStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitUnsafeStatement(Syntax.InternalSyntax.UnsafeStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitUnsafeStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLockStatement(Syntax.InternalSyntax.LockStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLockStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitIfStatement(Syntax.InternalSyntax.IfStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitIfStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitElseClause(Syntax.InternalSyntax.ElseClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitElseClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSwitchStatement(Syntax.InternalSyntax.SwitchStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSwitchStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSwitchSection(Syntax.InternalSyntax.SwitchSectionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSwitchSection should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCasePatternSwitchLabel(Syntax.InternalSyntax.CasePatternSwitchLabelSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCasePatternSwitchLabel should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCaseSwitchLabel(Syntax.InternalSyntax.CaseSwitchLabelSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCaseSwitchLabel should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDefaultSwitchLabel(Syntax.InternalSyntax.DefaultSwitchLabelSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDefaultSwitchLabel should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSwitchExpression(Syntax.InternalSyntax.SwitchExpressionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSwitchExpression should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSwitchExpressionArm(Syntax.InternalSyntax.SwitchExpressionArmSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSwitchExpressionArm should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTryStatement(Syntax.InternalSyntax.TryStatementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTryStatement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCatchClause(Syntax.InternalSyntax.CatchClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCatchClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCatchDeclaration(Syntax.InternalSyntax.CatchDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCatchDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCatchFilterClause(Syntax.InternalSyntax.CatchFilterClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCatchFilterClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFinallyClause(Syntax.InternalSyntax.FinallyClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFinallyClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCompilationUnit(Syntax.InternalSyntax.CompilationUnitSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCompilationUnit should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitExternAliasDirective(Syntax.InternalSyntax.ExternAliasDirectiveSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitExternAliasDirective should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitUsingDirective(Syntax.InternalSyntax.UsingDirectiveSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitUsingDirective should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitNamespaceDeclaration(Syntax.InternalSyntax.NamespaceDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitNamespaceDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFileScopedNamespaceDeclaration(Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFileScopedNamespaceDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAttributeList(Syntax.InternalSyntax.AttributeListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAttributeList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAttributeTargetSpecifier(Syntax.InternalSyntax.AttributeTargetSpecifierSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAttributeTargetSpecifier should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAttribute(Syntax.InternalSyntax.AttributeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAttribute should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAttributeArgumentList(Syntax.InternalSyntax.AttributeArgumentListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAttributeArgumentList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAttributeArgument(Syntax.InternalSyntax.AttributeArgumentSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAttributeArgument should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitNameEquals(Syntax.InternalSyntax.NameEqualsSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitNameEquals should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTypeParameterList(Syntax.InternalSyntax.TypeParameterListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTypeParameterList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTypeParameter(Syntax.InternalSyntax.TypeParameterSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTypeParameter should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitClassDeclaration(Syntax.InternalSyntax.ClassDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitClassDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitStructDeclaration(Syntax.InternalSyntax.StructDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitStructDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitInterfaceDeclaration(Syntax.InternalSyntax.InterfaceDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitInterfaceDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRecordDeclaration(Syntax.InternalSyntax.RecordDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRecordDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitEnumDeclaration(Syntax.InternalSyntax.EnumDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitEnumDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDelegateDeclaration(Syntax.InternalSyntax.DelegateDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDelegateDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitEnumMemberDeclaration(Syntax.InternalSyntax.EnumMemberDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitEnumMemberDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBaseList(Syntax.InternalSyntax.BaseListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBaseList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSimpleBaseType(Syntax.InternalSyntax.SimpleBaseTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSimpleBaseType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPrimaryConstructorBaseType(Syntax.InternalSyntax.PrimaryConstructorBaseTypeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPrimaryConstructorBaseType should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTypeParameterConstraintClause(Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTypeParameterConstraintClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitConstructorConstraint(Syntax.InternalSyntax.ConstructorConstraintSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitConstructorConstraint should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitClassOrStructConstraint(Syntax.InternalSyntax.ClassOrStructConstraintSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitClassOrStructConstraint should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTypeConstraint(Syntax.InternalSyntax.TypeConstraintSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTypeConstraint should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDefaultConstraint(Syntax.InternalSyntax.DefaultConstraintSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDefaultConstraint should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFieldDeclaration(Syntax.InternalSyntax.FieldDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFieldDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitEventFieldDeclaration(Syntax.InternalSyntax.EventFieldDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitEventFieldDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitExplicitInterfaceSpecifier(Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitExplicitInterfaceSpecifier should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitMethodDeclaration(Syntax.InternalSyntax.MethodDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitMethodDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitOperatorDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitOperatorDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitConversionOperatorDeclaration(Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitConversionOperatorDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitConstructorDeclaration(Syntax.InternalSyntax.ConstructorDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitConstructorDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitConstructorInitializer(Syntax.InternalSyntax.ConstructorInitializerSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitConstructorInitializer should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDestructorDeclaration(Syntax.InternalSyntax.DestructorDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDestructorDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPropertyDeclaration(Syntax.InternalSyntax.PropertyDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPropertyDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitArrowExpressionClause(Syntax.InternalSyntax.ArrowExpressionClauseSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitArrowExpressionClause should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitEventDeclaration(Syntax.InternalSyntax.EventDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitEventDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitIndexerDeclaration(Syntax.InternalSyntax.IndexerDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitIndexerDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAccessorList(Syntax.InternalSyntax.AccessorListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAccessorList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitAccessorDeclaration(Syntax.InternalSyntax.AccessorDeclarationSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitAccessorDeclaration should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitParameterList(Syntax.InternalSyntax.ParameterListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitParameterList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBracketedParameterList(Syntax.InternalSyntax.BracketedParameterListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBracketedParameterList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitParameter(Syntax.InternalSyntax.ParameterSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitParameter should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitFunctionPointerParameter(Syntax.InternalSyntax.FunctionPointerParameterSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitFunctionPointerParameter should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitIncompleteMember(Syntax.InternalSyntax.IncompleteMemberSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitIncompleteMember should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitSkippedTokensTrivia(Syntax.InternalSyntax.SkippedTokensTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitSkippedTokensTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDocumentationCommentTrivia(Syntax.InternalSyntax.DocumentationCommentTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDocumentationCommentTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitTypeCref(Syntax.InternalSyntax.TypeCrefSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitTypeCref should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitQualifiedCref(Syntax.InternalSyntax.QualifiedCrefSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitQualifiedCref should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitNameMemberCref(Syntax.InternalSyntax.NameMemberCrefSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitNameMemberCref should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitIndexerMemberCref(Syntax.InternalSyntax.IndexerMemberCrefSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitIndexerMemberCref should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitOperatorMemberCref(Syntax.InternalSyntax.OperatorMemberCrefSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitOperatorMemberCref should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitConversionOperatorMemberCref(Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitConversionOperatorMemberCref should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCrefParameterList(Syntax.InternalSyntax.CrefParameterListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCrefParameterList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCrefBracketedParameterList(Syntax.InternalSyntax.CrefBracketedParameterListSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCrefBracketedParameterList should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitCrefParameter(Syntax.InternalSyntax.CrefParameterSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitCrefParameter should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlElement(Syntax.InternalSyntax.XmlElementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlElement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlElementStartTag(Syntax.InternalSyntax.XmlElementStartTagSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlElementStartTag should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlElementEndTag(Syntax.InternalSyntax.XmlElementEndTagSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlElementEndTag should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlEmptyElement(Syntax.InternalSyntax.XmlEmptyElementSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlEmptyElement should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlName(Syntax.InternalSyntax.XmlNameSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlName should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlPrefix(Syntax.InternalSyntax.XmlPrefixSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlPrefix should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlTextAttribute(Syntax.InternalSyntax.XmlTextAttributeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlTextAttribute should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlCrefAttribute(Syntax.InternalSyntax.XmlCrefAttributeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlCrefAttribute should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlNameAttribute(Syntax.InternalSyntax.XmlNameAttributeSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlNameAttribute should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlText(Syntax.InternalSyntax.XmlTextSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlText should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlCDataSection(Syntax.InternalSyntax.XmlCDataSectionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlCDataSection should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlProcessingInstruction(Syntax.InternalSyntax.XmlProcessingInstructionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlProcessingInstruction should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitXmlComment(Syntax.InternalSyntax.XmlCommentSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitXmlComment should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitIfDirectiveTrivia(Syntax.InternalSyntax.IfDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitIfDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitElifDirectiveTrivia(Syntax.InternalSyntax.ElifDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitElifDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitElseDirectiveTrivia(Syntax.InternalSyntax.ElseDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitElseDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitEndIfDirectiveTrivia(Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitEndIfDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitRegionDirectiveTrivia(Syntax.InternalSyntax.RegionDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitRegionDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitEndRegionDirectiveTrivia(Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitEndRegionDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitErrorDirectiveTrivia(Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitErrorDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitWarningDirectiveTrivia(Syntax.InternalSyntax.WarningDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitWarningDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitBadDirectiveTrivia(Syntax.InternalSyntax.BadDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitBadDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitDefineDirectiveTrivia(Syntax.InternalSyntax.DefineDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitDefineDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitUndefDirectiveTrivia(Syntax.InternalSyntax.UndefDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitUndefDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLineDirectiveTrivia(Syntax.InternalSyntax.LineDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLineDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLineDirectivePosition(Syntax.InternalSyntax.LineDirectivePositionSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLineDirectivePosition should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLineSpanDirectiveTrivia(Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLineSpanDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPragmaWarningDirectiveTrivia(Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPragmaWarningDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitPragmaChecksumDirectiveTrivia(Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitPragmaChecksumDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitReferenceDirectiveTrivia(Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitReferenceDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitLoadDirectiveTrivia(Syntax.InternalSyntax.LoadDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitLoadDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitShebangDirectiveTrivia(Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitShebangDirectiveTrivia should not have been called.");
-                return default;
-            }
-
-            public override TResult VisitNullableDirectiveTrivia(Syntax.InternalSyntax.NullableDirectiveTriviaSyntax node, TArgument argument)
-            {
-                Assert.True(false, "VisitNullableDirectiveTrivia should not have been called.");
-                return default;
-            }
-        }
-        internal class AssertOnEverythingButIdentifierNameVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitIdentifierName(Syntax.InternalSyntax.IdentifierNameSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestIdentifierNameNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIdentifierName();
-            var visitor = new AssertOnEverythingButIdentifierNameVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestIdentifierNameNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIdentifierName();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButQualifiedNameVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitQualifiedName(Syntax.InternalSyntax.QualifiedNameSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestQualifiedNameNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQualifiedName();
-            var visitor = new AssertOnEverythingButQualifiedNameVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestQualifiedNameNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQualifiedName();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButGenericNameVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitGenericName(Syntax.InternalSyntax.GenericNameSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestGenericNameNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateGenericName();
-            var visitor = new AssertOnEverythingButGenericNameVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestGenericNameNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateGenericName();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTypeArgumentListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTypeArgumentList(Syntax.InternalSyntax.TypeArgumentListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTypeArgumentListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeArgumentList();
-            var visitor = new AssertOnEverythingButTypeArgumentListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTypeArgumentListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeArgumentList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAliasQualifiedNameVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAliasQualifiedName(Syntax.InternalSyntax.AliasQualifiedNameSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAliasQualifiedNameNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAliasQualifiedName();
-            var visitor = new AssertOnEverythingButAliasQualifiedNameVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAliasQualifiedNameNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAliasQualifiedName();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPredefinedTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPredefinedType(Syntax.InternalSyntax.PredefinedTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPredefinedTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePredefinedType();
-            var visitor = new AssertOnEverythingButPredefinedTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPredefinedTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePredefinedType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButArrayTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitArrayType(Syntax.InternalSyntax.ArrayTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestArrayTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArrayType();
-            var visitor = new AssertOnEverythingButArrayTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestArrayTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArrayType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButArrayRankSpecifierVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitArrayRankSpecifier(Syntax.InternalSyntax.ArrayRankSpecifierSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestArrayRankSpecifierNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArrayRankSpecifier();
-            var visitor = new AssertOnEverythingButArrayRankSpecifierVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestArrayRankSpecifierNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArrayRankSpecifier();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPointerTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPointerType(Syntax.InternalSyntax.PointerTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPointerTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePointerType();
-            var visitor = new AssertOnEverythingButPointerTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPointerTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePointerType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFunctionPointerTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFunctionPointerType(Syntax.InternalSyntax.FunctionPointerTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFunctionPointerTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerType();
-            var visitor = new AssertOnEverythingButFunctionPointerTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFunctionPointerTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFunctionPointerParameterListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFunctionPointerParameterList(Syntax.InternalSyntax.FunctionPointerParameterListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFunctionPointerParameterListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerParameterList();
-            var visitor = new AssertOnEverythingButFunctionPointerParameterListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFunctionPointerParameterListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerParameterList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFunctionPointerCallingConventionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFunctionPointerCallingConvention(Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFunctionPointerCallingConventionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerCallingConvention();
-            var visitor = new AssertOnEverythingButFunctionPointerCallingConventionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFunctionPointerCallingConventionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerCallingConvention();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFunctionPointerUnmanagedCallingConventionListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFunctionPointerUnmanagedCallingConventionList(Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerUnmanagedCallingConventionList();
-            var visitor = new AssertOnEverythingButFunctionPointerUnmanagedCallingConventionListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerUnmanagedCallingConventionList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFunctionPointerUnmanagedCallingConventionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFunctionPointerUnmanagedCallingConvention(Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerUnmanagedCallingConvention();
-            var visitor = new AssertOnEverythingButFunctionPointerUnmanagedCallingConventionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerUnmanagedCallingConvention();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButNullableTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitNullableType(Syntax.InternalSyntax.NullableTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestNullableTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNullableType();
-            var visitor = new AssertOnEverythingButNullableTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestNullableTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNullableType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTupleTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTupleType(Syntax.InternalSyntax.TupleTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTupleTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTupleType();
-            var visitor = new AssertOnEverythingButTupleTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTupleTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTupleType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTupleElementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTupleElement(Syntax.InternalSyntax.TupleElementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTupleElementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTupleElement();
-            var visitor = new AssertOnEverythingButTupleElementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTupleElementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTupleElement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButOmittedTypeArgumentVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitOmittedTypeArgument(Syntax.InternalSyntax.OmittedTypeArgumentSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestOmittedTypeArgumentNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOmittedTypeArgument();
-            var visitor = new AssertOnEverythingButOmittedTypeArgumentVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestOmittedTypeArgumentNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOmittedTypeArgument();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRefTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRefType(Syntax.InternalSyntax.RefTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRefTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRefType();
-            var visitor = new AssertOnEverythingButRefTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRefTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRefType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButParenthesizedExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitParenthesizedExpression(Syntax.InternalSyntax.ParenthesizedExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestParenthesizedExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParenthesizedExpression();
-            var visitor = new AssertOnEverythingButParenthesizedExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestParenthesizedExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParenthesizedExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTupleExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTupleExpression(Syntax.InternalSyntax.TupleExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTupleExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTupleExpression();
-            var visitor = new AssertOnEverythingButTupleExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTupleExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTupleExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPrefixUnaryExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPrefixUnaryExpression(Syntax.InternalSyntax.PrefixUnaryExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPrefixUnaryExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePrefixUnaryExpression();
-            var visitor = new AssertOnEverythingButPrefixUnaryExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPrefixUnaryExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePrefixUnaryExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAwaitExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAwaitExpression(Syntax.InternalSyntax.AwaitExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAwaitExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAwaitExpression();
-            var visitor = new AssertOnEverythingButAwaitExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAwaitExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAwaitExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPostfixUnaryExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPostfixUnaryExpression(Syntax.InternalSyntax.PostfixUnaryExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPostfixUnaryExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePostfixUnaryExpression();
-            var visitor = new AssertOnEverythingButPostfixUnaryExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPostfixUnaryExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePostfixUnaryExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButMemberAccessExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitMemberAccessExpression(Syntax.InternalSyntax.MemberAccessExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestMemberAccessExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateMemberAccessExpression();
-            var visitor = new AssertOnEverythingButMemberAccessExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestMemberAccessExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateMemberAccessExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButConditionalAccessExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitConditionalAccessExpression(Syntax.InternalSyntax.ConditionalAccessExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestConditionalAccessExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConditionalAccessExpression();
-            var visitor = new AssertOnEverythingButConditionalAccessExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestConditionalAccessExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConditionalAccessExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButMemberBindingExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitMemberBindingExpression(Syntax.InternalSyntax.MemberBindingExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestMemberBindingExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateMemberBindingExpression();
-            var visitor = new AssertOnEverythingButMemberBindingExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestMemberBindingExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateMemberBindingExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButElementBindingExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitElementBindingExpression(Syntax.InternalSyntax.ElementBindingExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestElementBindingExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElementBindingExpression();
-            var visitor = new AssertOnEverythingButElementBindingExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestElementBindingExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElementBindingExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRangeExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRangeExpression(Syntax.InternalSyntax.RangeExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRangeExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRangeExpression();
-            var visitor = new AssertOnEverythingButRangeExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRangeExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRangeExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButImplicitElementAccessVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitImplicitElementAccess(Syntax.InternalSyntax.ImplicitElementAccessSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestImplicitElementAccessNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateImplicitElementAccess();
-            var visitor = new AssertOnEverythingButImplicitElementAccessVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestImplicitElementAccessNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateImplicitElementAccess();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBinaryExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBinaryExpression(Syntax.InternalSyntax.BinaryExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBinaryExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBinaryExpression();
-            var visitor = new AssertOnEverythingButBinaryExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBinaryExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBinaryExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAssignmentExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAssignmentExpression(Syntax.InternalSyntax.AssignmentExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAssignmentExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAssignmentExpression();
-            var visitor = new AssertOnEverythingButAssignmentExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAssignmentExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAssignmentExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButConditionalExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitConditionalExpression(Syntax.InternalSyntax.ConditionalExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestConditionalExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConditionalExpression();
-            var visitor = new AssertOnEverythingButConditionalExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestConditionalExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConditionalExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButThisExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitThisExpression(Syntax.InternalSyntax.ThisExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestThisExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateThisExpression();
-            var visitor = new AssertOnEverythingButThisExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestThisExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateThisExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBaseExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBaseExpression(Syntax.InternalSyntax.BaseExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBaseExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBaseExpression();
-            var visitor = new AssertOnEverythingButBaseExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBaseExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBaseExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLiteralExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLiteralExpression(Syntax.InternalSyntax.LiteralExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLiteralExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLiteralExpression();
-            var visitor = new AssertOnEverythingButLiteralExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLiteralExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLiteralExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButMakeRefExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitMakeRefExpression(Syntax.InternalSyntax.MakeRefExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestMakeRefExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateMakeRefExpression();
-            var visitor = new AssertOnEverythingButMakeRefExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestMakeRefExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateMakeRefExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRefTypeExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRefTypeExpression(Syntax.InternalSyntax.RefTypeExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRefTypeExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRefTypeExpression();
-            var visitor = new AssertOnEverythingButRefTypeExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRefTypeExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRefTypeExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRefValueExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRefValueExpression(Syntax.InternalSyntax.RefValueExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRefValueExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRefValueExpression();
-            var visitor = new AssertOnEverythingButRefValueExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRefValueExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRefValueExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCheckedExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCheckedExpression(Syntax.InternalSyntax.CheckedExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCheckedExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCheckedExpression();
-            var visitor = new AssertOnEverythingButCheckedExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCheckedExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCheckedExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDefaultExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDefaultExpression(Syntax.InternalSyntax.DefaultExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDefaultExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDefaultExpression();
-            var visitor = new AssertOnEverythingButDefaultExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDefaultExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDefaultExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTypeOfExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTypeOfExpression(Syntax.InternalSyntax.TypeOfExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTypeOfExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeOfExpression();
-            var visitor = new AssertOnEverythingButTypeOfExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTypeOfExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeOfExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSizeOfExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSizeOfExpression(Syntax.InternalSyntax.SizeOfExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSizeOfExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSizeOfExpression();
-            var visitor = new AssertOnEverythingButSizeOfExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSizeOfExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSizeOfExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButInvocationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitInvocationExpression(Syntax.InternalSyntax.InvocationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestInvocationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInvocationExpression();
-            var visitor = new AssertOnEverythingButInvocationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestInvocationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInvocationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButElementAccessExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitElementAccessExpression(Syntax.InternalSyntax.ElementAccessExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestElementAccessExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElementAccessExpression();
-            var visitor = new AssertOnEverythingButElementAccessExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestElementAccessExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElementAccessExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButArgumentListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitArgumentList(Syntax.InternalSyntax.ArgumentListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestArgumentListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArgumentList();
-            var visitor = new AssertOnEverythingButArgumentListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestArgumentListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArgumentList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBracketedArgumentListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBracketedArgumentList(Syntax.InternalSyntax.BracketedArgumentListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBracketedArgumentListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBracketedArgumentList();
-            var visitor = new AssertOnEverythingButBracketedArgumentListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBracketedArgumentListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBracketedArgumentList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButArgumentVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitArgument(Syntax.InternalSyntax.ArgumentSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestArgumentNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArgument();
-            var visitor = new AssertOnEverythingButArgumentVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestArgumentNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArgument();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButExpressionColonVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitExpressionColon(Syntax.InternalSyntax.ExpressionColonSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestExpressionColonNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateExpressionColon();
-            var visitor = new AssertOnEverythingButExpressionColonVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestExpressionColonNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateExpressionColon();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButNameColonVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitNameColon(Syntax.InternalSyntax.NameColonSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestNameColonNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNameColon();
-            var visitor = new AssertOnEverythingButNameColonVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestNameColonNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNameColon();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDeclarationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDeclarationExpression(Syntax.InternalSyntax.DeclarationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDeclarationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDeclarationExpression();
-            var visitor = new AssertOnEverythingButDeclarationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDeclarationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDeclarationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCastExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCastExpression(Syntax.InternalSyntax.CastExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCastExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCastExpression();
-            var visitor = new AssertOnEverythingButCastExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCastExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCastExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAnonymousMethodExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAnonymousMethodExpression(Syntax.InternalSyntax.AnonymousMethodExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAnonymousMethodExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAnonymousMethodExpression();
-            var visitor = new AssertOnEverythingButAnonymousMethodExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAnonymousMethodExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAnonymousMethodExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSimpleLambdaExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSimpleLambdaExpression(Syntax.InternalSyntax.SimpleLambdaExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSimpleLambdaExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSimpleLambdaExpression();
-            var visitor = new AssertOnEverythingButSimpleLambdaExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSimpleLambdaExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSimpleLambdaExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRefExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRefExpression(Syntax.InternalSyntax.RefExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRefExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRefExpression();
-            var visitor = new AssertOnEverythingButRefExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRefExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRefExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButParenthesizedLambdaExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitParenthesizedLambdaExpression(Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestParenthesizedLambdaExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParenthesizedLambdaExpression();
-            var visitor = new AssertOnEverythingButParenthesizedLambdaExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestParenthesizedLambdaExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParenthesizedLambdaExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButInitializerExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitInitializerExpression(Syntax.InternalSyntax.InitializerExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestInitializerExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInitializerExpression();
-            var visitor = new AssertOnEverythingButInitializerExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestInitializerExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInitializerExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButImplicitObjectCreationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitImplicitObjectCreationExpression(Syntax.InternalSyntax.ImplicitObjectCreationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestImplicitObjectCreationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateImplicitObjectCreationExpression();
-            var visitor = new AssertOnEverythingButImplicitObjectCreationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestImplicitObjectCreationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateImplicitObjectCreationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButObjectCreationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitObjectCreationExpression(Syntax.InternalSyntax.ObjectCreationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestObjectCreationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateObjectCreationExpression();
-            var visitor = new AssertOnEverythingButObjectCreationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestObjectCreationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateObjectCreationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButWithExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitWithExpression(Syntax.InternalSyntax.WithExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestWithExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWithExpression();
-            var visitor = new AssertOnEverythingButWithExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestWithExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWithExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAnonymousObjectMemberDeclaratorVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAnonymousObjectMemberDeclarator(Syntax.InternalSyntax.AnonymousObjectMemberDeclaratorSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAnonymousObjectMemberDeclaratorNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAnonymousObjectMemberDeclarator();
-            var visitor = new AssertOnEverythingButAnonymousObjectMemberDeclaratorVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAnonymousObjectMemberDeclaratorNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAnonymousObjectMemberDeclarator();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAnonymousObjectCreationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAnonymousObjectCreationExpression(Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAnonymousObjectCreationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAnonymousObjectCreationExpression();
-            var visitor = new AssertOnEverythingButAnonymousObjectCreationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAnonymousObjectCreationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAnonymousObjectCreationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButArrayCreationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitArrayCreationExpression(Syntax.InternalSyntax.ArrayCreationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestArrayCreationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArrayCreationExpression();
-            var visitor = new AssertOnEverythingButArrayCreationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestArrayCreationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArrayCreationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButImplicitArrayCreationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitImplicitArrayCreationExpression(Syntax.InternalSyntax.ImplicitArrayCreationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestImplicitArrayCreationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateImplicitArrayCreationExpression();
-            var visitor = new AssertOnEverythingButImplicitArrayCreationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestImplicitArrayCreationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateImplicitArrayCreationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButStackAllocArrayCreationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitStackAllocArrayCreationExpression(Syntax.InternalSyntax.StackAllocArrayCreationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestStackAllocArrayCreationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateStackAllocArrayCreationExpression();
-            var visitor = new AssertOnEverythingButStackAllocArrayCreationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestStackAllocArrayCreationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateStackAllocArrayCreationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButImplicitStackAllocArrayCreationExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitImplicitStackAllocArrayCreationExpression(Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestImplicitStackAllocArrayCreationExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateImplicitStackAllocArrayCreationExpression();
-            var visitor = new AssertOnEverythingButImplicitStackAllocArrayCreationExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestImplicitStackAllocArrayCreationExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateImplicitStackAllocArrayCreationExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButQueryExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitQueryExpression(Syntax.InternalSyntax.QueryExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestQueryExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQueryExpression();
-            var visitor = new AssertOnEverythingButQueryExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestQueryExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQueryExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButQueryBodyVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitQueryBody(Syntax.InternalSyntax.QueryBodySyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestQueryBodyNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQueryBody();
-            var visitor = new AssertOnEverythingButQueryBodyVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestQueryBodyNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQueryBody();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFromClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFromClause(Syntax.InternalSyntax.FromClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFromClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFromClause();
-            var visitor = new AssertOnEverythingButFromClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFromClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFromClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLetClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLetClause(Syntax.InternalSyntax.LetClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLetClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLetClause();
-            var visitor = new AssertOnEverythingButLetClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLetClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLetClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButJoinClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitJoinClause(Syntax.InternalSyntax.JoinClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestJoinClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateJoinClause();
-            var visitor = new AssertOnEverythingButJoinClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestJoinClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateJoinClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButJoinIntoClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitJoinIntoClause(Syntax.InternalSyntax.JoinIntoClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestJoinIntoClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateJoinIntoClause();
-            var visitor = new AssertOnEverythingButJoinIntoClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestJoinIntoClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateJoinIntoClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButWhereClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitWhereClause(Syntax.InternalSyntax.WhereClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestWhereClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWhereClause();
-            var visitor = new AssertOnEverythingButWhereClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestWhereClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWhereClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButOrderByClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitOrderByClause(Syntax.InternalSyntax.OrderByClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestOrderByClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOrderByClause();
-            var visitor = new AssertOnEverythingButOrderByClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestOrderByClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOrderByClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButOrderingVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitOrdering(Syntax.InternalSyntax.OrderingSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestOrderingNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOrdering();
-            var visitor = new AssertOnEverythingButOrderingVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestOrderingNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOrdering();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSelectClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSelectClause(Syntax.InternalSyntax.SelectClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSelectClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSelectClause();
-            var visitor = new AssertOnEverythingButSelectClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSelectClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSelectClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButGroupClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitGroupClause(Syntax.InternalSyntax.GroupClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestGroupClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateGroupClause();
-            var visitor = new AssertOnEverythingButGroupClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestGroupClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateGroupClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButQueryContinuationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitQueryContinuation(Syntax.InternalSyntax.QueryContinuationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestQueryContinuationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQueryContinuation();
-            var visitor = new AssertOnEverythingButQueryContinuationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestQueryContinuationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQueryContinuation();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButOmittedArraySizeExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitOmittedArraySizeExpression(Syntax.InternalSyntax.OmittedArraySizeExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestOmittedArraySizeExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOmittedArraySizeExpression();
-            var visitor = new AssertOnEverythingButOmittedArraySizeExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestOmittedArraySizeExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOmittedArraySizeExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButInterpolatedStringExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitInterpolatedStringExpression(Syntax.InternalSyntax.InterpolatedStringExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestInterpolatedStringExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolatedStringExpression();
-            var visitor = new AssertOnEverythingButInterpolatedStringExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestInterpolatedStringExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolatedStringExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButIsPatternExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitIsPatternExpression(Syntax.InternalSyntax.IsPatternExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestIsPatternExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIsPatternExpression();
-            var visitor = new AssertOnEverythingButIsPatternExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestIsPatternExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIsPatternExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButThrowExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitThrowExpression(Syntax.InternalSyntax.ThrowExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestThrowExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateThrowExpression();
-            var visitor = new AssertOnEverythingButThrowExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestThrowExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateThrowExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButWhenClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitWhenClause(Syntax.InternalSyntax.WhenClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestWhenClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWhenClause();
-            var visitor = new AssertOnEverythingButWhenClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestWhenClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWhenClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDiscardPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDiscardPattern(Syntax.InternalSyntax.DiscardPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDiscardPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDiscardPattern();
-            var visitor = new AssertOnEverythingButDiscardPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDiscardPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDiscardPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDeclarationPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDeclarationPattern(Syntax.InternalSyntax.DeclarationPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDeclarationPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDeclarationPattern();
-            var visitor = new AssertOnEverythingButDeclarationPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDeclarationPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDeclarationPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButVarPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitVarPattern(Syntax.InternalSyntax.VarPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestVarPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateVarPattern();
-            var visitor = new AssertOnEverythingButVarPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestVarPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateVarPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRecursivePatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRecursivePattern(Syntax.InternalSyntax.RecursivePatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRecursivePatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRecursivePattern();
-            var visitor = new AssertOnEverythingButRecursivePatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRecursivePatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRecursivePattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPositionalPatternClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPositionalPatternClause(Syntax.InternalSyntax.PositionalPatternClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPositionalPatternClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePositionalPatternClause();
-            var visitor = new AssertOnEverythingButPositionalPatternClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPositionalPatternClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePositionalPatternClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPropertyPatternClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPropertyPatternClause(Syntax.InternalSyntax.PropertyPatternClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPropertyPatternClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePropertyPatternClause();
-            var visitor = new AssertOnEverythingButPropertyPatternClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPropertyPatternClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePropertyPatternClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSubpatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSubpattern(Syntax.InternalSyntax.SubpatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSubpatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSubpattern();
-            var visitor = new AssertOnEverythingButSubpatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSubpatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSubpattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButConstantPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitConstantPattern(Syntax.InternalSyntax.ConstantPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestConstantPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConstantPattern();
-            var visitor = new AssertOnEverythingButConstantPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestConstantPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConstantPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButParenthesizedPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitParenthesizedPattern(Syntax.InternalSyntax.ParenthesizedPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestParenthesizedPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParenthesizedPattern();
-            var visitor = new AssertOnEverythingButParenthesizedPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestParenthesizedPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParenthesizedPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRelationalPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRelationalPattern(Syntax.InternalSyntax.RelationalPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRelationalPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRelationalPattern();
-            var visitor = new AssertOnEverythingButRelationalPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRelationalPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRelationalPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTypePatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTypePattern(Syntax.InternalSyntax.TypePatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTypePatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypePattern();
-            var visitor = new AssertOnEverythingButTypePatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTypePatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypePattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBinaryPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBinaryPattern(Syntax.InternalSyntax.BinaryPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBinaryPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBinaryPattern();
-            var visitor = new AssertOnEverythingButBinaryPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBinaryPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBinaryPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButUnaryPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitUnaryPattern(Syntax.InternalSyntax.UnaryPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestUnaryPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUnaryPattern();
-            var visitor = new AssertOnEverythingButUnaryPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestUnaryPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUnaryPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButListPatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitListPattern(Syntax.InternalSyntax.ListPatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestListPatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateListPattern();
-            var visitor = new AssertOnEverythingButListPatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestListPatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateListPattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSlicePatternVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSlicePattern(Syntax.InternalSyntax.SlicePatternSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSlicePatternNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSlicePattern();
-            var visitor = new AssertOnEverythingButSlicePatternVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSlicePatternNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSlicePattern();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButInterpolatedStringTextVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitInterpolatedStringText(Syntax.InternalSyntax.InterpolatedStringTextSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestInterpolatedStringTextNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolatedStringText();
-            var visitor = new AssertOnEverythingButInterpolatedStringTextVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestInterpolatedStringTextNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolatedStringText();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButInterpolationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitInterpolation(Syntax.InternalSyntax.InterpolationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestInterpolationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolation();
-            var visitor = new AssertOnEverythingButInterpolationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestInterpolationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolation();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButInterpolationAlignmentClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitInterpolationAlignmentClause(Syntax.InternalSyntax.InterpolationAlignmentClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestInterpolationAlignmentClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolationAlignmentClause();
-            var visitor = new AssertOnEverythingButInterpolationAlignmentClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestInterpolationAlignmentClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolationAlignmentClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButInterpolationFormatClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitInterpolationFormatClause(Syntax.InternalSyntax.InterpolationFormatClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestInterpolationFormatClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolationFormatClause();
-            var visitor = new AssertOnEverythingButInterpolationFormatClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestInterpolationFormatClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterpolationFormatClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButGlobalStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitGlobalStatement(Syntax.InternalSyntax.GlobalStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestGlobalStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateGlobalStatement();
-            var visitor = new AssertOnEverythingButGlobalStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestGlobalStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateGlobalStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBlockVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBlock(Syntax.InternalSyntax.BlockSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBlockNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBlock();
-            var visitor = new AssertOnEverythingButBlockVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBlockNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBlock();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLocalFunctionStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLocalFunctionStatement(Syntax.InternalSyntax.LocalFunctionStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLocalFunctionStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLocalFunctionStatement();
-            var visitor = new AssertOnEverythingButLocalFunctionStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLocalFunctionStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLocalFunctionStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLocalDeclarationStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLocalDeclarationStatement(Syntax.InternalSyntax.LocalDeclarationStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLocalDeclarationStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLocalDeclarationStatement();
-            var visitor = new AssertOnEverythingButLocalDeclarationStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLocalDeclarationStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLocalDeclarationStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButVariableDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitVariableDeclaration(Syntax.InternalSyntax.VariableDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestVariableDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateVariableDeclaration();
-            var visitor = new AssertOnEverythingButVariableDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestVariableDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateVariableDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButVariableDeclaratorVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitVariableDeclarator(Syntax.InternalSyntax.VariableDeclaratorSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestVariableDeclaratorNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateVariableDeclarator();
-            var visitor = new AssertOnEverythingButVariableDeclaratorVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestVariableDeclaratorNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateVariableDeclarator();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButEqualsValueClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitEqualsValueClause(Syntax.InternalSyntax.EqualsValueClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestEqualsValueClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEqualsValueClause();
-            var visitor = new AssertOnEverythingButEqualsValueClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestEqualsValueClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEqualsValueClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSingleVariableDesignationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSingleVariableDesignation(Syntax.InternalSyntax.SingleVariableDesignationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSingleVariableDesignationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSingleVariableDesignation();
-            var visitor = new AssertOnEverythingButSingleVariableDesignationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSingleVariableDesignationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSingleVariableDesignation();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDiscardDesignationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDiscardDesignation(Syntax.InternalSyntax.DiscardDesignationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDiscardDesignationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDiscardDesignation();
-            var visitor = new AssertOnEverythingButDiscardDesignationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDiscardDesignationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDiscardDesignation();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButParenthesizedVariableDesignationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitParenthesizedVariableDesignation(Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestParenthesizedVariableDesignationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParenthesizedVariableDesignation();
-            var visitor = new AssertOnEverythingButParenthesizedVariableDesignationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestParenthesizedVariableDesignationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParenthesizedVariableDesignation();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButExpressionStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitExpressionStatement(Syntax.InternalSyntax.ExpressionStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestExpressionStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateExpressionStatement();
-            var visitor = new AssertOnEverythingButExpressionStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestExpressionStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateExpressionStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButEmptyStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitEmptyStatement(Syntax.InternalSyntax.EmptyStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestEmptyStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEmptyStatement();
-            var visitor = new AssertOnEverythingButEmptyStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestEmptyStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEmptyStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLabeledStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLabeledStatement(Syntax.InternalSyntax.LabeledStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLabeledStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLabeledStatement();
-            var visitor = new AssertOnEverythingButLabeledStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLabeledStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLabeledStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButGotoStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitGotoStatement(Syntax.InternalSyntax.GotoStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestGotoStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateGotoStatement();
-            var visitor = new AssertOnEverythingButGotoStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestGotoStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateGotoStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBreakStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBreakStatement(Syntax.InternalSyntax.BreakStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBreakStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBreakStatement();
-            var visitor = new AssertOnEverythingButBreakStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBreakStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBreakStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButContinueStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitContinueStatement(Syntax.InternalSyntax.ContinueStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestContinueStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateContinueStatement();
-            var visitor = new AssertOnEverythingButContinueStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestContinueStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateContinueStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButReturnStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitReturnStatement(Syntax.InternalSyntax.ReturnStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestReturnStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateReturnStatement();
-            var visitor = new AssertOnEverythingButReturnStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestReturnStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateReturnStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButThrowStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitThrowStatement(Syntax.InternalSyntax.ThrowStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestThrowStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateThrowStatement();
-            var visitor = new AssertOnEverythingButThrowStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestThrowStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateThrowStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButYieldStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitYieldStatement(Syntax.InternalSyntax.YieldStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestYieldStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateYieldStatement();
-            var visitor = new AssertOnEverythingButYieldStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestYieldStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateYieldStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButWhileStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitWhileStatement(Syntax.InternalSyntax.WhileStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestWhileStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWhileStatement();
-            var visitor = new AssertOnEverythingButWhileStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestWhileStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWhileStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDoStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDoStatement(Syntax.InternalSyntax.DoStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDoStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDoStatement();
-            var visitor = new AssertOnEverythingButDoStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDoStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDoStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButForStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitForStatement(Syntax.InternalSyntax.ForStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestForStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateForStatement();
-            var visitor = new AssertOnEverythingButForStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestForStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateForStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButForEachStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitForEachStatement(Syntax.InternalSyntax.ForEachStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestForEachStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateForEachStatement();
-            var visitor = new AssertOnEverythingButForEachStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestForEachStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateForEachStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButForEachVariableStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitForEachVariableStatement(Syntax.InternalSyntax.ForEachVariableStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestForEachVariableStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateForEachVariableStatement();
-            var visitor = new AssertOnEverythingButForEachVariableStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestForEachVariableStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateForEachVariableStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButUsingStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitUsingStatement(Syntax.InternalSyntax.UsingStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestUsingStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUsingStatement();
-            var visitor = new AssertOnEverythingButUsingStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestUsingStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUsingStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFixedStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFixedStatement(Syntax.InternalSyntax.FixedStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFixedStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFixedStatement();
-            var visitor = new AssertOnEverythingButFixedStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFixedStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFixedStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCheckedStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCheckedStatement(Syntax.InternalSyntax.CheckedStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCheckedStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCheckedStatement();
-            var visitor = new AssertOnEverythingButCheckedStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCheckedStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCheckedStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButUnsafeStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitUnsafeStatement(Syntax.InternalSyntax.UnsafeStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestUnsafeStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUnsafeStatement();
-            var visitor = new AssertOnEverythingButUnsafeStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestUnsafeStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUnsafeStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLockStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLockStatement(Syntax.InternalSyntax.LockStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLockStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLockStatement();
-            var visitor = new AssertOnEverythingButLockStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLockStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLockStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButIfStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitIfStatement(Syntax.InternalSyntax.IfStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestIfStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIfStatement();
-            var visitor = new AssertOnEverythingButIfStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestIfStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIfStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButElseClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitElseClause(Syntax.InternalSyntax.ElseClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestElseClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElseClause();
-            var visitor = new AssertOnEverythingButElseClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestElseClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElseClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSwitchStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSwitchStatement(Syntax.InternalSyntax.SwitchStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSwitchStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSwitchStatement();
-            var visitor = new AssertOnEverythingButSwitchStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSwitchStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSwitchStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSwitchSectionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSwitchSection(Syntax.InternalSyntax.SwitchSectionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSwitchSectionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSwitchSection();
-            var visitor = new AssertOnEverythingButSwitchSectionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSwitchSectionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSwitchSection();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCasePatternSwitchLabelVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCasePatternSwitchLabel(Syntax.InternalSyntax.CasePatternSwitchLabelSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCasePatternSwitchLabelNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCasePatternSwitchLabel();
-            var visitor = new AssertOnEverythingButCasePatternSwitchLabelVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCasePatternSwitchLabelNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCasePatternSwitchLabel();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCaseSwitchLabelVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCaseSwitchLabel(Syntax.InternalSyntax.CaseSwitchLabelSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCaseSwitchLabelNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCaseSwitchLabel();
-            var visitor = new AssertOnEverythingButCaseSwitchLabelVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCaseSwitchLabelNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCaseSwitchLabel();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDefaultSwitchLabelVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDefaultSwitchLabel(Syntax.InternalSyntax.DefaultSwitchLabelSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDefaultSwitchLabelNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDefaultSwitchLabel();
-            var visitor = new AssertOnEverythingButDefaultSwitchLabelVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDefaultSwitchLabelNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDefaultSwitchLabel();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSwitchExpressionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSwitchExpression(Syntax.InternalSyntax.SwitchExpressionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSwitchExpressionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSwitchExpression();
-            var visitor = new AssertOnEverythingButSwitchExpressionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSwitchExpressionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSwitchExpression();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSwitchExpressionArmVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSwitchExpressionArm(Syntax.InternalSyntax.SwitchExpressionArmSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSwitchExpressionArmNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSwitchExpressionArm();
-            var visitor = new AssertOnEverythingButSwitchExpressionArmVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSwitchExpressionArmNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSwitchExpressionArm();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTryStatementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTryStatement(Syntax.InternalSyntax.TryStatementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTryStatementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTryStatement();
-            var visitor = new AssertOnEverythingButTryStatementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTryStatementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTryStatement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCatchClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCatchClause(Syntax.InternalSyntax.CatchClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCatchClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCatchClause();
-            var visitor = new AssertOnEverythingButCatchClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCatchClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCatchClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCatchDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCatchDeclaration(Syntax.InternalSyntax.CatchDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCatchDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCatchDeclaration();
-            var visitor = new AssertOnEverythingButCatchDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCatchDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCatchDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCatchFilterClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCatchFilterClause(Syntax.InternalSyntax.CatchFilterClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCatchFilterClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCatchFilterClause();
-            var visitor = new AssertOnEverythingButCatchFilterClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCatchFilterClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCatchFilterClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFinallyClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFinallyClause(Syntax.InternalSyntax.FinallyClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFinallyClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFinallyClause();
-            var visitor = new AssertOnEverythingButFinallyClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFinallyClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFinallyClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCompilationUnitVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCompilationUnit(Syntax.InternalSyntax.CompilationUnitSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCompilationUnitNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCompilationUnit();
-            var visitor = new AssertOnEverythingButCompilationUnitVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCompilationUnitNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCompilationUnit();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButExternAliasDirectiveVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitExternAliasDirective(Syntax.InternalSyntax.ExternAliasDirectiveSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestExternAliasDirectiveNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateExternAliasDirective();
-            var visitor = new AssertOnEverythingButExternAliasDirectiveVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestExternAliasDirectiveNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateExternAliasDirective();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButUsingDirectiveVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitUsingDirective(Syntax.InternalSyntax.UsingDirectiveSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestUsingDirectiveNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUsingDirective();
-            var visitor = new AssertOnEverythingButUsingDirectiveVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestUsingDirectiveNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUsingDirective();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButNamespaceDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitNamespaceDeclaration(Syntax.InternalSyntax.NamespaceDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestNamespaceDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNamespaceDeclaration();
-            var visitor = new AssertOnEverythingButNamespaceDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestNamespaceDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNamespaceDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFileScopedNamespaceDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFileScopedNamespaceDeclaration(Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFileScopedNamespaceDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFileScopedNamespaceDeclaration();
-            var visitor = new AssertOnEverythingButFileScopedNamespaceDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFileScopedNamespaceDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFileScopedNamespaceDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAttributeListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAttributeList(Syntax.InternalSyntax.AttributeListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAttributeListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttributeList();
-            var visitor = new AssertOnEverythingButAttributeListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAttributeListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttributeList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAttributeTargetSpecifierVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAttributeTargetSpecifier(Syntax.InternalSyntax.AttributeTargetSpecifierSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAttributeTargetSpecifierNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttributeTargetSpecifier();
-            var visitor = new AssertOnEverythingButAttributeTargetSpecifierVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAttributeTargetSpecifierNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttributeTargetSpecifier();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAttributeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAttribute(Syntax.InternalSyntax.AttributeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAttributeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttribute();
-            var visitor = new AssertOnEverythingButAttributeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAttributeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttribute();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAttributeArgumentListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAttributeArgumentList(Syntax.InternalSyntax.AttributeArgumentListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAttributeArgumentListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttributeArgumentList();
-            var visitor = new AssertOnEverythingButAttributeArgumentListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAttributeArgumentListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttributeArgumentList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAttributeArgumentVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAttributeArgument(Syntax.InternalSyntax.AttributeArgumentSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAttributeArgumentNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttributeArgument();
-            var visitor = new AssertOnEverythingButAttributeArgumentVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAttributeArgumentNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAttributeArgument();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButNameEqualsVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitNameEquals(Syntax.InternalSyntax.NameEqualsSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestNameEqualsNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNameEquals();
-            var visitor = new AssertOnEverythingButNameEqualsVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestNameEqualsNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNameEquals();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTypeParameterListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTypeParameterList(Syntax.InternalSyntax.TypeParameterListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTypeParameterListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeParameterList();
-            var visitor = new AssertOnEverythingButTypeParameterListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTypeParameterListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeParameterList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTypeParameterVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTypeParameter(Syntax.InternalSyntax.TypeParameterSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTypeParameterNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeParameter();
-            var visitor = new AssertOnEverythingButTypeParameterVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTypeParameterNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeParameter();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButClassDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitClassDeclaration(Syntax.InternalSyntax.ClassDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestClassDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateClassDeclaration();
-            var visitor = new AssertOnEverythingButClassDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestClassDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateClassDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButStructDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitStructDeclaration(Syntax.InternalSyntax.StructDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestStructDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateStructDeclaration();
-            var visitor = new AssertOnEverythingButStructDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestStructDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateStructDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButInterfaceDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitInterfaceDeclaration(Syntax.InternalSyntax.InterfaceDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestInterfaceDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterfaceDeclaration();
-            var visitor = new AssertOnEverythingButInterfaceDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestInterfaceDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateInterfaceDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRecordDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRecordDeclaration(Syntax.InternalSyntax.RecordDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRecordDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRecordDeclaration();
-            var visitor = new AssertOnEverythingButRecordDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRecordDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRecordDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButEnumDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitEnumDeclaration(Syntax.InternalSyntax.EnumDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestEnumDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEnumDeclaration();
-            var visitor = new AssertOnEverythingButEnumDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestEnumDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEnumDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDelegateDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDelegateDeclaration(Syntax.InternalSyntax.DelegateDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDelegateDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDelegateDeclaration();
-            var visitor = new AssertOnEverythingButDelegateDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDelegateDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDelegateDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButEnumMemberDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitEnumMemberDeclaration(Syntax.InternalSyntax.EnumMemberDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestEnumMemberDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEnumMemberDeclaration();
-            var visitor = new AssertOnEverythingButEnumMemberDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestEnumMemberDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEnumMemberDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBaseListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBaseList(Syntax.InternalSyntax.BaseListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBaseListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBaseList();
-            var visitor = new AssertOnEverythingButBaseListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBaseListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBaseList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSimpleBaseTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSimpleBaseType(Syntax.InternalSyntax.SimpleBaseTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSimpleBaseTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSimpleBaseType();
-            var visitor = new AssertOnEverythingButSimpleBaseTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSimpleBaseTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSimpleBaseType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPrimaryConstructorBaseTypeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPrimaryConstructorBaseType(Syntax.InternalSyntax.PrimaryConstructorBaseTypeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPrimaryConstructorBaseTypeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePrimaryConstructorBaseType();
-            var visitor = new AssertOnEverythingButPrimaryConstructorBaseTypeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPrimaryConstructorBaseTypeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePrimaryConstructorBaseType();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTypeParameterConstraintClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTypeParameterConstraintClause(Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTypeParameterConstraintClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeParameterConstraintClause();
-            var visitor = new AssertOnEverythingButTypeParameterConstraintClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTypeParameterConstraintClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeParameterConstraintClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButConstructorConstraintVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitConstructorConstraint(Syntax.InternalSyntax.ConstructorConstraintSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestConstructorConstraintNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConstructorConstraint();
-            var visitor = new AssertOnEverythingButConstructorConstraintVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestConstructorConstraintNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConstructorConstraint();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButClassOrStructConstraintVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitClassOrStructConstraint(Syntax.InternalSyntax.ClassOrStructConstraintSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestClassOrStructConstraintNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateClassOrStructConstraint();
-            var visitor = new AssertOnEverythingButClassOrStructConstraintVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestClassOrStructConstraintNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateClassOrStructConstraint();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTypeConstraintVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTypeConstraint(Syntax.InternalSyntax.TypeConstraintSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTypeConstraintNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeConstraint();
-            var visitor = new AssertOnEverythingButTypeConstraintVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTypeConstraintNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeConstraint();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDefaultConstraintVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDefaultConstraint(Syntax.InternalSyntax.DefaultConstraintSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDefaultConstraintNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDefaultConstraint();
-            var visitor = new AssertOnEverythingButDefaultConstraintVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDefaultConstraintNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDefaultConstraint();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFieldDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFieldDeclaration(Syntax.InternalSyntax.FieldDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFieldDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFieldDeclaration();
-            var visitor = new AssertOnEverythingButFieldDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFieldDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFieldDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButEventFieldDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitEventFieldDeclaration(Syntax.InternalSyntax.EventFieldDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestEventFieldDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEventFieldDeclaration();
-            var visitor = new AssertOnEverythingButEventFieldDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestEventFieldDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEventFieldDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButExplicitInterfaceSpecifierVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitExplicitInterfaceSpecifier(Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestExplicitInterfaceSpecifierNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateExplicitInterfaceSpecifier();
-            var visitor = new AssertOnEverythingButExplicitInterfaceSpecifierVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestExplicitInterfaceSpecifierNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateExplicitInterfaceSpecifier();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButMethodDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitMethodDeclaration(Syntax.InternalSyntax.MethodDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestMethodDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateMethodDeclaration();
-            var visitor = new AssertOnEverythingButMethodDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestMethodDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateMethodDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButOperatorDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitOperatorDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestOperatorDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOperatorDeclaration();
-            var visitor = new AssertOnEverythingButOperatorDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestOperatorDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOperatorDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButConversionOperatorDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitConversionOperatorDeclaration(Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestConversionOperatorDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConversionOperatorDeclaration();
-            var visitor = new AssertOnEverythingButConversionOperatorDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestConversionOperatorDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConversionOperatorDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButConstructorDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitConstructorDeclaration(Syntax.InternalSyntax.ConstructorDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestConstructorDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConstructorDeclaration();
-            var visitor = new AssertOnEverythingButConstructorDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestConstructorDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConstructorDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButConstructorInitializerVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitConstructorInitializer(Syntax.InternalSyntax.ConstructorInitializerSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestConstructorInitializerNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConstructorInitializer();
-            var visitor = new AssertOnEverythingButConstructorInitializerVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestConstructorInitializerNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConstructorInitializer();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDestructorDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDestructorDeclaration(Syntax.InternalSyntax.DestructorDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDestructorDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDestructorDeclaration();
-            var visitor = new AssertOnEverythingButDestructorDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDestructorDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDestructorDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPropertyDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPropertyDeclaration(Syntax.InternalSyntax.PropertyDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPropertyDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePropertyDeclaration();
-            var visitor = new AssertOnEverythingButPropertyDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPropertyDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePropertyDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButArrowExpressionClauseVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitArrowExpressionClause(Syntax.InternalSyntax.ArrowExpressionClauseSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestArrowExpressionClauseNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArrowExpressionClause();
-            var visitor = new AssertOnEverythingButArrowExpressionClauseVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestArrowExpressionClauseNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateArrowExpressionClause();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButEventDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitEventDeclaration(Syntax.InternalSyntax.EventDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestEventDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEventDeclaration();
-            var visitor = new AssertOnEverythingButEventDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestEventDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEventDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButIndexerDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitIndexerDeclaration(Syntax.InternalSyntax.IndexerDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestIndexerDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIndexerDeclaration();
-            var visitor = new AssertOnEverythingButIndexerDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestIndexerDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIndexerDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAccessorListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAccessorList(Syntax.InternalSyntax.AccessorListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAccessorListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAccessorList();
-            var visitor = new AssertOnEverythingButAccessorListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAccessorListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAccessorList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButAccessorDeclarationVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitAccessorDeclaration(Syntax.InternalSyntax.AccessorDeclarationSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestAccessorDeclarationNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAccessorDeclaration();
-            var visitor = new AssertOnEverythingButAccessorDeclarationVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestAccessorDeclarationNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateAccessorDeclaration();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButParameterListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitParameterList(Syntax.InternalSyntax.ParameterListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestParameterListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParameterList();
-            var visitor = new AssertOnEverythingButParameterListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestParameterListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParameterList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBracketedParameterListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBracketedParameterList(Syntax.InternalSyntax.BracketedParameterListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBracketedParameterListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBracketedParameterList();
-            var visitor = new AssertOnEverythingButBracketedParameterListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBracketedParameterListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBracketedParameterList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButParameterVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitParameter(Syntax.InternalSyntax.ParameterSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestParameterNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParameter();
-            var visitor = new AssertOnEverythingButParameterVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestParameterNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateParameter();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButFunctionPointerParameterVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitFunctionPointerParameter(Syntax.InternalSyntax.FunctionPointerParameterSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestFunctionPointerParameterNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerParameter();
-            var visitor = new AssertOnEverythingButFunctionPointerParameterVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestFunctionPointerParameterNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateFunctionPointerParameter();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButIncompleteMemberVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitIncompleteMember(Syntax.InternalSyntax.IncompleteMemberSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestIncompleteMemberNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIncompleteMember();
-            var visitor = new AssertOnEverythingButIncompleteMemberVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestIncompleteMemberNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIncompleteMember();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButSkippedTokensTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitSkippedTokensTrivia(Syntax.InternalSyntax.SkippedTokensTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestSkippedTokensTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSkippedTokensTrivia();
-            var visitor = new AssertOnEverythingButSkippedTokensTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestSkippedTokensTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateSkippedTokensTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDocumentationCommentTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDocumentationCommentTrivia(Syntax.InternalSyntax.DocumentationCommentTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDocumentationCommentTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDocumentationCommentTrivia();
-            var visitor = new AssertOnEverythingButDocumentationCommentTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDocumentationCommentTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDocumentationCommentTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButTypeCrefVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitTypeCref(Syntax.InternalSyntax.TypeCrefSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestTypeCrefNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeCref();
-            var visitor = new AssertOnEverythingButTypeCrefVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestTypeCrefNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateTypeCref();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButQualifiedCrefVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitQualifiedCref(Syntax.InternalSyntax.QualifiedCrefSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestQualifiedCrefNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQualifiedCref();
-            var visitor = new AssertOnEverythingButQualifiedCrefVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestQualifiedCrefNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateQualifiedCref();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButNameMemberCrefVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitNameMemberCref(Syntax.InternalSyntax.NameMemberCrefSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestNameMemberCrefNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNameMemberCref();
-            var visitor = new AssertOnEverythingButNameMemberCrefVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestNameMemberCrefNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNameMemberCref();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButIndexerMemberCrefVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitIndexerMemberCref(Syntax.InternalSyntax.IndexerMemberCrefSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestIndexerMemberCrefNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIndexerMemberCref();
-            var visitor = new AssertOnEverythingButIndexerMemberCrefVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestIndexerMemberCrefNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIndexerMemberCref();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButOperatorMemberCrefVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitOperatorMemberCref(Syntax.InternalSyntax.OperatorMemberCrefSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestOperatorMemberCrefNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOperatorMemberCref();
-            var visitor = new AssertOnEverythingButOperatorMemberCrefVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestOperatorMemberCrefNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateOperatorMemberCref();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButConversionOperatorMemberCrefVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitConversionOperatorMemberCref(Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestConversionOperatorMemberCrefNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConversionOperatorMemberCref();
-            var visitor = new AssertOnEverythingButConversionOperatorMemberCrefVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestConversionOperatorMemberCrefNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateConversionOperatorMemberCref();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCrefParameterListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCrefParameterList(Syntax.InternalSyntax.CrefParameterListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCrefParameterListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCrefParameterList();
-            var visitor = new AssertOnEverythingButCrefParameterListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCrefParameterListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCrefParameterList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCrefBracketedParameterListVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCrefBracketedParameterList(Syntax.InternalSyntax.CrefBracketedParameterListSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCrefBracketedParameterListNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCrefBracketedParameterList();
-            var visitor = new AssertOnEverythingButCrefBracketedParameterListVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCrefBracketedParameterListNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCrefBracketedParameterList();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButCrefParameterVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitCrefParameter(Syntax.InternalSyntax.CrefParameterSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestCrefParameterNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCrefParameter();
-            var visitor = new AssertOnEverythingButCrefParameterVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestCrefParameterNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateCrefParameter();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlElementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlElement(Syntax.InternalSyntax.XmlElementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlElementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlElement();
-            var visitor = new AssertOnEverythingButXmlElementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlElementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlElement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlElementStartTagVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlElementStartTag(Syntax.InternalSyntax.XmlElementStartTagSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlElementStartTagNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlElementStartTag();
-            var visitor = new AssertOnEverythingButXmlElementStartTagVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlElementStartTagNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlElementStartTag();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlElementEndTagVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlElementEndTag(Syntax.InternalSyntax.XmlElementEndTagSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlElementEndTagNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlElementEndTag();
-            var visitor = new AssertOnEverythingButXmlElementEndTagVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlElementEndTagNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlElementEndTag();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlEmptyElementVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlEmptyElement(Syntax.InternalSyntax.XmlEmptyElementSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlEmptyElementNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlEmptyElement();
-            var visitor = new AssertOnEverythingButXmlEmptyElementVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlEmptyElementNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlEmptyElement();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlNameVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlName(Syntax.InternalSyntax.XmlNameSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlNameNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlName();
-            var visitor = new AssertOnEverythingButXmlNameVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlNameNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlName();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlPrefixVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlPrefix(Syntax.InternalSyntax.XmlPrefixSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlPrefixNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlPrefix();
-            var visitor = new AssertOnEverythingButXmlPrefixVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlPrefixNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlPrefix();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlTextAttributeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlTextAttribute(Syntax.InternalSyntax.XmlTextAttributeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlTextAttributeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlTextAttribute();
-            var visitor = new AssertOnEverythingButXmlTextAttributeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlTextAttributeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlTextAttribute();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlCrefAttributeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlCrefAttribute(Syntax.InternalSyntax.XmlCrefAttributeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlCrefAttributeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlCrefAttribute();
-            var visitor = new AssertOnEverythingButXmlCrefAttributeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlCrefAttributeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlCrefAttribute();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlNameAttributeVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlNameAttribute(Syntax.InternalSyntax.XmlNameAttributeSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlNameAttributeNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlNameAttribute();
-            var visitor = new AssertOnEverythingButXmlNameAttributeVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlNameAttributeNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlNameAttribute();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlTextVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlText(Syntax.InternalSyntax.XmlTextSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlTextNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlText();
-            var visitor = new AssertOnEverythingButXmlTextVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlTextNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlText();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlCDataSectionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlCDataSection(Syntax.InternalSyntax.XmlCDataSectionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlCDataSectionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlCDataSection();
-            var visitor = new AssertOnEverythingButXmlCDataSectionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlCDataSectionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlCDataSection();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlProcessingInstructionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlProcessingInstruction(Syntax.InternalSyntax.XmlProcessingInstructionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlProcessingInstructionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlProcessingInstruction();
-            var visitor = new AssertOnEverythingButXmlProcessingInstructionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlProcessingInstructionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlProcessingInstruction();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButXmlCommentVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitXmlComment(Syntax.InternalSyntax.XmlCommentSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestXmlCommentNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlComment();
-            var visitor = new AssertOnEverythingButXmlCommentVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestXmlCommentNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateXmlComment();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButIfDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitIfDirectiveTrivia(Syntax.InternalSyntax.IfDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestIfDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIfDirectiveTrivia();
-            var visitor = new AssertOnEverythingButIfDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestIfDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateIfDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButElifDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitElifDirectiveTrivia(Syntax.InternalSyntax.ElifDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestElifDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElifDirectiveTrivia();
-            var visitor = new AssertOnEverythingButElifDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestElifDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElifDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButElseDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitElseDirectiveTrivia(Syntax.InternalSyntax.ElseDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestElseDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElseDirectiveTrivia();
-            var visitor = new AssertOnEverythingButElseDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestElseDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateElseDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButEndIfDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitEndIfDirectiveTrivia(Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestEndIfDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEndIfDirectiveTrivia();
-            var visitor = new AssertOnEverythingButEndIfDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestEndIfDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEndIfDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButRegionDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitRegionDirectiveTrivia(Syntax.InternalSyntax.RegionDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestRegionDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRegionDirectiveTrivia();
-            var visitor = new AssertOnEverythingButRegionDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestRegionDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateRegionDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButEndRegionDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitEndRegionDirectiveTrivia(Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestEndRegionDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEndRegionDirectiveTrivia();
-            var visitor = new AssertOnEverythingButEndRegionDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestEndRegionDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateEndRegionDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButErrorDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitErrorDirectiveTrivia(Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestErrorDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateErrorDirectiveTrivia();
-            var visitor = new AssertOnEverythingButErrorDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestErrorDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateErrorDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButWarningDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitWarningDirectiveTrivia(Syntax.InternalSyntax.WarningDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestWarningDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWarningDirectiveTrivia();
-            var visitor = new AssertOnEverythingButWarningDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestWarningDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateWarningDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButBadDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitBadDirectiveTrivia(Syntax.InternalSyntax.BadDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestBadDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBadDirectiveTrivia();
-            var visitor = new AssertOnEverythingButBadDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestBadDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateBadDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButDefineDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitDefineDirectiveTrivia(Syntax.InternalSyntax.DefineDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestDefineDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDefineDirectiveTrivia();
-            var visitor = new AssertOnEverythingButDefineDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestDefineDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateDefineDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButUndefDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitUndefDirectiveTrivia(Syntax.InternalSyntax.UndefDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestUndefDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUndefDirectiveTrivia();
-            var visitor = new AssertOnEverythingButUndefDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestUndefDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateUndefDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLineDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLineDirectiveTrivia(Syntax.InternalSyntax.LineDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLineDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLineDirectiveTrivia();
-            var visitor = new AssertOnEverythingButLineDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLineDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLineDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLineDirectivePositionVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLineDirectivePosition(Syntax.InternalSyntax.LineDirectivePositionSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLineDirectivePositionNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLineDirectivePosition();
-            var visitor = new AssertOnEverythingButLineDirectivePositionVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLineDirectivePositionNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLineDirectivePosition();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLineSpanDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLineSpanDirectiveTrivia(Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLineSpanDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLineSpanDirectiveTrivia();
-            var visitor = new AssertOnEverythingButLineSpanDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLineSpanDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLineSpanDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPragmaWarningDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPragmaWarningDirectiveTrivia(Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPragmaWarningDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePragmaWarningDirectiveTrivia();
-            var visitor = new AssertOnEverythingButPragmaWarningDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPragmaWarningDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePragmaWarningDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButPragmaChecksumDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitPragmaChecksumDirectiveTrivia(Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestPragmaChecksumDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePragmaChecksumDirectiveTrivia();
-            var visitor = new AssertOnEverythingButPragmaChecksumDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestPragmaChecksumDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GeneratePragmaChecksumDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButReferenceDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitReferenceDirectiveTrivia(Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestReferenceDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateReferenceDirectiveTrivia();
-            var visitor = new AssertOnEverythingButReferenceDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestReferenceDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateReferenceDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButLoadDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitLoadDirectiveTrivia(Syntax.InternalSyntax.LoadDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestLoadDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLoadDirectiveTrivia();
-            var visitor = new AssertOnEverythingButLoadDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestLoadDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateLoadDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButShebangDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitShebangDirectiveTrivia(Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestShebangDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateShebangDirectiveTrivia();
-            var visitor = new AssertOnEverythingButShebangDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestShebangDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateShebangDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
-
-        internal class AssertOnEverythingButNullableDirectiveTriviaVisitVisitorWithArgumentAndResult : AssertOnVisitVisitor<int, int>
-        {
-            public override int VisitNullableDirectiveTrivia(Syntax.InternalSyntax.NullableDirectiveTriviaSyntax node, int argument)
-            {
-                Assert.Equal(int.MinValue, argument);
-                return int.MaxValue;
-            }
-        }
-
-        [Fact]
-        public void TestNullableDirectiveTriviaNodeVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNullableDirectiveTrivia();
-            var visitor = new AssertOnEverythingButNullableDirectiveTriviaVisitVisitorWithArgumentAndResult();
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-        }
-
-        [Fact]
-        public void TestNullableDirectiveTriviaNodeVisitCallsDefaultVisitOnVisitorWithArgumentAndResult()
-        {
-            var node = GenerateNullableDirectiveTrivia();
-            var visitor = new GreenVisitorTests.DefaultVisitor<int, int>(int.MaxValue);
-            var result = visitor.Visit(node, int.MinValue);
-            Assert.Equal(int.MaxValue, result);
-            Assert.True(visitor.DefaultVisitWasCalled);
-        }
 
         internal class AssertOnVisitVisitor<TResult> : Syntax.InternalSyntax.CSharpSyntaxVisitor<TResult>
         {
@@ -41699,21 +28426,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIdentifierNameTokenDeleteRewriterWithResult()
+        public void TestIdentifierNameTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateIdentifierName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -41747,21 +28474,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestQualifiedNameTokenDeleteRewriterWithResult()
+        public void TestQualifiedNameTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateQualifiedName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -41795,21 +28522,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGenericNameTokenDeleteRewriterWithResult()
+        public void TestGenericNameTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateGenericName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -41843,21 +28570,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeArgumentListTokenDeleteRewriterWithResult()
+        public void TestTypeArgumentListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTypeArgumentList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -41891,21 +28618,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAliasQualifiedNameTokenDeleteRewriterWithResult()
+        public void TestAliasQualifiedNameTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAliasQualifiedName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -41939,21 +28666,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPredefinedTypeTokenDeleteRewriterWithResult()
+        public void TestPredefinedTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePredefinedType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -41987,21 +28714,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestArrayTypeTokenDeleteRewriterWithResult()
+        public void TestArrayTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateArrayType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42035,21 +28762,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestArrayRankSpecifierTokenDeleteRewriterWithResult()
+        public void TestArrayRankSpecifierTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateArrayRankSpecifier();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42083,21 +28810,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPointerTypeTokenDeleteRewriterWithResult()
+        public void TestPointerTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePointerType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42131,21 +28858,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerTypeTokenDeleteRewriterWithResult()
+        public void TestFunctionPointerTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFunctionPointerType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42179,21 +28906,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterListTokenDeleteRewriterWithResult()
+        public void TestFunctionPointerParameterListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFunctionPointerParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42227,21 +28954,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerCallingConventionTokenDeleteRewriterWithResult()
+        public void TestFunctionPointerCallingConventionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFunctionPointerCallingConvention();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42275,21 +29002,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriterWithResult()
+        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42323,21 +29050,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionTokenDeleteRewriterWithResult()
+        public void TestFunctionPointerUnmanagedCallingConventionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFunctionPointerUnmanagedCallingConvention();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42371,21 +29098,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNullableTypeTokenDeleteRewriterWithResult()
+        public void TestNullableTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateNullableType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42419,21 +29146,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTupleTypeTokenDeleteRewriterWithResult()
+        public void TestTupleTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTupleType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42467,21 +29194,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTupleElementTokenDeleteRewriterWithResult()
+        public void TestTupleElementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTupleElement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42515,21 +29242,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestOmittedTypeArgumentTokenDeleteRewriterWithResult()
+        public void TestOmittedTypeArgumentTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateOmittedTypeArgument();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42563,21 +29290,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRefTypeTokenDeleteRewriterWithResult()
+        public void TestRefTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRefType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42611,21 +29338,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestParenthesizedExpressionTokenDeleteRewriterWithResult()
+        public void TestParenthesizedExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateParenthesizedExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42659,21 +29386,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTupleExpressionTokenDeleteRewriterWithResult()
+        public void TestTupleExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTupleExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42707,21 +29434,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPrefixUnaryExpressionTokenDeleteRewriterWithResult()
+        public void TestPrefixUnaryExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePrefixUnaryExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42755,21 +29482,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAwaitExpressionTokenDeleteRewriterWithResult()
+        public void TestAwaitExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAwaitExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42803,21 +29530,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPostfixUnaryExpressionTokenDeleteRewriterWithResult()
+        public void TestPostfixUnaryExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePostfixUnaryExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42851,21 +29578,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMemberAccessExpressionTokenDeleteRewriterWithResult()
+        public void TestMemberAccessExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateMemberAccessExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42899,21 +29626,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConditionalAccessExpressionTokenDeleteRewriterWithResult()
+        public void TestConditionalAccessExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateConditionalAccessExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42947,21 +29674,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMemberBindingExpressionTokenDeleteRewriterWithResult()
+        public void TestMemberBindingExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateMemberBindingExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -42995,21 +29722,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestElementBindingExpressionTokenDeleteRewriterWithResult()
+        public void TestElementBindingExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateElementBindingExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43043,21 +29770,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRangeExpressionTokenDeleteRewriterWithResult()
+        public void TestRangeExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRangeExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43091,21 +29818,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestImplicitElementAccessTokenDeleteRewriterWithResult()
+        public void TestImplicitElementAccessTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateImplicitElementAccess();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43139,21 +29866,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBinaryExpressionTokenDeleteRewriterWithResult()
+        public void TestBinaryExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBinaryExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43187,21 +29914,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAssignmentExpressionTokenDeleteRewriterWithResult()
+        public void TestAssignmentExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAssignmentExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43235,21 +29962,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConditionalExpressionTokenDeleteRewriterWithResult()
+        public void TestConditionalExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateConditionalExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43283,21 +30010,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestThisExpressionTokenDeleteRewriterWithResult()
+        public void TestThisExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateThisExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43331,21 +30058,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBaseExpressionTokenDeleteRewriterWithResult()
+        public void TestBaseExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBaseExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43379,21 +30106,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLiteralExpressionTokenDeleteRewriterWithResult()
+        public void TestLiteralExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLiteralExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43427,21 +30154,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMakeRefExpressionTokenDeleteRewriterWithResult()
+        public void TestMakeRefExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateMakeRefExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43475,21 +30202,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRefTypeExpressionTokenDeleteRewriterWithResult()
+        public void TestRefTypeExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRefTypeExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43523,21 +30250,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRefValueExpressionTokenDeleteRewriterWithResult()
+        public void TestRefValueExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRefValueExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43571,21 +30298,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCheckedExpressionTokenDeleteRewriterWithResult()
+        public void TestCheckedExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCheckedExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43619,21 +30346,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDefaultExpressionTokenDeleteRewriterWithResult()
+        public void TestDefaultExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDefaultExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43667,21 +30394,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeOfExpressionTokenDeleteRewriterWithResult()
+        public void TestTypeOfExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTypeOfExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43715,21 +30442,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSizeOfExpressionTokenDeleteRewriterWithResult()
+        public void TestSizeOfExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSizeOfExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43763,21 +30490,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInvocationExpressionTokenDeleteRewriterWithResult()
+        public void TestInvocationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateInvocationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43811,21 +30538,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestElementAccessExpressionTokenDeleteRewriterWithResult()
+        public void TestElementAccessExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateElementAccessExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43859,21 +30586,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestArgumentListTokenDeleteRewriterWithResult()
+        public void TestArgumentListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateArgumentList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43907,21 +30634,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBracketedArgumentListTokenDeleteRewriterWithResult()
+        public void TestBracketedArgumentListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBracketedArgumentList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -43955,21 +30682,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestArgumentTokenDeleteRewriterWithResult()
+        public void TestArgumentTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateArgument();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44003,21 +30730,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExpressionColonTokenDeleteRewriterWithResult()
+        public void TestExpressionColonTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateExpressionColon();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44051,21 +30778,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNameColonTokenDeleteRewriterWithResult()
+        public void TestNameColonTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateNameColon();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44099,21 +30826,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDeclarationExpressionTokenDeleteRewriterWithResult()
+        public void TestDeclarationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDeclarationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44147,21 +30874,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCastExpressionTokenDeleteRewriterWithResult()
+        public void TestCastExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCastExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44195,21 +30922,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAnonymousMethodExpressionTokenDeleteRewriterWithResult()
+        public void TestAnonymousMethodExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAnonymousMethodExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44243,21 +30970,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSimpleLambdaExpressionTokenDeleteRewriterWithResult()
+        public void TestSimpleLambdaExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSimpleLambdaExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44291,21 +31018,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRefExpressionTokenDeleteRewriterWithResult()
+        public void TestRefExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRefExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44339,21 +31066,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestParenthesizedLambdaExpressionTokenDeleteRewriterWithResult()
+        public void TestParenthesizedLambdaExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateParenthesizedLambdaExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44387,21 +31114,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInitializerExpressionTokenDeleteRewriterWithResult()
+        public void TestInitializerExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateInitializerExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44435,21 +31162,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestImplicitObjectCreationExpressionTokenDeleteRewriterWithResult()
+        public void TestImplicitObjectCreationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateImplicitObjectCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44483,21 +31210,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestObjectCreationExpressionTokenDeleteRewriterWithResult()
+        public void TestObjectCreationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateObjectCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44531,21 +31258,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWithExpressionTokenDeleteRewriterWithResult()
+        public void TestWithExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateWithExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44579,21 +31306,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAnonymousObjectMemberDeclaratorTokenDeleteRewriterWithResult()
+        public void TestAnonymousObjectMemberDeclaratorTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAnonymousObjectMemberDeclarator();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44627,21 +31354,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAnonymousObjectCreationExpressionTokenDeleteRewriterWithResult()
+        public void TestAnonymousObjectCreationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAnonymousObjectCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44675,21 +31402,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestArrayCreationExpressionTokenDeleteRewriterWithResult()
+        public void TestArrayCreationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateArrayCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44723,21 +31450,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestImplicitArrayCreationExpressionTokenDeleteRewriterWithResult()
+        public void TestImplicitArrayCreationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateImplicitArrayCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44771,21 +31498,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestStackAllocArrayCreationExpressionTokenDeleteRewriterWithResult()
+        public void TestStackAllocArrayCreationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateStackAllocArrayCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44819,21 +31546,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestImplicitStackAllocArrayCreationExpressionTokenDeleteRewriterWithResult()
+        public void TestImplicitStackAllocArrayCreationExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44867,21 +31594,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestQueryExpressionTokenDeleteRewriterWithResult()
+        public void TestQueryExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateQueryExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44915,21 +31642,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestQueryBodyTokenDeleteRewriterWithResult()
+        public void TestQueryBodyTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateQueryBody();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -44963,21 +31690,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFromClauseTokenDeleteRewriterWithResult()
+        public void TestFromClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFromClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45011,21 +31738,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLetClauseTokenDeleteRewriterWithResult()
+        public void TestLetClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLetClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45059,21 +31786,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestJoinClauseTokenDeleteRewriterWithResult()
+        public void TestJoinClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateJoinClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45107,21 +31834,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestJoinIntoClauseTokenDeleteRewriterWithResult()
+        public void TestJoinIntoClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateJoinIntoClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45155,21 +31882,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWhereClauseTokenDeleteRewriterWithResult()
+        public void TestWhereClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateWhereClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45203,21 +31930,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestOrderByClauseTokenDeleteRewriterWithResult()
+        public void TestOrderByClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateOrderByClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45251,21 +31978,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestOrderingTokenDeleteRewriterWithResult()
+        public void TestOrderingTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateOrdering();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45299,21 +32026,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSelectClauseTokenDeleteRewriterWithResult()
+        public void TestSelectClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSelectClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45347,21 +32074,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGroupClauseTokenDeleteRewriterWithResult()
+        public void TestGroupClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateGroupClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45395,21 +32122,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestQueryContinuationTokenDeleteRewriterWithResult()
+        public void TestQueryContinuationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateQueryContinuation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45443,21 +32170,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestOmittedArraySizeExpressionTokenDeleteRewriterWithResult()
+        public void TestOmittedArraySizeExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateOmittedArraySizeExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45491,21 +32218,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterpolatedStringExpressionTokenDeleteRewriterWithResult()
+        public void TestInterpolatedStringExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateInterpolatedStringExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45539,21 +32266,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIsPatternExpressionTokenDeleteRewriterWithResult()
+        public void TestIsPatternExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateIsPatternExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45587,21 +32314,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestThrowExpressionTokenDeleteRewriterWithResult()
+        public void TestThrowExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateThrowExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45635,21 +32362,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWhenClauseTokenDeleteRewriterWithResult()
+        public void TestWhenClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateWhenClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45683,21 +32410,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDiscardPatternTokenDeleteRewriterWithResult()
+        public void TestDiscardPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDiscardPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45731,21 +32458,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDeclarationPatternTokenDeleteRewriterWithResult()
+        public void TestDeclarationPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDeclarationPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45779,21 +32506,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestVarPatternTokenDeleteRewriterWithResult()
+        public void TestVarPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateVarPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45827,21 +32554,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRecursivePatternTokenDeleteRewriterWithResult()
+        public void TestRecursivePatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRecursivePattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45875,21 +32602,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPositionalPatternClauseTokenDeleteRewriterWithResult()
+        public void TestPositionalPatternClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePositionalPatternClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45923,21 +32650,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPropertyPatternClauseTokenDeleteRewriterWithResult()
+        public void TestPropertyPatternClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePropertyPatternClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -45971,21 +32698,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSubpatternTokenDeleteRewriterWithResult()
+        public void TestSubpatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSubpattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46019,21 +32746,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConstantPatternTokenDeleteRewriterWithResult()
+        public void TestConstantPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateConstantPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46067,21 +32794,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestParenthesizedPatternTokenDeleteRewriterWithResult()
+        public void TestParenthesizedPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateParenthesizedPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46115,21 +32842,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRelationalPatternTokenDeleteRewriterWithResult()
+        public void TestRelationalPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRelationalPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46163,21 +32890,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypePatternTokenDeleteRewriterWithResult()
+        public void TestTypePatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTypePattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46211,21 +32938,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBinaryPatternTokenDeleteRewriterWithResult()
+        public void TestBinaryPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBinaryPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46259,21 +32986,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestUnaryPatternTokenDeleteRewriterWithResult()
+        public void TestUnaryPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateUnaryPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46307,21 +33034,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestListPatternTokenDeleteRewriterWithResult()
+        public void TestListPatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateListPattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46355,21 +33082,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSlicePatternTokenDeleteRewriterWithResult()
+        public void TestSlicePatternTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSlicePattern();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46403,21 +33130,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterpolatedStringTextTokenDeleteRewriterWithResult()
+        public void TestInterpolatedStringTextTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateInterpolatedStringText();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46451,21 +33178,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterpolationTokenDeleteRewriterWithResult()
+        public void TestInterpolationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateInterpolation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46499,21 +33226,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterpolationAlignmentClauseTokenDeleteRewriterWithResult()
+        public void TestInterpolationAlignmentClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateInterpolationAlignmentClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46547,21 +33274,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterpolationFormatClauseTokenDeleteRewriterWithResult()
+        public void TestInterpolationFormatClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateInterpolationFormatClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46595,21 +33322,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGlobalStatementTokenDeleteRewriterWithResult()
+        public void TestGlobalStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateGlobalStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46643,21 +33370,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBlockTokenDeleteRewriterWithResult()
+        public void TestBlockTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBlock();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46691,21 +33418,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLocalFunctionStatementTokenDeleteRewriterWithResult()
+        public void TestLocalFunctionStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLocalFunctionStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46739,21 +33466,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLocalDeclarationStatementTokenDeleteRewriterWithResult()
+        public void TestLocalDeclarationStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLocalDeclarationStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46787,21 +33514,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestVariableDeclarationTokenDeleteRewriterWithResult()
+        public void TestVariableDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateVariableDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46835,21 +33562,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestVariableDeclaratorTokenDeleteRewriterWithResult()
+        public void TestVariableDeclaratorTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateVariableDeclarator();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46883,21 +33610,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEqualsValueClauseTokenDeleteRewriterWithResult()
+        public void TestEqualsValueClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateEqualsValueClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46931,21 +33658,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSingleVariableDesignationTokenDeleteRewriterWithResult()
+        public void TestSingleVariableDesignationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSingleVariableDesignation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -46979,21 +33706,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDiscardDesignationTokenDeleteRewriterWithResult()
+        public void TestDiscardDesignationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDiscardDesignation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47027,21 +33754,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestParenthesizedVariableDesignationTokenDeleteRewriterWithResult()
+        public void TestParenthesizedVariableDesignationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateParenthesizedVariableDesignation();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47075,21 +33802,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExpressionStatementTokenDeleteRewriterWithResult()
+        public void TestExpressionStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateExpressionStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47123,21 +33850,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEmptyStatementTokenDeleteRewriterWithResult()
+        public void TestEmptyStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateEmptyStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47171,21 +33898,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLabeledStatementTokenDeleteRewriterWithResult()
+        public void TestLabeledStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLabeledStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47219,21 +33946,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGotoStatementTokenDeleteRewriterWithResult()
+        public void TestGotoStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateGotoStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47267,21 +33994,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBreakStatementTokenDeleteRewriterWithResult()
+        public void TestBreakStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBreakStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47315,21 +34042,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestContinueStatementTokenDeleteRewriterWithResult()
+        public void TestContinueStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateContinueStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47363,21 +34090,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestReturnStatementTokenDeleteRewriterWithResult()
+        public void TestReturnStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateReturnStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47411,21 +34138,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestThrowStatementTokenDeleteRewriterWithResult()
+        public void TestThrowStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateThrowStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47459,21 +34186,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestYieldStatementTokenDeleteRewriterWithResult()
+        public void TestYieldStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateYieldStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47507,21 +34234,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWhileStatementTokenDeleteRewriterWithResult()
+        public void TestWhileStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateWhileStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47555,21 +34282,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDoStatementTokenDeleteRewriterWithResult()
+        public void TestDoStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDoStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47603,21 +34330,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestForStatementTokenDeleteRewriterWithResult()
+        public void TestForStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateForStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47651,21 +34378,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestForEachStatementTokenDeleteRewriterWithResult()
+        public void TestForEachStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateForEachStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47699,21 +34426,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestForEachVariableStatementTokenDeleteRewriterWithResult()
+        public void TestForEachVariableStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateForEachVariableStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47747,21 +34474,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestUsingStatementTokenDeleteRewriterWithResult()
+        public void TestUsingStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateUsingStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47795,21 +34522,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFixedStatementTokenDeleteRewriterWithResult()
+        public void TestFixedStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFixedStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47843,21 +34570,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCheckedStatementTokenDeleteRewriterWithResult()
+        public void TestCheckedStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCheckedStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47891,21 +34618,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestUnsafeStatementTokenDeleteRewriterWithResult()
+        public void TestUnsafeStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateUnsafeStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47939,21 +34666,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLockStatementTokenDeleteRewriterWithResult()
+        public void TestLockStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLockStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -47987,21 +34714,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIfStatementTokenDeleteRewriterWithResult()
+        public void TestIfStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateIfStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48035,21 +34762,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestElseClauseTokenDeleteRewriterWithResult()
+        public void TestElseClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateElseClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48083,21 +34810,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSwitchStatementTokenDeleteRewriterWithResult()
+        public void TestSwitchStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSwitchStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48131,21 +34858,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSwitchSectionTokenDeleteRewriterWithResult()
+        public void TestSwitchSectionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSwitchSection();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48179,21 +34906,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCasePatternSwitchLabelTokenDeleteRewriterWithResult()
+        public void TestCasePatternSwitchLabelTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCasePatternSwitchLabel();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48227,21 +34954,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCaseSwitchLabelTokenDeleteRewriterWithResult()
+        public void TestCaseSwitchLabelTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCaseSwitchLabel();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48275,21 +35002,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDefaultSwitchLabelTokenDeleteRewriterWithResult()
+        public void TestDefaultSwitchLabelTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDefaultSwitchLabel();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48323,21 +35050,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSwitchExpressionTokenDeleteRewriterWithResult()
+        public void TestSwitchExpressionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSwitchExpression();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48371,21 +35098,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSwitchExpressionArmTokenDeleteRewriterWithResult()
+        public void TestSwitchExpressionArmTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSwitchExpressionArm();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48419,21 +35146,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTryStatementTokenDeleteRewriterWithResult()
+        public void TestTryStatementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTryStatement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48467,21 +35194,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCatchClauseTokenDeleteRewriterWithResult()
+        public void TestCatchClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCatchClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48515,21 +35242,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCatchDeclarationTokenDeleteRewriterWithResult()
+        public void TestCatchDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCatchDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48563,21 +35290,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCatchFilterClauseTokenDeleteRewriterWithResult()
+        public void TestCatchFilterClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCatchFilterClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48611,21 +35338,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFinallyClauseTokenDeleteRewriterWithResult()
+        public void TestFinallyClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFinallyClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48659,21 +35386,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCompilationUnitTokenDeleteRewriterWithResult()
+        public void TestCompilationUnitTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCompilationUnit();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48707,21 +35434,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExternAliasDirectiveTokenDeleteRewriterWithResult()
+        public void TestExternAliasDirectiveTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateExternAliasDirective();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48755,21 +35482,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestUsingDirectiveTokenDeleteRewriterWithResult()
+        public void TestUsingDirectiveTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateUsingDirective();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48803,21 +35530,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNamespaceDeclarationTokenDeleteRewriterWithResult()
+        public void TestNamespaceDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateNamespaceDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48851,21 +35578,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFileScopedNamespaceDeclarationTokenDeleteRewriterWithResult()
+        public void TestFileScopedNamespaceDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFileScopedNamespaceDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48899,21 +35626,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAttributeListTokenDeleteRewriterWithResult()
+        public void TestAttributeListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAttributeList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48947,21 +35674,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAttributeTargetSpecifierTokenDeleteRewriterWithResult()
+        public void TestAttributeTargetSpecifierTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAttributeTargetSpecifier();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -48995,21 +35722,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAttributeTokenDeleteRewriterWithResult()
+        public void TestAttributeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAttribute();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49043,21 +35770,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAttributeArgumentListTokenDeleteRewriterWithResult()
+        public void TestAttributeArgumentListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAttributeArgumentList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49091,21 +35818,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAttributeArgumentTokenDeleteRewriterWithResult()
+        public void TestAttributeArgumentTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAttributeArgument();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49139,21 +35866,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNameEqualsTokenDeleteRewriterWithResult()
+        public void TestNameEqualsTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateNameEquals();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49187,21 +35914,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeParameterListTokenDeleteRewriterWithResult()
+        public void TestTypeParameterListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTypeParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49235,21 +35962,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeParameterTokenDeleteRewriterWithResult()
+        public void TestTypeParameterTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTypeParameter();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49283,21 +36010,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestClassDeclarationTokenDeleteRewriterWithResult()
+        public void TestClassDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateClassDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49331,21 +36058,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestStructDeclarationTokenDeleteRewriterWithResult()
+        public void TestStructDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateStructDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49379,21 +36106,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestInterfaceDeclarationTokenDeleteRewriterWithResult()
+        public void TestInterfaceDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateInterfaceDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49427,21 +36154,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRecordDeclarationTokenDeleteRewriterWithResult()
+        public void TestRecordDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRecordDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49475,21 +36202,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEnumDeclarationTokenDeleteRewriterWithResult()
+        public void TestEnumDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateEnumDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49523,21 +36250,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDelegateDeclarationTokenDeleteRewriterWithResult()
+        public void TestDelegateDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDelegateDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49571,21 +36298,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEnumMemberDeclarationTokenDeleteRewriterWithResult()
+        public void TestEnumMemberDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateEnumMemberDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49619,21 +36346,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBaseListTokenDeleteRewriterWithResult()
+        public void TestBaseListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBaseList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49667,21 +36394,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSimpleBaseTypeTokenDeleteRewriterWithResult()
+        public void TestSimpleBaseTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSimpleBaseType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49715,21 +36442,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPrimaryConstructorBaseTypeTokenDeleteRewriterWithResult()
+        public void TestPrimaryConstructorBaseTypeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePrimaryConstructorBaseType();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49763,21 +36490,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeParameterConstraintClauseTokenDeleteRewriterWithResult()
+        public void TestTypeParameterConstraintClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTypeParameterConstraintClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49811,21 +36538,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConstructorConstraintTokenDeleteRewriterWithResult()
+        public void TestConstructorConstraintTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateConstructorConstraint();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49859,21 +36586,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestClassOrStructConstraintTokenDeleteRewriterWithResult()
+        public void TestClassOrStructConstraintTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateClassOrStructConstraint();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49907,21 +36634,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeConstraintTokenDeleteRewriterWithResult()
+        public void TestTypeConstraintTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTypeConstraint();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -49955,21 +36682,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDefaultConstraintTokenDeleteRewriterWithResult()
+        public void TestDefaultConstraintTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDefaultConstraint();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50003,21 +36730,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFieldDeclarationTokenDeleteRewriterWithResult()
+        public void TestFieldDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFieldDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50051,21 +36778,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEventFieldDeclarationTokenDeleteRewriterWithResult()
+        public void TestEventFieldDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateEventFieldDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50099,21 +36826,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExplicitInterfaceSpecifierTokenDeleteRewriterWithResult()
+        public void TestExplicitInterfaceSpecifierTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateExplicitInterfaceSpecifier();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50147,21 +36874,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMethodDeclarationTokenDeleteRewriterWithResult()
+        public void TestMethodDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateMethodDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50195,21 +36922,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestOperatorDeclarationTokenDeleteRewriterWithResult()
+        public void TestOperatorDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateOperatorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50243,21 +36970,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConversionOperatorDeclarationTokenDeleteRewriterWithResult()
+        public void TestConversionOperatorDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateConversionOperatorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50291,21 +37018,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConstructorDeclarationTokenDeleteRewriterWithResult()
+        public void TestConstructorDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateConstructorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50339,21 +37066,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConstructorInitializerTokenDeleteRewriterWithResult()
+        public void TestConstructorInitializerTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateConstructorInitializer();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50387,21 +37114,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDestructorDeclarationTokenDeleteRewriterWithResult()
+        public void TestDestructorDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDestructorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50435,21 +37162,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPropertyDeclarationTokenDeleteRewriterWithResult()
+        public void TestPropertyDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePropertyDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50483,21 +37210,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestArrowExpressionClauseTokenDeleteRewriterWithResult()
+        public void TestArrowExpressionClauseTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateArrowExpressionClause();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50531,21 +37258,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEventDeclarationTokenDeleteRewriterWithResult()
+        public void TestEventDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateEventDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50579,21 +37306,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIndexerDeclarationTokenDeleteRewriterWithResult()
+        public void TestIndexerDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateIndexerDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50627,21 +37354,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAccessorListTokenDeleteRewriterWithResult()
+        public void TestAccessorListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAccessorList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50675,21 +37402,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAccessorDeclarationTokenDeleteRewriterWithResult()
+        public void TestAccessorDeclarationTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateAccessorDeclaration();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50723,21 +37450,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestParameterListTokenDeleteRewriterWithResult()
+        public void TestParameterListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50771,21 +37498,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBracketedParameterListTokenDeleteRewriterWithResult()
+        public void TestBracketedParameterListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBracketedParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50819,21 +37546,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestParameterTokenDeleteRewriterWithResult()
+        public void TestParameterTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateParameter();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50867,21 +37594,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterTokenDeleteRewriterWithResult()
+        public void TestFunctionPointerParameterTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateFunctionPointerParameter();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50915,21 +37642,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIncompleteMemberTokenDeleteRewriterWithResult()
+        public void TestIncompleteMemberTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateIncompleteMember();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -50963,21 +37690,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSkippedTokensTriviaTokenDeleteRewriterWithResult()
+        public void TestSkippedTokensTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateSkippedTokensTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51011,21 +37738,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDocumentationCommentTriviaTokenDeleteRewriterWithResult()
+        public void TestDocumentationCommentTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDocumentationCommentTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51059,21 +37786,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestTypeCrefTokenDeleteRewriterWithResult()
+        public void TestTypeCrefTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateTypeCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51107,21 +37834,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestQualifiedCrefTokenDeleteRewriterWithResult()
+        public void TestQualifiedCrefTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateQualifiedCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51155,21 +37882,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNameMemberCrefTokenDeleteRewriterWithResult()
+        public void TestNameMemberCrefTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateNameMemberCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51203,21 +37930,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIndexerMemberCrefTokenDeleteRewriterWithResult()
+        public void TestIndexerMemberCrefTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateIndexerMemberCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51251,21 +37978,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestOperatorMemberCrefTokenDeleteRewriterWithResult()
+        public void TestOperatorMemberCrefTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateOperatorMemberCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51299,21 +38026,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestConversionOperatorMemberCrefTokenDeleteRewriterWithResult()
+        public void TestConversionOperatorMemberCrefTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateConversionOperatorMemberCref();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51347,21 +38074,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCrefParameterListTokenDeleteRewriterWithResult()
+        public void TestCrefParameterListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCrefParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51395,21 +38122,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCrefBracketedParameterListTokenDeleteRewriterWithResult()
+        public void TestCrefBracketedParameterListTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCrefBracketedParameterList();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51443,21 +38170,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCrefParameterTokenDeleteRewriterWithResult()
+        public void TestCrefParameterTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateCrefParameter();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51491,21 +38218,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlElementTokenDeleteRewriterWithResult()
+        public void TestXmlElementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlElement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51539,21 +38266,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlElementStartTagTokenDeleteRewriterWithResult()
+        public void TestXmlElementStartTagTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlElementStartTag();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51587,21 +38314,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlElementEndTagTokenDeleteRewriterWithResult()
+        public void TestXmlElementEndTagTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlElementEndTag();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51635,21 +38362,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlEmptyElementTokenDeleteRewriterWithResult()
+        public void TestXmlEmptyElementTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlEmptyElement();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51683,21 +38410,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlNameTokenDeleteRewriterWithResult()
+        public void TestXmlNameTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlName();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51731,21 +38458,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlPrefixTokenDeleteRewriterWithResult()
+        public void TestXmlPrefixTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlPrefix();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51779,21 +38506,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlTextAttributeTokenDeleteRewriterWithResult()
+        public void TestXmlTextAttributeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlTextAttribute();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51827,21 +38554,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlCrefAttributeTokenDeleteRewriterWithResult()
+        public void TestXmlCrefAttributeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlCrefAttribute();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51875,21 +38602,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlNameAttributeTokenDeleteRewriterWithResult()
+        public void TestXmlNameAttributeTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlNameAttribute();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51923,21 +38650,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlTextTokenDeleteRewriterWithResult()
+        public void TestXmlTextTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlText();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -51971,21 +38698,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlCDataSectionTokenDeleteRewriterWithResult()
+        public void TestXmlCDataSectionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlCDataSection();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52019,21 +38746,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlProcessingInstructionTokenDeleteRewriterWithResult()
+        public void TestXmlProcessingInstructionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlProcessingInstruction();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52067,21 +38794,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestXmlCommentTokenDeleteRewriterWithResult()
+        public void TestXmlCommentTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateXmlComment();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52115,21 +38842,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestIfDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestIfDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateIfDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52163,21 +38890,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestElifDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestElifDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateElifDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52211,21 +38938,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestElseDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestElseDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateElseDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52259,21 +38986,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEndIfDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestEndIfDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateEndIfDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52307,21 +39034,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestRegionDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestRegionDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateRegionDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52355,21 +39082,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestEndRegionDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestEndRegionDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateEndRegionDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52403,21 +39130,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestErrorDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestErrorDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateErrorDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52451,21 +39178,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWarningDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestWarningDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateWarningDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52499,21 +39226,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestBadDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestBadDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateBadDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52547,21 +39274,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDefineDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestDefineDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateDefineDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52595,21 +39322,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestUndefDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestUndefDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateUndefDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52643,21 +39370,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLineDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestLineDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLineDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52691,21 +39418,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLineDirectivePositionTokenDeleteRewriterWithResult()
+        public void TestLineDirectivePositionTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLineDirectivePosition();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52739,21 +39466,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLineSpanDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestLineSpanDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLineSpanDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52787,21 +39514,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPragmaWarningDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestPragmaWarningDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePragmaWarningDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52835,21 +39562,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPragmaChecksumDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestPragmaChecksumDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GeneratePragmaChecksumDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52883,21 +39610,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestReferenceDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestReferenceDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateReferenceDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52931,21 +39658,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLoadDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestLoadDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateLoadDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -52979,21 +39706,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestShebangDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestShebangDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateShebangDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -53027,21 +39754,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNullableDirectiveTriviaTokenDeleteRewriterWithResult()
+        public void TestNullableDirectiveTriviaTokenDeleteRewriterWithArgument()
         {
             var oldNode = GenerateNullableDirectiveTrivia();
-            var rewriter = new TokenDeleteRewriterWithResult();
-            var result = new VisitorResult();
-            var newNode = rewriter.Visit(oldNode, result);
+            var rewriter = new TokenDeleteRewriterWithArgument();
+            var argument = new VisitorArgument();
+            var newNode = rewriter.Visit(oldNode, argument);
 
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
-                Assert.True(result.VisitCount > 0);
+                Assert.True(argument.VisitCount > 0);
             }
             else
             {
-                Assert.True(result.VisitCount >= 0);
+                Assert.True(argument.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);

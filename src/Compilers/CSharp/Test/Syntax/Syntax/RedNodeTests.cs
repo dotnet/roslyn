@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private class VisitorResult
+        private class VisitorArgument
         {
             public int VisitCount { get; set; }
         }
 
-        private class TokenDeleteRewriterWithResult : CSharpSyntaxRewriter<VisitorResult>
+        private class TokenDeleteRewriterWithArgument : CSharpSyntaxRewriter<VisitorArgument>
         {
-            public override SyntaxToken VisitToken(SyntaxToken token, VisitorResult result)
+            public override SyntaxToken VisitToken(SyntaxToken token, VisitorArgument result)
             {
                 result.VisitCount++;
                 return SyntaxFactory.MissingToken(token.Kind());

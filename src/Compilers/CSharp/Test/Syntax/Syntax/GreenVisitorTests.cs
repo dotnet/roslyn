@@ -31,17 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #endregion
 
-        #region CSharpSyntaxVisitor<TArgument, TResult>
-
-        [Fact]
-        public void VisitDoesNotThrowOnNullNode_TArgument_TResult()
-        {
-            var visitor = new DefaultVisitor<object?, object?>();
-            visitor.Visit(null, null);
-        }
-
-        #endregion
-
         #region Misc
 
         internal class DefaultVisitor : InternalSyntax.CSharpSyntaxVisitor
@@ -66,24 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             protected override TResult DefaultVisit(InternalSyntax.CSharpSyntaxNode node)
-            {
-                DefaultVisitWasCalled = true;
-                return _returnValue;
-            }
-        }
-
-        internal class DefaultVisitor<TArgument, TResult> : InternalSyntax.CSharpSyntaxVisitor<TArgument, TResult>
-        {
-            public bool DefaultVisitWasCalled { get; private set; }
-
-            private readonly TResult _returnValue;
-
-            public DefaultVisitor(TResult returnValue = default)
-            {
-                _returnValue = returnValue;
-            }
-
-            protected override TResult DefaultVisit(InternalSyntax.CSharpSyntaxNode node, TArgument argument)
             {
                 DefaultVisitWasCalled = true;
                 return _returnValue;

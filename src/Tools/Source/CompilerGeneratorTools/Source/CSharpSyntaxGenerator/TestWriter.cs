@@ -7,6 +7,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 
 namespace CSharpSyntaxGenerator
@@ -50,7 +51,7 @@ namespace CSharpSyntaxGenerator
             WriteLine();
 
             WriteLine("#region Green Rewriters");
-            WriteRewriterTests();
+            WriteRewriterTests(isGreen: true);
             WriteLine("#endregion Green Rewriters");
 
             WriteLine("#region Green Visitors");
@@ -74,7 +75,7 @@ namespace CSharpSyntaxGenerator
             WriteLine();
 
             WriteLine("#region Red Rewriters");
-            WriteRewriterTests();
+            WriteRewriterTests(isGreen: false);
             WriteLine("#endregion Red Rewriters");
 
             WriteLine("#region Red Visitors");
@@ -326,7 +327,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteRewriterTests()
+        private void WriteRewriterTests(bool isGreen)
         {
             var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
             bool first = true;
@@ -337,15 +338,21 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 }
                 first = false;
-                WriteTokenDeleteRewriterTest((Node)node, withResult: false);
+                WriteTokenDeleteRewriterTest((Node)node, withArgument: false);
                 WriteLine();
-                WriteTokenDeleteRewriterTest((Node)node, withResult: true);
-                WriteLine();
+
+                if (!isGreen)
+                {
+                    //there is no rewriter with an argument for green nodes
+                    WriteTokenDeleteRewriterTest((Node)node, withArgument: true);
+                    WriteLine();
+                }
+
                 WriteIdentityRewriterTest((Node)node);
             }
         }
 
-        private void WriteTokenDeleteRewriterTest(Node node, bool withResult)
+        private void WriteTokenDeleteRewriterTest(Node node, bool withArgument)
         {
             var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
@@ -353,36 +360,36 @@ namespace CSharpSyntaxGenerator
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("[Fact]");
-            WriteLine($"public void Test{strippedName}TokenDeleteRewriter{(withResult ? "WithResult" : "")}()");
+            WriteLine($"public void Test{strippedName}TokenDeleteRewriter{(withArgument ? "WithArgument" : "")}()");
             OpenBlock();
 
             WriteLine($"var oldNode = Generate{strippedName}();");
-            WriteLine($"var rewriter = new {(withResult ? "TokenDeleteRewriterWithResult" : "TokenDeleteRewriter")}();");
+            WriteLine($"var rewriter = new {(withArgument ? "TokenDeleteRewriterWithArgument" : "TokenDeleteRewriter")}();");
 
-            if (withResult)
+            if (withArgument)
             {
-                WriteLine($"var result = new VisitorResult();");
+                WriteLine($"var argument = new VisitorArgument();");
             }
 
-            WriteLine($"var newNode = rewriter.Visit(oldNode{(withResult ? ", result" : "")});");
+            WriteLine($"var newNode = rewriter.Visit(oldNode{(withArgument ? ", argument" : "")});");
 
             WriteLine();
             WriteLine("if(!oldNode.IsMissing)");
             OpenBlock();
             WriteLine("Assert.NotEqual(oldNode, newNode);");
 
-            if (withResult)
+            if (withArgument)
             {
-                WriteLine("Assert.True(result.VisitCount > 0);");
+                WriteLine("Assert.True(argument.VisitCount > 0);");
             }
 
             CloseBlock();
 
-            if (withResult)
+            if (withArgument)
             {
                 WriteLine("else");
                 OpenBlock();
-                WriteLine("Assert.True(result.VisitCount >= 0);");
+                WriteLine("Assert.True(argument.VisitCount >= 0);");
                 CloseBlock();
             }
 
@@ -427,6 +434,12 @@ namespace CSharpSyntaxGenerator
 
         private void WriteVisitorTests(bool withArgument, bool withResult, bool isGreen)
         {
+            if (isGreen && withArgument && withResult)
+            {
+                //the green visitor has no overload with argument and result.
+                return;
+            }
+
             WriteAssertOnVisitVisitor(withArgument, withResult, isGreen);
 
             var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
