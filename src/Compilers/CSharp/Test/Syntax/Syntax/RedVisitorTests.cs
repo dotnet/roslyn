@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void VisitDoesNotThrowOnNullNode_TResult()
         {
-            var visitor = new DefaultVisitor<object?>();
+            var visitor = new DefaultVisitor<object>(new object());
             visitor.Visit(null);
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void VisitDoesNotThrowOnNullNode_TArgument_TResult()
         {
-            var visitor = new DefaultVisitor<object?, object?>();
+            var visitor = new DefaultVisitor<object?, object>(new object());
             visitor.Visit(null, null);
         }
 
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             private readonly TResult _returnValue;
 
-            public DefaultVisitor(TResult returnValue = default)
+            public DefaultVisitor(TResult returnValue)
             {
                 _returnValue = returnValue;
             }
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             private readonly TResult _returnValue;
 
-            public DefaultVisitor(TResult returnValue = default)
+            public DefaultVisitor(TResult returnValue)
             {
                 _returnValue = returnValue;
             }
