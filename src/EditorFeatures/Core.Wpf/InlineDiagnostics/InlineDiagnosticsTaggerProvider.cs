@@ -26,7 +26,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(InlineDiagnosticsTag))]
     internal sealed class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>

@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]

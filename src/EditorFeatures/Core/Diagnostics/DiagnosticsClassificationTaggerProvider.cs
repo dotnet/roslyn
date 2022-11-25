@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(ClassificationTag))]
