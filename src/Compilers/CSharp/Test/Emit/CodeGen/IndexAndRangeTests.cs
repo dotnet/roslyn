@@ -3787,5 +3787,112 @@ class C
 ";
             CompileAndVerifyWithIndexAndRange(src, expectedOutput: "Done").VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(65586, "https://github.com/dotnet/roslyn/issues/65586")]
+        public void SideeffectsOfSlicing_01()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static S s = new S();
+    
+    static void Main()
+    {
+        Test();
+        Console.WriteLine(s.count); 
+    }
+
+    static void Test()
+    {
+        _ = s[1..2];
+    }
+}
+
+struct S
+{
+    public int count;
+    
+    public int Slice(int start, int length)
+    {
+        count++;
+        return 0;
+    }
+    
+    public int Length => 10;
+}";
+            var verifier = CompileAndVerifyWithIndexAndRange(src, expectedOutput: "0").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  3
+  .locals init (S V_0)
+  IL_0000:  ldsfld     ""S Program.s""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldc.i4.1
+  IL_000a:  call       ""int S.Slice(int, int)""
+  IL_000f:  pop
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(65586, "https://github.com/dotnet/roslyn/issues/65586")]
+        public void SideeffectsOfSlicing_02()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static S s = new S();
+    
+    static void Main()
+    {
+        Test();
+        Console.WriteLine(s.count); 
+    }
+
+    static void Test()
+    {
+        _ = s[1..2];
+    }
+}
+
+class S
+{
+    public int count;
+    
+    public int Slice(int start, int length)
+    {
+        count++;
+        return 0;
+    }
+    
+    public int Length => 10;
+}";
+            var verifier = CompileAndVerifyWithIndexAndRange(src, expectedOutput: "1").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  3
+  IL_0000:  ldsfld     ""S Program.s""
+  IL_0005:  ldc.i4.1
+  IL_0006:  ldc.i4.1
+  IL_0007:  callvirt   ""int S.Slice(int, int)""
+  IL_000c:  pop
+  IL_000d:  ret
+}
+");
+        }
     }
 }
