@@ -63,5 +63,11 @@ namespace Microsoft.CodeAnalysis
         /// Includes square brackets around optional parameters.
         /// </summary>
         IncludeOptionalBrackets = 1 << 5,
+
+        /// <summary>
+        /// Equivalent to <see cref="IncludeName"/> but only if the parameter is displayed on its own
+        /// (i.e., not as part of a method, delegate, or indexer).
+        /// </summary>
+        IncludeNameIfStandalone = 1 << 6,
     }
 }

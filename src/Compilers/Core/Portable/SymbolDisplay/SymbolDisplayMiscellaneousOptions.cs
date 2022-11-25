@@ -78,11 +78,5 @@ namespace Microsoft.CodeAnalysis
         /// to how anonymous types are inserted).
         /// </summary>
         CollapseTupleTypes = 1 << 9,
-
-        /// <summary>
-        /// Equivalent to <see cref="SymbolDisplayParameterOptions.IncludeName"/>
-        /// but only if the parameter is displayed on its own (i.e., not as part of a method or an indexer).
-        /// </summary>
-        IncludeNameOfStandaloneParameters = 1 << 10,
     }
 }

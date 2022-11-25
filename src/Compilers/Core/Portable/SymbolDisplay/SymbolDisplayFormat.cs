@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeType,
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeNameIfStandalone,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
-                    SymbolDisplayMiscellaneousOptions.IncludeNameOfStandaloneParameters);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         internal static SymbolDisplayFormat CSharpErrorMessageTypeFormat { get; } = CSharpErrorMessageFormat
-            .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNameOfStandaloneParameters);
+            .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeNameIfStandalone);
 
         /// <summary>
         /// Formats a symbol description as in a C# compiler short error message.
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeType,
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeNameIfStandalone,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
-                    SymbolDisplayMiscellaneousOptions.IncludeNameOfStandaloneParameters);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.
