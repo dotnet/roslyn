@@ -53,7 +53,7 @@ class 123 { }
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
-                Dim provider = workspace.ExportProvider.GetExportedValues(Of ITaggerProvider)().OfType(Of DiagnosticsSquiggleTaggerProvider)().Single()
+                Dim provider = workspace.ExportProvider.GetExportedValues(Of IViewTaggerProvider)().OfType(Of DiagnosticsSquiggleTaggerProvider)().Single()
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(view, buffer)
 
                 Using disposable = TryCast(tagger, IDisposable)
