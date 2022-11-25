@@ -1128,12 +1128,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!gotError)
             {
-                gotError = !CheckInvocationArgMixing(
+                CheckInvocationArgMixing(
                     node,
                     method,
                     receiver,
                     method.Parameters,
                     args,
+                    argRefKinds,
                     argsToParams,
                     this.LocalScopeDepth,
                     diagnostics);
@@ -2065,6 +2066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiverOpt: null,
                     funcPtr.Signature.Parameters,
                     args,
+                    refKinds,
                     methodResult.Result.ArgsToParamsOpt,
                     LocalScopeDepth,
                     diagnostics);

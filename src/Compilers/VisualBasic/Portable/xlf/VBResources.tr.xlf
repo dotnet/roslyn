@@ -558,6 +558,16 @@
         <target state="translated">Parametre kendini işaret ettiğinden, parametreye uygulanan CallerArgumentExpressionAttribute hiçbir etkiye sahip olmaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Çözümleyici referansı '{0}' birden çok kez belirtildi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Çözümleyici referansı birden çok kez belirtildi</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
         <target state="translated">'{0}' oluşturucusu kaynak oluşturamadı. Oluşturucu çıkışa katkıda bulunmayacağından, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi</target>

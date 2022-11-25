@@ -6,19 +6,14 @@
   },
   "tools": {
     "dotnet": "7.0.100",
-    "runtimes": {
-      "dotnet": [
-        "3.1.0"
-      ]
-    },
     "vs": {
       "version": "17.2"
     },
     "xcopy-msbuild": "17.2.1"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.22463.5",
-    "Microsoft.DotNet.Helix.Sdk": "8.0.0-beta.22463.5",
+    "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.22524.5",
+    "Microsoft.DotNet.Helix.Sdk": "8.0.0-beta.22524.5",
     "PostSharp.Engineering.Sdk":"1.0.102-preview"
   }
 }

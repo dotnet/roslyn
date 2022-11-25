@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -16,9 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal class VisualStudioProjectOptionsProcessor : IDisposable
     {
         private readonly VisualStudioProject _project;
-        private readonly HostWorkspaceServices _workspaceServices;
+        private readonly SolutionServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
-        private readonly ITemporaryStorageService _temporaryStorageService;
+        private readonly ITemporaryStorageServiceInternal _temporaryStorageService;
 
         /// <summary>
         /// Gate to guard all mutable fields in this class.
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// (especially in cases with many references).
         /// </summary>
         /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
-        private ITemporaryStreamStorage? _commandLineStorage;
+        private ITemporaryStreamStorageInternal? _commandLineStorage;
 
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string? _explicitRuleSetFilePath;
@@ -47,12 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioProjectOptionsProcessor(
             VisualStudioProject project,
-            HostWorkspaceServices workspaceServices)
+            SolutionServices workspaceServices)
         {
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
             _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-            _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageService>();
+            _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
             // the constructor so nothing can race.
@@ -86,7 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         public void SetCommandLine(string commandLine)
         {
             if (commandLine == null)

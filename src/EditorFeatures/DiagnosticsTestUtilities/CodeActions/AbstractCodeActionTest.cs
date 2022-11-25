@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
-            await applyChangesOperation.TryApplyAsync(workspace, new ProgressTracker(), CancellationToken.None);
+            await applyChangesOperation.TryApplyAsync(workspace, workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
 
             foreach (var document in workspace.Documents)
             {

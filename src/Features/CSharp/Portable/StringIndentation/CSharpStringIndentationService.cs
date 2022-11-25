@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
                     if (!node.Span.IntersectsWith(textSpan))
                         continue;
 
-                    if (node.IsKind(SyntaxKind.InterpolatedStringExpression, out InterpolatedStringExpressionSyntax? interpolatedString) &&
+                    if (node is InterpolatedStringExpressionSyntax interpolatedString &&
                         interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
                     {
                         ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);
@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
                         // Break out of the 'for' loop, which effectively continues the containing 'while' loop
                         break;
                     }
-                    else if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+                    else if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) ||
+                             child.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
                     {
                         ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
                     }

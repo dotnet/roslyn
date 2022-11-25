@@ -7,6 +7,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -181,7 +182,7 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
+                // (6,13): error CS9026: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
                 //         _ = "hello \uD801\uD802"u8;
                 Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
                 );
@@ -269,7 +270,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 -1
@@ -1482,7 +1483,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1490,9 +1491,9 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => "cat"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""cat""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1535,7 +1536,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1543,9 +1544,9 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => "cat"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""cat""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => @"cat"u8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"@""cat""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1588,7 +1589,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1596,12 +1597,12 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => """cat"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("raw string literals").WithLocation(15, 42),
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => """cat"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                // (15,42): error CS8936: Feature 'raw string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => """cat"""U8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""cat""""""" + suffix).WithArguments("raw string literals", "11.0").WithLocation(15, 42),
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => """cat"""U8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""cat""""""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1650,7 +1651,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1658,16 +1659,16 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (19,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (19,42): error CS8936: Feature 'raw string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => """
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""
   cat
-  """"""" + suffix).WithArguments("raw string literals").WithLocation(19, 42),
-                // (19,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+  """"""" + suffix).WithArguments("raw string literals", "11.0").WithLocation(19, 42),
+                // (19,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => """
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""
   cat
-  """"""" + suffix).WithArguments("UTF-8 string literals").WithLocation(19, 42)
+  """"""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(19, 42)
                 );
         }
 
@@ -1759,7 +1760,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
@@ -3120,7 +3121,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
 
-            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+            string blobId = ExecutionConditionUtil.IsWindows ?
+                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
@@ -3164,7 +3167,9 @@ class C
   IL_000b:  ret
 }
 ");
-            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+            string blobId = ExecutionConditionUtil.IsWindows ?
+                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
@@ -3547,8 +3552,8 @@ class C
         [Fact]
         public void PassAround_02()
         {
-            var source = @"
-using System;
+            var source = @"using System;
+
 class C
 {
     static ref readonly ReadOnlySpan<byte> Test2()
@@ -3559,7 +3564,7 @@ class C
     static ref readonly ReadOnlySpan<byte> Test3(in ReadOnlySpan<byte> x) => ref x;
 }
 ";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(new[] { source + HelpersSource, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyDiagnostics(
                 // (7,20): error CS8347: Cannot use a result of 'C.Test3(in ReadOnlySpan<byte>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
@@ -3852,6 +3857,10 @@ class C
                 Assert.Equal("System.ReadOnlySpan<System.Byte> System.ReadOnlySpan<System.Byte>.op_Addition(System.ReadOnlySpan<System.Byte> left, System.ReadOnlySpan<System.Byte> right)", method.ToTestDisplayString());
                 Assert.True(method.IsImplicitlyDeclared);
                 Assert.Equal(MethodKind.BuiltinOperator, method.MethodKind);
+
+                var synthesizedMethod = comp.CreateBuiltinOperator(
+                    method.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                Assert.Equal(synthesizedMethod, method);
             }
         }
 
@@ -4042,6 +4051,27 @@ class C
                 //         _ = "b"u8 + new C();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, expression).WithArguments("+", "System.ReadOnlySpan<byte>", "C").WithLocation(7, 13)
                 );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly), typeof(NoIOperationValidation)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
+        public void DeeplyNestedConcatenation()
+        {
+            var longConcat = new StringBuilder();
+            for (int i = 0; i < 800; i++)
+            {
+                longConcat.Append(""" "a"u8 + """);
+            }
+
+            var source = $$"""
+System.Console.Write(X.Y.Length);
+
+class X
+{
+    public static System.ReadOnlySpan<byte> Y => {{longConcat}} "a"u8;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, expectedOutput: "801", verify: Verification.Fails).VerifyDiagnostics();
         }
     }
 }

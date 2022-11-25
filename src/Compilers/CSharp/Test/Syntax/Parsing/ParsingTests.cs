@@ -117,11 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(node);
         }
 
-        internal void UsingCompilationRoot(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
-        {
-            UsingTree(text, options, verifyErrors: true, expectedErrors);
-        }
-
         internal void UsingExpression(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
@@ -146,24 +141,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(text, options: null, expectedErrors);
         }
 
-        /// <summary>
-        /// Parses given string and initializes a depth-first preorder enumerator.
-        /// </summary>
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options = null)
+        protected SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
         {
-            return UsingTree(text, options, verifyErrors: false, expectedErrors: null);
+            return UsingTree(text, options: null, expectedErrors);
         }
 
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options, bool verifyErrors, DiagnosticDescription[]? expectedErrors)
+        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             VerifyEnumeratorConsumed();
             var tree = ParseTree(text, options);
             _node = tree.GetCompilationUnitRoot();
-            if (verifyErrors)
-            {
-                var actualErrors = _node.GetDiagnostics();
-                actualErrors.Verify(expectedErrors);
-            }
+            var actualErrors = _node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
             var nodes = EnumerateNodes(_node, dump: false);
             _treeEnumerator = nodes.GetEnumerator();
 

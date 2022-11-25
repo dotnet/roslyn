@@ -205,6 +205,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public static readonly FixIdDefinition? MakeLocalFunctionStaticDiagnosticId;
 
         [Export]
+        [FixId(IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId)]
+        [Name(IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_readonly_struct_preferences))]
+        public static readonly FixIdDefinition? MakeStructReadOnlyDiagnosticId;
+
+        [Export]
         [FixId(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId)]
         [Name(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId)]
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]

@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             : base(IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId,
                    EnforceOnBuildValues.EmbeddedStatementPlacement,
                    CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Embedded_statements_must_be_on_their_own_line), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

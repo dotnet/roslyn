@@ -5283,7 +5283,12 @@ ref struct S<T>
     ref readonly T F2;
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
-            comp.VerifyDiagnostics()
+            ' error CS9064: Target runtime doesn't support ref fields.
+            comp.VerifyDiagnostics(
+                {
+                   Diagnostic(9064, "F1").WithLocation(4, 11),
+                   Diagnostic(9064, "F2").WithLocation(5, 20)
+                })
 
             Dim type = comp.GlobalNamespace.GetTypeMembers("S").Single()
 
@@ -5329,7 +5334,7 @@ ref struct S<T>
 "ref struct R { }
 class Program
 {
-    static void F(scoped R r1, in scoped R r2, scoped ref R r3) { }
+    static void F(scoped R r1, scoped ref R r3) { }
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
             comp.VerifyDiagnostics()
@@ -5341,20 +5346,13 @@ class Program
             End If
 
             Verify(SymbolDisplay.ToDisplayParts(method, format),
-                "Sub Program.F(r1 As R, r2 As R, r3 As R)",
+                "Sub Program.F(r1 As R, r3 As R)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.ParameterName,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.StructName,
-                SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5383,9 +5381,8 @@ class Program
 {
     static void M(R r0)
     {
-        scoped R r1;
-        ref readonly scoped R r2 = ref r1;
-        scoped ref R r3 = ref r0;
+        scoped R r1 = r0;
+        scoped ref readonly R r3 = ref r0;
     }
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
@@ -5409,14 +5406,6 @@ class Program
                 SymbolDisplayPartKind.StructName)
 
             Verify(SymbolDisplay.ToDisplayParts(locals(1), format),
-                "r2 As R",
-                SymbolDisplayPartKind.LocalName,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.StructName)
-
-            Verify(SymbolDisplay.ToDisplayParts(locals(2), format),
                 "r3 As R",
                 SymbolDisplayPartKind.LocalName,
                 SymbolDisplayPartKind.Space,

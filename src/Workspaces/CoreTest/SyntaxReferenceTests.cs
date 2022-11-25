@@ -19,6 +19,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class SyntaxReferenceTests : TestBase
     {
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(did, "Test.vb", SourceText.From(source));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestCSharpReferenceToZeroWidthNode()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -75,7 +76,7 @@ public class C<>
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestVisualBasicReferenceToZeroWidthNode()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -98,7 +99,7 @@ End Class
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestCSharpReferenceToNodeInStructuredTrivia()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -122,7 +123,7 @@ public class C
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestVisualBasicReferenceToNodeInStructuredTrivia()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -146,7 +147,7 @@ End Class
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestCSharpReferenceToZeroWidthNodeInStructuredTrivia()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -175,7 +176,7 @@ public class C
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async System.Threading.Tasks.Task TestVisualBasicReferenceToZeroWidthNodeInStructuredTriviaAsync()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();

@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
             : base(IDEDiagnosticIds.ConstructorInitializerPlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveBracePlacement,
                    CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Blank_line_not_allowed_after_constructor_initializer_colon), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

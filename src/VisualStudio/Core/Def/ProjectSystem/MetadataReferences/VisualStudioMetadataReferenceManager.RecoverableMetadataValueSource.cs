@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _storages = storages;
             }
 
-            public IEnumerable<ITemporaryStreamStorage> GetStorages()
+            public IEnumerable<ITemporaryStreamStorageInternal> GetStorages()
                 => _storages;
 
             public override bool TryGetValue(out Optional<AssemblyMetadata> value)
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var stream = storage.ReadStream(CancellationToken.None);
                 unsafe
                 {
-                    return ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
+                    return ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
                 }
             }
         }

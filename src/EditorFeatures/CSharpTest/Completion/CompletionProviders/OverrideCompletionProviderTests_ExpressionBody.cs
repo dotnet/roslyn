@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     // OverrideCompletionProviderTests overrides SetWorkspaceOptions to disable
     // expression-body members. This class does the opposite.
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class OverrideCompletionProviderTests_ExpressionBody : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             };
 
         [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task CommitProducesExpressionBodyProperties()
         {
             var markupBeforeCommit = @"class B
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task CommitProducesExpressionBodyGetterOnlyProperty()
         {
             var markupBeforeCommit = @"class B
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task CommitProducesExpressionBodyMethod()
         {
             var markupBeforeCommit = @"class B

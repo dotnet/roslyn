@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool allOccurrences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = currentDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = currentDocument.Project.Services.GetService<ISyntaxFactsService>();
             var originalSemanticModel = originalDocument.SemanticModel;
             var currentSemanticModel = currentDocument.SemanticModel;
 

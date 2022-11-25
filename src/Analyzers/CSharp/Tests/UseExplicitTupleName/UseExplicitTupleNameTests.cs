@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTupleName
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
     public class UseExplicitTupleNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseExplicitTupleNameTests(ITestOutputHelper logger)
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTupleName
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new UseExplicitTupleNameDiagnosticAnalyzer(), new UseExplicitTupleNameCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestNamedTuple1()
         {
             await TestInRegularAndScriptAsync(
@@ -50,7 +51,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestInArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -78,7 +79,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestNamedTuple2()
         {
             await TestInRegularAndScriptAsync(
@@ -102,7 +103,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestMissingOnMatchingName1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -117,7 +118,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestMissingOnMatchingName2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -132,7 +133,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestWrongCasing()
         {
             await TestInRegularAndScriptAsync(
@@ -156,7 +157,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScriptAsync(
@@ -182,7 +183,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScriptAsync(
@@ -206,7 +207,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestFalseOptionImplicitTuple()
         {
             await TestDiagnosticMissingAsync(
@@ -221,7 +222,7 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestFalseOptionExplicitTuple()
         {
             await TestDiagnosticMissingAsync(
@@ -236,7 +237,7 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        [Fact]
         public async Task TestOnRestField()
         {
             var valueTuple8 = @"

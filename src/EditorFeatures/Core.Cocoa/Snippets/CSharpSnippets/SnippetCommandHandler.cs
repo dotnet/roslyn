@@ -41,8 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IThreadingContext threadingContext,
             IExpansionServiceProvider expansionServiceProvider,
             IExpansionManager expansionManager,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext, expansionServiceProvider, expansionManager, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(threadingContext, expansionServiceProvider, expansionManager, editorOptionsService)
         {
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
             {
-                expansionClient = new SnippetExpansionClient(subjectBuffer.ContentType, textView, subjectBuffer, ExpansionServiceProvider, GlobalOptions);
+                expansionClient = new SnippetExpansionClient(subjectBuffer.ContentType, textView, subjectBuffer, ExpansionServiceProvider, EditorOptionsService);
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }
 

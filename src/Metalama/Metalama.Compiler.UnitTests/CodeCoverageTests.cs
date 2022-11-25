@@ -78,7 +78,7 @@ public class C
 
             var sourceLines = source.Split('\n');
 
-            VerifySpans(reader, reader.Methods[0], sourceLines,
+            VerifySpans(reader, reader.Methods[2], sourceLines,
                 new SpanResult(5, 4, 11, 5, "public static void Main("),
                 new SpanResult(9, 12, 9, 35, "Console.WriteLine"),
                 new SpanResult(7, 13, 7, 29, "args.Length == 1") );
@@ -139,7 +139,7 @@ public class C
 
             var sourceLines = source.Split('\n');
 
-            VerifySpans(reader, reader.Methods[0], sourceLines,
+            VerifySpans(reader, reader.Methods[2], sourceLines,
                 new SpanResult(5, 4, 11, 5, "public static void Main("),
                 new SpanResult(9, 12, 9, 35, "Console.WriteLine"),
                 new SpanResult(7, 13, 7, 29, "args.Length == 1") );
@@ -318,7 +318,7 @@ public class C
 
             var sourceLines = source.Split('\n');
 
-            VerifySpans(reader, reader.Methods[1], sourceLines,
+            VerifySpans(reader, reader.Methods[3], sourceLines,
                 new SpanResult(5, 4, 11, 5, "public static void Main("),
                 new SpanResult(9, 12, 9, 35, "Console.WriteLine"),
                 new SpanResult(7, 13, 7, 29, "args.Length == 1") );

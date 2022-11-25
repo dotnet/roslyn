@@ -21,16 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression;
 
             public InterpolatedStringSplitter(
-                Document document,
+                ParsedDocument document,
                 int position,
-                SyntaxNode root,
-                SourceText sourceText,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
                 IndentationOptions options,
-                bool useTabs,
-                int tabSize,
                 CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, options, useTabs, tabSize, cancellationToken)
+                : base(document, position, options, cancellationToken)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }
@@ -88,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             private InterpolatedStringTextSyntax CreateInterpolatedStringText(int start, int end)
             {
-                var content = SourceText.ToString(TextSpan.FromBounds(start, end));
+                var content = Document.Text.ToString(TextSpan.FromBounds(start, end));
                 return SyntaxFactory.InterpolatedStringText(
                     SyntaxFactory.Token(
                         leading: default,

@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var classConstructors = ClassType.InstanceConstructors;
 
-                var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
+                var destinationProvider = semanticDocument.Project.Solution.Services.GetLanguageServices(ClassType.Language);
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
                 UnimplementedConstructors =

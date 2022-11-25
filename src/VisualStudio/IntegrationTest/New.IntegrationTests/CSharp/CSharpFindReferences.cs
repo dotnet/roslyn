@@ -50,7 +50,7 @@ class SomeOtherClass
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -96,7 +96,7 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -134,7 +134,7 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -164,9 +164,9 @@ class Program
 
             await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
 
-            // because the solution cache directory is stored in the user temp folder, 
-            // closing the solution has no effect on what is returned.
-            Assert.NotNull(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
+            // Since we no longer have an open solution, we don't have a storage location for it, since that
+            // depends on the open solution.
+            Assert.Null(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
         }
 
         private async Task WaitForNavigateAsync(CancellationToken cancellationToken)

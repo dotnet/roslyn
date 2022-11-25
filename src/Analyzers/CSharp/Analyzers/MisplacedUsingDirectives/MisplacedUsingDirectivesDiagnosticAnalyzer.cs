@@ -38,10 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             s_localizableTitle, s_localizableInsideMessage);
 
         public MisplacedUsingDirectivesDiagnosticAnalyzer()
-           : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+           : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
                     .Add(s_outsideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement)
-                    .Add(s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement),
-                 LanguageNames.CSharp)
+                    .Add(s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement))
         {
         }
 
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // Suppress if there are nodes other than usings and namespaces in the 
             // compilation unit (including ExternAlias).
             return compilationUnit.ChildNodes().Any(
-                t => !t.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration));
+                t => t.Kind() is not (SyntaxKind.UsingDirective or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration));
         }
 
         private static void ReportDiagnostics(

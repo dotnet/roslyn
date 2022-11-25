@@ -37,7 +37,7 @@ WriteLine(d.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($"(home, {dir}, 1)", output);
         }
 
-        [Fact]
+        [Fact(Skip = "Metalama Compiler doesn't support C# Interactive and this test fails because of localization of the exception message.")]
         public async Task InteractiveHostImplAssemblies()
         {
             var scriptingAssemblyName = typeof(CSharpScript).Assembly.GetName().Name;

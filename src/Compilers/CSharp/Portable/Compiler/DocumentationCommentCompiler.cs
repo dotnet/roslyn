@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private struct TemporaryStringBuilder
+        private readonly struct TemporaryStringBuilder
         {
             public readonly PooledStringBuilder Pooled;
             public readonly int InitialIndentDepth;

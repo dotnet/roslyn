@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Services);
             var generator = editor.Generator;
 
             SyntaxNode attributeArgument;

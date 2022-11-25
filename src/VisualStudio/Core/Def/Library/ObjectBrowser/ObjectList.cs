@@ -690,7 +690,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             var symbol = symbolListItem.ResolveSymbol(compilation);
                             if (symbol != null)
                             {
-                                var helpContextService = project.LanguageServices.GetService<IHelpContextService>();
+                                var helpContextService = project.Services.GetService<IHelpContextService>();
 
                                 pvar = helpContextService.FormatSymbol(symbol);
                                 return true;

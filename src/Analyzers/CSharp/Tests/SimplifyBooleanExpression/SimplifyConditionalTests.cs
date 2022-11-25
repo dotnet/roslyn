@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyBooleanExpression
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
     public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public SimplifyConditionalTests(ITestOutputHelper logger)
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyBooleanExpressi
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyConditionalDiagnosticAnalyzer(), new SimplifyConditionalCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestSimpleCase()
         {
             await TestInRegularAndScript1Async(
@@ -58,7 +59,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestSimpleNegatedCase()
         {
             await TestInRegularAndScript1Async(
@@ -90,7 +91,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestMustBeBool1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -109,7 +110,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestMustBeBool2()
         {
             await TestMissingAsync(
@@ -128,7 +129,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestWithTrueTrue()
         {
             await TestInRegularAndScript1Async(
@@ -160,7 +161,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestWithFalseFalse()
         {
             await TestInRegularAndScript1Async(
@@ -192,7 +193,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestWhenTrueIsTrueAndWhenFalseIsUnknown()
         {
             await TestInRegularAndScript1Async(
@@ -224,7 +225,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestWhenTrueIsFalseAndWhenFalseIsUnknown()
         {
             await TestInRegularAndScript1Async(
@@ -256,7 +257,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestWhenTrueIsUnknownAndWhenFalseIsTrue()
         {
             await TestInRegularAndScript1Async(
@@ -288,7 +289,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        [Fact]
         public async Task TestWhenTrueIsUnknownAndWhenFalseIsFalse()
         {
             await TestInRegularAndScript1Async(

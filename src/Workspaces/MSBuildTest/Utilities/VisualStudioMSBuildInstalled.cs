@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             foreach (var visualStudioInstall in installedVisualStudios)
             {
                 if (visualStudioInstall.Version.Major == 17 &&
-                    visualStudioInstall.Version.Minor == 0)
+                    // <Metalama> Using 17.4 instead of 17.0
+                    visualStudioInstall.Version.Minor == 4)
+                    // </Metalama>
                 {
                     MSBuildLocator.RegisterInstance(visualStudioInstall);
                     s_instance = visualStudioInstall;

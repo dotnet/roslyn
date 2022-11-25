@@ -12,6 +12,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+// <Metalama>
+using Metalama.Compiler;
+// </Metalama>
+
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [ExportLanguageService(typeof(ICompilationFactoryService), LanguageNames.CSharp, ServiceLayer.Test), Shared, PartNotDiscoverable]
@@ -59,5 +63,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider, new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         }
+
+        // <Metalama>
+        public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
+        {
+            return null;
+        }
+        // </Metalama>
     }
 }

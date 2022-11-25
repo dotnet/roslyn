@@ -13,9 +13,12 @@ using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
@@ -50,6 +53,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         private ObjRef? _marshalledService;
 #pragma warning restore IDE0052 // Remove unread private members
 
+        private readonly IVsRunningDocumentTable _runningDocumentTable;
+        private IVsRunningDocTableEvents? s_runningDocTableEventListener;
+        private uint s_runningDocTableEventListenerCookie;
+
         private IntegrationTestServiceCommands(Package package)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
@@ -73,6 +80,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 menuCommandService.AddCommand(_startMenuCmd);
                 menuCommandService.AddCommand(_stopMenuCmd);
             }
+
+            _runningDocumentTable = (IVsRunningDocumentTable)ServiceProvider.GetService(typeof(SVsRunningDocumentTable));
+            Assumes.Present(_runningDocumentTable);
         }
 
         public static IntegrationTestServiceCommands? Instance { get; private set; }
@@ -127,6 +137,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
                     var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
                     asyncCompletionTracker.StartListening();
+
+#pragma warning disable RS0030 // Do not used banned APIs
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+#pragma warning restore RS0030 // Do not used banned APIs
+
+                    var listenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
+                    s_runningDocTableEventListener = new RunningDocumentTableEventListener(listenerProvider.GetListener(FeatureAttribute.Workspace));
+                    ErrorHandler.ThrowOnFailure(_runningDocumentTable.AdviseRunningDocTableEvents(s_runningDocTableEventListener, out s_runningDocTableEventListenerCookie));
                 });
 
                 SwapAvailableCommands(_startMenuCmd, _stopMenuCmd);
@@ -153,6 +171,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
                 asyncCompletionTracker.StopListening();
 
+                ErrorHandler.ThrowOnFailure(_runningDocumentTable.UnadviseRunningDocTableEvents(s_runningDocTableEventListenerCookie));
+                s_runningDocTableEventListener = null;
+                s_runningDocTableEventListenerCookie = 0;
+
                 SwapAvailableCommands(_stopMenuCmd, _startMenuCmd);
             }
         }
@@ -164,6 +186,66 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
             commandToEnable.Enabled = true;
             commandToEnable.Visible = true;
+        }
+
+        /// <summary>
+        /// This event listener is an adapter to expose asynchronous file save operations to Roslyn via its standard
+        /// workspace event waiters.
+        /// </summary>
+        private sealed class RunningDocumentTableEventListener : IVsRunningDocTableEvents, IVsRunningDocTableEvents7
+        {
+            private readonly IAsynchronousOperationListener _asynchronousOperationListener;
+
+            public RunningDocumentTableEventListener(IAsynchronousOperationListener asynchronousOperationListener)
+            {
+                _asynchronousOperationListener = asynchronousOperationListener;
+            }
+
+            int IVsRunningDocTableEvents.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+                => VSConstants.S_OK;
+
+            int IVsRunningDocTableEvents.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+                => VSConstants.S_OK;
+
+            int IVsRunningDocTableEvents.OnAfterSave(uint docCookie)
+                => VSConstants.S_OK;
+
+            int IVsRunningDocTableEvents.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
+                => VSConstants.S_OK;
+
+            int IVsRunningDocTableEvents.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
+                => VSConstants.S_OK;
+
+            int IVsRunningDocTableEvents.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
+                => VSConstants.S_OK;
+
+#pragma warning disable CS8768 // Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes). (Signature was corrected in https://devdiv.visualstudio.com/DevDiv/_git/VS/pullrequest/390178)
+            IVsTask? IVsRunningDocTableEvents7.OnBeforeSaveAsync(uint cookie, uint flags, IVsTask? saveTask)
+#pragma warning restore CS8768 // Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).
+            {
+                if (saveTask is not null)
+                {
+#pragma warning disable RS0030 // Do not used banned APIs
+                    _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+#pragma warning restore RS0030 // Do not used banned APIs
+                    {
+                        // Track asynchronous save operations via Roslyn's Workspace events
+                        using var _ = _asynchronousOperationListener.BeginAsyncOperation("OnBeforeSaveAsync");
+                        await saveTask;
+                    });
+                }
+
+                // No additional work for the caller to handle
+                return null;
+            }
+
+#pragma warning disable CS8768 // Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes). (Signature was corrected in https://devdiv.visualstudio.com/DevDiv/_git/VS/pullrequest/390178)
+            IVsTask? IVsRunningDocTableEvents7.OnAfterSaveAsync(uint cookie, uint flags)
+#pragma warning restore CS8768 // Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).
+            {
+                // No additional work for the caller to handle
+                return null;
+            }
         }
     }
 }

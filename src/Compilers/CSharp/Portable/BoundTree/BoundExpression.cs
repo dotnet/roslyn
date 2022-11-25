@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     //       BoundTypeOrValueExpression from the bound tree generator, which would otherwise generate
     //       a constructor that may spuriously set hasErrors to true if either field had errors.
     //       A BoundTypeOrValueExpression should never have errors if it is present in the tree.
-    internal struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
+    internal readonly struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
     {
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }

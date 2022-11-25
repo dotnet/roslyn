@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsVirtual ||
                     method.IsOverride ||
                     method.PartialImplementationPart != null ||
+                    method.PartialDefinitionPart != null ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||

@@ -159,6 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         public override IEnumerable<string> MemberNames
         {
             get { throw ExceptionUtilities.Unreachable; }

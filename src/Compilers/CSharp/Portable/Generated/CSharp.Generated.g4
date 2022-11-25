@@ -99,6 +99,7 @@ modifier
   | 'async'
   | 'const'
   | 'extern'
+  | 'file'
   | 'fixed'
   | 'internal'
   | 'new'
@@ -351,6 +352,7 @@ type
   | pointer_type
   | predefined_type
   | ref_type
+  | scoped_type
   | tuple_type
   ;
 
@@ -419,7 +421,11 @@ predefined_type
   ;
 
 ref_type
-  : 'ref' 'readonly'? 'scoped'? type
+  : 'ref' 'readonly'? type
+  ;
+
+scoped_type
+  : 'scoped' type
   ;
 
 tuple_type
@@ -1343,13 +1349,13 @@ base_parameter
   | parameter
   ;
 
-character_literal_token
-  : /* see lexical specification */
-  ;
-
 expression_or_pattern
   : expression
   | pattern
+  ;
+
+character_literal_token
+  : /* see lexical specification */
   ;
 
 identifier_token

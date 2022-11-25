@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractClass;
@@ -25,9 +27,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractClass
             _omniSharpExtractClassOptionsService = omniSharpExtractClassOptionsService;
         }
 
-        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ISymbol? selectedMember, CancellationToken cancellationToken)
+        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
         {
-            var result = await _omniSharpExtractClassOptionsService.GetExtractClassOptionsAsync(document, originalType, selectedMember).ConfigureAwait(false);
+            var result = await _omniSharpExtractClassOptionsService.GetExtractClassOptionsAsync(document, originalType, selectedMembers).ConfigureAwait(false);
             return result == null
                 ? null
                 : new ExtractClassOptions(

@@ -15,9 +15,10 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateComparisonOperators
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
     public class GenerateComparisonOperatorsTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestClass()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -57,7 +58,7 @@ class C : IComparable<C>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestPreferExpressionBodies()
         {
             await new VerifyCS.Test
@@ -91,7 +92,7 @@ class C : IComparable<C>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestExplicitImpl()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -131,7 +132,7 @@ class C : IComparable<C>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestOnInterface()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -171,7 +172,7 @@ class C : IComparable<C>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestAtEndOfInterface()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -211,7 +212,7 @@ class C : IComparable<C>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestInBody()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -253,7 +254,7 @@ class C : IComparable<C>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestMissingWithoutCompareMethod()
         {
             var code = @"
@@ -267,7 +268,7 @@ class C : {|CS0535:IComparable<C>|}
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestMissingWithUnknownType()
         {
             var code = @"
@@ -283,7 +284,7 @@ class C : IComparable<{|CS0246:Goo|}>
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestMissingWithAllExistingOperators()
         {
             var code =
@@ -320,7 +321,7 @@ class C : IComparable<C>
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestWithExistingOperator()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -367,7 +368,7 @@ class C : IComparable<C>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestMultipleInterfaces()
         {
             var code =
@@ -428,7 +429,7 @@ class C : IComparable<C>, IComparable<int>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact]
         public async Task TestInInterfaceWithDefaultImpl()
         {
             await VerifyCS.VerifyRefactoringAsync(

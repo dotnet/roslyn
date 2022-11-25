@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -264,8 +265,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
         End Function
 
-        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Dim attributes = MyBase.GetCustomAttributesToEmit(compilationState)
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
+            Dim attributes = MyBase.GetCustomAttributesToEmit(moduleBuilder)
 
             For Each attribute In attributes
                 If AttributeData.IsTargetEarlyAttribute(attributeType:=attribute.AttributeClass, attributeArgCount:=attribute.CommonConstructorArguments.Length, description:=AttributeDescription.CallerArgumentExpressionAttribute) Then

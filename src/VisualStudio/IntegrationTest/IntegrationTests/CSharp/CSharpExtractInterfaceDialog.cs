@@ -16,6 +16,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
     public class CSharpExtractInterfaceDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -27,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void VerifyCancellation()
         {
             SetUpEditor(@"class C$$
@@ -51,7 +52,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckFileName()
         {
             SetUpEditor(@"class C$$
@@ -73,7 +74,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.VerifyClosed();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void VerifySelectAndDeselectAllButtons()
         {
             SetUpEditor(@"class C$$
@@ -111,7 +112,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.VerifyClosed();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void OnlySelectedItemsAreGenerated()
         {
             SetUpEditor(@"class C$$
@@ -148,7 +149,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckSameFile()
         {
             SetUpEditor(@"class C$$
@@ -182,7 +183,7 @@ class C : IC
 
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckSameFileOnlySelectedItems()
         {
             SetUpEditor(@"class C$$
@@ -217,7 +218,7 @@ class C : IC
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckSameFileNamespace()
         {
             SetUpEditor(@"namespace A
@@ -256,7 +257,7 @@ class C : IC
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckSameWithTypes()
         {
             SetUpEditor(@"class C$$

@@ -70,20 +70,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
         private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
         {
+            // <Metalama>
+            if (diagnosticId.StartsWith("LAMA", StringComparison.Ordinal))
+            {
+                Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
+                return;
+            }
+            // </Metalama>
+
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
                     or "IDE1007"
-                    or "RemoveUnnecessaryImportsFixable"
+                    or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
+                    or "IDE0005_gen" // this diagnostic is hidden and not configurable.
                     or "RE0001"
                     or "JSON001"
                     or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
             {
                 Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
                 return;
-            }
-
-            if (diagnosticId == "IDE0005_gen")
-            {
-                diagnosticId = "IDE0005";
             }
 
             if (helpLinkUri != $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
@@ -173,6 +177,7 @@ Actual: {editorConfigString}
         [Fact]
         public void CSharp_VerifyIDEDiagnosticSeveritiesAreConfigurable()
         {
+            // <Metalama /> RE0001 renamed to LAMA0601
             var expected = @"
 # IDE0001
 dotnet_diagnostic.IDE0001.severity = %value%
@@ -444,6 +449,9 @@ dotnet_diagnostic.IDE0240.severity = %value%
 # IDE0241
 dotnet_diagnostic.IDE0241.severity = %value%
 
+# IDE0250
+dotnet_diagnostic.IDE0250.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -468,8 +476,8 @@ dotnet_diagnostic.IDE2003.severity = %value%
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
 
-# RE0001
-dotnet_diagnostic.RE0001.severity = %value%
+# LAMA0601
+dotnet_diagnostic.LAMA0601.severity = %value%
 
 # JSON001
 dotnet_diagnostic.JSON001.severity = %value%
@@ -484,6 +492,7 @@ dotnet_diagnostic.JSON002.severity = %value%
         [Fact]
         public void VisualBasic_VerifyIDEDiagnosticSeveritiesAreConfigurable()
         {
+            // <Metalama /> RE0001 renamed to LAMA0601
             var expected = @"
 # IDE0001
 dotnet_diagnostic.IDE0001.severity = %value%
@@ -632,8 +641,8 @@ dotnet_diagnostic.IDE2000.severity = %value%
 # IDE2003
 dotnet_diagnostic.IDE2003.severity = %value%
 
-# RE0001
-dotnet_diagnostic.RE0001.severity = %value%
+# LAMA0601
+dotnet_diagnostic.LAMA0601.severity = %value%
 
 # JSON001
 dotnet_diagnostic.JSON001.severity = %value%
@@ -742,6 +751,7 @@ Actual: {editorConfigString}
         [Fact]
         public void CSharp_VerifyIDECodeStyleOptionsAreConfigurable()
         {
+            // <Metalama /> RE0001 renamed to LAMA0601
             var expected = @"
 # IDE0001
 No editorconfig based code style option
@@ -864,7 +874,7 @@ csharp_prefer_simple_default_expression = true
 No editorconfig based code style option
 
 # IDE0036, PreferredModifierOrder
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true
@@ -1067,6 +1077,9 @@ No editorconfig based code style option
 # IDE0241
 No editorconfig based code style option
 
+# IDE0250, PreferReadOnlyStruct
+csharp_style_prefer_readonly_struct = true
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
 
@@ -1091,7 +1104,7 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 # IDE2004, AllowBlankLineAfterColonInConstructorInitializer
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
 
-# LAMA0001
+# LAMA0601
 No editorconfig based code style option
 
 # JSON001
@@ -1107,6 +1120,7 @@ No editorconfig based code style option
         [Fact]
         public void VisualBasic_VerifyIDECodeStyleOptionsAreConfigurable()
         {
+            // <Metalama /> RE0001 renamed to LAMA0601
             var expected = @"
 # IDE0001
 No editorconfig based code style option
@@ -1297,7 +1311,7 @@ dotnet_style_allow_multiple_blank_lines_experimental = true
 # IDE2003, AllowStatementImmediatelyAfterBlock
 dotnet_style_allow_statement_immediately_after_block_experimental = true
 
-# LAMA0001
+# LAMA0601
 No editorconfig based code style option
 
 # JSON001

@@ -135,6 +135,14 @@ stages:
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
 
+    # Needed for SBOM tool
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 3.1 runtime'
+      inputs:
+        packageType: runtime
+        version: 3.1.28
+        installationPath: '$(Build.SourcesDirectory)\.dotnet'
+
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
       displayName: 'Use .NET Core sdk'
@@ -311,7 +319,7 @@ stages:
         - OfficialBuild
       pool:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals Build.Windows.Amd64.VS2022
+        demands: ImageOverride -equals windows.vs2022.amd64
 
 - stage: insert
   dependsOn:
@@ -323,7 +331,7 @@ stages:
     displayName: Insert to VS
     pool:
       name: NetCore1ESPool-Svc-Internal
-      demands: ImageOverride -equals Build.Server.Amd64.VS2019
+      demands: ImageOverride -equals windows.vs2022.amd64
     steps:
     - download: current
       artifact: VSSetup

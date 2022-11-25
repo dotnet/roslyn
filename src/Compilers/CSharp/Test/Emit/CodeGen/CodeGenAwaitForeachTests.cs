@@ -6947,7 +6947,7 @@ public static class Extensions
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
                  .VerifyDiagnostics(
-                    // (8,33): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'Extensions.GetAsyncEnumerator(C, __arglist)'
+                    // (8,33): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'Extensions.GetAsyncEnumerator(C, __arglist)'
                     //         await foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "Extensions.GetAsyncEnumerator(C, __arglist)").WithLocation(8, 33),
                     // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'

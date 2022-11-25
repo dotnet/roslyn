@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The purpose of distinct finally states is to have enough information about 
         /// which finally handlers must run when we need to finalize iterator after a fault. 
         /// </summary>
-        private int _nextFinalizeState;
+        private StateMachineState _nextFinalizeState;
 
         internal IteratorMethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _current = current;
 
-            _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineStates.FirstIteratorFinalizeState;
+            _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineState.FirstIteratorFinalizeState;
         }
 
         protected override string EncMissingStateMessage
             => CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod;
 
-        protected override int FirstIncreasingResumableState
-            => StateMachineStates.FirstResumableIteratorState;
+        protected override StateMachineState FirstIncreasingResumableState
+            => StateMachineState.FirstResumableIteratorState;
 
         internal void GenerateMoveNextAndDispose(BoundStatement body, SynthesizedImplementationMethod moveNextMethod, SynthesizedImplementationMethod disposeMethod)
         {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ///////////////////////////////////
 
             F.CurrentFunction = moveNextMethod;
-            AddState(StateMachineStates.InitialIteratorState, out GeneratedLabelSymbol initialLabel);
+            AddState(StateMachineState.InitialIteratorState, out GeneratedLabelSymbol initialLabel);
             var newBody = (BoundStatement)Visit(body);
 
             // switch(cachedState) {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Dispatch(isOutermost: true),
                     GenerateReturn(finished: true),
                     F.Label(initialLabel),
-                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.NotStartedOrRunningState)),
+                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.NotStartedOrRunningState)),
                     newBody);
 
             //
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sections = from ft in frame.knownStates
                                group ft.Key by ft.Value into g
                                select F.SwitchSection(
-                                    new List<int>(g),
+                                    g.SelectAsArray(state => (int)state),
                                     EmitFinallyFrame(g.Key, state),
                                     F.Goto(breakLabel));
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     <next_state_label>: ;
             //     <hidden sequence point>
             //     this.state = finalizeState;
-            AddResumableState(node.Syntax, out int stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(node.Syntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
             _currentFinallyFrame.AddState(stateNumber);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _yieldsInTryAnalysis.ContainsYields(statement);
         }
 
-        private IteratorFinallyMethodSymbol MakeSynthesizedFinally(int finalizeState)
+        private IteratorFinallyMethodSymbol MakeSynthesizedFinally(StateMachineState finalizeState)
         {
             var stateMachineType = (IteratorStateMachine)F.CurrentType;
             var finallyMethod = new IteratorFinallyMethodSymbol(stateMachineType, GeneratedNames.MakeIteratorFinallyMethodName(finalizeState));

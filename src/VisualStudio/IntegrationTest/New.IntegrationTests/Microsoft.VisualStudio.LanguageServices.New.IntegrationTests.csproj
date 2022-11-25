@@ -5,6 +5,14 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.NewIntegrationTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    
+    <!-- this project is also used as a test input for Go To Definition tests in it, so needs some test data embedded -->
+    <DebugType>embedded</DebugType>
+    <EmbedAllSources>true</EmbedAllSources>
+
+    <!-- <Metalama> Tests skipped because they are out of scope of Metalama and the dev machine is not usable while the test are being executed. (New Visual Studio instance is executed interactively for each test.) -->
+    <IsTestProject>false</IsTestProject>
+    <!-- </Metalama> -->
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\TestUtilities\DirectoryExtensions.cs" Link="DirectoryExtensions.cs" />
@@ -14,6 +22,13 @@
     <Compile Include="..\TestUtilities\TestUtilities.cs" Link="TestUtilities.cs" />
     <Compile Include="..\TestUtilities\WellKnownCommandNames.cs" Link="WellKnownCommandNames.cs" />
     <Compile Include="..\TestUtilities\WellKnownProjectTemplates.cs" Link="WellKnownProjectTemplates.cs" />
+    <Compile Include="..\TestUtilities\QuickInfoToStringConverter.cs" Link="QuickInfoToStringConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\LongClass.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Resources\LongClass.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

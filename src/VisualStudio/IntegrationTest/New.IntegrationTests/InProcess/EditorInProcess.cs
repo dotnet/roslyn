@@ -36,6 +36,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -275,6 +276,65 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return Array.Empty<ClassificationSpan>();
         }
 
+        public async Task InvokeQuickInfoAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var broker = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncQuickInfoBroker>(cancellationToken);
+            var session = await broker.TriggerQuickInfoAsync(await TestServices.Editor.GetActiveTextViewAsync(cancellationToken), cancellationToken: cancellationToken);
+            Contract.ThrowIfNull(session);
+        }
+
+        public async Task<string> GetQuickInfoAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var broker = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncQuickInfoBroker>(cancellationToken);
+
+            var session = broker.GetSession(view);
+
+            // GetSession will not return null if preceded by a call to InvokeQuickInfo
+            Contract.ThrowIfNull(session);
+
+            while (session.State != QuickInfoSessionState.Visible)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await Task.Delay(50, cancellationToken).ConfigureAwait(true);
+            }
+
+            return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
+        }
+
+        public async Task<string[]> GetCurrentClassificationsAsync(CancellationToken cancellationToken)
+        {
+            IClassifier? classifier = null;
+            try
+            {
+                var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+                var selectionSpan = textView.Selection.StreamSelectionSpan.SnapshotSpan;
+                if (selectionSpan.Length == 0)
+                {
+                    var textStructureNavigatorSelectorService = await TestServices.Shell.GetComponentModelServiceAsync<ITextStructureNavigatorSelectorService>(cancellationToken);
+                    selectionSpan = textStructureNavigatorSelectorService
+                        .GetTextStructureNavigator(textView.TextBuffer)
+                        .GetExtentOfWord(selectionSpan.Start).Span;
+                }
+
+                var classifierAggregatorService = await TestServices.Shell.GetComponentModelServiceAsync<IViewClassifierAggregatorService>(cancellationToken);
+                classifier = classifierAggregatorService.GetClassifier(textView);
+                var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
+                return classifiedSpans.Select(x => x.ClassificationType.Classification).ToArray();
+            }
+            finally
+            {
+                if (classifier is IDisposable classifierDispose)
+                {
+                    classifierDispose.Dispose();
+                }
+            }
+        }
+
         public async Task ActivateAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -460,13 +520,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             await ExpandNavigationBarAsync(index, cancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.HOME);
+            await TestServices.Input.SendAsync(VirtualKeyCode.HOME, cancellationToken);
             for (var i = 0; i < itemIndex; i++)
             {
-                await TestServices.Input.SendAsync(VirtualKeyCode.DOWN);
+                await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, cancellationToken);
             }
 
-            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN);
+            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, cancellationToken);
 
             // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
@@ -644,7 +704,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 // Workaround for extremely unstable async lightbulb (can dismiss itself when SuggestedActionsChanged
                 // fires while expanding the light bulb).
-                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL));
+                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL), cancellationToken);
                 await Task.Delay(5000, cancellationToken);
 
                 await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
@@ -744,7 +804,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(cancellationToken);
-                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value, cancellationToken);
+                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction!, fixAllScope.Value, cancellationToken);
                     if (fixAllAction == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope} code fix for suggested action '{action.DisplayText}'.");
@@ -830,9 +890,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         foreach (var action in actionSet.Actions)
                         {
                             actions.Add(action);
-                            var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
-                            var nestedActions = await SelectActionsAsync(nestedActionSets, cancellationToken);
-                            actions.AddRange(nestedActions);
+                            if (action.HasActionSets)
+                            {
+                                var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
+                                var nestedActions = await SelectActionsAsync(nestedActionSets!, cancellationToken);
+                                actions.AddRange(nestedActions);
+                            }
                         }
                     }
                 }
@@ -861,7 +924,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     if (action.HasActionSets)
                     {
                         var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
-                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope, cancellationToken);
+                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets!, fixAllScope, cancellationToken);
                         if (fixAllCodeAction != null)
                         {
                             return fixAllCodeAction;

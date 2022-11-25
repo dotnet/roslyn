@@ -33,12 +33,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As CodeCleanupOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As SolutionServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Dim rewriter = New Rewriter(spans, cancellationToken)
             Dim newRoot = rewriter.Visit(root)
 

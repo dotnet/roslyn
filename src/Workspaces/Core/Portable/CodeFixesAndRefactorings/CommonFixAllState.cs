@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         where TFixAllProvider : IFixAllProvider
         where TFixAllState : CommonFixAllState<TProvider, TFixAllProvider, TFixAllState>
     {
-        public int CorrelationId { get; } = LogAggregator.GetNextId();
+        public int CorrelationId { get; } = CorrelationIdFactory.GetNextId();
         public TFixAllProvider FixAllProvider { get; }
         public string? CodeActionEquivalenceKey { get; }
         public TProvider Provider { get; }

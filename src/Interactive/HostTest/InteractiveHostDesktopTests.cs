@@ -730,7 +730,7 @@ Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     ", output);
         }
 
-        [Fact]
+        [Fact(Skip = "Metalama Compiler doesn't support C# Interactive and this test fails because of localization of the exception message.")]
         public async Task ReferencePathsRsp_Error()
         {
             var initDirectory = Temp.CreateDirectory();
@@ -801,12 +801,12 @@ Console.Write(""OK"")
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) } 
+$@"{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path))} 
 OK
 ", output);
         }
 
-        [Fact]
+        [Fact(Skip = "Metalama Compiler doesn't support C# Interactive and this test fails because of localization of the exception message.")]
         public async Task InitialScript_Error()
         {
             var initFile = Temp.CreateFile(extension: ".csx").WriteAllText("1 1");
@@ -825,11 +825,11 @@ OK
 
             var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{initFile.Path}(1,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{initFile.Path}(1,3): error CS1002: {CSharpResources.ERR_SemicolonExpected}
 ", error);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
+{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path))}
 [System.Diagnostics.Process]
 ", output);
         }
@@ -851,19 +851,19 @@ c
             var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
+$@"{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path))}
 ""a""
 ""b""
 ""c""
 ", await ReadOutputToEnd());
         }
 
-        [Fact]
+        [Fact(Skip = "Metalama Compiler doesn't support C# Interactive and this test fails because of localization of the exception message.")]
         public async Task Script_NoHostNamespaces()
         {
             await Execute("nameof(Microsoft.Missing)");
             var error = await ReadErrorOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"(1,8): error CS0234: {string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft")}",
     error);
 
             var output = await ReadOutputToEnd();
@@ -1051,8 +1051,7 @@ goo()
         }
 
         // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
-        [WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
-        [Fact]
+        [Fact, WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
         public void Workaround7976()
         {
             Thread.Sleep(TimeSpan.FromSeconds(10));

@@ -56,5 +56,14 @@
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
   </ItemGroup>
+  <!-- <Metalama> Without this package reference, all tests are failing on assembly loading of Newtonsoft.Json.dll.
+                  The same happens on the release/dev17.4 branch.
+                  With this PackageReference, most of the tests are passing. The rest still fail with the same error and is skipped
+                  for the time being.
+   -->
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+  </ItemGroup>
+  <!-- </Metalama> -->
   <Import Project="..\..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
 </Project>

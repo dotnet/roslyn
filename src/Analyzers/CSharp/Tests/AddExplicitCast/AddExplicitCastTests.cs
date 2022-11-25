@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicitCast
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
     public partial class AddExplicitCastTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AddExplicitCastTests(ITestOutputHelper logger)
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicit
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleVariableDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -58,7 +59,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleVariableDeclarationWithFunctionInnvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -96,7 +97,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnStatementWithObject()
         {
             await TestInRegularAndScriptAsync(
@@ -124,7 +125,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnStatementWithIEnumerable()
         {
             await TestInRegularAndScriptAsync(
@@ -154,7 +155,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnStatementWithIEnumerator()
         {
             await TestInRegularAndScriptAsync(
@@ -184,7 +185,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnStatementWithFunctionInnvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -220,7 +221,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleFunctionArgumentsWithObject1()
         {
             await TestInRegularAndScriptAsync(
@@ -262,7 +263,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleFunctionArgumentsWithObject2()
         {
             await TestInRegularAndScriptAsync(
@@ -304,7 +305,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleFunctionArgumentsWithFunctionInvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -344,7 +345,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task YieldReturnStatementWithObject()
         {
             await TestInRegularAndScriptAsync(
@@ -374,7 +375,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleConstructorArgumentsWithObject()
         {
             await TestInRegularAndScriptAsync(
@@ -408,7 +409,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnTypeWithTask()
         {
             await TestInRegularAndScriptAsync(
@@ -440,7 +441,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task VariableDeclarationWithPublicFieldMember()
         {
             await TestInRegularAndScriptAsync(
@@ -478,7 +479,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task VariableDeclarationWithPrivateFieldMember()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -500,7 +501,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task PublicMemberFunctionArgument1()
         {
             await TestInRegularAndScriptAsync(
@@ -534,7 +535,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task PublicMemberFunctionArgument2()
         {
             await TestInRegularAndScriptAsync(
@@ -570,7 +571,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task PrivateMemberFunctionArgument()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -591,7 +592,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MemberFunctions()
         {
             await TestInRegularAndScriptAsync(
@@ -629,7 +630,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task BaseConstructorArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -659,7 +660,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ThisConstructorArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -685,7 +686,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction1()
         {
             await TestInRegularAndScriptAsync(
@@ -713,7 +714,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction2()
         {
             await TestInRegularAndScriptAsync(
@@ -747,7 +748,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction3()
         {
             await TestInRegularAndScriptAsync(
@@ -781,7 +782,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction4()
         {
             await TestInRegularAndScriptAsync(
@@ -815,7 +816,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction5_ReturnStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -833,7 +834,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction6_Arguments()
         {
             await TestInRegularAndScriptAsync(
@@ -867,7 +868,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction7_Arguments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -887,7 +888,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction8_Arguments()
         {
             await TestInRegularAndScriptAsync(
@@ -921,7 +922,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction9_Arguments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -941,7 +942,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces1()
         {
             await TestInRegularAndScriptAsync(
@@ -969,7 +970,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces2()
         {
             await TestInRegularAndScriptAsync(
@@ -999,7 +1000,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces3()
         {
             await TestInRegularAndScriptAsync(
@@ -1025,7 +1026,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces4()
         {
             await TestInRegularAndScriptAsync(
@@ -1051,7 +1052,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces5()
         {
             await TestInRegularAndScriptAsync(
@@ -1085,7 +1086,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType()
         {
             await TestInRegularAndScriptAsync(
@@ -1117,7 +1118,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType2()
         {
             await TestInRegularAndScriptAsync(
@@ -1151,7 +1152,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType3()
         {
             await TestInRegularAndScriptAsync(
@@ -1181,7 +1182,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType4()
         {
             await TestInRegularAndScriptAsync(
@@ -1217,7 +1218,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1238,7 +1239,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType6()
         {
             await TestInRegularAndScriptAsync(
@@ -1274,7 +1275,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1294,7 +1295,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer2()
         {
             await TestInRegularAndScriptAsync(
@@ -1328,7 +1329,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1347,7 +1348,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer4()
         {
             await TestInRegularAndScriptAsync(
@@ -1379,7 +1380,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1399,7 +1400,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer6()
         {
             await TestInRegularAndScriptAsync(
@@ -1433,7 +1434,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer7()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1565,7 +1566,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ExactMethodCandidate()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1590,7 +1591,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates1_ArgumentsInOrder_NoLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -1626,7 +1627,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates2_ArgumentsInOrder_NoLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -1666,7 +1667,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates3_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1706,7 +1707,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates4_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1746,7 +1747,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates5_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1786,7 +1787,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates6_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1824,7 +1825,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates7_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1862,7 +1863,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates8_ArgumentsInOrder_NoLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -1910,7 +1911,7 @@ namespace ExtensionMethods
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates9_ArgumentsOutOfOrder_NoLabels()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1932,7 +1933,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates10_ArgumentsInOrder_SomeLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -1970,7 +1971,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates11_ArgumentsInOrder_SomeLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -2010,7 +2011,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates12_ArgumentsInOrder_SomeLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -2050,7 +2051,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates13_ArgumentsOutOfOrder_SomeLabels()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2073,7 +2074,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates14_ArgumentsOutOfOrder_AllLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -2113,7 +2114,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates15_ArgumentsOutOfOrder_AllLabels()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2136,7 +2137,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates17_ArgumentsInOrder_SomeLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -2174,7 +2175,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates18_ArgumentsInOrder_SomeLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -2214,7 +2215,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates19_ArgumentsInOrder_NoLabels_Params()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2237,7 +2238,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates20_ArgumentsInOrder_NoLabels_Params()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2260,7 +2261,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates21_ArgumentsInOrder_Labels()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2280,7 +2281,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates22_ArgumentsInOrder()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2303,7 +2304,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ConstructorCandidates1()
         {
             await TestInRegularAndScriptAsync(
@@ -2349,7 +2350,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ConstructorCandidates2()
         {
             await TestInRegularAndScriptAsync(
@@ -2399,7 +2400,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ConstructorCandidates3()
         {
             await TestInRegularAndScriptAsync(
@@ -2433,7 +2434,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions1()
         {
             var initialMarkup =
@@ -2497,7 +2498,7 @@ class Program
                 title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions2()
         {
             var initialMarkup =
@@ -2563,7 +2564,7 @@ class Program
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions3()
         {
             var initialMarkup =
@@ -2601,7 +2602,7 @@ class Program
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions4()
         {
             var initialMarkup =
@@ -2645,7 +2646,7 @@ class Program
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions5()
         {
             var initialMarkup =
@@ -2718,7 +2719,7 @@ class Program
                 title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions6()
         {
             var initialMarkup =
@@ -2825,7 +2826,7 @@ class Program
                 title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions7()
         {
             var initialMarkup =
@@ -2871,7 +2872,7 @@ class Program
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions8()
         {
             var initialMarkup =
@@ -2915,7 +2916,7 @@ class Program
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions9()
         {
             var initialMarkup =
@@ -2937,7 +2938,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initialMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleErrors1()
         {
             await TestInRegularAndScriptAsync(
@@ -2973,7 +2974,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleErrors2()
         {
             await TestInRegularAndScriptAsync(
@@ -3009,7 +3010,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ErrorType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3024,7 +3025,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task AttributeArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -3052,8 +3053,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-        [WorkItem(50493, "https://github.com/dotnet/roslyn/issues/50493")]
+        [Fact, WorkItem(50493, "https://github.com/dotnet/roslyn/issues/50493")]
         public async Task ArrayAccess()
         {
             await TestInRegularAndScriptAsync(

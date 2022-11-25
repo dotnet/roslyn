@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // The rename tracking could be dismissed while a codefix is still cached
                             // in the lightbulb. If this happens, do not perform the rename requested
                             // and instead let the user know their fix will not be applied. 
-                            _document.Project.Solution.Workspace.Services.GetService<INotificationService>()
+                            _document.Project.Solution.Services.GetService<INotificationService>()
                                 ?.SendNotification(EditorFeaturesResources.The_rename_tracking_session_was_cancelled_and_is_no_longer_available, severity: NotificationSeverity.Error);
                             return false;
                         }
@@ -118,7 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     _threadingContext = threadingContext;
                 }
 
-                internal override async Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                internal override async Task<bool> TryApplyAsync(
+                    Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
                 {
                     var error = await _committer.TryCommitAsync(cancellationToken).ConfigureAwait(false);
                     if (error == null)
