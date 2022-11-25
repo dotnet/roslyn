@@ -27,10 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpCompilation _compilation;
         private readonly Symbol _symbol0;
         private readonly Symbol _symbol1;
+        private readonly SymbolDisplayFormat _formatOpt;
 
         private ImmutableArray<string> _lazyDescriptions;
 
-        public SymbolDistinguisher(CSharpCompilation compilation, Symbol symbol0, Symbol symbol1)
+        public SymbolDistinguisher(CSharpCompilation compilation, Symbol symbol0, Symbol symbol1, SymbolDisplayFormat formatOpt = null)
         {
             Debug.Assert(symbol0 != symbol1);
             CheckSymbolKind(symbol0);
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _symbol0 = symbol0;
             _symbol1 = symbol1;
+            _formatOpt = formatOpt;
         }
 
         public IFormattable First
@@ -88,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_lazyDescriptions.IsDefault) return;
 
-            string description0 = _symbol0.ToDisplayString();
-            string description1 = _symbol1.ToDisplayString();
+            string description0 = _symbol0.ToDisplayString(_formatOpt);
+            string description1 = _symbol1.ToDisplayString(_formatOpt);
 
             if (description0 == description1)
             {

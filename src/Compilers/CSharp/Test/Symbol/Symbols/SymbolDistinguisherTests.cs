@@ -190,8 +190,8 @@ public class C
             var distinguisher = new SymbolDistinguisher(comp, sourceParameter, referencedParameter);
             // NOTE: Locations come from parameter *types*.
             // NOTE: RefKind retained.
-            Assert.Equal("ref C [file.cs(2)]", distinguisher.First.ToString());
-            Assert.Equal("ref C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.Second.ToString());
+            Assert.Equal("ref C c [file.cs(2)]", distinguisher.First.ToString());
+            Assert.Equal("ref C c [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.Second.ToString());
         }
 
         [Fact]
@@ -266,8 +266,8 @@ public class C
             var distinguisher = new SymbolDistinguisher(comp, sourceParameter, referencedParameter);
             // NOTE: Locations come from parameter element types.
             // NOTE: 'params' retained.
-            Assert.Equal("params C[] [file.cs(2)]", distinguisher.First.ToString());
-            Assert.Equal("params C[] [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.Second.ToString());
+            Assert.Equal("params C[] c [file.cs(2)]", distinguisher.First.ToString());
+            Assert.Equal("params C[] c [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.Second.ToString());
         }
 
         [Fact]

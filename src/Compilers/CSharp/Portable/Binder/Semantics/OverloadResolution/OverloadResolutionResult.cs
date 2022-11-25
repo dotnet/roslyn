@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols,
                         arg + 1,
                         argument.Display, //'<null>' doesn't need refkind
-                        UnwrapIfParamsArray(parameter, isLastParameter));
+                        new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageTypeFormat));
                 }
             }
             else if (refArg != refParameter && !(refArg == RefKind.None && refParameter == RefKind.In))
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argument.Display,
                         name,
                         method,
-                        parameter);
+                        new FormattedSymbol(parameter, SymbolDisplayFormat.CSharpErrorMessageTypeFormat));
                     Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter, isLastParameter), "If they ever differ, just call the method when constructing the diagnostic.");
                 }
                 else
@@ -1267,7 +1267,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isParams: false,
                             refKind: refArg);
 
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(binder.Compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(
+                            binder.Compilation,
+                            displayArg,
+                            UnwrapIfParamsArray(parameter, isLastParameter),
+                            SymbolDisplayFormat.CSharpErrorMessageTypeFormat);
 
                         // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
                         diagnostics.Add(
@@ -1286,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols,
                             arg + 1,
                             argument.Display,
-                            UnwrapIfParamsArray(parameter, isLastParameter));
+                            new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageTypeFormat));
                     }
                 }
             }

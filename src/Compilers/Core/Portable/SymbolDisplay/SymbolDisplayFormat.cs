@@ -27,14 +27,16 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
-                // Not showing the name is important because we visit parameters to display their
-                // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
+                    SymbolDisplayMiscellaneousOptions.IncludeNameOfStandaloneParameters);
+
+        internal static SymbolDisplayFormat CSharpErrorMessageTypeFormat { get; } = CSharpErrorMessageFormat
+            .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNameOfStandaloneParameters);
 
         /// <summary>
         /// Formats a symbol description as in a C# compiler short error message.
@@ -52,14 +54,13 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
-                // Not showing the name is important because we visit parameters to display their
-                // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
+                    SymbolDisplayMiscellaneousOptions.IncludeNameOfStandaloneParameters);
 
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.
