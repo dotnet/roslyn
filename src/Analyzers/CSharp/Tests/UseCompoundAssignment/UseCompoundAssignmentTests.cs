@@ -23,201 +23,221 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact]
         public async Task TestAddExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a + 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a += 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestSubtractExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a - 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a -= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a - 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a -= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultiplyExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a * 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a *= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a * 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a *= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestDivideExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a / 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a /= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a / 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a /= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestModuloExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a % 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a %= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a % 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a %= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestBitwiseAndExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a & 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a &= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a & 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a &= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExclusiveOrExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a ^ 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a ^= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a ^ 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a ^= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestBitwiseOrExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a | 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a |= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a | 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a |= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestLeftShiftExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a << 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a <<= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a << 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a <<= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestRightShiftExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a >> 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a >>= 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a >> 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a >>= 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -225,22 +245,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         {
             await new VerifyCS.Test()
             {
-                TestCode =
-@"public class C
-{
-    void M(int? a)
-    {
-        a [|=|] a ?? 10;
-    }
-}",
-                FixedCode =
-@"public class C
-{
-    void M(int? a)
-    {
-        a ??= 10;
-    }
-}",
+                TestCode = """
+                    public class C
+                    {
+                        void M(int? a)
+                        {
+                            a [|=|] a ?? 10;
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    public class C
+                    {
+                        void M(int? a)
+                        {
+                            a ??= 10;
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp8
             }.RunAsync();
         }
@@ -248,14 +270,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact]
         public async Task TestCoalesceExpressionCSharp7()
         {
-            var code =
-@"public class C
-{
-    void M(int? a)
-    {
-        a = a ?? 10;
-    }
-}";
+            var code = """
+                public class C
+                {
+                    void M(int? a)
+                    {
+                        a = a ?? 10;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test()
             {
@@ -268,15 +291,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, WorkItem(36467, "https://github.com/dotnet/roslyn/issues/36467")]
         public async Task TestNotSuggestedWhenRightHandIsThrowExpression()
         {
-            var code =
-@"using System;
-public class C
-{
-    void M(int? a)
-    {
-        a = a ?? throw new Exception();
-    }
-}";
+            var code = """
+                using System;
+                public class C
+                {
+                    void M(int? a)
+                    {
+                        a = a ?? throw new Exception();
+                    }
+                }
+                """;
 
             await new VerifyCS.Test()
             {
@@ -289,303 +313,326 @@ public class C
         [Fact]
         public async Task TestField()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    int a;
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    int a;
 
-    void M()
-    {
-        a [|=|] a + 10;
-    }
-}",
-@"public class C
-{
-    int a;
+                    void M()
+                    {
+                        a [|=|] a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    int a;
 
-    void M()
-    {
-        a += 10;
-    }
-}");
+                    void M()
+                    {
+                        a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFieldWithThis()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    int a;
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    int a;
 
-    void M()
-    {
-        this.a [|=|] this.a + 10;
-    }
-}",
-@"public class C
-{
-    int a;
+                    void M()
+                    {
+                        this.a [|=|] this.a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    int a;
 
-    void M()
-    {
-        this.a += 10;
-    }
-}");
+                    void M()
+                    {
+                        this.a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTriviaInsensitive()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    int a;
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    int a;
 
-    void M()
-    {
-        this  .  /*trivia*/ a [|=|] this /*comment*/ .a + 10;
-    }
-}",
-@"public class C
-{
-    int a;
+                    void M()
+                    {
+                        this  .  /*trivia*/ a [|=|] this /*comment*/ .a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    int a;
 
-    void M()
-    {
-        this  .  /*trivia*/ a += 10;
-    }
-}");
+                    void M()
+                    {
+                        this  .  /*trivia*/ a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestStaticFieldThroughType()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    static int a;
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    static int a;
 
-    void M()
-    {
-        C.a [|=|] C.a + 10;
-    }
-}",
-@"public class C
-{
-    static int a;
+                    void M()
+                    {
+                        C.a [|=|] C.a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    static int a;
 
-    void M()
-    {
-        C.a += 10;
-    }
-}");
+                    void M()
+                    {
+                        C.a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestStaticFieldThroughNamespaceAndType()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"namespace NS
-{
-    public class C
-    {
-        static int a;
+            await VerifyCS.VerifyCodeFixAsync("""
+                namespace NS
+                {
+                    public class C
+                    {
+                        static int a;
 
-        void M()
-        {
-            NS.C.a [|=|] NS.C.a + 10;
-        }
-    }
-}",
-@"namespace NS
-{
-    public class C
-    {
-        static int a;
+                        void M()
+                        {
+                            NS.C.a [|=|] NS.C.a + 10;
+                        }
+                    }
+                }
+                """, """
+                namespace NS
+                {
+                    public class C
+                    {
+                        static int a;
 
-        void M()
-        {
-            NS.C.a += 10;
-        }
-    }
-}");
+                        void M()
+                        {
+                            NS.C.a += 10;
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestParenthesized()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    int a;
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    int a;
 
-    void M()
-    {
-        (a) [|=|] (a) + 10;
-    }
-}",
-@"public class C
-{
-    int a;
+                    void M()
+                    {
+                        (a) [|=|] (a) + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    int a;
 
-    void M()
-    {
-        (a) += 10;
-    }
-}");
+                    void M()
+                    {
+                        (a) += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestThroughBase()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    public int a;
-}
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    public int a;
+                }
 
-public class D : C
-{
-    void M()
-    {
-        base.a [|=|] base.a + 10;
-    }
-}",
-@"public class C
-{
-    public int a;
-}
+                public class D : C
+                {
+                    void M()
+                    {
+                        base.a [|=|] base.a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    public int a;
+                }
 
-public class D : C
-{
-    void M()
-    {
-        base.a += 10;
-    }
-}");
+                public class D : C
+                {
+                    void M()
+                    {
+                        base.a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultiAccess()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    public int a;
-}
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    public int a;
+                }
 
-public class D
-{
-    C c;
+                public class D
+                {
+                    C c;
 
-    void M()
-    {
-        this.c.a [|=|] this.c.a + 10;
-    }
-}",
-@"public class C
-{
-    public int a;
-}
+                    void M()
+                    {
+                        this.c.a [|=|] this.c.a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    public int a;
+                }
 
-public class D
-{
-    C c;
+                public class D
+                {
+                    C c;
 
-    void M()
-    {
-        this.c.a += 10;
-    }
-}");
+                    void M()
+                    {
+                        this.c.a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOnTopLevelProp1()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    int a { get; set; }
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    int a { get; set; }
 
-    void M()
-    {
-        a [|=|] a + 10;
-    }
-}",
-@"public class C
-{
-    int a { get; set; }
+                    void M()
+                    {
+                        a [|=|] a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    int a { get; set; }
 
-    void M()
-    {
-        a += 10;
-    }
-}");
+                    void M()
+                    {
+                        a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOnTopLevelProp2()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    int a { get; set; }
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    int a { get; set; }
 
-    void M()
-    {
-        this.a [|=|] this.a + 10;
-    }
-}",
-@"public class C
-{
-    int a { get; set; }
+                    void M()
+                    {
+                        this.a [|=|] this.a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    int a { get; set; }
 
-    void M()
-    {
-        this.a += 10;
-    }
-}");
+                    void M()
+                    {
+                        this.a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOnTopLevelProp3()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    int a { get; set; }
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    int a { get; set; }
 
-    void M()
-    {
-        (this.a) [|=|] (this.a) + 10;
-    }
-}",
-@"public class C
-{
-    int a { get; set; }
+                    void M()
+                    {
+                        (this.a) [|=|] (this.a) + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    int a { get; set; }
 
-    void M()
-    {
-        (this.a) += 10;
-    }
-}");
+                    void M()
+                    {
+                        (this.a) += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotOnTopLevelRefProp()
         {
-            var code =
-@"public class C
-{
-    int x;
-    ref int a { get { return ref x; } }
+            var code = """
+                public class C
+                {
+                    int x;
+                    ref int a { get { return ref x; } }
 
-    void M()
-    {
-        a = a + 10;
-    }
-}";
+                    void M()
+                    {
+                        a = a + 10;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -593,22 +640,22 @@ public class D
         [Fact]
         public async Task TestNotOnNestedProp1()
         {
-            var code =
-@"
-public class A
-{
-    public int x;
-}
+            var code = """
+                public class A
+                {
+                    public int x;
+                }
 
-public class C
-{
-    A a { get; }
+                public class C
+                {
+                    A a { get; }
 
-    void M()
-    {
-        a.x = a.x + 10;
-    }
-}";
+                    void M()
+                    {
+                        a.x = a.x + 10;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -616,22 +663,22 @@ public class C
         [Fact]
         public async Task TestNotOnNestedProp2()
         {
-            var code =
-@"
-public class A
-{
-    public int x;
-}
+            var code = """
+                public class A
+                {
+                    public int x;
+                }
 
-public class C
-{
-    A a { get; }
+                public class C
+                {
+                    A a { get; }
 
-    void M()
-    {
-        this.a.x = this.a.x + 10;
-    }
-}";
+                    void M()
+                    {
+                        this.a.x = this.a.x + 10;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -639,22 +686,22 @@ public class C
         [Fact]
         public async Task TestNotOnNestedProp3()
         {
-            var code =
-@"
-public class A
-{
-    public int x;
-}
+            var code = """
+                public class A
+                {
+                    public int x;
+                }
 
-public class C
-{
-    A a { get; }
+                public class C
+                {
+                    A a { get; }
 
-    void M()
-    {
-        (a.x) = (a.x) + 10;
-    }
-}";
+                    void M()
+                    {
+                        (a.x) = (a.x) + 10;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -662,14 +709,15 @@ public class C
         [Fact]
         public async Task TestNotOnUnboundSymbol()
         {
-            var code =
-@"public class C
-{
-    void M()
-    {
-        {|CS0103:a|} = {|CS0103:a|} + 10;
-    }
-}";
+            var code = """
+                public class C
+                {
+                    void M()
+                    {
+                        {|CS0103:a|} = {|CS0103:a|} + 10;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -677,14 +725,15 @@ public class C
         [Fact]
         public async Task TestNotOnUnboundThisAccess()
         {
-            var code =
-@"public class C
-{
-    void M()
-    {
-        this.{|CS1061:a|} = this.{|CS1061:a|} + 10;
-    }
-}";
+            var code = """
+                public class C
+                {
+                    void M()
+                    {
+                        this.{|CS1061:a|} = this.{|CS1061:a|} + 10;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -692,18 +741,19 @@ public class C
         [Fact]
         public async Task TestNotWithSideEffects()
         {
-            var code =
-@"public class C
-{
-    int i;
+            var code = """
+                public class C
+                {
+                    int i;
 
-    C Goo() => this;
+                    C Goo() => this;
 
-    void M()
-    {
-        this.Goo().i = this.Goo().i + 10;
-    }
-}";
+                    void M()
+                    {
+                        this.Goo().i = this.Goo().i + 10;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -711,147 +761,159 @@ public class C
         [Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
         public async Task TestRightExpressionOnNextLine()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a +
-            10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a += 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a +
+                            10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
         public async Task TestRightExpressionSeparatedWithSeveralLines()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a +
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a +
 
-            10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a += 10;
-    }
-}");
+                            10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTrivia()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        // before
-        a [|=|] a + 10; // after
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        // before
-        a += 10; // after
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        // before
+                        a [|=|] a + 10; // after
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        // before
+                        a += 10; // after
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTrivia2()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a /*mid1*/ [|=|] /*mid2*/ a + 10;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a /*mid1*/ += /*mid2*/ 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a /*mid1*/ [|=|] /*mid2*/ a + 10;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a /*mid1*/ += /*mid2*/ 10;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixAll()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a, int b)
-    {
-        a [|=|] a + 10;
-        b [|=|] b - a;
-    }
-}",
-@"public class C
-{
-    void M(int a, int b)
-    {
-        a += 10;
-        b -= a;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a, int b)
+                    {
+                        a [|=|] a + 10;
+                        b [|=|] b - a;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a, int b)
+                    {
+                        a += 10;
+                        b -= a;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNestedAssignment()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a, int b)
-    {
-        b = (a [|=|] a + 10);
-    }
-}",
-@"public class C
-{
-    void M(int a, int b)
-    {
-        b = (a += 10);
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a, int b)
+                    {
+                        b = (a [|=|] a + 10);
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a, int b)
+                    {
+                        b = (a += 10);
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
         public async Task TestNotOnObjectInitializer()
         {
-            var code =
-@"
-struct InsertionPoint
-{
-    int level;
-    
-    InsertionPoint Up()
-    {
-        return new InsertionPoint
-        {
-            level = level - 1,
-        };
-    }
-}";
+            var code = """
+                struct InsertionPoint
+                {
+                    int level;
+
+                    InsertionPoint Up()
+                    {
+                        return new InsertionPoint
+                        {
+                            level = level - 1,
+                        };
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -859,20 +921,20 @@ struct InsertionPoint
         [Fact, WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
         public async Task TestNotOnImplicitObjectInitializer()
         {
-            var code =
-@"
-struct InsertionPoint
-{
-    int level;
-    
-    InsertionPoint Up()
-    {
-        return new InsertionPoint()
-        {
-            level = level - 1,
-        };
-    }
-}";
+            var code = """
+                struct InsertionPoint
+                {
+                    int level;
+
+                    InsertionPoint Up()
+                    {
+                        return new InsertionPoint()
+                        {
+                            level = level - 1,
+                        };
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -880,18 +942,18 @@ struct InsertionPoint
         [Fact, WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
         public async Task TestNotOnRecord()
         {
-            var code =
-@"
-record InsertionPoint(int level)
-{
-    InsertionPoint Up()
-    {
-        return this with
-        {
-            level = level - 1,
-        };
-    }
-}";
+            var code = """
+                record InsertionPoint(int level)
+                {
+                    InsertionPoint Up()
+                    {
+                        return this with
+                        {
+                            level = level - 1,
+                        };
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -905,183 +967,201 @@ record InsertionPoint(int level)
         [Fact, WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
         public async Task TestParenthesizedExpression()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] (a + 10);
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a += 10;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] (a + 10);
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a += 10;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrement()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a + 1;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a++;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a + 1;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a++;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestDecrement()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a - 1;
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a--;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a - 1;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a--;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestMinusIncrement()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int a)
-    {
-        a [|=|] a + (-1);
-    }
-}",
-@"public class C
-{
-    void M(int a)
-    {
-        a--;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a [|=|] a + (-1);
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int a)
+                    {
+                        a--;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementDouble()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(double a)
-    {
-        a [|=|] a + 1.0;
-    }
-}",
-@"public class C
-{
-    void M(double a)
-    {
-        a++;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(double a)
+                    {
+                        a [|=|] a + 1.0;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(double a)
+                    {
+                        a++;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementNotOnString()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(string a)
-    {
-        a [|=|] a + ""1"";
-    }
-}",
-@"public class C
-{
-    void M(string a)
-    {
-        a += ""1"";
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(string a)
+                    {
+                        a [|=|] a + "1";
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(string a)
+                    {
+                        a += "1";
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementChar()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(char a)
-    {
-        a [|=|] {|CS0266:a + 1|};
-    }
-}",
-@"public class C
-{
-    void M(char a)
-    {
-        a++;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(char a)
+                    {
+                        a [|=|] {|CS0266:a + 1|};
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(char a)
+                    {
+                        a++;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementEnum()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public enum E {}
-public class C
-{
-    void M(E a)
-    {
-        a [|=|] a + 1;
-    }
-}",
-@"public enum E {}
-public class C
-{
-    void M(E a)
-    {
-        a++;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public enum E {}
+                public class C
+                {
+                    void M(E a)
+                    {
+                        a [|=|] a + 1;
+                    }
+                }
+                """, """
+                public enum E {}
+                public class C
+                {
+                    void M(E a)
+                    {
+                        a++;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementDecimal()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(decimal a)
-    {
-        a [|=|] a + 1.0m;
-    }
-}",
-@"public class C
-{
-    void M(decimal a)
-    {
-        a++;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(decimal a)
+                    {
+                        a [|=|] a + 1.0m;
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(decimal a)
+                    {
+                        a++;
+                    }
+                }
+                """);
         }
 
         [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
@@ -1094,21 +1174,24 @@ public class C
         {
             await new VerifyCS.Test()
             {
-                TestCode = $@"public class C
-{{
-    void M({typeName} a)
-    {{
-        a [|=|] (a + ({typeName})1);
-    }}
-}}",
-                FixedCode =
-$@"public class C
-{{
-    void M({typeName} a)
-    {{
-        a++;
-    }}
-}}",
+                TestCode = $$"""
+                    public class C
+                    {
+                        void M({{typeName}} a)
+                        {
+                            a [|=|] (a + ({{typeName}})1);
+                        }
+                    }
+                    """,
+                FixedCode = $$"""
+                    public class C
+                    {
+                        void M({{typeName}} a)
+                        {
+                            a++;
+                        }
+                    }
+                    """,
                 CompilerDiagnostics = CompilerDiagnostics.None
             }.RunAsync();
         }
@@ -1123,21 +1206,24 @@ $@"public class C
         {
             await new VerifyCS.Test()
             {
-                TestCode = $@"public class C
-{{
-    void M({typeName} a)
-    {{
-        a [|=|] a + 1;
-    }}
-}}",
-                FixedCode =
-$@"public class C
-{{
-    void M({typeName} a)
-    {{
-        a++;
-    }}
-}}",
+                TestCode = $$"""
+                    public class C
+                    {
+                        void M({{typeName}} a)
+                        {
+                            a [|=|] a + 1;
+                        }
+                    }
+                    """,
+                FixedCode = $$"""
+                    public class C
+                    {
+                        void M({{typeName}} a)
+                        {
+                            a++;
+                        }
+                    }
+                    """,
                 CompilerDiagnostics = CompilerDiagnostics.None
             }.RunAsync();
         }
@@ -1145,45 +1231,49 @@ $@"public class C
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementLoopVariable()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M()
-    {
-        for (int i = 0; i < 10; i [|=|] i + 1)
-        {
-        }
-    }
-}",
-@"public class C
-{
-    void M()
-    {
-        for (int i = 0; i < 10; i++)
-        {
-        }
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M()
+                    {
+                        for (int i = 0; i < 10; i [|=|] i + 1)
+                        {
+                        }
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M()
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         public async Task TestIncrementInExpressionContext()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"public class C
-{
-    void M(int i)
-    {
-        M(i [|=|] i + 1);
-    }
-}",
-@"public class C
-{
-    void M(int i)
-    {
-        M(++i);
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public class C
+                {
+                    void M(int i)
+                    {
+                        M(i [|=|] i + 1);
+                    }
+                }
+                """, """
+                public class C
+                {
+                    void M(int i)
+                    {
+                        M(++i);
+                    }
+                }
+                """);
         }
 
         [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
@@ -1195,21 +1285,23 @@ $@"public class C
         {
             var before = expressionContext.Replace("$$", "i [|=|] i + 1");
             var after = expressionContext.Replace("$$", "++i");
-            await VerifyCS.VerifyCodeFixAsync(
-@$"public class C
-{{
-    void M(int i)
-    {{
-        {before}
-    }}
-}}",
-@$"public class C
-{{
-    void M(int i)
-    {{
-        {after}
-    }}
-}}");
+            await VerifyCS.VerifyCodeFixAsync($$"""
+                public class C
+                {
+                    void M(int i)
+                    {
+                        {{before}}
+                    }
+                }
+                """, $$"""
+                public class C
+                {
+                    void M(int i)
+                    {
+                        {{after}}
+                    }
+                }
+                """);
         }
 
         [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
@@ -1220,21 +1312,23 @@ $@"public class C
         {
             var before = expressionContext.Replace("$$", "i [|=|] i + 1");
             var after = expressionContext.Replace("$$", "++i");
-            await VerifyCS.VerifyCodeFixAsync(
-@$"public class C
-{{
-    int M(int i)
-    {{
-        {before}
-    }}
-}}",
-@$"public class C
-{{
-    int M(int i)
-    {{
-        {after}
-    }}
-}}");
+            await VerifyCS.VerifyCodeFixAsync($$"""
+                public class C
+                {
+                    int M(int i)
+                    {
+                        {{before}}
+                    }
+                }
+                """, $$"""
+                public class C
+                {
+                    int M(int i)
+                    {
+                        {{after}}
+                    }
+                }
+                """);
         }
 
         [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
@@ -1249,21 +1343,23 @@ $@"public class C
             "M( /* Before */ --i /* After */ );")]
         public async Task TestTriviaPreserved(string before, string after)
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@$"public class C
-{{
-    void M(int i)
-    {{
-        {before}
-    }}
-}}",
-@$"public class C
-{{
-    void M(int i)
-    {{
-        {after}
-    }}
-}}");
+            await VerifyCS.VerifyCodeFixAsync($$"""
+                public class C
+                {
+                    void M(int i)
+                    {
+                        {{before}}
+                    }
+                }
+                """, $$"""
+                public class C
+                {
+                    void M(int i)
+                    {
+                        {{after}}
+                    }
+                }
+                """);
         }
     }
 }
