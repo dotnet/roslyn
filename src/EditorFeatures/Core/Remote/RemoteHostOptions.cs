@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // use coreclr host for OOP
         public static readonly Option2<bool> OOPCoreClrFeatureFlag = new(
-            FeatureName, nameof(OOPCoreClrFeatureFlag), defaultValue: false,
+            FeatureName, nameof(OOPCoreClrFeatureFlag), defaultValue: true,
             new FeatureFlagStorageLocation("Roslyn.ServiceHubCore"));
     }
 }
