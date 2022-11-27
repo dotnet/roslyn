@@ -2,35 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UseExplicitTupleName;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTupleName
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        UseExplicitTupleNameDiagnosticAnalyzer,
+        UseExplicitTupleNameCodeFixProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
-    public class UseExplicitTupleNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseExplicitTupleNameTests
     {
-        public UseExplicitTupleNameTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExplicitTupleNameDiagnosticAnalyzer(), new UseExplicitTupleNameCodeFixProvider());
-
         [Fact]
         public async Task TestNamedTuple1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 class C
 {
@@ -54,7 +46,7 @@ class C
         [Fact]
         public async Task TestInArgument()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 class C
 {
@@ -82,7 +74,7 @@ class C
         [Fact]
         public async Task TestNamedTuple2()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 class C
 {
@@ -106,37 +98,41 @@ class C
         [Fact]
         public async Task TestMissingOnMatchingName1()
         {
-            await TestMissingInRegularAndScriptAsync(
+            var code =
 @"
 class C
 {
     void M()
     {
         (int, string s) v1 = default((int, string));
-        var v2 = v1.[|Item1|];
+        var v2 = v1.Item1;
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestMissingOnMatchingName2()
         {
-            await TestMissingInRegularAndScriptAsync(
+            var code =
 @"
 class C
 {
     void M()
     {
         (int Item1, string s) v1 = default((int, string));
-        var v2 = v1.[|Item1|];
+        var v2 = v1.Item1;
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestWrongCasing()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 class C
 {
@@ -160,15 +156,15 @@ class C
         [Fact]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 class C
 {
     void M()
     {
         (int i, string s) v1 = default((int, string));
-        var v2 = v1.{|FixAllInDocument:Item1|};
-        var v3 = v1.Item2;
+        var v2 = v1.[|Item1|];
+        var v3 = v1.[|Item2|];
     }
 }",
 @"
@@ -186,14 +182,14 @@ class C
         [Fact]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 class C
 {
     void M()
     {
         (int i, int s) v1 = default((int, int));
-        v1.{|FixAllInDocument:Item1|} = v1.Item2;
+        v1.[|Item1|] = v1.[|Item2|];
     }
 }",
 @"
@@ -210,31 +206,51 @@ class C
         [Fact]
         public async Task TestFalseOptionImplicitTuple()
         {
-            await TestDiagnosticMissingAsync(
+            var code =
 @"
 class C
 {
     void M()
     {
         (int i, string s) v1 = default((int, string));
-        var v2 = v1.[|Item1|];
+        var v2 = v1.Item1;
     }
-}", new TestParameters(options: Option(CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning)));
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                Options =
+                {
+                    { CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestFalseOptionExplicitTuple()
         {
-            await TestDiagnosticMissingAsync(
+            var code =
 @"
 class C
 {
     void M()
     {
         (int i, string s) v1 = default((int, string));
-        var v2 = v1.[|i|];
+        var v2 = v1.i;
     }
-}", new TestParameters(options: Option(CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning)));
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                Options =
+                {
+                    { CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning }
+                }
+            }.RunAsync();
         }
 
         [Fact]
@@ -268,16 +284,23 @@ namespace System
     }
 }
 ";
-            await TestDiagnosticMissingAsync(
+            var code =
 @"
 class C
 {
     void M()
     {
         (int, int, int, int, int, int, int, int) x = default;
-        _ = x.[|Rest|];
+        _ = x.Rest;
     }
-}" + valueTuple8);
+}" + valueTuple8;
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp11
+            }.RunAsync();
         }
     }
 }
