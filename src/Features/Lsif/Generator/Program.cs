@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.MSBuild;
 using CompilerInvocationsReader = Microsoft.Build.Logging.StructuredLogger.CompilerInvocationsReader;
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
-            var msbuildWorkspace = MSBuildWorkspace.Create();
+            var msbuildWorkspace = MSBuildWorkspace.Create(await Composition.CreateHostServicesAsync());
             msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading: " + e.Diagnostic.Message);
 
             var solution = await openAsync(msbuildWorkspace);

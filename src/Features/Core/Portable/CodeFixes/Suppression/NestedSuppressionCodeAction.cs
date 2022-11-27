@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         public override string EquivalenceKey => Title + DiagnosticIdForEquivalenceKey;
 
-        public static bool IsEquivalenceKeyForGlobalSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.in_Suppression_File);
-        public static bool IsEquivalenceKeyForPragmaWarning(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.in_Source);
-        public static bool IsEquivalenceKeyForRemoveSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.Remove_Suppression);
-        public static bool IsEquivalenceKeyForLocalSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.in_Source_attribute);
+        public static bool IsEquivalenceKeyForGlobalSuppression(string equivalenceKey)
+            => equivalenceKey.StartsWith(FeaturesResources.in_Suppression_File);
+        public static bool IsEquivalenceKeyForPragmaWarning(string equivalenceKey)
+            => equivalenceKey.StartsWith(FeaturesResources.in_Source);
+        public static bool IsEquivalenceKeyForRemoveSuppression(string equivalenceKey)
+            => equivalenceKey.StartsWith(FeaturesResources.Remove_Suppression);
+        public static bool IsEquivalenceKeyForLocalSuppression(string equivalenceKey)
+            => equivalenceKey.StartsWith(FeaturesResources.in_Source_attribute);
     }
 }
