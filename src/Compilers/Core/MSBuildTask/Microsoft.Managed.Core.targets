@@ -350,4 +350,31 @@
     <ProjectCapability Include="RoslynComponent" Condition="'$(IsRoslynComponent)' == 'true'"/>
   </ItemGroup>
 
+  <!--
+    ========================
+    Read Compiler Written Files
+    ========================
+    
+    After compilation, read back the list of files the compiler wrote to disk
+    and add them to FileWrites so they are properly tracked by MSBuild
+    -->
+  <Target Name="ReadCompilerTouchedFilesBack" 
+          AfterTargets="CoreCompile"
+          Inputs="$(TouchedFilesOutputPath).write"
+          Outputs="$(TouchedFilesOutputPath).write"
+          Condition="'$(TouchedFilesOutputPath)' != ''">
+    
+    <ReadLinesFromFile File="$(TouchedFilesOutputPath).write">
+      <Output TaskParameter="Lines"
+              ItemName="_CompilerFilesWritten"/>
+    </ReadLinesFromFile>
+    
+    <ItemGroup>
+      <FileWrites Include="@(_CompilerFilesWritten)" />
+      <FileWrites Include="$(TouchedFilesOutputPath).read" />
+      <FileWrites Include="$(TouchedFilesOutputPath).write" />
+    </ItemGroup>
+    
+  </Target>
+  
 </Project>

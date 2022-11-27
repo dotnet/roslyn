@@ -112,6 +112,7 @@
          TargetType="$(OutputType)"
          ToolExe="$(VbcToolExe)"
          ToolPath="$(VbcToolPath)"
+         TouchedFilesOutputPath="$(TouchedFilesOutputPath)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
          UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
          UseSharedCompilation="$(UseSharedCompilation)"
