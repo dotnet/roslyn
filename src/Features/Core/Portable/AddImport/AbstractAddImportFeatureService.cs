@@ -223,6 +223,9 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             foreach (var unreferencedProject in viableUnreferencedProjects)
             {
+                if (!unreferencedProject.SupportsCompilation)
+                    continue;
+
                 // Search in this unreferenced project.  But don't search in any of its'
                 // direct references.  i.e. we don't want to search in its metadata references
                 // or in the projects it references itself. We'll be searching those entities

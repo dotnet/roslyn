@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -49,14 +50,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         protected internal abstract bool IsEnabled { get; }
-        protected internal abstract bool SupportsDignosticMode(DiagnosticMode mode);
+        protected internal abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
         protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
         protected internal abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
         protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
             // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
             // executed on content which was produced by a source generator but is not yet reflected in an open text
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
 
             var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (!SupportsDignosticMode(diagnosticMode))
+            if (!SupportsDiagnosticMode(diagnosticMode))
                 return;
 
             var document = spanToTag.Document;

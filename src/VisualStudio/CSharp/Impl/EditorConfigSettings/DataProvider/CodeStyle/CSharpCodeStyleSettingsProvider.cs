@@ -275,6 +275,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 editorConfigOptions,
                 visualStudioOptions,
                 updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause,
+                description: CSharpVSResources.Allow_blank_line_after_token_in_arrow_expression_clause,
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
         }
     }
 }

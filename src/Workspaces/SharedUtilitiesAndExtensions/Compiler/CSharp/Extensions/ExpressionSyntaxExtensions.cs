@@ -334,10 +334,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // most cases of `ref x` will count as a potential write of `x`.  An important exception is:
                 // `ref readonly y = ref x`.  In that case, because 'y' can't be written to, this would not 
                 // be a write of 'x'.
-                if (refParent.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type: RefTypeSyntax refType } } }
-                    && refType.ReadOnlyKeyword != default)
+                if (refParent.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type: { } variableDeclarationType } } })
                 {
-                    return false;
+                    if (variableDeclarationType is ScopedTypeSyntax scopedType)
+                    {
+                        variableDeclarationType = scopedType.Type;
+                    }
+
+                    if (variableDeclarationType is RefTypeSyntax refType && refType.ReadOnlyKeyword != default)
+                    {
+                        return false;
+                    }
                 }
 
                 return true;
@@ -721,6 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.PostIncrementExpression:
                 case SyntaxKind.PostDecrementExpression:
                 case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
                 case SyntaxKind.TypeOfExpression:
                 case SyntaxKind.DefaultExpression:
                 case SyntaxKind.CheckedExpression:
@@ -916,8 +924,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static bool IsDirectChildOfMemberAccessExpression(this ExpressionSyntax expression) =>
-            expression?.Parent is MemberAccessExpressionSyntax;
+        public static bool IsDirectChildOfMemberAccessExpression(this ExpressionSyntax expression)
+            => expression?.Parent is MemberAccessExpressionSyntax;
 
         public static bool InsideCrefReference(this ExpressionSyntax expression)
             => expression.FirstAncestorOrSelf<XmlCrefAttributeSyntax>() != null;

@@ -12,6 +12,11 @@
         <target state="new">Allow blank line after colon in constructor initializer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="new">Allow blank line after token in arrow expression clause</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
         <source>Allow blank line after token in conditional expression</source>
         <target state="new">Allow blank line after token in conditional expression</target>

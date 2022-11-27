@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddRequiredParentheses = nameof(AddRequiredParentheses);
         public const string AliasAmbiguousType = nameof(AliasAmbiguousType);
         public const string ApplyNamingStyle = nameof(ApplyNamingStyle);
+        public const string ArrowExpressionClausePlacement = nameof(ArrowExpressionClausePlacement);
         public const string AssignOutParametersAboveReturn = nameof(AssignOutParametersAboveReturn);
         public const string AssignOutParametersAtStart = nameof(AssignOutParametersAtStart);
         public const string ChangeNamespaceToMatchFolder = nameof(ChangeNamespaceToMatchFolder);
@@ -123,8 +124,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UpdateProjectToAllowUnsafe = nameof(UpdateProjectToAllowUnsafe);
         public const string UpgradeProject = nameof(UpgradeProject);
         public const string UseAutoProperty = nameof(UseAutoProperty);
-        public const string UseCoalesceExpression = nameof(UseCoalesceExpression);
-        public const string UseCoalesceExpressionForNullable = nameof(UseCoalesceExpressionForNullable);
+        public const string UseCoalesceExpressionForIfNullStatementCheck = nameof(UseCoalesceExpressionForIfNullStatementCheck);
+        public const string UseCoalesceExpressionForTernaryConditionalCheck = nameof(UseCoalesceExpressionForTernaryConditionalCheck);
+        public const string UseCoalesceExpressionForNullableTernaryConditionalCheck = nameof(UseCoalesceExpressionForNullableTernaryConditionalCheck);
         public const string UseCollectionInitializer = nameof(UseCollectionInitializer);
         public const string UseCompoundAssignment = nameof(UseCompoundAssignment);
         public const string UseCompoundCoalesceAssignment = nameof(UseCompoundCoalesceAssignment);
