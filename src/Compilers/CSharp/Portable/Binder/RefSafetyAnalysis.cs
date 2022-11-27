@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed partial class RefSafetyAnalysis : BoundTreeWalker
+    internal sealed partial class RefSafetyAnalysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         internal static void Analyze(CSharpCompilation compilation, Symbol symbol, BoundNode node, BindingDiagnosticBag diagnostics)
         {
@@ -21,7 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inUnsafeRegion: InUnsafeMethod(symbol),
                 useUpdatedEscapeRules: symbol.ContainingModule.UseUpdatedEscapeRules,
                 diagnostics);
-            visitor.Visit(node);
+            try
+            {
+                visitor.Visit(node);
+            }
+            catch (CancelledByStackGuardException e)
+            {
+                e.AddAnError(diagnostics);
+            }
         }
 
         internal static void Analyze(CSharpCompilation compilation, Symbol symbol, ImmutableArray<BoundInitializer> fieldAndPropertyInitializers, BindingDiagnosticBag diagnostics)
@@ -34,7 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
             foreach (var initializer in fieldAndPropertyInitializers)
             {
-                visitor.VisitFieldOrPropertyInitializer(initializer);
+                try
+                {
+                    visitor.VisitFieldOrPropertyInitializer(initializer);
+                }
+                catch (CancelledByStackGuardException e)
+                {
+                    e.AddAnError(diagnostics);
+                }
             }
         }
 
@@ -84,11 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _inUnsafeRegion = inUnsafeRegion;
             _localScopeDepth = Binder.CurrentMethodScope - 1;
             _localEscapeScopes = localEscapeScopes;
-        }
-
-        protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
-        {
-            throw ExceptionUtilities.Unreachable();
         }
 
         private ref struct LocalScope
@@ -185,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitBlock(node);
         }
 
-        public override BoundNode Visit(BoundNode? node)
+        public override BoundNode? Visit(BoundNode? node)
         {
 #if DEBUG
             // PROTOTYPE: Ensure _localScopeDepth matches expected depth
@@ -426,7 +435,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
         {
             SetLocalScopes(node);
+
+            using var _ = new PatternInput(this, getDeclarationValEscape(node.DeclaredType, _patternInputValEscape));
             return base.VisitDeclarationPattern(node);
+
+            static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
+            {
+                return typeExpression.Type.IsRefLikeType ? valEscape : Binder.CallingMethodScope;
+            }
         }
 
         public override BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node)
@@ -436,7 +452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static uint getPositionalValEscape(Symbol? symbol, uint valEscape)
             {
-                return symbol?.GetTypeOrReturnType().IsRefLikeType() == true ? valEscape : Binder.CallingMethodScope;
+                return symbol is null
+                    ? valEscape
+                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : Binder.CallingMethodScope;
             }
         }
 

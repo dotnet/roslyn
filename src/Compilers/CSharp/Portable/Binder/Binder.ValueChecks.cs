@@ -851,7 +851,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    // PROTOTYPE: Add #nullable enable to each of the partial class RefSafetyAnalysis declarations.
     internal partial class RefSafetyAnalysis
     {
         private bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
@@ -2653,7 +2652,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
+    }
 
+    internal partial class RefSafetyAnalysis
+    {
+        private static ErrorCode GetStandardRValueRefEscapeError(uint escapeTo)
+        {
+            if (escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope)
+            {
+                return ErrorCode.ERR_RefReturnLvalueExpected;
+            }
+
+            return ErrorCode.ERR_EscapeOther;
+        }
+    }
+
+    internal partial class Binder
+    {
         private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)field != null);
@@ -2726,16 +2741,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class RefSafetyAnalysis
     {
-        private static ErrorCode GetStandardRValueRefEscapeError(uint escapeTo)
-        {
-            if (escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope)
-            {
-                return ErrorCode.ERR_RefReturnLvalueExpected;
-            }
-
-            return ErrorCode.ERR_EscapeOther;
-        }
-
         /// <summary>
         /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>.
         /// </summary>
