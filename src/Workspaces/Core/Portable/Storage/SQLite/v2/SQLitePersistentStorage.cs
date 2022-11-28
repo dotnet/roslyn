@@ -190,8 +190,6 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             EnsureTables(connection, Database.Main);
             EnsureTables(connection, Database.WriteCache);
 
-            LoadExistingStringIds(connection);
-
             return;
 
             void EnsureTables(SqlConnection connection, Database database)
