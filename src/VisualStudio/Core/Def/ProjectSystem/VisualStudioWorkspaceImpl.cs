@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -22,6 +24,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -135,6 +138,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IAsynchronousOperationListener _workspaceListener;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
+        private readonly IEnumerable<Lazy<IRefactorNotifyService>> _refactorNotifyServices;
+
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
@@ -144,7 +149,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-
+            _refactorNotifyServices = exportProvider.GetExports<IRefactorNotifyService>();
+            
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -401,7 +407,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.EnsureEditableDocuments(changedDocs);
             }
 
-            return base.TryApplyChanges(newSolution, progressTracker);
+            if (base.TryApplyChanges(newSolution, progressTracker))
+            {
+                _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution, _foregroundObject.ThreadingContext);
+                return true;
+            }
+
+            return false;
 
             bool CanApplyChange(DocumentId documentId)
             {

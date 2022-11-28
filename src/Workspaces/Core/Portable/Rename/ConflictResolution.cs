@@ -4,6 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -146,6 +149,31 @@ namespace Microsoft.CodeAnalysis.Rename
             // unmodified locations.  If the document wasn't modified, we can just use the 
             // original span as the new span.
             return originalSpan;
+        }
+
+        public async Task QueueRenameNotificationsAsync(CancellationToken cancellationToken)
+        {
+            var renameSymbolNotificationService = NewSolution.Workspace.Services.GetService<IRenameSymbolNotificationService>();
+            if (renameSymbolNotificationService is not null)
+            {
+                foreach (var documentId in DocumentIds)
+                {
+                    var changedDocument = await NewSolution.GetRequiredDocumentAsync(documentId, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var root = await changedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var annotatedNodes = root.GetAnnotatedNodes(RenameSymbolAnnotation.RenameSymbolKind);
+                    var semanticModel = await changedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    foreach (var annotatedNode in annotatedNodes)
+                    {
+                        var annotation = annotatedNode.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind).Single();
+                        RoslynDebug.AssertNotNull(annotation.Data);
+
+                        var symbol = semanticModel.GetDeclaredSymbol(annotatedNode, cancellationToken);
+                        RoslynDebug.AssertNotNull(symbol);
+
+                        await renameSymbolNotificationService.QueueNotificationForSolutionAsync(NewSolution, annotation.Data, symbol.GetSymbolKey(cancellationToken).ToString(), cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
         }
     }
 }
