@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private readonly string _insert_into_string_table_values_0 = $"insert into {StringInfoTableName}({DataColumnName}) values (?)";
         private readonly string _select_star_from_string_table_where_0_limit_one = $"select * from {StringInfoTableName} where ({DataColumnName} = ?) limit 1";
+        private readonly string _select_star_from_string_table = $"select * from {StringInfoTableName}";
 
         private SQLitePersistentStorage(
             SQLiteConnectionPoolService connectionPoolService,
@@ -188,6 +189,8 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             // the same shape.
             EnsureTables(connection, Database.Main);
             EnsureTables(connection, Database.WriteCache);
+
+            LoadExistingStringIds(connection);
 
             return;
 
