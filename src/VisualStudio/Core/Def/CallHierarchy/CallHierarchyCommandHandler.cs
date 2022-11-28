@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
             {
                 document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                commandExecutionContext.OperationContext).ConfigureAwait(true);
+                    commandExecutionContext.OperationContext).ConfigureAwait(true);
                 if (document == null)
                 {
                     return;
