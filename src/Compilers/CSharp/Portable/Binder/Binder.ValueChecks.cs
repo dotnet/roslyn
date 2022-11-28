@@ -3383,7 +3383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundDiscardExpression)expr).ValEscape;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    return GetPlaceholder((BoundDeconstructValuePlaceholder)expr);
+                    return GetPlaceholderScope((BoundDeconstructValuePlaceholder)expr);
 
                 case BoundKind.Local:
                     return GetLocalScopes(((BoundLocal)expr).LocalSymbol).ValEscapeScope;
@@ -3648,7 +3648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                     // We saved off the safe-to-escape of the argument when we did binding
-                    return GetPlaceholder((BoundInterpolatedStringArgumentPlaceholder)expr);
+                    return GetPlaceholderScope((BoundInterpolatedStringArgumentPlaceholder)expr);
 
                 case BoundKind.DisposableValuePlaceholder:
                     // Disposable value placeholder is only ever used to lookup a pattern dispose method
@@ -3656,7 +3656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return scopeOfTheContainingExpression;
 
                 case BoundKind.AwaitableValuePlaceholder:
-                    return ((BoundAwaitableValuePlaceholder)expr).ValEscape;
+                    return GetPlaceholderScope((BoundAwaitableValuePlaceholder)expr);
 
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
@@ -3799,7 +3799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    if (GetPlaceholder((BoundDeconstructValuePlaceholder)expr) > escapeTo)
+                    if (GetPlaceholderScope((BoundDeconstructValuePlaceholder)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;
@@ -3807,7 +3807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.AwaitableValuePlaceholder:
-                    if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
+                    if (GetPlaceholderScope((BoundAwaitableValuePlaceholder)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;
@@ -3815,7 +3815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
-                    if (GetPlaceholder((BoundInterpolatedStringArgumentPlaceholder)expr) > escapeTo)
+                    if (GetPlaceholderScope((BoundInterpolatedStringArgumentPlaceholder)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;

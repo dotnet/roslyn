@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     hasErrors |= ReportUseSite(awaitableTypeOpt, diagnostics, awaitKeyword);
-                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, valEscape: originalBinder.LocalScopeDepth, awaitableTypeOpt).MakeCompilerGenerated();
+                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
                     awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, diagnostics, ref hasErrors);
                 }
             }

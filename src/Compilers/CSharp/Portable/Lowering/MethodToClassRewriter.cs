@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return node;
             }
 
-            var rewrittenPlaceholder = awaitablePlaceholder.Update(awaitablePlaceholder.ValEscape, VisitType(awaitablePlaceholder.Type));
+            var rewrittenPlaceholder = awaitablePlaceholder.Update(VisitType(awaitablePlaceholder.Type));
             _placeholderMap.Add(awaitablePlaceholder, rewrittenPlaceholder);
 
             var getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);

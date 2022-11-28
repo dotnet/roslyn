@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _inUnsafeRegion;
         private uint _localScopeDepth;
         private Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? _localEscapeScopes;
-        private Dictionary<BoundValuePlaceholderBase, uint>? _placeholders;
+        private Dictionary<BoundValuePlaceholderBase, uint>? _placeholderScopes;
         private uint _patternInputValEscape;
 
         private RefSafetyAnalysis(
@@ -154,11 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private (uint RefEscapeScope, uint ValEscapeScope) GetLocalScopes(LocalSymbol local)
         {
-            if (_localEscapeScopes?.TryGetValue(local, out var scopes) != true)
-            {
-                throw ExceptionUtilities.UnexpectedValue(local);
-            }
-            return scopes;
+            Debug.Assert(_localEscapeScopes is { });
+            return _localEscapeScopes[local];
         }
 
         // PROTOTYPE: When we leave the current scope, we should remove locals from this dictionary.
@@ -169,20 +166,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
         }
 
-        private void AddPlaceholder(BoundValuePlaceholderBase placeholder, uint valEscapeScope)
+        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, uint valEscapeScope)
         {
-            _placeholders ??= new Dictionary<BoundValuePlaceholderBase, uint>();
-            _placeholders.Add(placeholder, valEscapeScope);
+            _placeholderScopes ??= new Dictionary<BoundValuePlaceholderBase, uint>();
+            _placeholderScopes.Add(placeholder, valEscapeScope);
         }
 
-        private void RemovePlaceholder(BoundValuePlaceholderBase placeholder)
+        private void RemovePlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
-            _placeholders!.Remove(placeholder);
+            Debug.Assert(_placeholderScopes is { });
+            _placeholderScopes.Remove(placeholder);
         }
 
-        private uint GetPlaceholder(BoundValuePlaceholderBase placeholder)
+        private uint GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
-            return _placeholders![placeholder];
+            Debug.Assert(_placeholderScopes is { });
+            return _placeholderScopes[placeholder];
         }
 
         public override BoundNode? VisitBlock(BoundBlock node)
@@ -210,14 +209,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             using var _ = new LocalScope(this);
             AddLocals(fieldEqualsValue.Locals);
 
+            base.Visit(fieldEqualsValue.Value);
+
             var field = fieldEqualsValue.Field;
             bool isByRef = field.RefKind != RefKind.None;
             if (isByRef || field.Type.IsRefLikeType)
             {
                 ValidateEscape(fieldEqualsValue.Value, Binder.CallingMethodScope, isByRef: isByRef, _diagnostics);
             }
-
-            base.Visit(fieldEqualsValue.Value);
         }
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -403,26 +402,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitReturnStatement(BoundReturnStatement node)
         {
+            base.VisitReturnStatement(node);
             if (node.ExpressionOpt is { Type: { } } expr)
             {
                 ValidateEscape(expr, Binder.ReturnOnlyScope, node.RefKind != RefKind.None, _diagnostics);
             }
-            return base.VisitReturnStatement(node);
+            return null;
         }
 
         public override BoundNode? VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
+            base.VisitYieldReturnStatement(node);
             if (node.Expression is { Type: { } } expr)
             {
                 ValidateEscape(expr, Binder.ReturnOnlyScope, isByRef: false, _diagnostics);
             }
-            return base.VisitYieldReturnStatement(node);
+            return null;
         }
 
         public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
         {
+            base.VisitAssignmentOperator(node);
             ValidateAssignment(node.Syntax, node.Left, node.Right, node.IsRef, _diagnostics);
-            return base.VisitAssignmentOperator(node);
+            return null;
         }
 
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
@@ -488,11 +490,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
         {
+            base.VisitConditionalOperator(node);
             if (node.IsRef)
             {
                 ValidateRefConditionalOperator(node.Syntax, node.Consequence, node.Alternative, _diagnostics);
             }
-            return base.VisitConditionalOperator(node);
+            return null;
         }
 
         public override BoundNode? VisitCall(BoundCall node)
@@ -516,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 foreach (var (placeholder, valEscapeScope) in placeholders)
                 {
-                    AddPlaceholder(placeholder, valEscapeScope);
+                    AddPlaceholderScope(placeholder, valEscapeScope);
                 }
                 CheckInvocationArgMixing(
                     node.Syntax,
@@ -530,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _diagnostics);
                 foreach (var (placeholder, _) in placeholders)
                 {
-                    RemovePlaceholder(placeholder);
+                    RemovePlaceholderScope(placeholder);
                 }
                 placeholders.Free();
             }
@@ -613,6 +616,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
+        {
+            var placeholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
+            AddPlaceholderScope(placeholder, GetValEscape(node.Expression, _localScopeDepth));
+            base.VisitAwaitExpression(node);
+            RemovePlaceholderScope(placeholder);
+            return null;
+        }
+
         // Based on NullableWalker.VisitDeconstructionAssignmentOperator().
         public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
@@ -656,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            AddPlaceholder(conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right, _localScopeDepth));
+            AddPlaceholderScope(conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right, _localScopeDepth));
 
             var parameters = deconstructMethod.Parameters; // PROTOTYPE: Remove if not needed.
             int n = variables.Count;
@@ -671,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 uint valEscape = nestedVariables is null
                     ? GetValEscape(variable.Expression, _localScopeDepth)
                     : _localScopeDepth;
-                AddPlaceholder(arg, valEscape);
+                AddPlaceholderScope(arg, valEscape);
             }
 
             CheckInvocationArgMixing(
@@ -766,12 +778,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (placeholder is { })
             {
-                AddPlaceholder(placeholder, collectionEscape);
+                AddPlaceholderScope(placeholder, collectionEscape);
             }
             base.VisitForEachStatement(node);
             if (placeholder is { })
             {
-                RemovePlaceholder(placeholder);
+                RemovePlaceholderScope(placeholder);
             }
             return null;
         }

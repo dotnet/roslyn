@@ -583,29 +583,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAwaitableValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol? type, bool hasErrors)
+        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
             : base(BoundKind.AwaitableValuePlaceholder, syntax, type, hasErrors)
         {
-            this.ValEscape = valEscape;
         }
 
-        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol? type)
+        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, TypeSymbol? type)
             : base(BoundKind.AwaitableValuePlaceholder, syntax, type)
         {
-            this.ValEscape = valEscape;
         }
 
         public new TypeSymbol? Type => base.Type;
-        public uint ValEscape { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAwaitableValuePlaceholder(this);
 
-        public BoundAwaitableValuePlaceholder Update(uint valEscape, TypeSymbol? type)
+        public BoundAwaitableValuePlaceholder Update(TypeSymbol? type)
         {
-            if (valEscape != this.ValEscape || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAwaitableValuePlaceholder(this.Syntax, valEscape, type, this.HasErrors);
+                var result = new BoundAwaitableValuePlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10273,7 +10270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ValEscape, type);
+            return node.Update(type);
         }
         public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
         {
@@ -11670,7 +11667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            BoundAwaitableValuePlaceholder updatedNode = node.Update(node.ValEscape, infoAndType.Type);
+            BoundAwaitableValuePlaceholder updatedNode = node.Update(infoAndType.Type);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -14220,7 +14217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, object? arg) => new TreeDumperNode("awaitableValuePlaceholder", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("valEscape", node.ValEscape, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
