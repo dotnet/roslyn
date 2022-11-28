@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed partial class DiagnosticsSuggestionTaggerProvider :
         AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
-            ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
-
-        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        protected internal override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
             // lsp client.
