@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         // 630-650 for sqlite errors.
         SQLite_SqlException = 630,
         SQLite_StorageDisabled = 631,
-        
+
         CodeFixes_GetChanges = 651,
         CodeFixes_GetAndApplyChanges = 652,
     }
