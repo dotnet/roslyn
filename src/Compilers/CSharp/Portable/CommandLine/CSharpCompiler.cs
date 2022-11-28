@@ -438,8 +438,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!licenseManager.CanConsume(LicenseRequirement.Free))
                 {
-                    diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                        (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
+                    if (!licenseManager.Messages.Any(m => m.IsError))
+                    {
+                        diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
+                            (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
+                    }
+                    // else emit the error(s) in CommonCompiler.DisposeServices() method.
+
                     return TransformersResult.Failure(inputCompilation);
                 }
 
