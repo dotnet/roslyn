@@ -155,8 +155,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using (Logger.LogBlock(
                        FunctionId.CodeFixes_GetChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
-                    if (options != null && CodeAction is CodeActionWithOptions codeActionWithOptions)
+                    if (options != null)
                     {
+                        var codeActionWithOptions = (CodeActionWithOptions)CodeAction;
                         operations = await GetOperationsAsync(codeActionWithOptions, options, cancellationToken).ConfigureAwait(true);
                     }
                     else
