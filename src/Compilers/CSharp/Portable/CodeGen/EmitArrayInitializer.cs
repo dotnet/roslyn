@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 ImmutableArray<byte> data = this.GetRawData(initExprs);
-                _builder.EmitArrayBlockInitializer(data, inits.Syntax, _diagnostics);
+                _builder.EmitArrayBlockInitializer(data, inits.Syntax, _diagnostics.DiagnosticBag);
 
                 if (initializationStyle == ArrayInitializerStyle.Mixed)
                 {
@@ -236,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             get
             {
-                var sustainedLowLatency = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
-                return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == _module.Compilation.Assembly.CorLibrary;
+                return _module.Compilation.EnableEnumArrayBlockInitialization;
             }
         }
 
@@ -384,11 +383,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            var ctor = ((MethodSymbol?)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer));
+            var ctor = (MethodSymbol?)Binder.GetWellKnownTypeMember(this._module.Compilation, WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
+
             if (ctor == null)
             {
                 return false;
             }
+
+            Debug.Assert(!ctor.HasUnsupportedMetadata);
 
             if (wrappedExpression is BoundArrayCreation ac)
             {
@@ -471,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return false;
                 }
 
-                _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics);
+                _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
                 _builder.EmitIntConstant(lengthForConstructor);
 
                 if (inPlace)

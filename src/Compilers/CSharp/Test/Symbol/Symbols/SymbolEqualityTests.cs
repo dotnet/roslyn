@@ -341,7 +341,6 @@ public class B
             var comp2 = (Compilation)CreateCompilation(source2, new[] { new CSharpCompilationReference((CSharpCompilation)comp1) });
             comp2.VerifyDiagnostics();
 
-
             var type1comp1 = ((IFieldSymbol)comp1.GetMember("A.field1")).Type;
             var type1comp2 = ((IFieldSymbol)comp2.GetMember("A.field1")).Type;
             var type2 = ((IFieldSymbol)comp2.GetMember("B.field2")).Type;

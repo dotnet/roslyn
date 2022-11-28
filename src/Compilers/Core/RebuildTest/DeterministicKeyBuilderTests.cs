@@ -716,7 +716,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             AssertJsonCore(expected, obj.ToString(Formatting.Indented));
         }
 
-
         [Theory]
         [InlineData(@"c:\src\data.txt", null, null)]
         [InlineData(@"d:\src\data.txt", @"d:\", @"c:\")]

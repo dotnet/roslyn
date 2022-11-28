@@ -178,8 +178,8 @@ class Program
             SyntaxFactory.ParseExpression(code);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13719")]
-        public void ReportErrorForIncompleteMember()
+        [Fact, WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void ReportErrorForIncompleteMember1()
         {
             var test = @"
 class A
@@ -190,11 +190,25 @@ class A
             ParseAndValidate(test,
                 // (6,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1),
-                // (4,16): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                //     [Obsolete(2l)]
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 16)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1));
+        }
+
+        [Fact, WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void ReportErrorForIncompleteMember2()
+        {
+            var test = @"
+class A
+{
+    #warning hello
+    public int
+}";
+            ParseAndValidate(test,
+                // (4,14): warning CS1030: #warning: 'hello'
+                //     #warning hello
+                Diagnostic(ErrorCode.WRN_WarningDirective, "hello").WithArguments("hello").WithLocation(4, 14),
+                // (6,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1));
         }
 
         [Fact]

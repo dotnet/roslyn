@@ -265,7 +265,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 updaterService, FileName);
 
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
-                description: CSharpVSResources.Allow_bank_line_after_colon_in_constructor_initializer,
+                description: CSharpVSResources.Allow_blank_line_after_colon_in_constructor_initializer,
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression,
+                description: CSharpVSResources.Allow_blank_line_after_token_in_conditional_expression,
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause,
+                description: CSharpVSResources.Allow_blank_line_after_token_in_arrow_expression_clause,
                 editorConfigOptions,
                 visualStudioOptions,
                 updaterService, FileName);

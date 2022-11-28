@@ -1814,7 +1814,6 @@ int M(out int val)
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(4, 20));
     }
 
-
     [Fact]
     public void TestWhitespaceMismatch1()
     {

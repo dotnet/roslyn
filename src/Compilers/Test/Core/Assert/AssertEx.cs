@@ -297,8 +297,7 @@ namespace Roslyn.Test.Utilities
             Assert.True(false, messageBuilder.ToString());
         }
 
-        public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
-            string itemSeparator = null, Func<T, string> itemInspector = null)
+        public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null)
         {
             if (ReferenceEquals(expected, actual))
             {
