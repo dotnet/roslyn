@@ -250,13 +250,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         public static readonly FixIdDefinition? UseCoalesceCompoundAssignmentDiagnosticId;
 
         [Export]
-        [FixId(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId)]
+        [FixId(IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId)]
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
         [ConfigurationKey("unused")]
-        [HelpLink($"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId}")]
+        [HelpLink($"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId}")]
         [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Apply_coalesce_expression_preferences))]
-        public static readonly FixIdDefinition? UseCoalesceExpressionDiagnosticId;
+        public static readonly FixIdDefinition? UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId)]

@@ -128,8 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
         public string Error => CanSubmit ? string.Empty : Message ?? string.Empty;
 
-        public string this[string columnName] =>
-            columnName switch
+        public string this[string columnName]
+            => columnName switch
             {
                 nameof(NamespaceName) => Error,
                 _ => string.Empty

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
-        protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
+        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InlineDiagnosticsOptions.EnableInlineDiagnostics);
+        protected sealed override ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray.Create<IOption>(InlineDiagnosticsOptions.Location);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -55,19 +57,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        protected internal override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We support inline diagnostics in both push and pull (since lsp doesn't support inline diagnostics yet).
             return true;
-        }
-
-        // Need to override this from AbstractDiagnosticsTaggerProvider because the location option needs to be added
-        // to the TaggerEventSource, otherwise it does not get updated until there is a change in the editor.
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            return TaggerEventSources.Compose(
-                base.CreateEventSource(textView, subjectBuffer),
-                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineDiagnosticsOptions.Location));
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
