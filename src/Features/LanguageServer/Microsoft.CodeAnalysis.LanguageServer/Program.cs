@@ -39,9 +39,9 @@ MSBuildLocator.RegisterInstance(msbuildInstances.First());
 
 var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
 var hostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
-using (var workspace = await HostWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, hostServices, logger))
+using (var workspace = await LanguageServerWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, hostServices, loggerFactory))
 {
-    var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, hostServices, logger);
+    var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, hostServices, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
 
     await jsonRpc.StartAsync().ConfigureAwait(false);
 }
