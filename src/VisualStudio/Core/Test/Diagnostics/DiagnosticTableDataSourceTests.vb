@@ -692,7 +692,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.IsEnabledByDefault,
                             diagnostic1.WarningLevel,
                             diagnostic1.CustomTags,
-                            diagnostic1.Properties,
+                            diagnostic1.Properties.AddRange(DiagnosticData.PropertiesForBuildDiagnostic),
                             diagnostic1.ProjectId,
                             New DiagnosticDataLocation(
                                 diagnostic1.DataLocation.UnmappedFileSpan,
@@ -716,7 +716,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.IsEnabledByDefault,
                             diagnostic2.WarningLevel,
                             diagnostic2.CustomTags,
-                            diagnostic2.Properties,
+                            diagnostic2.Properties.AddRange(DiagnosticData.PropertiesForBuildDiagnostic),
                             diagnostic2.ProjectId,
                             New DiagnosticDataLocation(
                                 diagnostic2.DataLocation.UnmappedFileSpan,
