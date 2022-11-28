@@ -62,23 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private SortOption _sortOption;
 
         /// <summary>
-        /// Queue to batch up work to do to compute the data model. Used so we can batch up a lot of events 
-        /// and only fetch the model once for every batch. The bool parameter is unused.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _computeDataModelQueue;
-
-        /// <summary>
-        /// Queue to batch up work to do to filter and sort the data model. The bool parameter is unused.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?> _filterAndSortDataModelQueue;
-
-        /// <summary>
-        /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
-        /// then update the UI.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<ExpansionOption> _highlightExpandAndPresentItemsQueue;
-
-        /// <summary>
         /// Keeps track of the current primary and secondary text views. Should only be accessed by the UI thread.
         /// </summary>
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
@@ -100,23 +83,23 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _cancellationTokenSource = new CancellationTokenSource();
             SortOption = SortOption.Location;
 
-            _computeDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
+            _documentSymbolQueue = new AsyncBatchingWorkQueue<DocumentOutlineSettings?, DocumentSymbolDataModel?>(
                 DelayTimeSpan.Short,
-                ComputeDataModelAsync,
-                EqualityComparer<bool>.Default,
+                GetDocumentSymbolAsync,
+                EqualityComparer<DocumentOutlineSettings?>.Default,
                 asyncListener,
                 CancellationToken);
 
-            _filterAndSortDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
+            _filterAndSortQueue = new AsyncBatchingWorkQueue<FilterAndSortOptions, DocumentSymbolDataModel?>(
                 DelayTimeSpan.NearImmediate,
                 FilterAndSortDataModelAsync,
-                EqualityComparer<bool>.Default,
+                EqualityComparer<FilterAndSortOptions>.Default,
                 asyncListener,
                 CancellationToken);
 
-            _highlightExpandAndPresentItemsQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
+            _updateUIQueue = new AsyncBatchingWorkQueue<UIData>(
                 DelayTimeSpan.NearImmediate,
-                HighlightExpandAndPresentItemsAsync,
+                UpdateUIAsync,
                 asyncListener,
                 CancellationToken);
 
@@ -150,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _textViewEventSource.Changed += OnEventSourceChanged;
             _textViewEventSource.Connect();
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-            EnqueueComputeDataModelTask();
+            EnqueuGetSettingsTask();
         }
 
         public void Dispose()
@@ -203,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            => EnqueueComputeDataModelTask();
+            => EnqueuGetSettingsTask();
 
         /// <summary>
         /// On caret position change, highlight the corresponding symbol node in the window and update the view.
@@ -211,17 +194,44 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
             if (!e.NewPosition.Equals(e.OldPosition))
-                EnqueueHighlightExpandAndPresentItemsTask(ExpansionOption.CurrentExpansion);
+                EnqueueUpdateUITask(ExpansionOption.CurrentExpansion, TryGetCurrentCaretPoint(e.NewPosition));
+        }
+
+        private SnapshotPoint? TryGetCurrentCaretPoint(CaretPosition? newPosition = null)
+        {
+            var activeTextView = GetLastActiveIWpfTextView();
+            if (activeTextView is null)
+            {
+                return null;
+            }
+
+            var textBuffer = activeTextView.TextBuffer;
+
+            if (newPosition is not null)
+            {
+                return newPosition.Value.Point.GetPoint(textBuffer, PositionAffinity.Predecessor);
+            }
+
+            return ITextViewExtensions.GetCaretPoint(activeTextView, textBuffer);
+        }
+
+        private IWpfTextView? GetLastActiveIWpfTextView()
+        {
+            // If we return null, the calling queue returns and we stop processing.
+            if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
+                return null;
+
+            return _editorAdaptersFactoryService.GetWpfTextView(textView);
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => EnqueueHighlightExpandAndPresentItemsTask(ExpansionOption.Expand);
+            => EnqueueUpdateUITask(ExpansionOption.Expand, TryGetCurrentCaretPoint());
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => EnqueueHighlightExpandAndPresentItemsTask(ExpansionOption.Collapse);
+            => EnqueueUpdateUITask(ExpansionOption.Collapse, TryGetCurrentCaretPoint());
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
-            => EnqueueFilterAndSortDataModelTask();
+            => EnqueueFilterAndSortDataModelTask(SearchBox.Text, SortOption, TryGetCurrentCaretPoint());
 
         private void SortByName(object sender, EventArgs e)
             => SetSortOptionAndUpdateDataModel(SortOption.Name);
@@ -235,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void SetSortOptionAndUpdateDataModel(SortOption sortOption)
         {
             SortOption = sortOption;
-            EnqueueFilterAndSortDataModelTask();
+            EnqueueFilterAndSortDataModelTask(SearchBox.Text, SortOption, TryGetCurrentCaretPoint());
         }
 
         /// <summary>
