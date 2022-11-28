@@ -104,7 +104,7 @@ internal partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
         }
 
         private async Task ProduceTagsAsync(
-            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
+            TaggerContext<TTag> context, DocumentSnapshotSpan documentSpanToTag, CancellationToken cancellationToken)
         {
             if (!_callback.IsEnabled)
                 return;
@@ -113,11 +113,11 @@ internal partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
             if (!_callback.SupportsDiagnosticMode(diagnosticMode))
                 return;
 
-            var document = spanToTag.Document;
+            var document = documentSpanToTag.Document;
             if (document == null)
                 return;
 
-            var snapshot = spanToTag.SnapshotSpan.Snapshot;
+            var snapshot = documentSpanToTag.SnapshotSpan.Snapshot;
 
             var workspace = document.Project.Solution.Workspace;
 
@@ -130,15 +130,24 @@ internal partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
 
             var sourceText = snapshot.AsText();
 
+            // For semantic requests we currently tag the entire document.  This is because sub-span requests are not
+            // cached in the analyzer service.  And we don't want to have the user do something like scroll (to
+            // something still in view) and have that kick off all the work again.  At the point where the service can
+            // cache, we can then just have it compute diagnostics for what is in view.  Tracked with:
+            // https://github.com/dotnet/roslyn/issues/65637
+            var spanToTag = _diagnosticKind is DiagnosticKind.AnalyzerSemantic or DiagnosticKind.CompilerSemantic
+                ? snapshot.GetFullSpan().Span.ToTextSpan()
+                : documentSpanToTag.SnapshotSpan.Span.ToTextSpan();
+
             try
             {
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
                     document,
-                    spanToTag.SnapshotSpan.Span.ToTextSpan(),
+                    spanToTag,
                     diagnosticKind: _diagnosticKind,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                var requestedSpan = spanToTag.SnapshotSpan;
+                var requestedSpan = documentSpanToTag.SnapshotSpan;
 
                 foreach (var diagnosticData in diagnostics)
                 {
