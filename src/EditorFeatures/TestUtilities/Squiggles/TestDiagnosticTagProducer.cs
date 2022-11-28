@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
+        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs, DiagnosticKind diagnosticKind)
         {
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             var source = new TestDiagnosticUpdateSource(globalOptions);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             using var disposable = (IDisposable)tagger;
 
             var analyzerServer = (MockDiagnosticAnalyzerService)workspace.GetService<IDiagnosticAnalyzerService>();
-            analyzerServer.Diagnostics = updateArgs.GetAllDiagnosticsRegardlessOfPushPullSetting();
+            analyzerServer.AddDiagnostics(updateArgs.GetAllDiagnosticsRegardlessOfPushPullSetting(), diagnosticKind);
 
             source.RaiseDiagnosticsUpdated(updateArgs);
 

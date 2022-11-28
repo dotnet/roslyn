@@ -116,8 +116,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.False(spans.IsEmpty());
         }
 
-        [WpfFact]
-        public async Task TestWithMockDiagnosticService_TaggerProviderCreatedBeforeInitialDiagnosticsReported()
+        [WpfTheory]
+        [InlineData(DiagnosticKind.CompilerSyntax)]
+        [InlineData(DiagnosticKind.CompilerSemantic)]
+        [InlineData(DiagnosticKind.AnalyzerSyntax)]
+        [InlineData(DiagnosticKind.AnalyzerSemantic)]
+        internal async Task TestWithMockDiagnosticService_TaggerProviderCreatedBeforeInitialDiagnosticsReported(DiagnosticKind diagnosticKind)
         {
             // This test produces diagnostics from a mock service so that we are disconnected from
             // all the asynchrony of the actual async analyzer engine.  If this fails, then the 
@@ -144,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // Now product the first diagnostic and fire the events.
             var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetRequiredSyntaxTreeAsync(CancellationToken.None);
             var span = TextSpan.FromBounds(0, 5);
-            diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span));
+            diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span), diagnosticKind);
 
             using var disposable = tagger as IDisposable;
             await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
@@ -156,8 +160,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(span.ToSpan(), spans[0].Span.Span);
         }
 
-        [WpfFact]
-        public async Task TestWithMockDiagnosticService_TaggerProviderCreatedAfterInitialDiagnosticsReported()
+        [WpfTheory]
+        [InlineData(DiagnosticKind.CompilerSyntax)]
+        [InlineData(DiagnosticKind.CompilerSemantic)]
+        [InlineData(DiagnosticKind.AnalyzerSyntax)]
+        [InlineData(DiagnosticKind.AnalyzerSemantic)]
+        internal async Task TestWithMockDiagnosticService_TaggerProviderCreatedAfterInitialDiagnosticsReported(DiagnosticKind diagnosticKind)
         {
             // This test produces diagnostics from a mock service so that we are disconnected from
             // all the asynchrony of the actual async analyzer engine.  If this fails, then the 
@@ -179,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // Create and fire the diagnostic events before the tagger is even made.
             var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetRequiredSyntaxTreeAsync(CancellationToken.None);
             var span = TextSpan.FromBounds(0, 5);
-            diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span));
+            diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span), diagnosticKind);
 
             var firstDocument = workspace.Documents.First();
             var tagger = provider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
