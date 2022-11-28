@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.SyntaxTree.IsParameterModifierContext(
                     position, context.LeftToken, includeOperators: true, out var parameterIndex, out var previousModifier))
             {
-                if (previousModifier is SyntaxKind.None or SyntaxKind.ScopedKeyword)
+                if (previousModifier == SyntaxKind.None)
                 {
                     return true;
                 }
