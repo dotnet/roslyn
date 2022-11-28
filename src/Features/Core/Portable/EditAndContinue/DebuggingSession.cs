@@ -1010,10 +1010,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // TODO: https://github.com/dotnet/roslyn/issues/1204
                         // oldProject == null ==> project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
                         // correspond to the PDB.
-                        var id = (oldProject?.SupportsEditAndContinue() == true) ?
-                            await GetChangedDocumentContainingUnmappedActiveStatementAsync(
-                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) :
-                            null;
+                        var id = (oldProject?.SupportsEditAndContinue() == true)
+                            ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false)
+                            : null;
 
                         Interlocked.CompareExchange(ref documentId, id, null);
                         if (id != null)

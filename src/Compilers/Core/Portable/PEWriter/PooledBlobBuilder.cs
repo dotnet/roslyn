@@ -21,9 +21,8 @@ namespace Microsoft.Cci
         {
         }
 
-        public static PooledBlobBuilder GetInstance(int size = ChunkSize)
+        public static PooledBlobBuilder GetInstance()
         {
-            // TODO: use size
             return s_chunkPool.Allocate();
         }
 

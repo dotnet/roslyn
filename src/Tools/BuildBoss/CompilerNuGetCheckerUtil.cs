@@ -156,17 +156,17 @@ namespace BuildBoss
             return allGood;
         }
 
-        private string GetProjectOutputDirectory(string projectName, string tfm) =>
-            Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm);
+        private string GetProjectOutputDirectory(string projectName, string tfm)
+            => Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm);
 
-        private string GetProjectPublishDirectory(string projectName, string tfm) =>
-            Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm, "publish");
+        private string GetProjectPublishDirectory(string projectName, string tfm)
+            => Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm, "publish");
 
         private static bool VerifyPackageCore(
             TextWriter textWriter,
             string packageFilePath,
-            params (string PackageFolderRelativePath, string BuildOutputFolder)[] packageInputs) =>
-            VerifyPackageCore(
+            params (string PackageFolderRelativePath, string BuildOutputFolder)[] packageInputs)
+            => VerifyPackageCore(
                 textWriter,
                 packageFilePath,
                 static _ => false,
@@ -366,7 +366,6 @@ namespace BuildBoss
                 }
             }
         }
-
 
         private string FindNuGetPackage(string directory, string partialName)
         {

@@ -389,7 +389,6 @@ class C
                 var offSym = interopNS.GetTypeMember("FieldOffsetAttribute");
                 var mshSym = interopNS.GetTypeMember("MarshalAsAttribute");
 
-
                 var optSym = interopNS.GetTypeMember("OptionalAttribute");
                 var inSym = interopNS.GetTypeMember("InAttribute");
                 var outSym = interopNS.GetTypeMember("OutAttribute");
@@ -8718,7 +8717,6 @@ class C2 : C1
 
             verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
 
-
             // WithSpecificDiagnosticOption for id TEST1
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Warn)),
                 // (6,9): warning TEST1: 'C1.M1()' is obsolete
@@ -8739,7 +8737,6 @@ class C2 : C1
                 );
 
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Suppress)));
-
 
             // WithSpecificDiagnosticOption for id CS0618
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Error)),

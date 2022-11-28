@@ -6991,7 +6991,6 @@ static class Program
             );
         }
 
-
         [Fact]
         [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
         public void Bug41779_Extension()

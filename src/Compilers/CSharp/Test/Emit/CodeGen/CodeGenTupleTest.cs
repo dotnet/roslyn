@@ -413,7 +413,6 @@ class C4 : C2
             comp3.VerifyDiagnostics();
         }
 
-
         [Fact]
         public void InterfaceAttributes()
         {
@@ -8467,7 +8466,6 @@ class C
             Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node.Parent).Kind);
 
-
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
         }
@@ -16112,16 +16110,18 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         if (o is (int, int) t) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int, int)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         if (o is (int, int) t) { }
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18),
                 // (6,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(6, 19),
                 // (6,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(6, 24),
-                // (6,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(6, 24));
         }
 
         [Fact]
@@ -16157,7 +16157,6 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -16211,16 +16210,18 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 19),
-                // (7,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 24),
-                // (7,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18)
-               );
+                    // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                    //             case (int, int) tuple: return;
+                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int, int)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
+                    // (7,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                    //             case (int, int) tuple: return;
+                    Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18),
+                    // (7,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //             case (int, int) tuple: return;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 19),
+                    // (7,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //             case (int, int) tuple: return;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 24));
         }
 
         [Fact]
@@ -17048,7 +17049,6 @@ public class C2
             var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
 
-
             var source = @"
 extern alias alias1;
 
@@ -17103,7 +17103,6 @@ public class C2
             comp1.VerifyDiagnostics();
             var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
-
 
             var source = @"
 extern alias alias1;
@@ -18870,7 +18869,6 @@ class Program
 
             var int_string2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType);
             var int_object2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, objectType);
-
 
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_object2).Kind);
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_object1).Kind);
@@ -22480,7 +22478,6 @@ public class C
                 );
         }
 
-
         [Fact, WorkItem(10951, "https://github.com/dotnet/roslyn/issues/10951")]
         public void ObsoleteValueTuple2()
         {
@@ -23479,7 +23476,6 @@ namespace ConsoleApplication5
             Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Goo(System.Int32 arg)", b.ToTestDisplayString());
 
         }
-
 
         [Fact]
         [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
@@ -29102,6 +29098,665 @@ True
   IL_0009:  call       ""ImplicitConversionTargetType<System.ValueTuple<int, bool>?> ImplicitConversionTargetType<System.ValueTuple<int, bool>?>.op_Implicit(System.ValueTuple<int, bool>?)""
   IL_000e:  ret
 }");
+        }
+
+        [Fact]
+        public void TupleAssignment_01()
+        {
+            var source = """
+                class C
+                {
+                    void M1(int x, int y)
+                    {
+                        (x, y) = (y, x);
+                    }
+
+                    void M2(int x, int y)
+                    {
+                        int temp = y; // push 'y'
+                        y = x;
+                        x = temp; // pop 'y'
+                    }
+
+                    void M3(int x, int y)
+                    {
+                        int tempY = y; // push
+                        int tempX = x; // push
+                        y = tempX; // pop
+                        x = tempY; // pop
+                    }
+
+                    // here the writes don't happen in the opposite order of the reads.
+                    // to preserve order of writes, we have to create a local instead of just pushing and popping from the stack.
+                    void M4(int x, int y)
+                    {
+                        int tempX = x;
+                        int tempY = y;
+                        y = tempX;
+                        x = tempY;
+                    }
+                }
+                """;
+
+            var expectedIL = """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  2
+                  IL_0000:  ldarg.2
+                  IL_0001:  ldarg.1
+                  IL_0002:  starg.s    V_2
+                  IL_0004:  starg.s    V_1
+                  IL_0006:  ret
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+            verifier.VerifyIL("C.M3", expectedIL);
+
+            verifier.VerifyIL("C.M4", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  .locals init (int V_0) //tempY
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldarg.2
+                  IL_0002:  stloc.0
+                  IL_0003:  starg.s    V_2
+                  IL_0005:  ldloc.0
+                  IL_0006:  starg.s    V_1
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TupleAssignment_02()
+        {
+            var source = """
+                using System;
+
+                C.M1(1, 2);
+                C.M2(1, 2);
+
+                class C
+                {
+                    public static void M1(int x, int y)
+                    {
+                        var value = (x, y) = (y, x);
+                        Console.WriteLine(value);
+                    }
+
+                    public static void M2(int x, int y)
+                    {
+                        int tempY = y; // push
+                        int tempX = x; // push
+                        y = tempX; // pop
+                        x = tempY; // pop
+                        var value = (tempY, tempX);
+                        Console.WriteLine(value);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: """
+                (2, 1)
+                (2, 1)
+                """);
+
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloc.0
+                  IL_0004:  starg.s    V_1
+                  IL_0006:  dup
+                  IL_0007:  starg.s    V_0
+                  IL_0009:  ldloc.0
+                  IL_000a:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+                  IL_000f:  box        "System.ValueTuple<int, int>"
+                  IL_0014:  call       "void System.Console.WriteLine(object)"
+                  IL_0019:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.M2", """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  2
+                  .locals init (int V_0, //tempY
+                                int V_1) //tempX
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.0
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloc.1
+                  IL_0005:  starg.s    V_1
+                  IL_0007:  ldloc.0
+                  IL_0008:  starg.s    V_0
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldloc.1
+                  IL_000c:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+                  IL_0011:  box        "System.ValueTuple<int, int>"
+                  IL_0016:  call       "void System.Console.WriteLine(object)"
+                  IL_001b:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TupleAssignment_03()
+        {
+            var source = """
+                using System;
+
+                C.M1();
+                C.M2();
+                C.M3();
+
+                class C
+                {
+                    public static void M1()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        int z = 3;
+                        (x, y)=(y, x);
+                        Console.WriteLine((x,y,z));
+                    }
+                    
+                    // equivalent to:
+                    public static void M2()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        int z = 3;
+                        int temp = y;
+                        y = x;
+                        x = temp;
+                        Console.WriteLine((x,y,z));
+                    }
+                    
+                    // a common manual swap in user code, reads the locals in a different order but observably the same
+                    public static void M3()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        int z = 3;
+                        int temp = x;
+                        x = y;
+                        y = temp;
+                        Console.WriteLine((x,y,z));
+                    }
+                }
+                """;
+
+            var expectedIL = """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  .locals init (int V_0, //x
+                                int V_1, //y
+                                int V_2) //z
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.2
+                  IL_0003:  stloc.1
+                  IL_0004:  ldc.i4.3
+                  IL_0005:  stloc.2
+                  IL_0006:  ldloc.1
+                  IL_0007:  ldloc.0
+                  IL_0008:  stloc.1
+                  IL_0009:  stloc.0
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldloc.1
+                  IL_000c:  ldloc.2
+                  IL_000d:  newobj     "System.ValueTuple<int, int, int>..ctor(int, int, int)"
+                  IL_0012:  box        "System.ValueTuple<int, int, int>"
+                  IL_0017:  call       "void System.Console.WriteLine(object)"
+                  IL_001c:  ret
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: """
+                (2, 1, 3)
+                (2, 1, 3)
+                (2, 1, 3)
+                """);
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+
+            verifier.VerifyIL("C.M3", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  .locals init (int V_0, //x
+                                int V_1, //y
+                                int V_2) //z
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.2
+                  IL_0003:  stloc.1
+                  IL_0004:  ldc.i4.3
+                  IL_0005:  stloc.2
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldloc.1
+                  IL_0008:  stloc.0
+                  IL_0009:  stloc.1
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldloc.1
+                  IL_000c:  ldloc.2
+                  IL_000d:  newobj     "System.ValueTuple<int, int, int>..ctor(int, int, int)"
+                  IL_0012:  box        "System.ValueTuple<int, int, int>"
+                  IL_0017:  call       "void System.Console.WriteLine(object)"
+                  IL_001c:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TupleAssignment_04()
+        {
+            var source = """
+                using System;
+
+                C.M1();
+                C.M2();
+                C.M3();
+                C.M4();
+
+                class C
+                {
+                    public static int Effect(int i)
+                    {
+                        Console.WriteLine("Effect: " + i);
+                        return i;
+                    }
+
+                    public static void M1()
+                    {
+                        int x, y;
+                        (x, y) = (Effect(1), Effect(2));
+                        Console.WriteLine((x, y));
+                    }
+
+                    public static void M2()
+                    {
+                        (int x, int y) = (Effect(1), Effect(2));
+                        Console.WriteLine((x, y));
+                    }
+
+                    public static void M3()
+                    {
+                        int x, y;
+                        int temp1 = Effect(1);
+                        int temp2 = Effect(2);
+                        y = temp2;
+                        x = temp1;
+                        Console.WriteLine((x, y));
+                    }
+
+                    public static void M4()
+                    {
+                        int x, y;
+                        (x, y) = ValueTuple.Create(Effect(1), Effect(2));
+                        Console.WriteLine((x, y));
+                    }
+                }
+                """;
+
+            var expectedIL = """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  2
+                  .locals init (int V_0) //y
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "int C.Effect(int)"
+                  IL_0006:  ldc.i4.2
+                  IL_0007:  call       "int C.Effect(int)"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+                  IL_0013:  box        "System.ValueTuple<int, int>"
+                  IL_0018:  call       "void System.Console.WriteLine(object)"
+                  IL_001d:  ret
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: """
+                Effect: 1
+                Effect: 2
+                (1, 2)
+                Effect: 1
+                Effect: 2
+                (1, 2)
+                Effect: 1
+                Effect: 2
+                (1, 2)
+                Effect: 1
+                Effect: 2
+                (1, 2)
+                """);
+
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+            verifier.VerifyIL("C.M3", expectedIL);
+
+            verifier.VerifyIL("C.M4", """
+            {
+              // Code size       48 (0x30)
+              .maxstack  2
+              .locals init (int V_0, //x
+                            int V_1) //y
+              IL_0000:  ldc.i4.1
+              IL_0001:  call       "int C.Effect(int)"
+              IL_0006:  ldc.i4.2
+              IL_0007:  call       "int C.Effect(int)"
+              IL_000c:  call       "System.ValueTuple<int, int> System.ValueTuple.Create<int, int>(int, int)"
+              IL_0011:  dup
+              IL_0012:  ldfld      "int System.ValueTuple<int, int>.Item1"
+              IL_0017:  stloc.0
+              IL_0018:  ldfld      "int System.ValueTuple<int, int>.Item2"
+              IL_001d:  stloc.1
+              IL_001e:  ldloc.0
+              IL_001f:  ldloc.1
+              IL_0020:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+              IL_0025:  box        "System.ValueTuple<int, int>"
+              IL_002a:  call       "void System.Console.WriteLine(object)"
+              IL_002f:  ret
+            }
+            """);
+        }
+
+        [Fact]
+        public void TupleAssignment_05()
+        {
+            var source = """
+                int x;
+                (x, x) = (42, 43);
+                System.Console.Write(x);
+                """;
+            CompileAndVerify(source, expectedOutput: "43");
+        }
+
+        [Fact]
+        public void TupleAssignment_06()
+        {
+            var source = """
+                int x, y, z;
+                (x, (y, z)) = (1, (2, 3));
+                System.Console.Write((x, y, z));
+                """;
+            CompileAndVerify(source, expectedOutput: "(1, 2, 3)");
+        }
+
+        [Fact]
+        public void TupleAssignment_07()
+        {
+            var source = """
+                int x, y;
+                (x, (x, y)) = (1, (2, 3));
+                System.Console.Write((x, y));
+                """;
+            CompileAndVerify(source, expectedOutput: "(2, 3)");
+        }
+
+        [Fact]
+        public void TupleAssignment_08()
+        {
+            var source = """
+                int x = 1, y = 2, z = 3;
+                (x, (y, z)) = (y, (z, x));
+                System.Console.Write((x, y, z));
+                """;
+
+            var expectedIL = """
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (int V_0, //x
+                int V_1, //y
+                int V_2) //z
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldc.i4.3
+  IL_0005:  stloc.2
+  IL_0006:  ldloc.1
+  IL_0007:  ldloc.2
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.2
+  IL_000a:  stloc.1
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldloc.1
+  IL_000e:  ldloc.2
+  IL_000f:  newobj     "System.ValueTuple<int, int, int>..ctor(int, int, int)"
+  IL_0014:  box        "System.ValueTuple<int, int, int>"
+  IL_0019:  call       "void System.Console.Write(object)"
+  IL_001e:  ret
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+            source = """
+                int x = 1, y = 2, z = 3;
+                var tempY = y;
+                var tempZ = z;
+                var tempX = x;
+                z = tempX;
+                y = tempZ;
+                x = tempY;
+                System.Console.Write((x, y, z));
+                """;
+
+            verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+        }
+
+        [Fact]
+        public void TupleAssignment_09()
+        {
+            var source = """
+                int v1 = 1, v2 = 2, v3 = 3, v4 = 4, v5 = 5, v6 = 6, v7 = 7, v8 = 8, v9 = 9;
+                (v1, v2, v3, v4, v5, v6, v7, v8, v9) = (v2, v3, v4, v5, v6, v7, v8, v9, v1);
+                System.Console.Write((v1, v2, v3, v4, v5, v6, v7, v8, v9));
+                """;
+
+            var expectedIL = """
+{
+  // Code size       87 (0x57)
+  .maxstack  9
+  .locals init (int V_0, //v1
+                int V_1, //v2
+                int V_2, //v3
+                int V_3, //v4
+                int V_4, //v5
+                int V_5, //v6
+                int V_6, //v7
+                int V_7, //v8
+                int V_8) //v9
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldc.i4.3
+  IL_0005:  stloc.2
+  IL_0006:  ldc.i4.4
+  IL_0007:  stloc.3
+  IL_0008:  ldc.i4.5
+  IL_0009:  stloc.s    V_4
+  IL_000b:  ldc.i4.6
+  IL_000c:  stloc.s    V_5
+  IL_000e:  ldc.i4.7
+  IL_000f:  stloc.s    V_6
+  IL_0011:  ldc.i4.8
+  IL_0012:  stloc.s    V_7
+  IL_0014:  ldc.i4.s   9
+  IL_0016:  stloc.s    V_8
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.2
+  IL_001a:  ldloc.3
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  ldloc.s    V_5
+  IL_001f:  ldloc.s    V_6
+  IL_0021:  ldloc.s    V_7
+  IL_0023:  ldloc.s    V_8
+  IL_0025:  ldloc.0
+  IL_0026:  stloc.s    V_8
+  IL_0028:  stloc.s    V_7
+  IL_002a:  stloc.s    V_6
+  IL_002c:  stloc.s    V_5
+  IL_002e:  stloc.s    V_4
+  IL_0030:  stloc.3
+  IL_0031:  stloc.2
+  IL_0032:  stloc.1
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldloc.1
+  IL_0036:  ldloc.2
+  IL_0037:  ldloc.3
+  IL_0038:  ldloc.s    V_4
+  IL_003a:  ldloc.s    V_5
+  IL_003c:  ldloc.s    V_6
+  IL_003e:  ldloc.s    V_7
+  IL_0040:  ldloc.s    V_8
+  IL_0042:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_0047:  newobj     "System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>..ctor(int, int, int, int, int, int, int, System.ValueTuple<int, int>)"
+  IL_004c:  box        "System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>"
+  IL_0051:  call       "void System.Console.Write(object)"
+  IL_0056:  ret
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 4, 5, 6, 7, 8, 9, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+            source = """
+                int v1 = 1, v2 = 2, v3 = 3, v4 = 4, v5 = 5, v6 = 6, v7 = 7, v8 = 8, v9 = 9;
+                var temp2 = v2;
+                var temp3 = v3;
+                var temp4 = v4;
+                var temp5 = v5;
+                var temp6 = v6;
+                var temp7 = v7;
+                var temp8 = v8;
+                var temp9 = v9;
+                var temp1 = v1;
+                v9 = temp1;
+                v8 = temp9;
+                v7 = temp8;
+                v6 = temp7;
+                v5 = temp6;
+                v4 = temp5;
+                v3 = temp4;
+                v2 = temp3;
+                v1 = temp2;
+                System.Console.Write((v1, v2, v3, v4, v5, v6, v7, v8, v9));
+                """;
+
+            verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 4, 5, 6, 7, 8, 9, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+        }
+
+        [Fact]
+        public void TupleAssignment_10()
+        {
+            // Ensure that user-defined conversions are invoked in source order.
+            var source = """
+                using System;
+
+                DestType x;
+                DestType y;
+                DestType z;
+                (x, y, z) = (new SourceType(1), new SourceType(2), new SourceType(3));
+                Console.Write((x, y, z));
+
+                record struct SourceType(int N);
+                record struct DestType(int N)
+                {
+                    public static implicit operator DestType(SourceType source)
+                    {
+                        Console.WriteLine("Conversion " + source.N);
+                        return new DestType(source.N);
+                    }
+                }
+                """;
+
+            var expectedIL = """
+{
+  // Code size       53 (0x35)
+  .maxstack  3
+  .locals init (DestType V_0, //y
+                DestType V_1) //z
+  IL_0000:  ldc.i4.1
+  IL_0001:  newobj     "SourceType..ctor(int)"
+  IL_0006:  call       "DestType DestType.op_Implicit(SourceType)"
+  IL_000b:  ldc.i4.2
+  IL_000c:  newobj     "SourceType..ctor(int)"
+  IL_0011:  call       "DestType DestType.op_Implicit(SourceType)"
+  IL_0016:  ldc.i4.3
+  IL_0017:  newobj     "SourceType..ctor(int)"
+  IL_001c:  call       "DestType DestType.op_Implicit(SourceType)"
+  IL_0021:  stloc.1
+  IL_0022:  stloc.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldloc.1
+  IL_0025:  newobj     "System.ValueTuple<DestType, DestType, DestType>..ctor(DestType, DestType, DestType)"
+  IL_002a:  box        "System.ValueTuple<DestType, DestType, DestType>"
+  IL_002f:  call       "void System.Console.Write(object)"
+  IL_0034:  ret
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                Conversion 1
+                Conversion 2
+                Conversion 3
+                (DestType { N = 1 }, DestType { N = 2 }, DestType { N = 3 })
+                """);
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+            source = """
+                using System;
+
+                DestType x;
+                DestType y;
+                DestType z;
+                DestType temp1 = new SourceType(1);
+                DestType temp2 = new SourceType(2);
+                DestType temp3 = new SourceType(3);
+                z = temp3;
+                y = temp2;
+                x = temp1;
+                Console.Write((x, y, z));
+
+                record struct SourceType(int N);
+                record struct DestType(int N)
+                {
+                    public static implicit operator DestType(SourceType source)
+                    {
+                        Console.WriteLine("Conversion " + source.N);
+                        return new DestType(source.N);
+                    }
+                }
+                """;
+
+            verifier = CompileAndVerify(source, expectedOutput: """
+                Conversion 1
+                Conversion 2
+                Conversion 3
+                (DestType { N = 1 }, DestType { N = 2 }, DestType { N = 3 })
+                """);
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
         }
     }
 }

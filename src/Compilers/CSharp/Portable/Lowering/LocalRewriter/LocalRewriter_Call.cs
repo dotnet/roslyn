@@ -140,13 +140,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
             var argRefKindsOpt = node.ArgumentRefKindsOpt;
 
-            var rewrittenArguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? temps = null;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverForMultipleInvocations: false,
                 node.Arguments,
                 node.Method,
                 node.ArgsToParamsOpt,
                 argRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? temps);
+                storesOpt: null,
+                ref temps);
 
             return MakeArgumentsAndCall(
                 syntax: node.Syntax,
@@ -375,45 +378,105 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Visits all arguments of a method, doing any necessary rewriting for interpolated string handler conversions that
         /// might be present in the arguments and creating temps for any discard parameters.
         /// </summary>
-        private ImmutableArray<BoundExpression> VisitArguments(
+        private ImmutableArray<BoundExpression> VisitArgumentsAndCaptureReceiverIfNeeded(
+            [NotNullIfNotNull("rewrittenReceiver")] ref BoundExpression? rewrittenReceiver,
+            bool captureReceiverForMultipleInvocations,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
-            [NotNullIfNotNull("rewrittenReceiver")] ref BoundExpression? rewrittenReceiver,
-            out ArrayBuilder<LocalSymbol>? temps)
+            ArrayBuilder<BoundExpression>? storesOpt,
+            ref ArrayBuilder<LocalSymbol>? tempsOpt)
         {
             Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == arguments.Length);
             var requiresInstanceReceiver = methodOrIndexer.RequiresInstanceReceiver() && methodOrIndexer is not MethodSymbol { MethodKind: MethodKind.Constructor } and not FunctionPointerMethodSymbol;
             Debug.Assert(!requiresInstanceReceiver || rewrittenReceiver != null || _inExpressionLambda);
-            temps = null;
-            var argumentsAssignedToTemp = BitVector.Null;
+            Debug.Assert(!captureReceiverForMultipleInvocations || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
+
+            BoundLocal? receiverTemp = null;
+
+            if (captureReceiverForMultipleInvocations ||
+                (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))))
+            {
+                Debug.Assert(!_inExpressionLambda);
+                Debug.Assert(rewrittenReceiver is object);
+                Debug.Assert(rewrittenReceiver.Type is { });
+
+                RefKind refKind;
+
+                if (captureReceiverForMultipleInvocations)
+                {
+                    // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
+                    // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
+                    // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
+                    // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
+                    // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
+                    // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
+                    // SPEC VIOLATION: as value types.
+
+                    refKind = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter ? RefKind.Ref : RefKind.None;
+                }
+                else
+                {
+                    refKind = rewrittenReceiver.GetRefKind();
+
+                    if (refKind == RefKind.None &&
+                        !rewrittenReceiver.Type.IsReferenceType &&
+                        Binder.HasHome(rewrittenReceiver,
+                                       Binder.AddressKind.Constrained,
+                                       _factory.CurrentFunction,
+                                       peVerifyCompatEnabled: false,
+                                       stackLocalsOpt: null))
+                    {
+                        refKind = RefKind.Ref;
+                    }
+                }
+
+                BoundAssignmentOperator assignmentToTemp;
+                receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind);
+
+                tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
+                tempsOpt.Add(receiverTemp.LocalSymbol);
+
+                if (storesOpt is object)
+                {
+                    storesOpt.Add(assignmentToTemp);
+                    rewrittenReceiver = receiverTemp;
+                }
+                else
+                {
+                    rewrittenReceiver = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(assignmentToTemp), receiverTemp);
+                }
+            }
 
             if (arguments.IsEmpty)
             {
                 return arguments;
             }
 
+            var argumentsAssignedToTemp = BitVector.Null;
             var visitedArgumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
             var parameters = methodOrIndexer.GetParameters();
-            var receiverAssignedToTemp = false;
+
+#if DEBUG
+            var saveTempsOpt = tempsOpt;
+#endif
 
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
                 if (argument is BoundDiscardExpression discard)
                 {
-                    ensureTempTrackingSetup(ref temps, ref argumentsAssignedToTemp);
-                    visitedArgumentsBuilder.Add(_factory.MakeTempForDiscard(discard, temps));
+                    ensureTempTrackingSetup(ref tempsOpt, ref argumentsAssignedToTemp);
+                    visitedArgumentsBuilder.Add(_factory.MakeTempForDiscard(discard, tempsOpt));
                     argumentsAssignedToTemp[i] = true;
                     continue;
                 }
 
                 ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> argumentPlaceholders = addInterpolationPlaceholderReplacements(
                     i,
-                    ref receiverAssignedToTemp,
-                    ref rewrittenReceiver,
-                    ref temps,
+                    receiverTemp,
+                    ref tempsOpt,
                     ref argumentsAssignedToTemp);
 
                 visitedArgumentsBuilder.Add(VisitExpression(arguments[i]));
@@ -430,23 +493,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(temps?.Count is null or > 0);
+#if DEBUG
+            Debug.Assert(saveTempsOpt is object || tempsOpt?.Count is null or > 0);
+#endif
             return visitedArgumentsBuilder.ToImmutableAndFree();
 
-            void ensureTempTrackingSetup([NotNull] ref ArrayBuilder<LocalSymbol>? temps, ref BitVector positionsAssignedToTemp)
+            void ensureTempTrackingSetup([NotNull] ref ArrayBuilder<LocalSymbol>? tempsOpt, ref BitVector positionsAssignedToTemp)
             {
-                if (temps == null)
+                tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
+
+                if (positionsAssignedToTemp.IsNull)
                 {
-                    temps = ArrayBuilder<LocalSymbol>.GetInstance();
                     positionsAssignedToTemp = BitVector.Create(arguments.Length);
                 }
             }
 
             ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> addInterpolationPlaceholderReplacements(
                 int argumentIndex,
-                ref bool receiverAssignedToTemp,
-                ref BoundExpression? visitedReceiver,
-                ref ArrayBuilder<LocalSymbol>? temps,
+                BoundLocal? receiverTemp,
+                ref ArrayBuilder<LocalSymbol>? tempsOpt,
                 ref BitVector argumentsAssignedToTemp)
             {
                 var argument = arguments[argumentIndex];
@@ -456,7 +521,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Handler conversions are not supported in expression lambdas.
                     Debug.Assert(!_inExpressionLambda);
                     var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
-                    var creation = (BoundObjectCreationExpression)interpolationData.Construction;
 
                     if (interpolationData.ArgumentPlaceholders.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 1 : 0))
                     {
@@ -465,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We have an interpolated string handler conversion that needs context from the surrounding arguments. We need to store
                         // all arguments up to and including the last argument needed by this interpolated string conversion into temps, in order
                         // to ensure we're keeping lexical ordering of side effects.
-                        ensureTempTrackingSetup(ref temps, ref argumentsAssignedToTemp);
+                        ensureTempTrackingSetup(ref tempsOpt, ref argumentsAssignedToTemp);
                         Debug.Assert(!argumentsAssignedToTemp.IsNull);
 
                         foreach (var placeholder in interpolationData.ArgumentPlaceholders)
@@ -477,17 +541,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundLocal local;
                             switch (argIndex)
                             {
-                                case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter when receiverAssignedToTemp:
-                                    Debug.Assert(visitedReceiver != null && requiresInstanceReceiver);
-                                    local = (BoundLocal)((BoundSequence)visitedReceiver).Value;
-                                    break;
-
                                 case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                                    Debug.Assert(visitedReceiver != null && requiresInstanceReceiver);
-                                    local = _factory.StoreToTemp(visitedReceiver, out var store, refKind: visitedReceiver.GetRefKind());
-                                    temps.Add(local.LocalSymbol);
-                                    visitedReceiver = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(store), local);
-                                    receiverAssignedToTemp = true;
+                                    Debug.Assert(usesReceiver(argument));
+                                    Debug.Assert(requiresInstanceReceiver);
+                                    Debug.Assert(receiverTemp is object);
+                                    local = receiverTemp;
                                     break;
 
                                 case >= 0 when argumentsAssignedToTemp[argIndex]:
@@ -505,8 +563,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     RefKind argRefKind = argumentRefKindsOpt.RefKinds(argIndex);
                                     RefKind paramRefKind = parameters[paramIndex].RefKind;
                                     var visitedArgument = visitedArgumentsBuilder[argIndex];
-                                    local = _factory.StoreToTemp(visitedArgument, out store, refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
-                                    temps.Add(local.LocalSymbol);
+                                    local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
+                                    tempsOpt.Add(local.LocalSymbol);
                                     visitedArgumentsBuilder[argIndex] = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(store), local);
                                     argumentsAssignedToTemp[argIndex] = true;
                                     break;
@@ -527,6 +585,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return ImmutableArray<BoundInterpolatedStringArgumentPlaceholder>.Empty;
+            }
+
+            static bool usesReceiver(BoundExpression argument)
+            {
+                if (argument is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
+                {
+                    var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
+
+                    if (interpolationData.ArgumentPlaceholders.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 1 : 0))
+                    {
+                        Debug.Assert(!((BoundConversion)argument).ExplicitCastInCode);
+
+                        foreach (var placeholder in interpolationData.ArgumentPlaceholders)
+                        {
+                            if (placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -644,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, methodOrIndexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
             }
 
             if (isComReceiver)
@@ -1027,7 +1108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BuildParamsArray(
             SyntaxNode syntax,
-            Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<ParameterSymbol> parameters,

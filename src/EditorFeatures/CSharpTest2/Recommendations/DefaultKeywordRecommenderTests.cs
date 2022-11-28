@@ -312,5 +312,26 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestAfterLambdaOpenParen()
+        {
+            await VerifyKeywordAsync(
+@"var lam = ($$");
+        }
+
+        [Fact]
+        public async Task TestAfterLambdaComma()
+        {
+            await VerifyKeywordAsync(
+@"var lam = (int i, $$");
+        }
+
+        [Fact]
+        public async Task TestLambdaDefaultParameterValue()
+        {
+            await VerifyKeywordAsync(
+@"var lam = (int i = $$");
+        }
     }
 }

@@ -72,14 +72,14 @@
         <target state="translated">以引數形式傳入擷取到的變數</target>
         <note />
       </trans-unit>
-      <trans-unit id="Place_colon_on_following_line">
-        <source>Place colon on following line</source>
-        <target state="translated">將冒號放在下一行</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">將陳述式放在下一行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_token_on_following_line">
+        <source>Place token on following line</source>
+        <target state="new">Place token on following line</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
