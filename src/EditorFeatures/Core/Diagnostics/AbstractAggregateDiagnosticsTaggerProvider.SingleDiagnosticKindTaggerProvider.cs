@@ -135,7 +135,7 @@ internal partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
                     document,
                     spanToTag.SnapshotSpan.Span.ToTextSpan(),
-                    diagnosticKinds: _diagnosticKind,
+                    diagnosticKind: _diagnosticKind,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var requestedSpan = spanToTag.SnapshotSpan;

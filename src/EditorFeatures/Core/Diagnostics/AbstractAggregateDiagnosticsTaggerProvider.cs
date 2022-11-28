@@ -49,8 +49,8 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
 
         return;
 
-        SingleDiagnosticKindTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKinds)
-            => new(this, diagnosticKinds, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
+        SingleDiagnosticKindTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
+            => new(this, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
     }
 
     public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag

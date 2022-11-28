@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId = null, DocumentId? documentId = null, ImmutableHashSet<string>? diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeCompilerDiagnostics, bool includeSuppressedDiagnostics = true, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, DiagnosticKind diagnosticKinds = DiagnosticKind.All, CancellationToken cancellationToken = default)
-            => Task.FromResult(_diagnosticsWithKindFilter.Where(d => (diagnosticKinds & d.KindFilter) != 0).Select(d => d.Diagnostic).ToImmutableArray());
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeCompilerDiagnostics, bool includeSuppressedDiagnostics = true, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, DiagnosticKind diagnosticKind = DiagnosticKind.All, CancellationToken cancellationToken = default)
+            => Task.FromResult(_diagnosticsWithKindFilter.Where(d => diagnosticKind == d.KindFilter).Select(d => d.Diagnostic).ToImmutableArray());
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId = null, ImmutableHashSet<string>? diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Workspace workspace, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(TextDocument document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, DiagnosticKind diagnosticKinds = DiagnosticKind.All, CancellationToken cancellationToken = default)
+        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(TextDocument document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, DiagnosticKind diagnosticKind = DiagnosticKind.All, CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
     }
 }

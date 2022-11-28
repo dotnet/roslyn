@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly Func<string, IDisposable?>? _addOperationScope;
             private readonly bool _cacheFullDocumentDiagnostics;
             private readonly bool _logPerformanceInfo;
-            private readonly DiagnosticKind _diagnosticKinds;
+            private readonly DiagnosticKind _diagnosticKind;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CodeActionRequestPriority priority,
                 bool cacheFullDocumentDiagnostics,
                 bool logPerformanceInfo,
-                DiagnosticKind diagnosticKinds)
+                DiagnosticKind diagnosticKind)
             {
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _priority = priority;
                 _cacheFullDocumentDiagnostics = cacheFullDocumentDiagnostics;
                 _logPerformanceInfo = logPerformanceInfo;
-                _diagnosticKinds = diagnosticKinds;
+                _diagnosticKind = diagnosticKind;
             }
 
             public async Task<bool> TryGetAsync(ArrayBuilder<DiagnosticData> list, CancellationToken cancellationToken)
@@ -194,15 +194,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             continue;
 
                         bool includeSyntax = true, includeSemantic = true;
-                        if (_diagnosticKinds != DiagnosticKind.All)
+                        if (_diagnosticKind != DiagnosticKind.All)
                         {
                             var isCompilerAnalyzer = analyzer.IsCompilerAnalyzer();
                             includeSyntax = isCompilerAnalyzer
-                                ? (_diagnosticKinds & DiagnosticKind.CompilerSyntax) != 0
-                                : (_diagnosticKinds & DiagnosticKind.AnalyzerSyntax) != 0;
+                                ? _diagnosticKind == DiagnosticKind.CompilerSyntax
+                                : _diagnosticKind == DiagnosticKind.AnalyzerSyntax;
                             includeSemantic = isCompilerAnalyzer
-                                ? (_diagnosticKinds & DiagnosticKind.CompilerSemantic) != 0
-                                : (_diagnosticKinds & DiagnosticKind.AnalyzerSemantic) != 0;
+                                ? _diagnosticKind == DiagnosticKind.CompilerSemantic
+                                : _diagnosticKind == DiagnosticKind.AnalyzerSemantic;
                         }
 
                         if (includeSyntax && !await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
