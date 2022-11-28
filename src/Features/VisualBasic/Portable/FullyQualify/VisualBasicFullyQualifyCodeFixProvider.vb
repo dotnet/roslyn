@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.FullyQualify), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
     Friend Class VisualBasicFullyQualifyCodeFixProvider
-        Inherits AbstractFullyQualifyCodeFixProvider
+        Inherits AbstractFullyQualifyCodeFixProvider(Of SimpleNameSyntax)
 
         ''' <summary>
         ''' Type xxx is not defined
@@ -56,19 +56,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property IgnoreCase As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
-        Protected Overrides Function CanFullyQualify(diagnostic As Diagnostic, ByRef node As SyntaxNode) As Boolean
+        Protected Overrides Function CanFullyQualify(diagnostic As Diagnostic, node As SyntaxNode, ByRef simpleName As SimpleNameSyntax) As Boolean
             Dim qn = TryCast(node, QualifiedNameSyntax)
             If qn IsNot Nothing Then
                 node = GetLeftMostSimpleName(qn)
             End If
 
-            Dim simpleName = TryCast(node, SimpleNameSyntax)
+            simpleName = TryCast(node, SimpleNameSyntax)
             If simpleName Is Nothing Then
                 Return False
             End If

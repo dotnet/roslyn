@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FullyQualify), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
-    internal class CSharpFullyQualifyCodeFixProvider : AbstractFullyQualifyCodeFixProvider
+    internal class CSharpFullyQualifyCodeFixProvider : AbstractFullyQualifyCodeFixProvider<SimpleNameSyntax>
     {
         /// <summary>
         /// name does not exist in context
@@ -56,24 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId); }
         }
 
-        protected override bool IgnoreCase => false;
-
-        protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
+        protected override bool CanFullyQualify(Diagnostic diagnostic, SyntaxNode node, [NotNullWhen(true)] out SimpleNameSyntax? simpleName)
         {
-            if (node is not SimpleNameSyntax simpleName)
-            {
+            simpleName = node as SimpleNameSyntax;
+            if (simpleName is null)
                 return false;
-            }
 
             if (!simpleName.LooksLikeStandaloneTypeName())
-            {
                 return false;
-            }
 
             if (!simpleName.CanBeReplacedWithAnyName())
-            {
                 return false;
-            }
 
             return true;
         }
