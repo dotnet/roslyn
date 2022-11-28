@@ -66,10 +66,5 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                 }
             }
         }
-
-        protected override void RemoveAdornment(IWpfTextViewLineCollection viewLines, SnapshotSpan changedSpan)
-        {
-            AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
-        }
     }
 }

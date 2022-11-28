@@ -54,11 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// </summary>        
         protected abstract void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection);
 
-        /// <summary>
-        /// This is where we decide what adornments should be removed based on the changedSpan.
-        /// </summary>
-        protected abstract void RemoveAdornment(IWpfTextViewLineCollection viewLines, SnapshotSpan changedSpan);
-
         internal AbstractAdornmentManager(
             IThreadingContext threadingContext,
             IWpfTextView textView,
@@ -249,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                     // is there any effect on the view?
                     if (viewLines.IntersectsBufferSpan(changedSpan))
                     {
-                        RemoveAdornment(viewLines, changedSpan);
+                        AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
                     }
                 }
             }

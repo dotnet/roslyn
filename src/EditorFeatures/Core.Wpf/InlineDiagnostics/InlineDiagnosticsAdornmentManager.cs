@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
 
             var viewLines = TextView.TextViewLines;
-            using var _ = PooledDictionary<IWpfTextViewLine, IMappingTagSpan<InlineDiagnosticsTag>>.GetInstance(out var map);
+            using var _ = PooledDictionary<IWpfTextViewLine,
+                (IMappingTagSpan<InlineDiagnosticsTag> mappingTagSpan, SnapshotSpan snapshotSpan)>.GetInstance(out var map);
 
             // First loop iterates through the snap collection and determines if an inline diagnostic can be drawn.
             // Creates a mapping of the view line to the IMappingTagSpan with getting the first error that appears
@@ -153,20 +154,20 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
                     if (!map.TryGetValue(viewLine, out var value))
                     {
-                        map.Add(viewLine, tagMappingSpan);
+                        map.Add(viewLine, (tagMappingSpan, changedSpan));
                     }
-                    else if (value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError && tagMappingSpan.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError)
+                    else if (value.mappingTagSpan.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError && tagMappingSpan.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError)
                     {
                         // Draw the first instance of an error, if what is stored in the map at a specific line is
                         // not an error, then replace it. Otherwise, just get the first warning on the line.
-                        map[viewLine] = tagMappingSpan;
+                        map[viewLine] = (tagMappingSpan, changedSpan);
                     }
                 }
             }
 
             // Second loop iterates through the map to go through and create the graphics that is being drawn
             // on the canvas as well adding the tag to the Inline Diagnostics adornment layer.
-            foreach (var (lineView, tagMappingSpan) in map)
+            foreach (var (lineView, (tagMappingSpan, changedSpan)) in map)
             {
                 // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
                 // diagnostic would be drawn. If they are the same, then we do not want to draw
@@ -201,19 +202,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                 AdornmentLayer.AddAdornment(
                     behavior: AdornmentPositioningBehavior.TextRelative,
-                    visualSpan: lineView.Extent,
+                    visualSpan: changedSpan,
                     tag: tag,
                     adornment: visualElement,
                     removedCallback: delegate { graphicsResult.Dispose(); });
             }
-        }
-
-        protected override void RemoveAdornment(IWpfTextViewLineCollection viewLines, SnapshotSpan changedSpan)
-        {
-            // We add the entire extent of the line as the visual span when adding an adornment,
-            // so we should remove based on that line.
-            var line = viewLines.GetTextViewLineContainingBufferPosition(changedSpan.Start);
-            AdornmentLayer.RemoveAdornmentsByVisualSpan(line.Extent);
         }
     }
 }
