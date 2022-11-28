@@ -190,6 +190,10 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             EnsureTables(connection, Database.Main);
             EnsureTables(connection, Database.WriteCache);
 
+            // Bulk load all the existing string/id pairs in the DB at once.  In a solution like roslyn, there are
+            // roughly 20k of these strings.  Doing it as 20k individual reads adds more than a second of work time
+            // reading in all the data.  This allows for a single query that can efficiently have the DB just stream the
+            // pages from disk and bulk read those in the cursor the query uses.
             LoadExistingStringIds(connection);
 
             return;
