@@ -369,22 +369,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var document = executor.AnalysisScope.TextDocument;
 
                 using (_addOperationScope?.Invoke(analyzerTypeName))
-                using (Logger.LogBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m, analyzer)), cancellationToken))
                 using (_addOperationScope is object ? RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken) : default)
                 {
                     var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
                     return diagnostics?.ToImmutableArrayOrEmpty() ?? ImmutableArray<DiagnosticData>.Empty;
                 }
-            }
-
-            private static void CreateLogProperties(Dictionary<string, object?> map, object analyzer)
-            {
-                var type = analyzer.GetType();
-                type = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
-                var suffix = Roslyn.Utilities.Hash.GetFNVHashCode(type.FullName!);
-                var suffixBytes = BitConverter.GetBytes(suffix).Concat(new byte[4]).ToArray();
-                var telemetryId = new Guid(0, 0, 0, suffixBytes);
-                map["TelemetryId"] = telemetryId.ToString();
             }
 
             private bool MatchesPriority(DiagnosticAnalyzer analyzer)
