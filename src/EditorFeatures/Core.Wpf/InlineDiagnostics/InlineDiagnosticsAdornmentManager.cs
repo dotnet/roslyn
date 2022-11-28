@@ -193,11 +193,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     continue;
                 }
 
+                // This is what places the diagnostic UI at the end of the line of code or at the end of the TextView window.
                 Canvas.SetLeft(visualElement,
                     tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfCode ? lineView.Right :
                     tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfEditor ? TextView.ViewportRight - visualElement.DesiredSize.Width :
                     throw ExceptionUtilities.UnexpectedValue(tag.Location));
 
+                // This is what places the diagnostic UI at the correct line in the window.
                 Canvas.SetTop(visualElement, lineView.Bottom - visualElement.DesiredSize.Height);
 
                 AdornmentLayer.AddAdornment(
