@@ -2374,22 +2374,24 @@ class MyClass
                 Dim expectedCount = 0
                 Dim expectedDiagnosticIds As New HashSet(Of String)
 
-                If diagnosticKind = DiagnosticKind.CompilerSyntax Then
+                Dim all = diagnosticKind = DiagnosticKind.All
+
+                If all OrElse diagnosticKind = DiagnosticKind.CompilerSyntax Then
                     expectedCount += 1
                     expectedDiagnosticIds.Add("CS1513")
                 End If
 
-                If diagnosticKind = DiagnosticKind.CompilerSemantic Then
+                If all OrElse diagnosticKind = DiagnosticKind.CompilerSemantic Then
                     expectedCount += 1
                     expectedDiagnosticIds.Add("CS0219")
                 End If
 
-                If diagnosticKind = DiagnosticKind.AnalyzerSyntax Then
+                If all OrElse diagnosticKind = DiagnosticKind.AnalyzerSyntax Then
                     expectedCount += 1
                     expectedDiagnosticIds.Add("ID0001")
                 End If
 
-                If diagnosticKind = DiagnosticKind.AnalyzerSemantic Then
+                If all OrElse diagnosticKind = DiagnosticKind.AnalyzerSemantic Then
                     expectedCount += 1
                     expectedDiagnosticIds.Add("ID0002")
                 End If
