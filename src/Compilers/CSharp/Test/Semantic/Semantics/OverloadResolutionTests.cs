@@ -7591,8 +7591,7 @@ class Program
     Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1),
     // (2,1): info CS8019: Unnecessary using directive.
     // using System.Collections.Generic;
-    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
-);
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1));
         }
 
         [Fact]

@@ -12581,7 +12581,7 @@ tryAgain:
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
 tryAgain:
-                if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                if (this.IsValidInitializerToken(ref openBrace, IsPossibleExpression))
                 {
                     // first argument
                     list.Add(this.ParseAnonymousTypeMemberInitializer());
@@ -12594,9 +12594,13 @@ tryAgain:
                         {
                             break;
                         }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleExpression())
+                        else if (this.IsValidInitializerToken(ref openBrace, IsPossibleExpression))
                         {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                            var commaToken = this.CurrentToken.Kind == SyntaxKind.SemicolonToken
+                                ? this.EatTokenAsKind(SyntaxKind.CommaToken)
+                                : this.EatToken(SyntaxKind.CommaToken);
+
+                            list.AddSeparator(commaToken);
 
                             // check for exit case after legal trailing comma
                             if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
@@ -12842,7 +12846,7 @@ tryAgain:
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
 tryAgain:
-                if (this.IsInitializerMember() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                if (this.IsValidInitializerToken(ref startToken, IsInitializerMember))
                 {
                     // We have at least one initializer expression.
                     // If at least one initializer expression is a named assignment, this is an object initializer.
@@ -12860,9 +12864,12 @@ tryAgain:
                         {
                             break;
                         }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsInitializerMember())
+                        else if (this.IsValidInitializerToken(ref startToken, IsInitializerMember))
                         {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                            var commaToken = this.CurrentToken.Kind == SyntaxKind.SemicolonToken
+                                ? this.EatTokenAsKind(SyntaxKind.CommaToken)
+                                : this.EatToken(SyntaxKind.CommaToken);
+                            list.AddSeparator(commaToken);
 
                             // check for exit case after legal trailing comma
                             if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
@@ -12928,6 +12935,31 @@ tryAgain:
                 expected);
         }
 
+        private bool IsValidInitializerToken(ref SyntaxToken startToken, Func<bool> isInitializerMemberFn)
+        {
+            if (startToken.IsMissing)
+            {
+                return false;
+            }
+            else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
+            {
+                // The token is valid if it is
+                // 1. a separator
+                // 2. a member
+                return this.CurrentToken.Kind == SyntaxKind.CommaToken || isInitializerMemberFn();
+            }
+            // When encountering a semicolon in an initializer body, the user may have mistakenly intended it as a separator.
+            // Seek ahead and check if the semicolon is being followed by:
+            // 1. a closing brace - the semicolon is not the end, the closing brace is the end
+            // 2. another member - not the end yet
+            var resetPoint = GetResetPoint();
+            EatToken();
+            bool initializerContinues = CurrentToken.Kind is SyntaxKind.CloseBraceToken || isInitializerMemberFn();
+            Reset(ref resetPoint);
+            Release(ref resetPoint);
+            return initializerContinues;
+        }
+
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
         {
             var identifier = this.ParseIdentifierName();
@@ -12986,7 +13018,7 @@ tryAgain:
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
 tryAgain:
-                if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                if (this.IsValidInitializerToken(ref openBrace, IsPossibleExpression))
                 {
                     // first argument
                     list.Add(this.ParseExpressionCore());
@@ -12999,10 +13031,13 @@ tryAgain:
                         {
                             break;
                         }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleExpression())
+                        else if (this.IsValidInitializerToken(ref openBrace, IsPossibleExpression))
                         {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                            var commaToken = this.CurrentToken.Kind == SyntaxKind.SemicolonToken
+                                ? this.EatTokenAsKind(SyntaxKind.CommaToken)
+                                : this.EatToken(SyntaxKind.CommaToken);
+                            list.AddSeparator(commaToken);
+                            if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken)
                             {
                                 closeBraceError = MakeError(this.CurrentToken, ErrorCode.ERR_ExpressionExpected);
                                 break;
@@ -13084,7 +13119,7 @@ tryAgain:
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
 tryAgain:
-                    if (this.IsPossibleVariableInitializer() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    if (this.IsValidInitializerToken(ref openBrace, IsPossibleVariableInitializer))
                     {
                         list.Add(this.ParseVariableInitializer());
 
@@ -13095,9 +13130,12 @@ tryAgain:
                             {
                                 break;
                             }
-                            else if (this.IsPossibleVariableInitializer() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                            else if (this.IsValidInitializerToken(ref openBrace, IsPossibleVariableInitializer))
                             {
-                                list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                                var commaToken = this.CurrentToken.Kind == SyntaxKind.SemicolonToken
+                                    ? this.EatTokenAsKind(SyntaxKind.CommaToken)
+                                    : this.EatToken(SyntaxKind.CommaToken);
+                                list.AddSeparator(commaToken);
 
                                 // check for exit case after legal trailing comma
                                 if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)

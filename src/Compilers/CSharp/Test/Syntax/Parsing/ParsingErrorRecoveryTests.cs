@@ -4453,8 +4453,12 @@ class C
             Assert.NotEqual(default, ds.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code); //; is not valid
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //, was expected instead
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code); //new {} is missing trailing ;
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code); //class c missing }
         }
 
         [Fact]
@@ -4480,8 +4484,10 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
         }
 
         [Fact]
@@ -4507,9 +4513,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
+            Assert.Equal(4, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
         }
 
         [Fact]
@@ -4535,8 +4543,10 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
         }
 
         [Fact]
@@ -4562,8 +4572,385 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code); //; is not valid
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //, was expected instead
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code); //new { a = b,} is missing trailing ;
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code); //class c missing }
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInArrayInitializer()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new[] { 1; 2 };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS1003: Syntax error, ',' expected
+                //         var a = new[] { 1; 2 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 30));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInArrayInitializer2()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new[] { 1; 2; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS1003: Syntax error, ',' expected
+                //         var a = new[] { 1; 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 30),
+                // (6,33): error CS1003: Syntax error, ',' expected
+                //         var a = new[] { 1; 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInAnonymousTypeInitializer()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var o = new { A = 1; B = 2 };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS1003: Syntax error, ',' expected
+                //         var o = new { A = 1; B = 2 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 32));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInAnonymousTypeInitializer2()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var o = new { A = 1; B = 2; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS1003: Syntax error, ',' expected
+                //             var o = new { A = 1; B = 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 32),
+                // (6,39): error CS1003: Syntax error, ',' expected
+                //             var o = new { A = 1; B = 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInDictionaryIndexerInitializer()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new Dictionary<int, int> { [0] = 0; [1] = 1 };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,55): error CS1003: Syntax error, ',' expected
+                //         var a = new Dictionary<int, int> { [0] = 0; [1] = 1 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 55));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInDictionaryIndexerInitializer2()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new Dictionary<int, int> { [0] = 0; [1] = 1; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,55): error CS1003: Syntax error, ',' expected
+                //         var a = new Dictionary<int, int> { [0] = 0; [1] = 1; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 55),
+                // (7,64): error CS1003: Syntax error, ',' expected
+                //         var a = new Dictionary<int, int> { [0] = 0; [1] = 1; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 64));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInDictionaryInitializer()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new Dictionary<int, int> { {0, 0}; {1, 1} };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS1003: Syntax error, ',' expected
+                //             var a = new Dictionary<int, int> { {0, 0}; {1, 1} };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 54));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInDictionaryInitializer2()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new Dictionary<int, int> { {0, 0}; {1, 1}; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS1003: Syntax error, ',' expected
+                //             var a = new Dictionary<int, int> { {0, 0}; {1, 1}; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 54),
+                // (7,62): error CS1003: Syntax error, ',' expected
+                //             var a = new Dictionary<int, int> { {0, 0}; {1, 1}; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 62));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInSwitchExpression()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = 0 switch { 1 => true; _ => false };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,41): error CS1003: Syntax error, ',' expected
+                //             var a = 0 switch { 1 => true; _ => false };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 41));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInObjectInitializer()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new C { P1 = 0; P2 = 1 };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+                class C
+                {
+                    public int P1 { get; set; }
+                    public int P2 { get; set; }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,35): error CS1003: Syntax error, ',' expected
+                //             var a = new C { P1 = 0; P2 = 1 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 35));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInObjectInitializer2()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new C { P1 = 0; P2 = 1; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+                class C
+                {
+                    public int P1 { get; set; }
+                    public int P2 { get; set; }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,35): error CS1003: Syntax error, ',' expected
+                //             var a = new C { P1 = 0; P2 = 1; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 35),
+                // (6,43): error CS1003: Syntax error, ',' expected
+                //             var a = new C { P1 = 0; P2 = 1; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 43));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInCollectionInitializer()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new List<int> { 0; 1 };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,38): error CS1003: Syntax error, ',' expected
+                //             var a = new List<int> { 0; 1 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInCollectionInitializer2()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new List<int> { 0; 1; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,38): error CS1003: Syntax error, ',' expected
+                //             var a = new List<int> { 0; 1; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 38),
+                // (7,41): error CS1003: Syntax error, ',' expected
+                //             var a = new List<int> { 0; 1; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 41));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInSwitchExpression2()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = 0 switch { 1 => true; _ => false; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,41): error CS1003: Syntax error, ',' expected
+                //             var a = 0 switch { 1 => true; _ => false; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 41),
+                // (6,53): error CS1003: Syntax error, ',' expected
+                //             var a = 0 switch { 1 => true; _ => false; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 53));
         }
 
         [Fact]
@@ -4925,8 +5312,98 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code); //; is not valid
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //, was expected instead
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code); //new C { } is missing trailing ;
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code); //class c missing }
+        }
+
+        [Fact]
+        public void TestSemicolonAfterLocalDeclarationArrayInitializerExpression()
+        {
+            var text = "class c { void m() { int a = { e; ee; } }";
+            var file = this.ParseTree(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var agg = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(1, agg.Members.Count);
+            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)agg.Members[0];
+            Assert.NotNull(ms.Body);
+            Assert.Equal(1, ms.Body.Statements.Count);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember_WithTrailingInitializerMembers()
+        {
+            var text = "class c { void m() { var x = new C { a = 1; b = 2; c = 3, d = 4 } }";
+            var file = this.ParseTree(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var agg = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(1, agg.Members.Count);
+            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)agg.Members[0];
+            Assert.NotNull(ms.Body);
+            Assert.Equal(1, ms.Body.Statements.Count);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
+            var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
+            Assert.Equal(1, ds.Declaration.Variables.Count);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer);
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[3].Code);
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember()
+        {
+            var text = "class c { void m() { var x = new C { a = 1; } }";
+            var file = this.ParseTree(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var agg = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(1, agg.Members.Count);
+            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)agg.Members[0];
+            Assert.NotNull(ms.Body);
+            Assert.Equal(1, ms.Body.Statements.Count);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
+            var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
+            Assert.Equal(1, ds.Declaration.Variables.Count);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer);
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            var errors = file.Errors();
+            Assert.Equal(3, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[2].Code);
         }
 
         [Fact]
@@ -4952,8 +5429,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(3, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[2].Code);
         }
 
         [Fact]
@@ -4979,36 +5459,12 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
-        }
-
-        [Fact]
-        public void TestSemicolonAfterObjectInitializerMember()
-        {
-            var text = "class c { void m() { var x = new C { a = b; } }";
-            var file = this.ParseTree(text);
-
-            Assert.NotNull(file);
-            Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
-            var agg = (TypeDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, agg.Members.Count);
-            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
-            var ms = (MethodDeclarationSyntax)agg.Members[0];
-            Assert.NotNull(ms.Body);
-            Assert.Equal(1, ms.Body.Statements.Count);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
-            var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
-            Assert.Equal(1, ds.Declaration.Variables.Count);
-            Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
-            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[3].Code);
         }
 
         [Fact]
@@ -5034,9 +5490,12 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[3].Code);
         }
 
         [Fact]

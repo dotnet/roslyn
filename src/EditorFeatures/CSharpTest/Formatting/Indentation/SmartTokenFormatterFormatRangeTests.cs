@@ -2867,9 +2867,10 @@ class Program{
     }
 }";
 
-            await AutoFormatOnSemicolonAsync(
+            await AutoFormatOnMarkerAsync(
                 code,
                 expected,
+                SyntaxKind.CommaToken,
                 SyntaxKind.OpenBraceToken);
         }
 
