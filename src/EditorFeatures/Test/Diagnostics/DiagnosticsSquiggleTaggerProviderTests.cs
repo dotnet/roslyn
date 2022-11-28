@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap);
 
             var firstDocument = workspace.Documents.First();
-            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             // test first update
             await wrapper.WaitForTags();
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Make two taggers.
             var firstDocument = workspace.Documents.First();
-            var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
-            var tagger2 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
+            var tagger2 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
 
             // But dispose the first one. We still want the second one to work.
             ((IDisposable)tagger1).Dispose();
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Make a taggers.
             var firstDocument = workspace.Documents.First();
-            var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
             using var disposable = tagger1 as IDisposable;
             await wrapper.WaitForTags();
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Create the tagger before the first diagnostic event has been fired.
             var firstDocument = workspace.Documents.First();
-            var tagger = provider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger = provider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
             Contract.ThrowIfNull(tagger);
 
             // Now product the first diagnostic and fire the events.
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span), diagnosticKind);
 
             var firstDocument = workspace.Documents.First();
-            var tagger = provider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger = provider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
             Contract.ThrowIfNull(tagger);
 
             using var disposable = tagger as IDisposable;

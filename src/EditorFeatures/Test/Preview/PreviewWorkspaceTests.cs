@@ -224,12 +224,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             // set up tagger for both buffers
             var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
             var provider = workspace.ExportProvider.GetExportedValues<IViewTaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
-            var leftTagger = provider.CreateTagger<IErrorTag>(diffView.Viewer.LeftView, leftBuffer);
+            var leftTagger = provider.CreateTagger<IErrorTag>(leftBuffer);
             Contract.ThrowIfNull(leftTagger);
 
             using var leftDisposable = leftTagger as IDisposable;
             var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var rightTagger = provider.CreateTagger<IErrorTag>(diffView.Viewer.RightView, rightBuffer);
+            var rightTagger = provider.CreateTagger<IErrorTag>(rightBuffer);
             Contract.ThrowIfNull(rightTagger);
 
             using var rightDisposable = rightTagger as IDisposable;

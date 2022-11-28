@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsClassificationTaggerProvider, ClassificationTag>(workspace, analyzerMap);
 
             var firstDocument = workspace.Documents.First();
-            var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             // test first update
             await wrapper.WaitForTags();
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsClassificationTaggerProvider, ClassificationTag>(workspace, analyzerMap);
 
             var firstDocument = workspace.Documents.First();
-            var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             // test first update
             await wrapper.WaitForTags();

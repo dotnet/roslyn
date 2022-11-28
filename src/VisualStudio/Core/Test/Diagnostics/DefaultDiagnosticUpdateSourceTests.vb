@@ -49,12 +49,11 @@ class 123 { }
                 DiagnosticProvider.Enable(workspace)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
-                Dim view = workspace.Documents.First().GetTextView()
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ITaggerProvider)().OfType(Of DiagnosticsSquiggleTaggerProvider)().Single()
-                Dim tagger = provider.CreateTagger(Of IErrorTag)(view, buffer)
+                Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
 
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
