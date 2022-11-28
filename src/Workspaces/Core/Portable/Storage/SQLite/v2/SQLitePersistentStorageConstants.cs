@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using Microsoft.CodeAnalysis.Storage;
+
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal static class SQLitePersistentStorageConstants
@@ -12,13 +15,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         //    and validating checksums without the overhead of reading the full 'value' into
         //    memory.
         // 3. Use an in-memory DB to cache writes before flushing to disk.
-        // 4. Store checksums directly inline (i.e. 20 bytes), instead of using ObjectWriter serialization (which adds
+        // 4. Store checksums directly inline (i.e. 20 bytes), instead of usign ObjectWriter serialization (which adds
         //    more data to the checksum).
         // 5. Use individual columns for primary keys.
-        // 6. Use compression in some features.  Need to move to a different table since the blob
-        //    format will be different and we don't want different VS versions (that do/don't support
-        //    compression constantly stomping on each other.
-        private const string Version = "6";
+        private const string Version = "5";
 
         /// <summary>
         /// Inside the DB we have a table dedicated to storing strings that also provides a unique

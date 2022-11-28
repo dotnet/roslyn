@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                    ArgumentException or
                    UnauthorizedAccessException or
                    NotSupportedException or
-                   InvalidOperationException or
-                   InvalidDataException;
+                   InvalidOperationException;
         }
     }
 }
