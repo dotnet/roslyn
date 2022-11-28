@@ -25,7 +25,9 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
     where TTag : ITag
 {
     /// <summary>
-    /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.
+    /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.  The ordering of
+    /// these taggers is not relevant.  They are not executed serially.  Rather, they all run concurrently, notifying us
+    /// (potentially concurrently as well) when change occur.
     /// </summary>
     private readonly ImmutableArray<SingleDiagnosticKindTaggerProvider> _diagnosticsTaggerProviders;
 
