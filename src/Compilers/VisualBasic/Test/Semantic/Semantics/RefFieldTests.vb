@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' Ref field in ref struct.
         ''' </summary>
-        <Fact>
+        <Fact, WorkItem(65392, "https://github.com/dotnet/roslyn/issues/65392")>
         Public Sub RefField_01()
             Dim sourceA =
 "public ref struct S<T>
@@ -42,9 +42,6 @@ End Module"
 BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
         Dim s = New S(Of Integer)()
                     ~~~~~~~~~~~~~
-BC37319: 'S(Of T)' requires compiler feature 'RefStructs', which is not supported by this version of the Visual Basic compiler.
-        Dim s = New S(Of Integer)()
-                    ~~~~~~~~~~~~~
 BC30656: Field 'F' is of an unsupported type.
         Console.WriteLine(s.F)
                           ~~~
@@ -54,6 +51,33 @@ BC30656: Field 'F' is of an unsupported type.
             VerifyFieldSymbol(field, "S(Of T).F As T modreq(?)")
             Assert.NotNull(field.GetUseSiteErrorInfo())
             Assert.True(field.HasUnsupportedMetadata)
+        End Sub
+
+        <Fact, WorkItem(65392, "https://github.com/dotnet/roslyn/issues/65392")>
+        Public Sub CanUsePassThroughRefStructInstances()
+            Dim source =
+"Imports System
+Module Program
+    Sub Main()
+        Dim s = ""123"".AsSpan()
+        Dim s2 As ReadOnlySpan(Of Char) = ""123"".AsSpan()
+        Dim s3 = MemoryExtensions.AsSpan(""123"")
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.Net60)
+            comp.AssertTheseDiagnostics(<expected>
+BC30668: 'ReadOnlySpan(Of Char)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 As ReadOnlySpan(Of Char) = "123".AsSpan()
+                  ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+
+            comp = CreateCompilation(source, targetFramework:=TargetFramework.Net70)
+            comp.AssertTheseDiagnostics(<expected>
+BC30668: 'ReadOnlySpan(Of Char)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 As ReadOnlySpan(Of Char) = "123".AsSpan()
+                  ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         ''' <summary>

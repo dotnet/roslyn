@@ -19,8 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void StackAllocInitializer_01()
         {
-            UsingExpression("stackalloc int[] { 42 }", options: TestOptions.Regular7,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 1));
+            var test = "stackalloc int[] { 42 }";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (1,30): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // class C { void M() { var v = stackalloc int[] { 42 }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 30),
+                // (1,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class C { void M() { var v = stackalloc int[] { 42 }; } }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[] { 42 }").WithLocation(1, 30));
+
+            UsingExpression(test, options: TestOptions.Regular7);
             N(SyntaxKind.StackAllocArrayCreationExpression);
             {
                 N(SyntaxKind.StackAllocKeyword);
@@ -56,8 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void StackAllocInitializer_02()
         {
-            UsingExpression("stackalloc int[1] { 42 }", options: TestOptions.Regular7,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 1));
+            var test = "stackalloc int[1] { 42 }";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (1,30): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // class C { void M() { var v = stackalloc int[1] { 42 }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 30),
+                // (1,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class C { void M() { var v = stackalloc int[1] { 42 }; } }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[1] { 42 }").WithLocation(1, 30));
+
+            UsingExpression(test, options: TestOptions.Regular7);
             N(SyntaxKind.StackAllocArrayCreationExpression);
             {
                 N(SyntaxKind.StackAllocKeyword);
@@ -93,8 +113,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void StackAllocInitializer_03()
         {
-            UsingExpression("stackalloc[] { 42 }", options: TestOptions.Regular7,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 1));
+            var test = "stackalloc[] { 42 }";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (1,30): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // class C { void M() { var v = stackalloc[] { 42 }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 30),
+                // (1,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class C { void M() { var v = stackalloc[] { 42 }; } }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc[] { 42 }").WithLocation(1, 30));
+
+            UsingExpression(test, options: TestOptions.Regular7);
             N(SyntaxKind.ImplicitStackAllocArrayCreationExpression);
             {
                 N(SyntaxKind.StackAllocKeyword);
@@ -116,14 +146,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void StackAllocInitializer_04()
         {
-            UsingExpression("stackalloc[1] { 42 }", options: TestOptions.Regular7,
-                // (1,1): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                // stackalloc[1] { 42 }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 1),
+
+            var test = "stackalloc[1] { 42 }";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (1,30): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // class C { void M() { var v = stackalloc[1] { 42 }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 30),
+                // (1,41): error CS8381: "Invalid rank specifier: expected ']'
+                // class C { void M() { var v = stackalloc[1] { 42 }; } }
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "1").WithLocation(1, 41));
+
+            UsingExpression(test, options: TestOptions.Regular7,
                 // (1,12): error CS8381: "Invalid rank specifier: expected ']'
                 // stackalloc[1] { 42 }
-                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "1").WithLocation(1, 12)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "1").WithLocation(1, 12));
             N(SyntaxKind.ImplicitStackAllocArrayCreationExpression);
             {
                 N(SyntaxKind.StackAllocKeyword);

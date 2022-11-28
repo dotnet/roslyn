@@ -984,7 +984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    TypeSymbol.Equals(iFaceOriginal, inpcSymbol, TypeCompareKind.ConsiderEverything2);
         }
 
-
         // find the nearest symbol in list to the symbol 'type'.  It may be the same symbol if its the only one.
         private static Symbol GetNearestOtherSymbol(ConsList<TypeSymbol> list, TypeSymbol type)
         {

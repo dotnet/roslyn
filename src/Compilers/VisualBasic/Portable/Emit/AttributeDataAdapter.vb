@@ -77,7 +77,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-
         Private Function CreateMetadataArray(argument As TypedConstant, context As EmitContext) As MetadataCreateArray
             Debug.Assert(Not argument.Values.IsDefault)
 
@@ -115,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
             Return moduleBeingBuilt.CreateConstant(DirectCast(type, TypeSymbol), value, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
-
 
         Private Function CreateMetadataNamedArgument(name As String, argument As TypedConstant, context As EmitContext) As Cci.IMetadataNamedArgument
             Dim sym = LookupName(name)

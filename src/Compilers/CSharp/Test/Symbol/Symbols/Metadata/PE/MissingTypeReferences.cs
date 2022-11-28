@@ -280,7 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 TestReferences.SymbolsTests.MDTestLib2
             });
 
-
             var asm1 = assemblies[0];
 
             var asm1classC = asm1.GlobalNamespace.GetTypeMembers("C").Single();

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -28,8 +29,9 @@ internal class XamlLanguageServer : RoslynLanguageServer
         ILspServiceLogger logger,
         ImmutableArray<string> supportedLanguages,
         WellKnownLspServerKinds serverKind,
+        HostServices hostServices,
         XamlProjectService projectService,
-        IXamlLanguageServerFeedbackService? feedbackService) : base(lspServiceProvider, jsonRpc, capabilitiesProvider, logger, supportedLanguages, serverKind)
+        IXamlLanguageServerFeedbackService? feedbackService) : base(lspServiceProvider, jsonRpc, capabilitiesProvider, logger, hostServices, supportedLanguages, serverKind)
     {
         _projectService = projectService;
         _feedbackService = feedbackService;

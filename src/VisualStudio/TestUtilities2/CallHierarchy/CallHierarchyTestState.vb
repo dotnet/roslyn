@@ -9,11 +9,14 @@ Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports Microsoft.VisualStudio.Utilities
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
@@ -25,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         Friend ReadOnly Workspace As TestWorkspace
         Private ReadOnly _subjectBuffer As ITextBuffer
         Private ReadOnly _textView As IWpfTextView
+        Private ReadOnly _waiter As IAsynchronousOperationWaiter
 
         Private Class MockCallHierarchyPresenter
             Implements ICallHierarchyPresenter
@@ -92,7 +96,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             _presenter = New MockCallHierarchyPresenter()
-            _commandHandler = New CallHierarchyCommandHandler(threadingContext, {_presenter}, provider)
+            Dim threadOperationExecutor = workspace.GetService(Of IUIThreadOperationExecutor)
+            Dim asynchronousOperationListenerProvider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
+            _waiter = asynchronousOperationListenerProvider.GetWaiter(FeatureAttribute.CallHierarchy)
+            _commandHandler = New CallHierarchyCommandHandler(threadingContext, threadOperationExecutor, asynchronousOperationListenerProvider, {_presenter}, provider)
         End Sub
 
         Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
@@ -107,9 +114,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
         Friend Property NotificationMessage As String
 
-        Friend Function GetRoot() As CallHierarchyItem
+        Friend Async Function GetRootAsync() As Task(Of CallHierarchyItem)
             Dim args = New ViewCallHierarchyCommandArgs(_textView, _subjectBuffer)
             _commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
+            Await _waiter.ExpeditedWaitAsync()
             Return _presenter.PresentedRoot
         End Function
 

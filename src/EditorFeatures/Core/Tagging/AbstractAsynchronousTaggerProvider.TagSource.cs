@@ -314,9 +314,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // If there are any options specified for this tagger, then also hook up event
                 // notifications for when those options change.
-                var optionChangedEventSources =
-                    _dataSource.Options.Concat<IOption>(_dataSource.PerLanguageOptions)
-                        .Select(globalOption => TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, globalOption)).ToList();
+                var optionChangedEventSources = _dataSource.Options.Concat(_dataSource.FeatureOptions)
+                    .Select(globalOption => TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, globalOption))
+                    .ToList();
 
                 if (optionChangedEventSources.Count == 0)
                 {

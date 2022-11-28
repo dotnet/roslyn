@@ -27,14 +27,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private class PerformanceReporter : GlobalOperationAwareIdleProcessor
         {
             private readonly SemaphoreSlim _event;
-            private readonly HashSet<string> _reported;
 
             private readonly IPerformanceTrackerService _diagnosticAnalyzerPerformanceTracker;
-            private readonly TraceSource _logger;
             private readonly TelemetrySession _telemetrySession;
 
             public PerformanceReporter(
-                TraceSource logger,
                 TelemetrySession telemetrySession,
                 IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker,
                 IGlobalOperationNotificationService globalOperationNotificationService,
@@ -46,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     shutdownToken)
             {
                 _event = new SemaphoreSlim(initialCount: 0);
-                _reported = new HashSet<string>();
 
-                _logger = logger;
                 _telemetrySession = telemetrySession;
                 _diagnosticAnalyzerPerformanceTracker = diagnosticAnalyzerPerformanceTracker;
                 _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += OnSnapshotAdded;
@@ -63,38 +58,28 @@ namespace Microsoft.CodeAnalysis.Remote
 
             protected override Task ExecuteAsync()
             {
-                using (var pooledObject = SharedPools.Default<List<ExpensiveAnalyzerInfo>>().GetPooledObject())
+                if (!_telemetrySession.IsOptedIn)
+                    return Task.CompletedTask;
+
                 using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, CancellationToken))
                 {
-                    _diagnosticAnalyzerPerformanceTracker.GenerateReport(pooledObject.Object);
-
-                    foreach (var analyzerInfo in pooledObject.Object)
+                    foreach (var forSpanAnalysis in new[] { false, true })
                     {
-                        var newAnalyzer = _reported.Add(analyzerInfo.AnalyzerId);
-
+                        using var pooledObject = SharedPools.Default<List<AnalyzerInfoForPerformanceReporting>>().GetPooledObject();
+                        _diagnosticAnalyzerPerformanceTracker.GenerateReport(pooledObject.Object, forSpanAnalysis);
                         var isInternalUser = _telemetrySession.IsUserMicrosoftInternal;
 
-                        // we only report same analyzer once unless it is internal user
-                        if (isInternalUser || newAnalyzer)
+                        foreach (var analyzerInfo in pooledObject.Object)
                         {
                             // this will report telemetry under VS. this will let us see how accurate our performance tracking is
-                            RoslynLogger.Log(FunctionId.Diagnostics_BadAnalyzer, KeyValueLogMessage.Create(m =>
+                            RoslynLogger.Log(FunctionId.Diagnostics_AnalyzerPerformanceInfo, KeyValueLogMessage.Create(m =>
                             {
                                 // since it is telemetry, we hash analyzer name if it is not builtin analyzer
                                 m[nameof(analyzerInfo.AnalyzerId)] = isInternalUser ? analyzerInfo.AnalyzerId : analyzerInfo.PIISafeAnalyzerId;
-                                m[nameof(analyzerInfo.LocalOutlierFactor)] = analyzerInfo.LocalOutlierFactor;
                                 m[nameof(analyzerInfo.Average)] = analyzerInfo.Average;
                                 m[nameof(analyzerInfo.AdjustedStandardDeviation)] = analyzerInfo.AdjustedStandardDeviation;
+                                m[nameof(forSpanAnalysis)] = forSpanAnalysis;
                             }));
-                        }
-
-                        // for logging, we only log once. we log here so that we can ask users to provide this log to us
-                        // when we want to find out VS performance issue that could be caused by analyzer
-                        if (newAnalyzer)
-                        {
-                            _logger.TraceEvent(TraceEventType.Warning, 0,
-                                $"Analyzer perf indicators exceeded threshold for '{analyzerInfo.AnalyzerId}' ({analyzerInfo.AnalyzerIdHash}): " +
-                                $"LOF: {analyzerInfo.LocalOutlierFactor}, Avg: {analyzerInfo.Average}, Stddev: {analyzerInfo.AdjustedStandardDeviation}");
                         }
                     }
 

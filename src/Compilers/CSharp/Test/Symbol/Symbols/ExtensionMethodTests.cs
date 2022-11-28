@@ -2864,7 +2864,6 @@ public struct MyStruct<T>
             reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
             Assert.NotNull(reducedWithReceiver);
 
-
             compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular7);
             compilation2.VerifyDiagnostics(
                 // (5,9): error CS8107: Feature 'unmanaged constructed types' is not available in C# 7.0. Please use language version 8.0 or greater.

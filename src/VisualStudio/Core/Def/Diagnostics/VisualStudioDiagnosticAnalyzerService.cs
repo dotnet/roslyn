@@ -324,9 +324,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
             var totalProjectCount = project != null ? 1 : (uint)solution.ProjectIds.Count;
-            var statusBarUpdater = statusBar != null ?
-                new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, totalProjectCount) :
-                null;
+            var statusBarUpdater = statusBar != null
+                ? new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, totalProjectCount)
+                : null;
 
             // Force complete analyzer execution in background.
             var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");

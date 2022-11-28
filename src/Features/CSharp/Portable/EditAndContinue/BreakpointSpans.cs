@@ -190,8 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var switchArm = (SwitchExpressionArmSyntax)node;
                     return createSpanForSwitchArm(switchArm);
 
-                    TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm) =>
-                        CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : switchArm.Expression);
+                    TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm)
+                        => CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : switchArm.Expression);
 
                 case SyntaxKind.SwitchExpression when
                             node is SwitchExpressionSyntax switchExpression &&
@@ -311,9 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.LocalFunctionStatement:
                     var localFunction = (LocalFunctionStatementSyntax)node;
-                    return (localFunction.Body != null) ?
-                        TryCreateSpanForNode(localFunction.Body, position) :
-                        TryCreateSpanForNode(localFunction.ExpressionBody!.Expression, position);
+                    return (localFunction.Body != null)
+                        ? TryCreateSpanForNode(localFunction.Body, position)
+                        : TryCreateSpanForNode(localFunction.ExpressionBody!.Expression, position);
 
                 default:
                     if (node is ExpressionSyntax expression)

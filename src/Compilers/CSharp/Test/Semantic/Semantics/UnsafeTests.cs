@@ -2381,7 +2381,6 @@ No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
 
             CheckFixingVariablesVisitor.Process(block, binder, builder);
 
-
             var actual = string.Join(Environment.NewLine, builder);
 
             Assert.Equal(expected, actual);
@@ -4337,7 +4336,6 @@ unsafe class C
             Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
         }
-
 
         #endregion AddressOf SemanticModel tests
 
@@ -7556,7 +7554,6 @@ class Program
                 Assert.False(typeSummary.IsCompileTimeConstant);
                 Assert.False(typeSummary.ConstantValue.HasValue);
 
-
                 var sizeOfSummary = model.GetSemanticInfoSummary(syntax);
 
                 Assert.Null(sizeOfSummary.Symbol);
@@ -7619,7 +7616,6 @@ enum E2 : long
                 Assert.False(typeSummary.IsCompileTimeConstant);
                 Assert.False(typeSummary.ConstantValue.HasValue);
 
-
                 var sizeOfSummary = model.GetSemanticInfoSummary(syntax);
 
                 Assert.Null(sizeOfSummary.Symbol);
@@ -7679,7 +7675,6 @@ struct Outer
                 Assert.Null(typeSummary.Alias);
                 Assert.False(typeSummary.IsCompileTimeConstant);
                 Assert.False(typeSummary.ConstantValue.HasValue);
-
 
                 var sizeOfSummary = model.GetSemanticInfoSummary(syntax);
 
@@ -8279,7 +8274,6 @@ class C
             CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
-
         [WorkItem(543990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543990")]
         [Fact]
         public void PointerTypeInVolatileField()
@@ -8652,7 +8646,6 @@ class C
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int*)obj").WithArguments("object", "int*"));
         }
 
-
         [Fact]
         public void FixedBuffersNoDefiniteAssignmentCheck()
         {
@@ -9024,7 +9017,6 @@ namespace ConsoleApplication30
                 options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
-
 
             var s3 =
 @"using System; using ClassLibrary1;

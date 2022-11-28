@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             }
         }
 
-        public bool SupportsFindReferences =>
+        public bool SupportsFindReferences
                 // TODO: Use Dustin's find-references-from-symbol service.
-                false;
+                => false;
 
         public bool SupportsNavigateTo => true;
 

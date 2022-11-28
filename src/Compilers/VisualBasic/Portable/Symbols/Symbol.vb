@@ -820,7 +820,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return String.Format("{0} {1}", Me.Kind, Me.ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Function
 
-
         ' ---- End of Public Definition ---
         ' Below here can be Friend members that are useful to the compiler, but we don't
         ' want to expose publicly. However, using a class derived from SymbolVisitor can be
@@ -994,7 +993,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return modifiersUseSiteInfo
             End If
 
-
             Dim errorInfo = If(useSiteInfo.DiagnosticInfo, If(refModifiersUseSiteInfo.DiagnosticInfo, modifiersUseSiteInfo.DiagnosticInfo))
 
             If errorInfo IsNot Nothing Then
@@ -1043,7 +1041,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 useSiteInfo = DeriveUseSiteInfoFromType(DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol)
-
 
                 If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo) Then
                     Exit For
