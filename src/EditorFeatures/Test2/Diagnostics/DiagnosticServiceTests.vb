@@ -2331,15 +2331,7 @@ class MyClass
         End Function
 
         <WpfTheory>
-        <InlineData(DiagnosticKind.CompilerSyntax)>
-        <InlineData(DiagnosticKind.CompilerSemantic)>
-        <InlineData(DiagnosticKind.AnalyzerSyntax)>
-        <InlineData(DiagnosticKind.AnalyzerSemantic)>
-        <InlineData(DiagnosticKind.AllCompiler)>
-        <InlineData(DiagnosticKind.AllAnalyzer)>
-        <InlineData(DiagnosticKind.AllSyntax)>
-        <InlineData(DiagnosticKind.AllSemantic)>
-        <InlineData(DiagnosticKind.All)>
+        <CombinatorialData>
         Friend Async Function TestGetDiagnosticsForDiagnosticKindsAsync(diagnosticKinds As DiagnosticKind) As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
