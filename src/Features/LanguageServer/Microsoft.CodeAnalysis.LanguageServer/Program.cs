@@ -38,10 +38,10 @@ var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(new VisualStudi
 MSBuildLocator.RegisterInstance(msbuildInstances.First());
 
 var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
-
-using (var workspace = await HostWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, logger))
+var hostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
+using (var workspace = await HostWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, hostServices, logger))
 {
-    var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger, exportProvider);
+    var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, hostServices, logger);
 
     await jsonRpc.StartAsync().ConfigureAwait(false);
 }

@@ -34,7 +34,7 @@ internal class HostWorkspace : Workspace
     {
     }
 
-    internal static async Task<Workspace> CreateWorkspaceAsync(string solutionPath, ExportProvider exportProvider, ILogger logger)
+    internal static async Task<Workspace> CreateWorkspaceAsync(string solutionPath, ExportProvider exportProvider, HostServices hostServices, ILogger logger)
     {
         try
         {
@@ -46,7 +46,6 @@ internal class HostWorkspace : Workspace
             // Instead we just take the solution and it put in this workspace type where we can call SetCurrentSolution.
             //
             // This is all going to get refactored anyway when we do more project system stuff.
-            var hostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
             using var msbuildWorkspace = MSBuildWorkspace.Create(hostServices);
             var solution = await msbuildWorkspace.OpenSolutionAsync(solutionPath);
 
