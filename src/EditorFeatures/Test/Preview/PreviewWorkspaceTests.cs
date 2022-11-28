@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             // set up tagger for both buffers
             var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var provider = workspace.ExportProvider.GetExportedValues<IViewTaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
+            var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
             var leftTagger = provider.CreateTagger<IErrorTag>(leftBuffer);
             Contract.ThrowIfNull(leftTagger);
 
