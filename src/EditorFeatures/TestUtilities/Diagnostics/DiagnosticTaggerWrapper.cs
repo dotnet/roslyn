@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
-        private IViewTaggerProvider? _taggerProvider;
+        private ITaggerProvider? _taggerProvider;
 
         public DiagnosticTaggerWrapper(
             TestWorkspace workspace,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        public IViewTaggerProvider TaggerProvider
+        public ITaggerProvider TaggerProvider
         {
             get
             {
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         || typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider)
                         || typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                     {
-                        _taggerProvider = _workspace.ExportProvider.GetExportedValues<IViewTaggerProvider>()
+                        _taggerProvider = _workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
                             .OfType<TProvider>()
                             .Single();
                     }

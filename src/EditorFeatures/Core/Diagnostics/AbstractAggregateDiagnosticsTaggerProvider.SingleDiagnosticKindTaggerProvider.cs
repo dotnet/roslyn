@@ -35,7 +35,7 @@ internal partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
     /// cref="AbstractAggregateDiagnosticsTaggerProvider{TTag}"/> which aggregates its results and the results for all the
     /// other <see cref="DiagnosticKind"/> to produce all the diagnostics for that feature.
     /// </summary>
-    private sealed class SingleDiagnosticKindTaggerProvider : AsynchronousViewTaggerProvider<TTag>
+    private sealed class SingleDiagnosticKindTaggerProvider : AsynchronousTaggerProvider<TTag>
     {
         private readonly DiagnosticKind _diagnosticKind;
         private readonly IDiagnosticService _diagnosticService;
@@ -86,17 +86,6 @@ internal partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
                 TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
-        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            this.ThreadingContext.ThrowIfNotOnUIThread();
-            Contract.ThrowIfNull(textView);
-
-            var visibleSpan = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
-            return visibleSpan == null
-                ? base.GetSpansToTag(textView, subjectBuffer)
-                : SpecializedCollections.SingletonEnumerable(visibleSpan.Value);
-        }
-
         protected sealed override Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
@@ -130,20 +119,11 @@ internal partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
 
             var sourceText = snapshot.AsText();
 
-            // For semantic requests we currently tag the entire document.  This is because sub-span requests are not
-            // cached in the analyzer service.  And we don't want to have the user do something like scroll (to
-            // something still in view) and have that kick off all the work again.  At the point where the service can
-            // cache, we can then just have it compute diagnostics for what is in view.  Tracked with:
-            // https://github.com/dotnet/roslyn/issues/65637
-            var spanToTag = _diagnosticKind is DiagnosticKind.AnalyzerSemantic or DiagnosticKind.CompilerSemantic
-                ? snapshot.GetFullSpan().Span.ToTextSpan()
-                : documentSpanToTag.SnapshotSpan.Span.ToTextSpan();
-
             try
             {
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
                     document,
-                    spanToTag,
+                    documentSpanToTag.SnapshotSpan.Span.ToTextSpan(),
                     diagnosticKind: _diagnosticKind,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 

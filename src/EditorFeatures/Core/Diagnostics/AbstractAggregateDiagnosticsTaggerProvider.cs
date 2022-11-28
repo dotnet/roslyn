@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -11,7 +9,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -21,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// diagnostics with different UI presentations.  It does no computation work itself, but instead defers that to it's
 /// underlying <see cref="SingleDiagnosticKindTaggerProvider"/>s.
 /// </summary>
-internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag> : IViewTaggerProvider
+internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag> : ITaggerProvider
     where TTag : ITag
 {
     /// <summary>
@@ -55,11 +52,11 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
             => new(this, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
     }
 
-    public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+    public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
         using var _ = ArrayBuilder<ITagger<TTag>>.GetInstance(out var taggers);
         foreach (var taggerProvider in _diagnosticsTaggerProviders)
-            taggers.AddIfNotNull(taggerProvider.CreateTagger<TTag>(textView, buffer));
+            taggers.AddIfNotNull(taggerProvider.CreateTagger<TTag>(buffer));
 
         var tagger = new AggregateTagger(taggers.ToImmutable());
         if (tagger is not ITagger<T> genericTagger)

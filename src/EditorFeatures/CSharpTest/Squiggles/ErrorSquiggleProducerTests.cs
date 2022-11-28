@@ -233,7 +233,7 @@ class Program
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
-            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
 
@@ -261,7 +261,7 @@ class Program
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
-            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextView(), firstDocument.GetTextBuffer());
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
 
