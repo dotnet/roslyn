@@ -6416,5 +6416,77 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rs6").WithArguments("rs6").WithLocation(45, 16)
                 );
         }
+
+        [Fact, WorkItem(64783, "https://github.com/dotnet/roslyn/issues/64783")]
+        public void OutArgumentsDoNotContributeValEscape_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static Span<byte> M1()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        var ret = OneOutSpanReturnsSpan(out a);
+                        return ret;
+                    }
+
+                    static Span<byte> M2()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        TwoOutSpans(out a, out Span<byte> b);
+                        return b;
+                    }
+
+                    static Span<byte> OneOutSpanReturnsSpan(out Span<byte> a)
+                    {
+                        // 'return a' is illegal until it is overwritten
+                        a = default;
+                        return default;
+                    }
+
+                    static void TwoOutSpans(out Span<byte> a, out Span<byte> b)
+                    {
+                        // 'a = b' and 'b = a' are illegal until one has already been written
+                        a = b = default;
+                    }
+                }
+
+                """;
+
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(56587, "https://github.com/dotnet/roslyn/issues/56587")]
+        public void OutArgumentsDoNotContributeValEscape_02()
+        {
+            // Test that out discard arguments are not treated as inputs.
+            // This means we don't need to take special care to zero-out the variable used for a discard argument between uses.
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static Span<byte> M1()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        TwoOutSpans(out a, out _);
+                        TwoOutSpans(out _, out Span<byte> c);
+                        return c;
+                    }
+
+                    static void TwoOutSpans(out Span<byte> a, out Span<byte> b)
+                    {
+                        // 'a = b' and 'b = a' are illegal until one has already been written
+                        a = b = default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }

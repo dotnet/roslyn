@@ -32,9 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return
-                context.IsTypeContext ||
+                context.IsStatementContext ||
+                context.IsGlobalStatementContext ||
                 UsingKeywordRecommender.IsUsingDirectiveContext(context, forGlobalKeyword: true, cancellationToken) ||
                 context.IsAnyExpressionContext ||
+                context.IsObjectCreationTypeContext ||
+                context.IsIsOrAsTypeContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.RefKeyword, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ReadOnlyKeyword, cancellationToken) ||
