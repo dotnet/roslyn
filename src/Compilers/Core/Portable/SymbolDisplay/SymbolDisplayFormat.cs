@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeType |
-                    SymbolDisplayParameterOptions.IncludeNameIfStandalone,
+                    SymbolDisplayParameterOptions.IncludeType,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
 
         internal static SymbolDisplayFormat CSharpErrorMessageTypeFormat { get; } = CSharpErrorMessageFormat
-            .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeNameIfStandalone);
+            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
 
         /// <summary>
         /// Formats a symbol description as in a C# compiler short error message.
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeType |
-                    SymbolDisplayParameterOptions.IncludeNameIfStandalone,
+                    SymbolDisplayParameterOptions.IncludeType,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
 
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.
@@ -765,6 +765,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal SymbolDisplayFormat AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
             => WithCompilerInternalOptions(this.CompilerInternalOptions | options);
+
+        /// <summary>
+        /// Creates a copy of the SymbolDisplayFormat but with a set of <see cref="SymbolDisplayCompilerInternalOptions"/> stripped away from the original object.
+        /// </summary>
+        internal SymbolDisplayFormat RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
+            => WithCompilerInternalOptions(this.CompilerInternalOptions & ~options);
 
         /// <summary>
         /// Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="SymbolDisplayCompilerInternalOptions"/>.
