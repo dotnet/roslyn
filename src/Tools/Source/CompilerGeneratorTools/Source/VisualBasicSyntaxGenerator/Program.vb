@@ -125,7 +125,7 @@ Friend Module Program
             Case "/test"
                 Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
 
-                    WriteHeader(output)
+                    WriteHeader(output, checksum)
                     output.WriteLine()
                     output.WriteLine("Imports System.Collections.Generic")
                     output.WriteLine("Imports System.Collections.Immutable")
@@ -140,17 +140,17 @@ Friend Module Program
 
             Case "/gettext"
                 Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
-                    WriteHeader(output)
+                    WriteHeader(output, checksum)
                     Dim syntaxFactsWriter As New SyntaxFactsWriter(definition)
                     syntaxFactsWriter.GenerateGetText(output)
                 End Using
 
             Case Else
-                WriteSyntax(inputFile, outputFile, definition)
+                WriteSyntax(inputFile, outputFile, definition, checksum)
         End Select
     End Sub
 
-    Public Sub WriteSyntax(inputFile As String, outputFile As String, definition As ParseTree)
+    Public Sub WriteSyntax(inputFile As String, outputFile As String, definition As ParseTree, checksum As String)
         Dim outputPath = outputFile.Trim(""""c)
         Dim prefix = Path.GetFileName(inputFile)
         Dim mainFile = Path.Combine(outputPath, $"{prefix}.Main.Generated.vb")
@@ -159,7 +159,7 @@ Friend Module Program
         Dim redNodeWriter As New RedNodeWriter(definition)
 
         Using output As New StreamWriter(New FileStream(mainFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
-            WriteSyntaxHeader(output)
+            WriteSyntaxHeader(output, checksum)
             redNodeWriter.WriteMainTreeAsCode(output)
 
             Dim redFactoryWriter As New RedNodeFactoryWriter(definition)
@@ -170,13 +170,13 @@ Friend Module Program
         End Using
 
         Using output As New StreamWriter(New FileStream(syntaxFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
-            WriteSyntaxHeader(output)
+            WriteSyntaxHeader(output, checksum)
 
             redNodeWriter.WriteSyntaxTreeAsCode(output)
         End Using
 
         Using output As New StreamWriter(New FileStream(internalFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
-            WriteSyntaxHeader(output)
+            WriteSyntaxHeader(output, checksum)
 
             Dim greenNodeWriter As New GreenNodeWriter(definition)
             greenNodeWriter.WriteTreeAsCode(output)
@@ -187,13 +187,13 @@ Friend Module Program
 
     End Sub
 
-    Private Sub WriteHeader(output As StreamWriter)
+    Private Sub WriteHeader(output As StreamWriter, checksum As String)
         output.WriteLine("' Definition of syntax model.")
         output.WriteLine("' DO NOT HAND EDIT")
     End Sub
 
-    Private Sub WriteSyntaxHeader(output As StreamWriter)
-        WriteHeader(output)
+    Private Sub WriteSyntaxHeader(output As StreamWriter, checksum As String)
+        WriteHeader(output, checksum)
 
         output.WriteLine()
         output.WriteLine("Imports System.Collections.Generic")

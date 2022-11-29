@@ -211,9 +211,9 @@ Friend Class RedNodeFactoryWriter
                     Dim paramName = ChildParamName(child, factoryFunctionName)
 
                     If KindTypeStructure(child.ChildKind).IsToken Then
-                        CheckChildToken(nodeStructure, nodeKind, child, paramName)
+                        CheckChildToken(nodeStructure, nodeKind, child, paramName, factoryFunctionName)
                     Else
-                        CheckChildNode(nodeStructure, nodeKind, child, paramName)
+                        CheckChildNode(nodeStructure, nodeKind, child, paramName, factoryFunctionName)
                     End If
                 End If
             End If
@@ -442,7 +442,7 @@ Friend Class RedNodeFactoryWriter
         _writer.WriteLine("            End If")
     End Sub
 
-    Private Sub CheckChildNode(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild, paramName As String)
+    Private Sub CheckChildNode(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild, paramName As String, factoryFunctionName As String)
 
         If Not child.IsOptional Then
             CheckParam(paramName)
@@ -507,7 +507,7 @@ Friend Class RedNodeFactoryWriter
         End If
     End Sub
 
-    Private Sub CheckChildToken(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild, paramName As String)
+    Private Sub CheckChildToken(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild, paramName As String, factoryFunctionName As String)
         Dim childNodeKind = TryCast(child.ChildKind, ParseNodeKind)
         Dim childNodeKinds = TryCast(child.ChildKind, List(Of ParseNodeKind))
 
@@ -598,7 +598,7 @@ Friend Class RedNodeFactoryWriter
     End Function
 
     Private Function GetAllFactoryChildrenWithoutAutoCreatableTokens(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind) As List(Of ParseNodeChild)
-        Return GetAllFactoryChildrenOfStructure(nodeStructure).Where(Function(child) Not IsAutoCreatableChild(nodeKind, child)).ToList()
+        Return GetAllFactoryChildrenOfStructure(nodeStructure).Where(Function(child) Not IsAutoCreatableChild(nodeStructure, nodeKind, child)).ToList()
     End Function
 
     Private Function GetDefaultedFactoryParameterExpression(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild) As String
@@ -606,14 +606,14 @@ Friend Class RedNodeFactoryWriter
             Return "Nothing"
         End If
 
-        If IsAutoCreatableToken(nodeKind, child) Then
+        If IsAutoCreatableToken(nodeStructure, nodeKind, child) Then
             Dim childNodeKind = GetChildNodeKind(nodeKind, child)
             Dim result = String.Format("SyntaxFactory.Token(SyntaxKind.{0})", childNodeKind.Name)
             If child.IsList Then
                 result = "SyntaxTokenList.Create(" & result & ")"
             End If
             Return result
-        ElseIf IsAutoCreatableNodeOfAutoCreatableTokens(nodeKind, child) Then
+        ElseIf IsAutoCreatableNodeOfAutoCreatableTokens(nodeStructure, nodeKind, child) Then
             Dim childNodeKind = GetChildNodeKind(nodeKind, child)
             If child.IsSeparated Then
                 Return String.Format("SyntaxFactory.SingletonSeparatedList(SyntaxFactory.{0}())", FactoryName(childNodeKind))
@@ -626,12 +626,12 @@ Friend Class RedNodeFactoryWriter
         Throw New InvalidOperationException("Badness")
     End Function
 
-    Private Function IsRequiredFactoryChild(nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
-        Return Not (child.IsOptional Or IsAutoCreatableChild(nodeKind, child))
+    Private Function IsRequiredFactoryChild(node As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
+        Return Not (child.IsOptional Or IsAutoCreatableChild(node, nodeKind, child))
     End Function
 
     Private Function GetAllRequiredFactoryChildren(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind) As List(Of ParseNodeChild)
-        Return GetAllFactoryChildrenOfStructure(nodeStructure).Where(Function(child) IsRequiredFactoryChild(nodeKind, child)).ToList()
+        Return GetAllFactoryChildrenOfStructure(nodeStructure).Where(Function(child) IsRequiredFactoryChild(nodeStructure, nodeKind, child)).ToList()
     End Function
 
     Private Sub GenerateSecondaryFactoryMethod(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, allFullFactoryChildren As List(Of ParseNodeChild), allFields As List(Of ParseNodeField), allFactoryChildren As List(Of ParseNodeChild), getDefaultedParameter As Func(Of ParseNodeStructure, ParseNodeKind, ParseNodeChild, String), Optional substituteString As Boolean = False, Optional substituteParamArray As Boolean = False)

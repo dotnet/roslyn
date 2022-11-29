@@ -520,11 +520,11 @@ Public Class TestWriter
 
     Private Sub GenerateRewriterTest(isGreen As Boolean, nodeStructure As ParseNodeStructure)
         For Each kind In nodeStructure.NodeKinds
-            GenerateRewriterTest(isGreen, kind)
+            GenerateRewriterTest(isGreen, nodeStructure, kind)
         Next
     End Sub
 
-    Private Sub GenerateRewriterTest(isGreen As Boolean, nodeKind As ParseNodeKind)
+    Private Sub GenerateRewriterTest(isGreen As Boolean, nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
 
         If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
             Return ' check for fix
@@ -557,11 +557,11 @@ Public Class TestWriter
 
     Private Sub GenerateVisitorTest(isGreen As Boolean, nodeStructure As ParseNodeStructure)
         For Each kind In nodeStructure.NodeKinds
-            GenerateVisitorTest(isGreen, kind)
+            GenerateVisitorTest(isGreen, nodeStructure, kind)
         Next
     End Sub
 
-    Private Sub GenerateVisitorTest(isGreen As Boolean, nodeKind As ParseNodeKind)
+    Private Sub GenerateVisitorTest(isGreen As Boolean, nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
 
         If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
             Return ' check for fix
