@@ -27,7 +27,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         /// these taggers is not relevant.  They are not executed serially.  Rather, they all run concurrently, notifying us
         /// (potentially concurrently as well) when change occur.
         /// </summary>
-        private readonly ImmutableArray<SingleDiagnosticKindTaggerProvider> _diagnosticsTaggerProviders;
+        private readonly ImmutableArray<SingleDiagnosticKindPullTaggerProvider> _diagnosticsTaggerProviders;
 
         public AggregatePullDiagnosticsTaggerProvider(
             AbstractPushOrPullDiagnosticsTaggerProvider<TTag> callback,
@@ -46,7 +46,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
             return;
 
-            SingleDiagnosticKindTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
+            SingleDiagnosticKindPullTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
                 => new(callback, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
         }
 

@@ -33,7 +33,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
     /// cref="AggregatePullDiagnosticsTaggerProvider"/> which aggregates its results and the results for all the
     /// other <see cref="DiagnosticKind"/> to produce all the diagnostics for that feature.
     /// </summary>
-    private sealed class SingleDiagnosticKindTaggerProvider : AsynchronousTaggerProvider<TTag>
+    private sealed class SingleDiagnosticKindPullTaggerProvider : AsynchronousTaggerProvider<TTag>
     {
         private readonly DiagnosticKind _diagnosticKind;
         private readonly IDiagnosticService _diagnosticService;
@@ -43,7 +43,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
         protected override ImmutableArray<IOption> Options => _callback.Options;
 
-        public SingleDiagnosticKindTaggerProvider(
+        public SingleDiagnosticKindPullTaggerProvider(
             AbstractPushOrPullDiagnosticsTaggerProvider<TTag> callback,
             DiagnosticKind diagnosticKind,
             IThreadingContext threadingContext,

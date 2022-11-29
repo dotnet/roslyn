@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -44,8 +45,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         }
         else
         {
-            //_underlyingTaggerProvider = new PushDiagnosticsTaggerProvider(
-            //    this, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
+            _underlyingTaggerProvider = new PushDiagnosticsTaggerProvider(
+                this, threadingContext, diagnosticService, globalOptions, visibilityTracker, listener);
         }
     }
 
