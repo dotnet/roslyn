@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var result);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
             // Lazily produce the compilation.  We don't want to incur any costs (especially source generators) if there
             // are no results for this query in this project.
@@ -67,22 +67,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (project.SupportsCompilation)
             {
+                await SearchCurrentProjectAsync().ConfigureAwait(false);
+                await SearchProjectReferencesAsync().ConfigureAwait(false);
+                await SearchMetadataReferencesAsync().ConfigureAwait(false);
+            }
+
+            return result.ToImmutable();
+
+            async Task SearchCurrentProjectAsync()
+            {
                 // Search in the source symbols for this project first.
-                {
-                    using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
 
-                    // get declarations from the compilation's assembly
-                    await AddCompilationSourceDeclarationsWithNormalQueryAsync(
-                        project, query, criteria, buffer, cancellationToken).ConfigureAwait(false);
+                // get declarations from the compilation's assembly
+                await AddCompilationSourceDeclarationsWithNormalQueryAsync(
+                    project, query, criteria, buffer, cancellationToken).ConfigureAwait(false);
 
-                    // No need to map symbols since we're looking in the starting project.
-                    await AddAllAsync(buffer, mapSymbol: false).ConfigureAwait(false);
-                }
+                // No need to map symbols since we're looking in the starting project.
+                await AddAllAsync(buffer, mapSymbol: false).ConfigureAwait(false);
+            }
 
+            async Task SearchProjectReferencesAsync()
+            {
                 // get declarations from directly referenced projects
                 foreach (var projectReference in project.ProjectReferences)
                 {
-                    using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
+                    using var _ = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
 
                     var referencedProject = project.Solution.GetProject(projectReference.ProjectId);
                     if (referencedProject is null)
@@ -95,11 +105,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // starting project's language.
                     await AddAllAsync(buffer, mapSymbol: referencedProject.Language != project.Language).ConfigureAwait(false);
                 }
+            }
 
+            async Task SearchMetadataReferencesAsync()
+            {
                 // get declarations from directly referenced metadata
                 foreach (var peReference in project.MetadataReferences.OfType<PortableExecutableReference>())
                 {
-                    using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
+                    using var _ = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
 
                     var lazyAssembly = new AsyncLazy<IAssemblySymbol?>(async cancellationToken =>
                     {
@@ -116,8 +129,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     await AddAllAsync(buffer, mapSymbol: false).ConfigureAwait(false);
                 }
             }
-
-            return result.ToImmutable();
 
             async Task AddAllAsync(ArrayBuilder<ISymbol> buffer, bool mapSymbol)
             {
