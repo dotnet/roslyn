@@ -311,6 +311,25 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         }
 
         [Fact]
+        public async Task AnalyzerFilePresent_MissingNonEnabledText()
+        {
+            var source = $$"""
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """;
+
+            string? shippedText = "";
+            string? unshippedText = "";
+
+            var expectedDiagnostics = new[] { GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C") };
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\ndotnet_public_api_analyzer.require_api_files = true", expectedDiagnostics);
+        }
+
+        [Fact]
         public async Task EmptyPublicAPIFilesAsync()
         {
             var source = @"";
