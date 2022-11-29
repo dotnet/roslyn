@@ -13180,7 +13180,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaDefaultDisardParameter_DelegateConversion_DefaultValueMismatch()
+        public void LambdaDefaultDiscardParameter_DelegateConversion_DefaultValueMismatch()
         {
             var source = """
 using System;
@@ -13227,6 +13227,18 @@ class Program
                 // (12,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
                 //         Console.WriteLine(d(4));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void Lambda_DiscardParameters()
+        {
+            var source = """
+                var lam1 = (string _, int _ = 1) => { };
+                lam1("s", 2);
+                var lam2 = (string _, params int[] _) => { };
+                lam2("s", 3, 4, 5);
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -13337,6 +13349,11 @@ class Program
         [InlineData("char", "'a'", "a")]
         [InlineData("string", @"""a string""", "a string")]
         [InlineData("C", "null", "")]
+        [InlineData("C", "default(C)", "")]
+        [InlineData("C", "default", "")]
+        [InlineData("S", "new S()", "Program+S")]
+        [InlineData("S", "default(S)", "Program+S")]
+        [InlineData("S", "default", "Program+S")]
         public void LambdaDefaultParameter_AllConstantValueTypes(string parameterType, string defaultValue = "0", string expectedOutput = "0")
         {
             var source = $$"""
@@ -13349,6 +13366,8 @@ public class Program
     }
     
     class C {}
+
+    struct S {}
 
     public static void Main()
     {
@@ -13381,7 +13400,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(1, 18));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultParameter_TargetTypedValidNonLiteralConversion()
         {
             var source = """
@@ -13391,7 +13410,7 @@ public class Program
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultParameter_InterpolatedStringHandler()
         {
             var source = """
@@ -13451,7 +13470,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
         {
             var source = """
@@ -13481,6 +13500,52 @@ class Program
                 // (1,12): error CS0246: The type or namespace name 'ReadOnlySpan<>' could not be found (are you missing a using directive or an assembly reference?)
                 // var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ReadOnlySpan<byte>").WithArguments("ReadOnlySpan<>").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_EmbeddedType_Propagated()
+        {
+            var source1 = """
+                using System.Runtime.InteropServices;
+                [assembly: PrimaryInteropAssembly(0, 0)]
+                [assembly: Guid("863D5BC0-46A1-49AC-97AA-A5F0D441A9DA")]
+                [ComImport, Guid("863D5BC0-46A1-49AD-97AA-A5F0D441A9DA")]
+                public interface MyEmbeddedType { }
+                """;
+            var comp1 = CreateCompilation(source1);
+            var ref1 = comp1.EmitToImageReference(embedInteropTypes: true);
+
+            var source2 = """
+                var l = (MyEmbeddedType t = null) => {};
+                """;
+            var comp2 = CreateCompilation(source2, new[] { ref1 });
+            CompileAndVerify(comp2, symbolValidator: static module =>
+            {
+                Assert.Contains("MyEmbeddedType", module.TypeNames);
+            });
+        }
+
+        [Fact]
+        public void LambdaWithDefault_EmbeddedType_NotPropagated_Default()
+        {
+            var source1 = """
+                using System.Runtime.InteropServices;
+                [assembly: PrimaryInteropAssembly(0, 0)]
+                [assembly: Guid("863D5BC0-46A1-49AC-97AA-A5F0D441A9DA")]
+                [ComImport, Guid("863D5BC0-46A1-49AD-97AA-A5F0D441A9DA")]
+                public interface MyEmbeddedType { }
+                """;
+            var comp1 = CreateCompilation(source1);
+            var ref1 = comp1.EmitToImageReference(embedInteropTypes: true);
+
+            var source2 = """
+                var l = (object o = default(MyEmbeddedType)) => {};
+                """;
+            var comp2 = CreateCompilation(source2, new[] { ref1 });
+            CompileAndVerify(comp2, symbolValidator: static module =>
+            {
+                Assert.DoesNotContain("MyEmbeddedType", module.TypeNames);
+            });
         }
 
         [Fact]
@@ -13928,6 +13993,108 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Lambda()
+        {
+            var source = """
+                var lam = (params int[] xs) => xs.Length;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,12): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Lambda_ExplicitDelegateType()
+        {
+            var source = """
+                System.Func<int[], int> lam = (params int[] xs) => xs.Length;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,32): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // System.Func<int[], int> lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 32),
+                // (1,45): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // System.Func<int[], int> lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 45));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_LocalFunction()
+        {
+            var source = """
+                int local(params int[] xs) => xs.Length;
+                local();
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,11): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // int local(params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_ExternalMethodGroup()
+        {
+            var source1 = """
+                public class C
+                {
+                    public static void M(params int[] xs) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                var m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp2.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 9));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Method()
+        {
+            var source = """
+                class C
+                {
+                    static void M(params int[] xs) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //     static void M(params int[] xs) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(3, 19));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Property()
+        {
+            var source = """
+                class C
+                {
+                    int this[params int[] xs] { get => throw null; set => throw null; }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //     int this[params int[] xs] { get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(3, 14));
+        }
+
+        [Fact]
         public void ParamsArray_SynthesizedTypesMatch()
         {
             var source = """
@@ -13981,13 +14148,22 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 """).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void ParamsArray_SynthesizedDelegateIL()
+        [Theory]
+        [InlineData("(int x, params int[] ys) => { }", "")]
+        [InlineData("M", "static void M(int x, params int[] ys) { }")]
+        public void ParamsArray_SynthesizedDelegateIL(string variable, string method)
         {
-            var source = """
-                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
-                var lam = (int x, params int[] ys) => { };
-                Report(lam);
+            var source = $$"""
+                class C
+                {
+                    static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                    static void Main()
+                    {
+                        var m = {{variable}};
+                        Report(m);
+                    }
+                    {{method}}
+                }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
@@ -14011,8 +14187,123 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 			int32[] arg2
                 		) runtime managed 
                 	{
+                		.param [2]
+                			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
+                				01 00 00 00
+                			)
                 	} // end of method '<>f__AnonymousDelegate0'::Invoke
                 } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedMethodIL_Lambda()
+        {
+            var source = """
+                var lam = (int x, params int[] ys) => { };
+                System.Console.WriteLine(lam.Method.DeclaringType!.Name);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "<>c").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x20a4
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x209c
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_0' (
+                			int32 x,
+                			int32[] ys
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x20b0
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_0'
+                } // end of class <>c
+                """);
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedMethodIL_LocalFunction()
+        {
+            var source = """
+                class C
+                {
+                    public static void M()
+                    {
+                        void local(int x, params int[] ys) { }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source).VerifyDiagnostics(
+                // (5,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local(int x, params int[] ys) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(5, 14));
+            verifier.VerifyTypeIL("C", $$"""
+                .class private auto ansi beforefieldinit C
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	// Methods
+                	.method public hidebysig static 
+                		void M () cil managed 
+                	{
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method C::M
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2069
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method C::.ctor
+                	.method assembly hidebysig static 
+                		void '<M>g__local|0_0' (
+                			int32 x,
+                			int32[] ys
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method C::'<M>g__local|0_0'
+                } // end of class C
                 """);
         }
 
