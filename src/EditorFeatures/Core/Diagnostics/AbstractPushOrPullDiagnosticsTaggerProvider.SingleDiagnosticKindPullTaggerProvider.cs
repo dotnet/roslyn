@@ -138,7 +138,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
                             {
-                                var tagSpan = _callback.CreateTagSpan(workspace, diagnosticSpan, diagnosticData);
+                                var tagSpan = _callback.CreateTagSpan(workspace, isLiveUpdate: true, diagnosticSpan, diagnosticData);
                                 if (tagSpan != null)
                                     context.AddTag(tagSpan);
                             }

@@ -82,7 +82,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
     protected abstract bool IncludeDiagnostic(DiagnosticData data);
 
     protected abstract bool TagEquals(TTag tag1, TTag tag2);
-    protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
+    protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
 
     /// <summary>
     /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.

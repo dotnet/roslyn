@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected sealed override bool IsEnabled => true;
 
         protected sealed override ITagSpan<TTag>? CreateTagSpan(
-            Workspace workspace, SnapshotSpan span, DiagnosticData data)
+            Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(workspace, data);
             if (errorTag == null)
@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Ensure the diagnostic has at least length 1.  Tags must have a non-empty length in order to actually show
             // up in the editor.
-            var adjustedSpan = AdjustSnapshotSpan(span);
+            // Live update squiggles have to be at least 1 character long.
+            var minimumLength = isLiveUpdate ? 1 : 0;
+            var adjustedSpan = AdjustSnapshotSpan(span, minimumLength);
             if (adjustedSpan.Length == 0)
                 return null;
 
@@ -49,7 +51,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // By default, tags must have at least length '1' so that they can be visible in the UI layer.
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span)
-            => AdjustSnapshotSpan(span, minimumLength: 1, maximumLength: int.MaxValue);
+            => AdjustSnapshotSpan(span, minimumLength: 1);
+
+        protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
+            => AdjustSnapshotSpan(span, minimumLength, maximumLength: int.MaxValue);
 
         protected static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {

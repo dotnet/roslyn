@@ -137,11 +137,9 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
-            if (diagnosticMode == DiagnosticMode.Pull)
-                return;
-
             var buckets = diagnosticMode switch
             {
+                DiagnosticMode.Pull => _diagnosticService.GetPullDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
                 DiagnosticMode.Push => _diagnosticService.GetPushDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(diagnosticMode),
             };
