@@ -118,7 +118,10 @@
                 </Style>
             </TextBox.Style>
         </TextBox>
-        <TreeView Grid.Row="2" Name="SymbolTree">
+        <TreeView Grid.Row="2"
+                  Name="SymbolTree"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolUIItem}" ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="SymbolTree_MouseDown">
