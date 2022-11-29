@@ -291,8 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -323,8 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializerComma()
         {
             await TestInRegularAndScriptAsync(
@@ -358,8 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializerNotIfAlreadyInitialized()
         {
             await TestInRegularAndScriptAsync(
@@ -568,8 +565,7 @@ class C
 }");
         }
 
-        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
-        [Fact]
+        [Fact, WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
         public async Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -608,8 +604,7 @@ class C
 }");
         }
 
-        [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
-        [Fact]
+        [Fact, WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
         public async Task TestMissingInNonTopLevelObjectInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -623,8 +618,7 @@ class C
 }");
         }
 
-        [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
-        [Fact]
+        [Fact, WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
         public async Task TestMissingForDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -640,8 +634,7 @@ class C
 }");
         }
 
-        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
-        [Fact]
+        [Fact, WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestMissingAcrossPreprocessorDirective()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -660,8 +653,7 @@ public class Goo
 }");
         }
 
-        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
-        [Fact]
+        [Fact, WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestAvailableInsidePreprocessorDirective()
         {
             await TestInRegularAndScriptAsync(
@@ -695,8 +687,7 @@ public class Goo
 }");
         }
 
-        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
-        [Fact]
+        [Fact, WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
         public async Task TestKeepBlankLinesAfter()
         {
             await TestInRegularAndScriptAsync(
@@ -736,8 +727,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
-        [Fact]
+        [Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
         public async Task TestWithExplicitImplementedInterfaceMembers1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -760,8 +750,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
-        [Fact]
+        [Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
         public async Task TestWithExplicitImplementedInterfaceMembers2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -787,8 +776,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
-        [Fact]
+        [Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
         public async Task TestWithExplicitImplementedInterfaceMembers3()
         {
             await TestInRegularAndScriptAsync(
@@ -836,8 +824,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(37675, "https://github.com/dotnet/roslyn/issues/37675")]
-        [Fact]
+        [Fact, WorkItem(37675, "https://github.com/dotnet/roslyn/issues/37675")]
         public async Task TestDoNotOfferForUsingDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -885,8 +872,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
-        [Fact]
+        [Fact, WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
         public async Task TestInTopLevelStatements()
         {
             await TestInRegularAndScriptAsync(

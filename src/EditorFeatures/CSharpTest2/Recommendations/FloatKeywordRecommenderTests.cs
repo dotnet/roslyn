@@ -577,32 +577,28 @@ $$");
     private static void RoundToFloat(double d, out $$ float f)");
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Fact]
+        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInTypeOf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Fact]
+        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInDefault()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"default($$"));
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Fact]
+        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestInSizeOf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
-        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
-        [Fact]
+        [Fact, WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"
@@ -614,8 +610,7 @@ class C
         var c = new C { x = 2, y = 3, $$");
         }
 
-        [WorkItem(546938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546938")]
-        [Fact]
+        [Fact, WorkItem(546938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546938")]
         public async Task TestInCrefContext()
         {
             await VerifyKeywordAsync(@"
@@ -629,8 +624,7 @@ class Program
 }");
         }
 
-        [WorkItem(546955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546955")]
-        [Fact]
+        [Fact, WorkItem(546955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546955")]
         public async Task TestInCrefContextNotAfterDot()
         {
             await VerifyAbsenceAsync(@"
@@ -639,18 +633,15 @@ class C { }
 ");
         }
 
-        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
-        [Fact]
+        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         public async Task TestNotAfterAsync()
             => await VerifyAbsenceAsync(@"class c { async $$ }");
 
-        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
-        [Fact]
+        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         public async Task TestNotAfterAsyncAsType()
             => await VerifyAbsenceAsync(@"class c { async async $$ }");
 
-        [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
-        [Fact]
+        [Fact, WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
         public async Task TestNotInCrefTypeParameter()
         {
             await VerifyAbsenceAsync(@"
@@ -675,8 +666,7 @@ class Program
 ");
         }
 
-        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
-        [Fact]
+        [Fact, WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         public async Task TestInTupleWithinType()
         {
             await VerifyKeywordAsync(@"
@@ -686,8 +676,7 @@ class Program
 }");
         }
 
-        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
-        [Fact]
+        [Fact, WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         public async Task TestInTupleWithinMember()
         {
             await VerifyKeywordAsync(@"
@@ -736,8 +725,7 @@ class C
     delegate*$$");
         }
 
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
-        [Theory]
+        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
         public async Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
         {
@@ -745,8 +733,7 @@ class C
 {keyword} $$"));
         }
 
-        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
-        [Theory]
+        [Theory, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
         public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
         {

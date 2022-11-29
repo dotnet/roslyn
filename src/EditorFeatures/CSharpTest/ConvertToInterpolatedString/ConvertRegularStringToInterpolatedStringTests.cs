@@ -130,8 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
-        [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
-        [Fact]
+        [Fact, WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
         public async Task TestMissingOnRegularStringWithBracesAssignedToConstBeforeCSharp10()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -144,8 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }", new(new CSharpParseOptions(LanguageVersion.CSharp9)));
         }
 
-        [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
-        [Fact]
+        [Fact, WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
         public async Task TestOnRegularStringWithBracesAssignedToConstForCSharp10AndNewer()
         {
             await TestInRegularAndScriptAsync(
@@ -178,8 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
-        [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
-        [Fact]
+        [Fact, WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
         public async Task TestMissingOnAttributeStringParameterWithBracesBeforeCSharp10()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -191,8 +188,7 @@ public class C
 }", new(new CSharpParseOptions(LanguageVersion.CSharp9)));
         }
 
-        [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
-        [Fact]
+        [Fact, WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
         public async Task TestOnAttributeStringParameterWithBracesForCSharp10AndNewer()
         {
             await TestInRegularAndScriptAsync(

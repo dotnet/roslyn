@@ -1209,8 +1209,7 @@ class D : C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact]
-        [WorkItem(19106, "https://github.com/dotnet/roslyn/issues/19106")]
+        [Fact, WorkItem(19106, "https://github.com/dotnet/roslyn/issues/19106")]
         public async Task TestMissingOnSymbolsWithNoName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1300,8 +1299,7 @@ namespace Microsoft.CodeAnalysis.Host
             Assert.Equal("TArg", symbolRenamedOperation._newName);
         }
 
-        [Fact]
-        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordParameter_NoDiagnosticWhenCorrect()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1309,8 +1307,7 @@ namespace Microsoft.CodeAnalysis.Host
                 new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact]
-        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordConstructorParameter_NoDiagnosticWhenCorrect()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1323,8 +1320,7 @@ namespace Microsoft.CodeAnalysis.Host
                 new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact]
-        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordParameter_ParameterFormattedAsProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -1364,8 +1360,7 @@ $@"class C
 }}", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact]
-        [WorkItem(49535, "https://github.com/dotnet/roslyn/issues/49535")]
+        [Fact, WorkItem(49535, "https://github.com/dotnet/roslyn/issues/49535")]
         public async Task TestGlobalDirectiveAsync()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1381,8 +1376,7 @@ class C : I
 }", new TestParameters(options: s_options.PropertyNamesArePascalCase));
         }
 
-        [Fact]
-        [WorkItem(50734, "https://github.com/dotnet/roslyn/issues/50734")]
+        [Fact, WorkItem(50734, "https://github.com/dotnet/roslyn/issues/50734")]
         public async Task TestAsyncEntryPoint()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1397,8 +1391,7 @@ class C
 }", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
 
-        [Fact]
-        [WorkItem(49648, "https://github.com/dotnet/roslyn/issues/49648")]
+        [Fact, WorkItem(49648, "https://github.com/dotnet/roslyn/issues/49648")]
         public async Task TestAsyncEntryPoint_TopLevel()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1408,8 +1401,7 @@ using System.Threading.Tasks;
 ", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
 
-        [Fact]
-        [WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")]
+        [Fact, WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")]
         public async Task TestExternAsync()
         {
             await TestMissingInRegularAndScriptAsync(

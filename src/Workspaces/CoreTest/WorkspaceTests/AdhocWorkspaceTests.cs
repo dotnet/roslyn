@@ -394,8 +394,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        [WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
-        [Fact]
+        [Fact, WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
         public async Task TestUpdateCSharpLanguageVersionAsync()
         {
             using var ws = new AdhocWorkspace();

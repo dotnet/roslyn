@@ -132,9 +132,9 @@
         <target state="translated">Wyszukiwanie symboli</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_TodoCommentsDiscovery">
-        <source>TODO comments discovery</source>
-        <target state="translated">Odnajdywanie komentarzy TODO</target>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">Lista zadań</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">

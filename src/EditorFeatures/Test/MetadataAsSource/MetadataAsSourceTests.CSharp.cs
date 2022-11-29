@@ -665,8 +665,7 @@ public class [|C|]
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
             }
 
-            [Fact]
-            [WorkItem(60567, "https://github.com/dotnet/roslyn/issues/60567")]
+            [Fact, WorkItem(60567, "https://github.com/dotnet/roslyn/issues/60567")]
             public async Task TestStaticInterfaceMembers()
             {
                 var metadataSource = @"

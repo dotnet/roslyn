@@ -247,8 +247,7 @@ This is part of the summary, too.";
             TestFormat(comment, expected);
         }
 
-        [Fact]
-        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        [Fact, WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
         public void Paragraphs5()
         {
             var comment =

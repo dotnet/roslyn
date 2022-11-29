@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
                 projectId,
-                location: new DiagnosticDataLocation(documentId, null, "originalFile1", 10, 10, 20, 20));
+                location: new DiagnosticDataLocation(new("originalFile1", new(10, 10), new(20, 20)), documentId));
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource

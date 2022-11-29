@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             Assert.NotNull(session);
         }
 
-        [WpfFact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WpfFact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel()
         {
             using var session = CreateSessionDoubleQuote("$$");
@@ -31,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WpfFact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel()
         {
             using var session = CreateSessionDoubleQuote("@$$");
@@ -40,8 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WpfFact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void Char_TopLevel()
         {
             using var session = CreateSessionSingleQuote("$$");
@@ -49,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WpfFact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel2()
         {
             using var session = CreateSessionDoubleQuote("using System;$$");
@@ -58,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WpfFact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel2()
         {
             using var session = CreateSessionDoubleQuote("using System;@$$");
@@ -428,8 +423,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WpfFact]
-        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
         public void String_CompleteLiteral()
         {
             var code = @"class C
@@ -444,8 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WpfFact]
-        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
         public void String_BeforeOtherString1()
         {
             var code = @"class C
@@ -460,8 +453,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact]
-        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
         public void String_BeforeOtherString2()
         {
             var code = @"class C
@@ -476,8 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact]
-        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
         public void String_DontCompleteVerbatim()
         {
             var code = @"class C
@@ -493,8 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact]
-        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
         public void String_CompleteLiteral_EndOfFile()
         {
             var code = @"class C

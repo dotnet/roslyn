@@ -140,8 +140,7 @@ $${|hint1:using {|textspan1:System;|}|}
                 Region("span2", "// Goo ...", autoCollapse: true));
         }
 
-        [Fact]
-        [WorkItem(539359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
+        [Fact, WorkItem(539359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
         public async Task TestUsingKeywordWithSpace()
         {
             const string code = @"
@@ -149,16 +148,6 @@ $${|hint:using|} {|textspan:|}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact]
-        [WorkItem(16186, "https://github.com/dotnet/roslyn/issues/16186")]
-        public async Task TestInvalidComment()
-        {
-            const string code = @"$${|span:/*/|}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/* / ...", autoCollapse: true));
         }
 
         [Theory, CombinatorialData]

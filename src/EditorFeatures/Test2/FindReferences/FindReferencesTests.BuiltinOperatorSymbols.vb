@@ -6,8 +6,9 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasic_BuiltinBinaryOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -26,7 +27,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasic_BuiltinUnaryOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -45,7 +46,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_BuiltinBinaryOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -66,7 +67,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_BuiltinUnaryOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -87,7 +88,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_BuiltinCheckedBinaryOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -118,7 +119,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_BuiltinUncheckedBinaryOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -149,7 +150,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_BuiltinCheckedUnaryOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -180,7 +181,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_BuiltinCheckedUnaryOperator2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -211,7 +212,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCrossLanguage_BuiltinBinaryOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -243,7 +244,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCrossLanguage_BuiltinBinaryOperator2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

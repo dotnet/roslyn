@@ -147,28 +147,30 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     #region LSP Solution Retrieval
 
     /// <summary>
-    /// Returns the LSP solution associated with the workspace with the specified <see cref="_hostWorkspaceKind"/>.
-    /// This is the solution used for LSP requests that pertain to the entire workspace, for example code search or workspace diagnostics.
+    /// Returns the LSP solution associated with the workspace with the specified <see cref="_hostWorkspaceKind"/>. This
+    /// is the solution used for LSP requests that pertain to the entire workspace, for example code search or workspace
+    /// diagnostics.
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
-    public async Task<Solution?> TryGetHostLspSolutionAsync(CancellationToken cancellationToken)
+    public async Task<(Workspace?, Solution?)> GetLspSolutionInfoAsync(CancellationToken cancellationToken)
     {
         // Ensure we have the latest lsp solutions
         var updatedSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var (_, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == _hostWorkspaceKind);
+        var (hostWorkspace, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == _hostWorkspaceKind);
         _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
 
-        return hostWorkspaceSolution;
+        return (hostWorkspace, hostWorkspaceSolution);
     }
 
     /// <summary>
     /// Returns a document with the LSP tracked text forked from the appropriate workspace solution.
     /// 
-    /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
+    /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see
+    /// cref="RequestContext"/>.
     /// </summary>
-    public async Task<(Workspace?, Document?)> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
+    public async Task<(Workspace?, Solution?, Document?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         var uri = textDocumentIdentifier.Uri;
 
@@ -189,7 +191,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.TraceInformation($"{document.FilePath} found in workspace {workspaceKind}");
 
-                return (workspace, document);
+                return (workspace, document.Project.Solution, document);
             }
         }
 
@@ -202,7 +204,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         if (_trackedDocuments.ContainsKey(uri))
         {
             var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger);
-            return (_lspMiscellaneousFilesWorkspace, miscDocument);
+            if (miscDocument is not null)
+                return (_lspMiscellaneousFilesWorkspace, miscDocument.Project.Solution, miscDocument);
         }
 
         return default;

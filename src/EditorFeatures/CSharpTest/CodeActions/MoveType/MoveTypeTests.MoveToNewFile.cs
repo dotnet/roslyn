@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact]
-        [WorkItem(14008, "https://github.com/dotnet/roslyn/issues/14008")]
+        [WpfFact, WorkItem(14008, "https://github.com/dotnet/roslyn/issues/14008")]
         public async Task TestMoveToNewFileWithFolders()
         {
             var code =
@@ -418,8 +417,7 @@ class Class1 { }
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact]
-        [WorkItem(14004, "https://github.com/dotnet/roslyn/issues/14004")]
+        [WpfFact, WorkItem(14004, "https://github.com/dotnet/roslyn/issues/14004")]
         public async Task MoveNestedTypeToNewFile_Attributes1()
         {
             var code =
@@ -459,8 +457,7 @@ class Class1 { }
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact]
-        [WorkItem(14484, "https://github.com/dotnet/roslyn/issues/14484")]
+        [WpfFact, WorkItem(14484, "https://github.com/dotnet/roslyn/issues/14484")]
         public async Task MoveNestedTypeToNewFile_Comments1()
         {
             var code =
@@ -679,8 +676,7 @@ class Class1 { }
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact]
-        [WorkItem(13969, "https://github.com/dotnet/roslyn/issues/13969")]
+        [WpfFact, WorkItem(13969, "https://github.com/dotnet/roslyn/issues/13969")]
         public async Task MoveTypeInFileWithComplexHierarchy()
         {
             var code =
@@ -1475,8 +1471,7 @@ var c = new object();
             await TestMissingAsync(code);
         }
 
-        [WpfFact]
-        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveInNamespace_WithAttributes1()
         {
             var code = @"
@@ -1516,8 +1511,7 @@ namespace N
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact]
-        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveInNamespace_WithAttributes2()
         {
             var code = @"
@@ -1559,8 +1553,7 @@ namespace N
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact]
-        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveInNamespace_WithAttributes3()
         {
             var code = @"
@@ -1597,8 +1590,7 @@ namespace N
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact]
-        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveTopLevel_WithAttributes1()
         {
             var code = @"
@@ -1626,8 +1618,7 @@ class A
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact]
-        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveTopLevel_WithAttributes2()
         {
             var code = @"
@@ -1657,8 +1648,7 @@ class A
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfTheory]
-        [WorkItem(63114, "https://github.com/dotnet/roslyn/issues/63114")]
+        [WpfTheory, WorkItem(63114, "https://github.com/dotnet/roslyn/issues/63114")]
         [InlineData("class")]
         [InlineData("struct")]
         [InlineData("interface")]

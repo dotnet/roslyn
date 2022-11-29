@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
         public async Task TestTypeCharacter()
             => await TestFixOneAsync("0x1e5UL", "0b111100101UL", Refactoring.ChangeBase2);
 
-        [WorkItem(19225, "https://github.com/dotnet/roslyn/issues/19225")]
-        [Fact]
+        [Fact, WorkItem(19225, "https://github.com/dotnet/roslyn/issues/19225")]
         public async Task TestPreserveWhitespaces()
         {
             await TestInRegularAndScriptAsync(
@@ -100,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
 }", index: (int)Refactoring.ChangeBase2);
         }
 
-        [WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")]
-        [Fact]
+        [Fact, WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")]
         public async Task TestCaretPositionAtTheEnd()
         {
             await TestInRegularAndScriptAsync(

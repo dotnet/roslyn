@@ -151,8 +151,7 @@ void Bar()
                 index: 1);
         }
 
-        [WorkItem(541287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541287")]
-        [Fact]
+        [Fact, WorkItem(541287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541287")]
         public async Task TestBlockFormatting()
         {
             await TestAsync(
@@ -184,8 +183,7 @@ class C
 index: 1);
         }
 
-        [WorkItem(546465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
-        [Fact]
+        [Fact, WorkItem(546465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
         public async Task TestPreserveTrivia()
         {
             await TestAsync(

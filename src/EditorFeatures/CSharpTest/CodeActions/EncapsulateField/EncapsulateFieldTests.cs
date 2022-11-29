@@ -687,8 +687,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(694057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(694057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057"), CombinatorialData]
         public async Task ConstFieldNoGetter(TestHost host)
         {
             var text = @"
@@ -715,8 +714,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276"), CombinatorialData]
         public async Task EncapsulateFieldNamedValue(TestHost host)
         {
             var text = @"
@@ -743,8 +741,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276"), CombinatorialData]
         public async Task PublicFieldNamed__(TestHost host)
         {
             var text = @"
@@ -776,8 +773,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046"), CombinatorialData]
         public async Task AvailableNotJustOnVariableName(TestHost host)
         {
             var text = @"
@@ -790,8 +786,7 @@ class Program
             await TestActionCountAsync(text, 2, new TestParameters(testHost: host));
         }
 
-        [WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898"), CombinatorialData]
         public async Task CopyFieldAccessibility(TestHost host)
         {
             var text = @"
@@ -886,8 +881,7 @@ public class D
             await TestAllOptionsOffAsync(host, text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe);
         }
 
-        [WorkItem(713269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(713269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269"), CombinatorialData]
         public async Task PreserveUnsafe(TestHost host)
         {
             var text = @"
@@ -919,8 +913,7 @@ class C
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(713240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(713240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240"), CombinatorialData]
         public async Task ConsiderReturnTypeAccessibility(TestHost host)
         {
             var text = @"
@@ -962,8 +955,7 @@ internal enum State
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191"), CombinatorialData]
         public async Task DoNotReferToReadOnlyPropertyInConstructor(TestHost host)
         {
             var text = @"
@@ -998,8 +990,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191"), CombinatorialData]
         public async Task DoNotReferToStaticReadOnlyPropertyInConstructor(TestHost host)
         {
             var text = @"
@@ -1034,8 +1025,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(765959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(765959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959"), CombinatorialData]
         public async Task GenerateInTheCorrectPart(TestHost host)
         {
             var text = @"
@@ -1068,8 +1058,7 @@ partial class Program {
             await TestAllOptionsOffAsync(host, text, expected);
         }
 
-        [WorkItem(829178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829178")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(829178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829178"), CombinatorialData]
         public async Task ErrorTolerance(TestHost host)
         {
             var text = @"class Program 
@@ -1080,8 +1069,7 @@ partial class Program {
             await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
         }
 
-        [WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072"), CombinatorialData]
         public async Task DuplicateFieldErrorTolerance(TestHost host)
         {
             var text = @"
@@ -1095,8 +1083,7 @@ class Program
             await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
         }
 
-        [WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517"), CombinatorialData]
         public async Task Trivia(TestHost host)
         {
             var text = @"
@@ -1137,8 +1124,7 @@ namespace ConsoleApplication1
             await TestAllOptionsOffAsync(host, text, expected);
         }
 
-        [WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282"), CombinatorialData]
         public async Task DoNotEncapsulateOutsideTypeDeclaration(TestHost host)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1157,8 +1143,7 @@ namespace ConsoleApplication1
 }", new TestParameters(testHost: host));
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishDottedI(TestHost host)
         {
             using (new CultureContext(new CultureInfo("tr-TR", useUserOverride: false)))
@@ -1188,8 +1173,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishUndottedI(TestHost host)
         {
             using (new CultureContext(new CultureInfo("tr-TR", useUserOverride: false)))
@@ -1219,8 +1203,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Arabic(TestHost host)
         {
             using (new CultureContext(new CultureInfo("ar-EG", useUserOverride: false)))
@@ -1250,8 +1233,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Spanish(TestHost host)
         {
             using (new CultureContext(new CultureInfo("es-ES", useUserOverride: false)))
@@ -1281,8 +1263,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Greek(TestHost host)
         {
             using (new CultureContext(new CultureInfo("el-GR", useUserOverride: false)))
@@ -1370,8 +1351,7 @@ class C
 ", options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
-        [WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090"), CombinatorialData]
         public async Task ApplyCurrentThisPrefixStyle(TestHost host)
         {
             await TestAllOptionsOffAsync(host,

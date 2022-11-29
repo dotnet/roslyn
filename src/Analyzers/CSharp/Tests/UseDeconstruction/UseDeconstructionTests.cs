@@ -481,8 +481,7 @@ class C
 }");
         }
 
-        [WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
-        [Fact]
+        [Fact, WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
         public async Task TestNotWithDefaultLiteralInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -698,8 +697,7 @@ class C
 }");
         }
 
-        [WorkItem(27251, "https://github.com/dotnet/roslyn/issues/27251")]
-        [Fact]
+        [Fact, WorkItem(27251, "https://github.com/dotnet/roslyn/issues/27251")]
         public async Task TestEscapedContextualKeywordAsTupleName()
         {
             await TestInRegularAndScript1Async(
@@ -733,8 +731,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
+        [Fact, WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
         public async Task TestPreserveAwait()
         {
             await TestInRegularAndScript1Async(

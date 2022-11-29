@@ -435,8 +435,7 @@ class C
 }");
         }
 
-        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
-        [Fact]
+        [Fact, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
         public async Task UnusedInExpressionTree_PassedAsArgument()
         {
             await TestDiagnosticsAsync(
@@ -456,8 +455,7 @@ class C
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
-        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
-        [Fact]
+        [Fact, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
         public async Task ReadInExpressionTree_PassedAsArgument()
         {
             await TestDiagnosticMissingAsync(
@@ -476,8 +474,7 @@ class C
 }");
         }
 
-        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
-        [Fact]
+        [Fact, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
         public async Task OnlyWrittenInExpressionTree_PassedAsArgument()
         {
             await TestDiagnosticMissingAsync(
@@ -1049,8 +1046,7 @@ class C
 }}");
         }
 
-        [WorkItem(32133, "https://github.com/dotnet/roslyn/issues/32133")]
-        [Fact]
+        [Fact, WorkItem(32133, "https://github.com/dotnet/roslyn/issues/32133")]
         public async Task Parameter_SerializationConstructor()
         {
             await TestDiagnosticMissingAsync(
@@ -1127,8 +1123,7 @@ internal sealed class CustomSerializingType : ISerializable
             Assert.Equal("Parameter 'p5' can be removed; its initial value is never used", sortedDiagnostics[4].GetMessage());
         }
 
-        [WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]
-        [Fact]
+        [Fact, WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]
         public async Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
         {
             await TestDiagnosticMissingAsync(
@@ -1143,8 +1138,7 @@ internal sealed class CustomSerializingType : ISerializable
 }");
         }
 
-        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
-        [Fact]
+        [Fact, WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
         public async Task Parameter_Unused_SpecialNames()
         {
             await TestDiagnosticMissingAsync(
@@ -1156,8 +1150,7 @@ internal sealed class CustomSerializingType : ISerializable
 }");
         }
 
-        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
-        [Fact]
+        [Fact, WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
         public async Task Parameter_Used_SemanticError()
         {
             await TestDiagnosticMissingAsync(
@@ -1173,8 +1166,7 @@ internal sealed class CustomSerializingType : ISerializable
 }");
         }
 
-        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
-        [Fact]
+        [Fact, WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
         public async Task Parameter_Unused_SemanticError()
         {
             await TestDiagnosticsAsync(
@@ -1191,8 +1183,7 @@ internal sealed class CustomSerializingType : ISerializable
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
-        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
-        [Fact]
+        [Fact, WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
         public async Task OutParameter_LocalFunction()
         {
             await TestDiagnosticMissingAsync(
@@ -1211,8 +1202,7 @@ internal sealed class CustomSerializingType : ISerializable
 }");
         }
 
-        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
-        [Fact]
+        [Fact, WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
         public async Task RefParameter_Unused_LocalFunction()
         {
             await TestDiagnosticsAsync(
@@ -1231,8 +1221,7 @@ internal sealed class CustomSerializingType : ISerializable
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
-        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
-        [Fact]
+        [Fact, WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
         public async Task RefParameter_Used_LocalFunction()
         {
             await TestDiagnosticMissingAsync(
@@ -1251,8 +1240,7 @@ internal sealed class CustomSerializingType : ISerializable
 }");
         }
 
-        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
-        [Fact]
+        [Fact, WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
         public async Task NullCoalesceAssignment()
         {
             await TestDiagnosticMissingAsync(
@@ -1265,8 +1253,7 @@ internal sealed class CustomSerializingType : ISerializable
 }", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [WorkItem(34301, "https://github.com/dotnet/roslyn/issues/34301")]
-        [Fact]
+        [Fact, WorkItem(34301, "https://github.com/dotnet/roslyn/issues/34301")]
         public async Task GenericLocalFunction()
         {
             await TestDiagnosticsAsync(
@@ -1284,8 +1271,7 @@ internal sealed class CustomSerializingType : ISerializable
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
-        [WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
-        [Fact]
+        [Fact, WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
         public async Task GenericLocalFunction_02()
         {
             await TestDiagnosticsAsync(
@@ -1315,8 +1301,7 @@ class C
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
-        [WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
-        [Fact]
+        [Fact, WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
         public async Task GenericLocalFunction_03()
         {
             await TestDiagnosticsAsync(
@@ -1347,8 +1332,7 @@ class C
 }");
         }
 
-        [WorkItem(34830, "https://github.com/dotnet/roslyn/issues/34830")]
-        [Fact]
+        [Fact, WorkItem(34830, "https://github.com/dotnet/roslyn/issues/34830")]
         public async Task RegressionTest_ShouldReportUnusedParameter()
         {
             var options = Option(CodeStyleOptions2.UnusedParameters,
@@ -1377,8 +1361,7 @@ public sealed class C : IDisposable
         }
 
 #if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch an editorconfig string representation for this invalid option fails.
-        [WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
-        [Fact]
+        [Fact, WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
         public async Task RegressionTest_ShouldReportUnusedParameter_02()
         {
             var options = Option(CodeStyleOptions2.UnusedParameters,
@@ -1409,8 +1392,7 @@ public sealed class C : IDisposable
         }
 #endif
 
-        [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
-        [Fact]
+        [Fact, WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
         public async Task MethodUsedAsDelegateInGeneratedCode_NoDiagnostic()
         {
             await TestDiagnosticMissingAsync(
@@ -1434,8 +1416,7 @@ public partial class C
 ");
         }
 
-        [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
-        [Fact]
+        [Fact, WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
         public async Task UnusedParameterInGeneratedCode_NoDiagnostic()
         {
             await TestDiagnosticMissingAsync(
@@ -1449,8 +1430,39 @@ public partial class C
 ");
         }
 
-        [WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
-        [Fact]
+        [WorkItem(57814, "https://github.com/dotnet/roslyn/issues/57814")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedParameterInPartialMethodImplementation_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public partial class C
+{
+    public partial void M(int x);
+}
+
+public partial class C
+{
+    public partial void M(int [|x|])
+    {
+    }
+}  
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ParameterInPartialMethodDefinition_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public partial class C
+{
+    public partial void M(int [|x|]);
+}
+");
+        }
+
+        [Fact, WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
         public async Task ParameterWithoutName_NoDiagnostic()
         {
             await TestDiagnosticMissingAsync(
@@ -1462,8 +1474,7 @@ public partial class C
 }");
         }
 
-        [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
-        [Fact]
+        [Fact, WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_NoDiagnostic1()
         {
             await TestDiagnosticMissingAsync(
@@ -1478,8 +1489,7 @@ class C
 }");
         }
 
-        [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
-        [Fact]
+        [Fact, WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_NoDiagnostic2()
         {
             await TestDiagnosticMissingAsync(
@@ -1492,8 +1502,7 @@ class C
 }");
         }
 
-        [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
-        [Fact]
+        [Fact, WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_NoDiagnostic3()
         {
             await TestDiagnosticMissingAsync(
@@ -1506,8 +1515,7 @@ class C
 }");
         }
 
-        [WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
-        [Fact]
+        [Fact, WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
         public async Task NotImplementedException_NoDiagnostic4()
         {
             await TestDiagnosticMissingAsync(
@@ -1520,8 +1528,7 @@ class C
 }");
         }
 
-        [WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
-        [Fact]
+        [Fact, WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
         public async Task NotImplementedException_NoDiagnostic5()
         {
             await TestDiagnosticMissingAsync(
@@ -1536,8 +1543,7 @@ class C
 }");
         }
 
-        [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
-        [Fact]
+        [Fact, WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_MultipleStatements1()
         {
             await TestDiagnosticsAsync(
@@ -1554,8 +1560,7 @@ class C
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
-        [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
-        [Fact]
+        [Fact, WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_MultipleStatements2()
         {
             await TestDiagnosticsAsync(
@@ -1572,8 +1577,7 @@ class C
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
-        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
-        [Fact]
+        [Fact, WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
         public async Task Record_PrimaryConstructorParameter()
         {
             await TestMissingAsync(
@@ -1581,8 +1585,7 @@ class C
 );
         }
 
-        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
-        [Fact]
+        [Fact, WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
         public async Task Record_NonPrimaryConstructorParameter()
         {
             await TestDiagnosticsAsync(
@@ -1596,8 +1599,7 @@ class C
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
-        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
-        [Fact]
+        [Fact, WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
         public async Task Record_DelegatingPrimaryConstructorParameter()
         {
             await TestDiagnosticMissingAsync(
@@ -1606,8 +1608,7 @@ record B(int X, int [|Y|]) : A(X);
 ");
         }
 
-        [WorkItem(47174, "https://github.com/dotnet/roslyn/issues/47174")]
-        [Fact]
+        [Fact, WorkItem(47174, "https://github.com/dotnet/roslyn/issues/47174")]
         public async Task RecordPrimaryConstructorParameter_PublicRecord()
         {
             await TestDiagnosticMissingAsync(
@@ -1616,8 +1617,7 @@ public record Derived(string [|S|]) : Base(42) { }
 ");
         }
 
-        [WorkItem(45743, "https://github.com/dotnet/roslyn/issues/45743")]
-        [Fact]
+        [Fact, WorkItem(45743, "https://github.com/dotnet/roslyn/issues/45743")]
         public async Task RequiredGetInstanceMethodByICustomMarshaler()
         {
             await TestDiagnosticMissingAsync(@"

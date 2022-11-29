@@ -101,8 +101,7 @@ class Program
             }
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
             var markup = @"
@@ -128,8 +127,7 @@ class CustomAttribute : Attribute
 }");
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameClasss()
         {
             var markup = @"
@@ -156,8 +154,7 @@ class Custom$$Attribute : Attribute
 ", true);
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttribute()
         {
             var markup = @"
@@ -193,8 +190,7 @@ class CustomAttribute : Attribute
 ", true);
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttributeClass()
         {
             var markup = @"
@@ -598,8 +594,7 @@ class Program
 }");
         }
 
-        [WpfFact]
-        [WorkItem(39617, "https://github.com/dotnet/roslyn/issues/39617")]
+        [WpfFact, WorkItem(39617, "https://github.com/dotnet/roslyn/issues/39617")]
         public void VerifyRenameCaseChange()
         {
             var project = new ProjectUtils.Project(ProjectName);

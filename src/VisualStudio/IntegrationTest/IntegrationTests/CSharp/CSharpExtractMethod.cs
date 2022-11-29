@@ -85,8 +85,7 @@ public class Program
     }");
         }
 
-        [WpfFact]
-        [WorkItem(61369, "https://github.com/dotnet/roslyn/pull/61369")]
+        [WpfFact, WorkItem(61369, "https://github.com/dotnet/roslyn/pull/61369")]
         public void ExtractMethodWithTriviaSelected()
         {
             VisualStudio.Editor.SetText(TestSource);

@@ -231,8 +231,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        [Fact]
+        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         public async Task TestChangeToIEnumerableProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -310,8 +309,7 @@ namespace Asdf
 }");
         }
 
-        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        [Fact]
+        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         public async Task TestChangeToIEnumerableOperator()
         {
             await TestInRegularAndScriptAsync(
@@ -345,8 +343,7 @@ namespace Asdf
 }");
         }
 
-        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        [Fact]
+        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         public async Task TestChangeToIEnumerableIndexer()
         {
             await TestInRegularAndScriptAsync(

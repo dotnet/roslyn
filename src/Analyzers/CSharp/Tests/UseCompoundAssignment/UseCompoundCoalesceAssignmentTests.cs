@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
             }.RunAsync();
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestBaseCase()
         {
             await TestInRegularAndScriptAsync(
@@ -56,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [WorkItem(44793, "https://github.com/dotnet/roslyn/issues/44793")]
-        [Fact]
+        [Fact, WorkItem(44793, "https://github.com/dotnet/roslyn/issues/44793")]
         public async Task TestMissingBeforeCSharp8()
         {
             await TestMissingAsync(
@@ -68,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }", LanguageVersion.CSharp7_3);
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestRightMustBeParenthesized()
         {
             await TestMissingAsync(
@@ -80,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestRightMustBeAssignment()
         {
             await TestMissingAsync(
@@ -92,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestRightMustBeSimpleAssignment()
         {
             await TestMissingAsync(
@@ -104,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestShapesMustBeTheSame()
         {
             await TestMissingAsync(
@@ -117,8 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestNoSideEffects1()
         {
             await TestMissingAsync(
@@ -129,8 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestNoSideEffects2()
         {
             await TestInRegularAndScriptAsync(
@@ -146,8 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestNullableValueType()
         {
             await TestInRegularAndScriptAsync(
@@ -169,8 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestCastIfWouldAffectSemantics()
         {
             await TestInRegularAndScriptAsync(
@@ -200,8 +190,7 @@ class C
 }");
         }
 
-        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
-        [Fact]
+        [Fact, WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
         public async Task TestDoNotCastIfNotNecessary()
         {
             await TestInRegularAndScriptAsync(
@@ -229,8 +218,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement1()
         {
             await TestInRegularAndScriptAsync(
@@ -255,8 +243,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_NotBeforeCSharp8()
         {
             await TestMissingAsync(
@@ -273,8 +260,7 @@ class C
 }", LanguageVersion.CSharp7_3);
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_NotWithElseClause()
         {
             await TestMissingAsync(
@@ -295,8 +281,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatementWithoutBlock()
         {
             await TestInRegularAndScriptAsync(
@@ -319,8 +304,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_WithEmptyBlock()
         {
             await TestMissingAsync(
@@ -336,8 +320,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_WithMultipleStatements()
         {
             await TestMissingAsync(
@@ -355,8 +338,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_EqualsEqualsCheck()
         {
             await TestInRegularAndScriptAsync(
@@ -381,8 +363,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_ReferenceEqualsCheck1()
         {
             await TestInRegularAndScriptAsync(
@@ -407,8 +388,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_ReferenceEqualsCheck2()
         {
             await TestInRegularAndScriptAsync(
@@ -433,8 +413,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_ReferenceEqualsCheck3()
         {
             await TestInRegularAndScriptAsync(
@@ -459,8 +438,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_ReferenceEqualsCheck4()
         {
             await TestMissingAsync(
@@ -477,8 +455,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_NotSimpleAssignment()
         {
             await TestMissingAsync(
@@ -495,8 +472,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_OverloadedEquals_OkForString()
         {
             await TestInRegularAndScriptAsync(
@@ -521,8 +497,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_OverloadedEquals()
         {
             await TestMissingAsync(
@@ -546,8 +521,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_AssignmentToDifferentValue()
         {
             await TestMissingAsync(
@@ -565,8 +539,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_SideEffects1()
         {
             await TestMissingAsync(
@@ -586,8 +559,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_SideEffects2()
         {
             await TestInRegularAndScriptAsync(
@@ -612,8 +584,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_Trivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -640,8 +611,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_Trivia2()
         {
             await TestInRegularAndScriptAsync(
@@ -668,8 +638,7 @@ class C
 }");
         }
 
-        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
-        [Fact]
+        [Fact, WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
         public async Task TestIfStatement_Trivia3()
         {
             await TestInRegularAndScriptAsync(
@@ -698,8 +667,7 @@ class C
 }");
         }
 
-        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
-        [Fact]
+        [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock1()
         {
             await TestMissingAsync(
@@ -718,8 +686,7 @@ class C
 }");
         }
 
-        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
-        [Fact]
+        [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock2()
         {
             await TestMissingAsync(
@@ -739,8 +706,7 @@ class C
 }");
         }
 
-        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
-        [Fact]
+        [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock3()
         {
             await TestMissingAsync(
@@ -761,8 +727,7 @@ class C
 }");
         }
 
-        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
-        [Fact]
+        [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock4()
         {
             await TestMissingAsync(
@@ -783,8 +748,7 @@ class C
 }");
         }
 
-        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
-        [Fact]
+        [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock5()
         {
             await TestMissingAsync(
@@ -805,8 +769,7 @@ class C
 }");
         }
 
-        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
-        [Fact]
+        [Fact, WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
         public async Task TestIfStatementWithPreprocessorBlock6()
         {
             await TestMissingAsync(
@@ -827,8 +790,7 @@ class C
 }");
         }
 
-        [WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
-        [Fact]
+        [Fact, WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
         public async Task TestPointerCannotUseCoalesceAssignment()
         {
             // The purpose of this test is to keep track of whether the language
@@ -850,8 +812,7 @@ class C
                 """, LanguageVersion.Preview);
         }
 
-        [WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
-        [Fact]
+        [Fact, WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
         public async Task TestPointer()
         {
             await TestMissingAsync("""
@@ -871,8 +832,7 @@ class C
                 """, LanguageVersion.Preview);
         }
 
-        [WorkItem(63551, "https://github.com/dotnet/roslyn/issues/63551")]
-        [Fact]
+        [Fact, WorkItem(63551, "https://github.com/dotnet/roslyn/issues/63551")]
         public async Task TestFunctionPointer()
         {
             await TestMissingAsync("""

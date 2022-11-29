@@ -490,8 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        [Fact]
+        [Fact, WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
         public async Task SelectionTest39()
         {
             var code = @"class A
@@ -504,8 +503,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        [Fact]
+        [Fact, WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
         public async Task SelectionTest40()
         {
             var code = @"class A
@@ -518,8 +516,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        [Fact]
+        [Fact, WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
         public async Task SelectionTest41()
         {
             var code = @"class A
@@ -532,8 +529,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        [Fact]
+        [Fact, WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
         public async Task SelectionTest42()
         {
             var code = @"class A
@@ -546,8 +542,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        [Fact]
+        [Fact, WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
         public async Task SelectionTest43()
         {
             var code = @"class A
@@ -560,8 +555,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        [Fact]
+        [Fact, WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
         public async Task SelectionTest44()
         {
             var code = @"class A
@@ -574,8 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(539242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
-        [Fact]
+        [Fact, WorkItem(539242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
         public async Task SelectionTest45()
         {
             var code = @"class A
@@ -588,8 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(539242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
-        [Fact]
+        [Fact, WorkItem(539242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
         public async Task SelectionTest46()
         {
             var code = @"class A
@@ -602,8 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540338")]
-        [Fact]
+        [Fact, WorkItem(540338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540338")]
         public async Task SelectionTest47()
         {
             var code = @"using System;
@@ -1208,8 +1199,7 @@ class Test
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540474")]
-        [Fact]
+        [Fact, WorkItem(540474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540474")]
         public async Task GotoStatement()
         {
             var code = @"using System;
@@ -1231,8 +1221,7 @@ class Program
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
-        [Fact]
+        [Fact, WorkItem(540481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
         public async Task BugFix6750()
         {
             var code = @"using System;
@@ -1244,8 +1233,7 @@ class Program
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
-        [Fact]
+        [Fact, WorkItem(540481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
         public async Task BugFix6750_1()
         {
             var code = @"using System;
@@ -1257,8 +1245,7 @@ class Program
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(542201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542201")]
-        [Fact]
+        [Fact, WorkItem(542201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542201")]
         public async Task MalformedCode_NoOuterType()
         {
             var code = @"x(a){
@@ -1268,8 +1255,7 @@ class Program
             await TestSelectionAsync(code, expectedFail: true);
         }
 
-        [WorkItem(542210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542210")]
-        [Fact]
+        [Fact, WorkItem(542210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542210")]
         public async Task NoQueryContinuation()
         {
             var code = @"using System.Linq;
@@ -1287,14 +1273,12 @@ class P
             await TestSelectionAsync(code);
         }
 
+        [Fact, WorkItem(542722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
         [WorkItem(540787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540787")]
-        [WorkItem(542722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
-        [Fact]
         public async Task DontCrash()
             => await IterateAllAsync(TestResource.AllInOneCSharpCode);
 
-        [WorkItem(9931, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9931, "DevDiv_Projects/Roslyn")]
         public async Task ExtractMethodIdentifierAtEndOfInteractiveBuffer()
         {
             var code = @"using System.Console;
@@ -1304,8 +1288,7 @@ WriteLine();
             await TestSelectionAsync(code, expectedFail: true);
         }
 
-        [WorkItem(543020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543020")]
-        [Fact]
+        [Fact, WorkItem(543020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543020")]
         public async Task MemberAccessStructAsExpression()
         {
             var code = @"struct S
@@ -1341,8 +1324,7 @@ WriteLine();
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(543140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
-        [Fact]
+        [Fact, WorkItem(543140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
         public async Task TypeOfExpression()
         {
             var code = @"using System;
@@ -1359,8 +1341,7 @@ class Program
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-        [Fact]
+        [Fact, WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
         public async Task AnonymousTypeMember1()
         {
             var code = @"using System;
@@ -1369,8 +1350,7 @@ class C { void M() { {|r:var x = new { {|b:String|} = true }; |}} }
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-        [Fact]
+        [Fact, WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
         public async Task AnonymousTypeMember2()
         {
             var code = @"using System;
@@ -1382,8 +1362,7 @@ var String = 1;
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-        [Fact]
+        [Fact, WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
         public async Task AnonymousTypeMember3()
         {
             var code = @"using System;
@@ -1392,8 +1371,7 @@ class C { void M() { var x = new { String = {|b:true|} }; } }
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-        [Fact]
+        [Fact, WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
         public async Task AnonymousTypeMember4()
         {
             var code = @"class Program
@@ -1460,8 +1438,7 @@ class C
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(545057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545057")]
-        [Fact]
+        [Fact, WorkItem(545057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545057")]
         public async Task RefvalueKeyword()
         {
             var code = @"using System;
@@ -1479,8 +1456,7 @@ class A
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(531286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531286")]
-        [Fact]
+        [Fact, WorkItem(531286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531286")]
         public async Task NoCrashOnThrowWithoutCatchClause()
         {
             var code = @"public class Test
@@ -1502,8 +1478,7 @@ class A
             await TestSelectionAsync(code, expectedFail: true);
         }
 
-        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
-        [Fact]
+        [Fact, WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
         public async Task SimpleConditionalAccessExpressionSelectFirstExpression()
         {
             var code = @"using System;
@@ -1522,8 +1497,7 @@ class A
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
-        [Fact]
+        [Fact, WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
         public async Task SimpleConditionalAccessExpressionSelectSecondExpression()
         {
             var code = @"using System;
@@ -1542,8 +1516,7 @@ class A
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
-        [Fact]
+        [Fact, WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
         public async Task NestedConditionalAccessExpressionWithMemberBindingExpression()
         {
             var code = @"using System;
@@ -1567,8 +1540,7 @@ class B
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
-        [Fact]
+        [Fact, WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
         public async Task NestedConditionalAccessExpressionWithMemberBindingExpressionSelectSecondExpression()
         {
             var code = @"using System;
@@ -1592,8 +1564,7 @@ class B
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
-        [Fact]
+        [Fact, WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
         public async Task NestedConditionalAccessExpressionWithInvocationExpression()
         {
             var code = @"using System;
@@ -1620,8 +1591,7 @@ class B
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(1228916, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1228916")]
-        [Fact]
+        [Fact, WorkItem(1228916, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1228916")]
         public async Task DontCrashPastEndOfLine()
         {
             //                    11 1

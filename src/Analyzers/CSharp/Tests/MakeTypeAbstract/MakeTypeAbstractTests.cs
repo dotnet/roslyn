@@ -145,8 +145,7 @@ public abstract class Goo
 }");
         }
 
-        [WorkItem(54218, "https://github.com/dotnet/roslyn/issues/54218")]
-        [Fact]
+        [Fact, WorkItem(54218, "https://github.com/dotnet/roslyn/issues/54218")]
         public async Task TestPartialClass()
         {
             await TestInRegularAndScript1Async(

@@ -171,8 +171,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        [WpfFact, WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
         public void TypingCharacter_Method_WithExceptions()
         {
             var code =
@@ -206,8 +205,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        [WpfFact, WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
         public void TypingCharacter_Constructor_WithExceptions()
         {
             var code =
@@ -242,8 +240,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        [WpfFact, WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
         public void TypingCharacter_Constructor_WithExceptions_Caught()
         {
             // This result is wrong, but we can't do better as long as we only check syntax.
@@ -1398,8 +1395,7 @@ class C{}";
             VerifyPressingEnter(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem(25746, "https://github.com/dotnet/roslyn/issues/25746")]
+        [WpfFact, WorkItem(25746, "https://github.com/dotnet/roslyn/issues/25746")]
         public void PressingEnter_ExtraSlashesAfterExteriorTrivia()
         {
             var code =
@@ -1673,8 +1669,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem(27223, "https://github.com/dotnet/roslyn/issues/27223")]
+        [WpfFact, WorkItem(27223, "https://github.com/dotnet/roslyn/issues/27223")]
         public void PressingEnter_XmldocInStringLiteral()
         {
             var code =

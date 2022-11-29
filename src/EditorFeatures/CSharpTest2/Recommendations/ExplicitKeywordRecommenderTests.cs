@@ -434,8 +434,7 @@ global using Bar;");
     readonly $$");
         }
 
-        [WorkItem(544102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544102")]
-        [Fact]
+        [Fact, WorkItem(544102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544102")]
         public async Task TestAfterNestedUnsafeStaticPublicInClass()
         {
             await VerifyKeywordAsync(@"class C {

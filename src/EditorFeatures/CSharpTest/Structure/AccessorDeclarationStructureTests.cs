@@ -59,28 +59,6 @@ class C
         }
 
         [Fact]
-        public async Task TestPropertyGetterWithMultiLineComments1()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:/* My
-           Getter */|}
-        $${|hint2:get{|textspan2:
-        {
-        }|}|}
-    }
-}
-";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact]
         public async Task TestPropertyGetter2()
         {
             const string code = @"
@@ -123,31 +101,6 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact]
-        public async Task TestPropertyGetterWithMultiLineComments2()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:/* My
-           Getter */|}
-        $${|hint2:get{|textspan2:
-        {
-        }|}|}
-        set
-        {
-        }
-    }
-}
-";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
@@ -200,32 +153,6 @@ class C
         }
 
         [Fact]
-        public async Task TestPropertyGetterWithMultiLineComments3()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:/* My
-           Getter */|}
-        $${|hint2:get{|textspan2:
-        {
-        }|}|}
-
-        set
-        {
-        }
-    }
-}
-";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact]
         public async Task TestPropertySetter1()
         {
             const string code = @"
@@ -261,27 +188,6 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact]
-        public async Task TestPropertySetterWithMultiLineComments1()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:/* My
-           Setter */|}
-        $${|hint2:set{|textspan2:
-        {
-        }|}|}
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
@@ -331,30 +237,6 @@ class C
         }
 
         [Fact]
-        public async Task TestPropertySetterWithMultiLineComments2()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        get
-        {
-        }
-        {|span1:/* My
-           Setter */|}
-        $${|hint2:set{|textspan2:
-        {
-        }|}|}
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact]
         public async Task TestPropertySetter3()
         {
             const string code = @"
@@ -398,31 +280,6 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact]
-        public async Task TestPropertySetterWithMultiLineComments3()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        get
-        {
-        }
-
-        {|span1:/* My
-           Setter */|}
-        $${|hint2:set{|textspan2:
-        {
-        }|}|}
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }

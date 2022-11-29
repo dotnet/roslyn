@@ -336,8 +336,7 @@ class D
 }");
         }
 
-        [WorkItem(32510, "https://github.com/dotnet/roslyn/issues/32510")]
-        [Fact]
+        [Fact, WorkItem(32510, "https://github.com/dotnet/roslyn/issues/32510")]
         public async Task TestDeconstructionAssignment_InvalidDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(

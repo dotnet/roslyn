@@ -78,8 +78,7 @@ $$");
 @"# $$");
         }
 
-        [WorkItem(542971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542971")]
-        [Fact]
+        [Fact, WorkItem(542971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542971")]
         public async Task TestAfterIf()
         {
             await VerifyKeywordAsync(

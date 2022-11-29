@@ -70,8 +70,7 @@ class Program
 }");
         }
 
-        [WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
-        [Fact]
+        [Fact, WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
         public async Task TestReferencesWithCopyrightAndPreservableTrivia()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -104,8 +103,7 @@ class Program
 }");
         }
 
-        [WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
-        [Fact]
+        [Fact, WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
         public async Task TestReferencesWithCopyrightAndGroupings()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -287,8 +285,7 @@ class Program
 }");
         }
 
-        [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
-        [Fact]
+        [Fact, WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         public async Task TestExtensionMethodLinq()
         {
             // NOTE: Intentionally not running this test with Script options, because in Script,
@@ -499,8 +496,7 @@ class F
 }");
         }
 
-        [WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
-        [Fact]
+        [Fact, WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
         public async Task TestNestedUsedUsings2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -547,8 +543,7 @@ class F
 }");
         }
 
-        [WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
-        [Fact]
+        [Fact, WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
         public async Task TestNestedUsedUsings2_FileScopedNamespace()
         {
             await new VerifyCS.Test
@@ -784,8 +779,7 @@ class Program
 }");
         }
 
-        [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
-        [Fact]
+        [Fact, WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         public async Task TestComments8718()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -840,8 +834,7 @@ namespace Goo2
 }");
         }
 
-        [WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
-        [Fact]
+        [Fact, WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
         public async Task TestComments()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -884,8 +877,7 @@ class Program
 }");
         }
 
-        [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
-        [Fact]
+        [Fact, WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         public async Task TestSimpleQuery()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1062,8 +1054,7 @@ namespace SomeNS
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(8846, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(8846, "DevDiv_Projects/Roslyn")]
         public async Task TestUnusedTypeImportIsRemoved1()
         {
             // Test intentionally uses 'using' instead of 'using static'
@@ -1132,8 +1123,7 @@ namespace SomeNS
 }");
         }
 
-        [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
-        [Fact]
+        [Fact, WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         public async Task TestRemoveTrailingComment()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1157,8 +1147,7 @@ class Program
 ");
         }
 
-        [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
-        [Fact]
+        [Fact, WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         public async Task TestRemovingUnbindableUsing()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1172,8 +1161,7 @@ public static class Program
 }");
         }
 
-        [WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
-        [Fact]
+        [Fact, WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
         public async Task TestAliasInUse()
         {
             var code = @"using GIBBERISH = Goo.Bar;
@@ -1196,8 +1184,7 @@ namespace Goo
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
-        [Fact]
+        [Fact, WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         public async Task TestRemoveUnboundUsing()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1211,8 +1198,7 @@ public static class Program
 }");
         }
 
-        [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
-        [Fact]
+        [Fact, WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         public async Task TestLeadingNewlines1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1236,8 +1222,7 @@ class Program
 }");
         }
 
-        [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
-        [Fact]
+        [Fact, WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         public async Task TestRemoveLeadingNewLines2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1267,8 +1252,7 @@ class Program
 }");
         }
 
-        [WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
-        [Fact]
+        [Fact, WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
         public async Task TestImportedTypeUsedAsGenericTypeArgument()
         {
             var code = @"using GenericThingie;
@@ -1295,8 +1279,7 @@ public class Program
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
-        [Fact]
+        [Fact, WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
         public async Task TestRemoveCorrectUsing1()
         {
             var source = @"using System.Collections.Generic;
@@ -1320,8 +1303,7 @@ namespace Goo
             }.RunAsync();
         }
 
-        [WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
-        [Fact]
+        [Fact, WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
         public async Task TestRemoveCorrectUsing2()
         {
             var code = @"using System.Collections.Generic;
@@ -1353,8 +1335,7 @@ namespace Goo
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
-        [WorkItem(543000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]
-        [Fact]
+        [Fact, WorkItem(543000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]
         public async Task TestMissingWhenErrorsWouldBeGenerated()
         {
             var code = @"using System;
@@ -1404,8 +1385,7 @@ namespace Y
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
-        [Fact]
+        [Fact, WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
         public async Task TestMissingWhenMeaningWouldChangeInLambda()
         {
             var code = @"using System;
@@ -1457,8 +1437,7 @@ namespace Y
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
-        [Fact]
+        [Fact, WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
         public async Task TestCasesWithLambdas1()
         {
             // NOTE: Y is used when speculatively binding "x => x.Goo()".  As such, it is marked as
@@ -1504,8 +1483,7 @@ namespace Y
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(545646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545646")]
-        [Fact]
+        [Fact, WorkItem(545646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545646")]
         public async Task TestCasesWithLambdas2()
         {
             var code = @"using System;
@@ -1558,8 +1536,7 @@ namespace N
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(545741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545741")]
-        [Fact]
+        [Fact, WorkItem(545741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545741")]
         public async Task TestMissingOnAliasedVar()
         {
             var code = @"using var = var;
@@ -1579,8 +1556,7 @@ class B
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(546115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546115")]
-        [Fact]
+        [Fact, WorkItem(546115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546115")]
         public async Task TestBrokenCode()
         {
             var code = @"using System.Linq;
@@ -1805,8 +1781,7 @@ public class QueryExpressionTest
             }.RunAsync();
         }
 
-        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
-        [Fact]
+        [Fact, WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public async Task TestReferenceInCref()
         {
             // Parsing doc comments as simple trivia; we don't know System is unnecessary, but CS8019 is disabled so
@@ -1846,8 +1821,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
-        [Fact]
+        [Fact, WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
         public async Task TestUnusedUsingOverLinq()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1873,8 +1847,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
+        [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
         public async Task TestUsingsInPPRegionWithoutOtherMembers()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1948,8 +1921,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
+        [Fact, WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
         public async Task TestWhitespaceBeforeUnusedUsings_FileScopedNamespace()
         {
             await new VerifyCS.Test
@@ -1985,8 +1957,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleUsing()
         {
             await new VerifyCS.Test
@@ -2018,8 +1989,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleUsings()
         {
             await new VerifyCS.Test
@@ -2052,8 +2022,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_NotAllFirstGroupIsDeleted()
         {
             await new VerifyCS.Test
@@ -2090,8 +2059,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_AllLastGroupIsDeleted()
         {
             await new VerifyCS.Test

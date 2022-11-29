@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
     [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingEngineTriviaTests : CSharpFormattingTestBase
     {
-        [Fact]
-        [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        [Fact, WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
         public async Task PreprocessorNullable()
         {
             var content = @"
@@ -1375,8 +1374,7 @@ void Method() {
             await AssertFormatAsync(expected, content);
         }
 
-        [WorkItem(537895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
-        [Fact]
+        [Fact, WorkItem(537895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
         public async Task Preprocessor9()
         {
             var content = @"class C 
@@ -1407,8 +1405,7 @@ void Method() {
             await AssertFormatAsync(expected, content);
         }
 
-        [WorkItem(537895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
-        [Fact]
+        [Fact, WorkItem(537895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
         public async Task Preprocessor10()
         {
             var content = @"class C 
@@ -1437,8 +1434,7 @@ void Method() {
             await AssertFormatAsync(expected, content);
         }
 
-        [WorkItem(537765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537765")]
-        [Fact]
+        [Fact, WorkItem(537765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537765")]
         public async Task Comment25()
         {
             var content = @"class C 
@@ -1464,8 +1460,7 @@ double y;
             await AssertFormatAsync(expected, content);
         }
 
-        [WorkItem(537765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537765")]
-        [Fact]
+        [Fact, WorkItem(537765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537765")]
         public async Task Comment26()
         {
             var content = @"public class Class1
@@ -1592,8 +1587,7 @@ class Program
             await AssertFormatAsync(code, content);
         }
 
-        [WorkItem(538703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")]
-        [Fact]
+        [Fact, WorkItem(538703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")]
         public async Task Comment32()
         {
             var content = @"class Program
@@ -1617,8 +1611,7 @@ class Program
             await AssertFormatAsync(code, content);
         }
 
-        [WorkItem(542316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542316")]
-        [Fact]
+        [Fact, WorkItem(542316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542316")]
         public async Task CommentInExpression()
         {
             var content = @"using System;
@@ -1654,9 +1647,8 @@ class Program
             await AssertFormatAsync(code, content);
         }
 
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        [Fact]
         public async Task FormatInvalidCode_1()
         {
             var expected = @"> Roslyn.Utilities.dll!   Basic";
@@ -1664,9 +1656,8 @@ class Program
             await AssertFormatAsync(expected, content);
         }
 
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        [Fact]
         public async Task FormatInvalidCode_2()
         {
             var content = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic";
@@ -1674,8 +1665,7 @@ class Program
             await AssertFormatAsync(expectedContent, content);
         }
 
-        [WorkItem(537895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
-        [Fact]
+        [Fact, WorkItem(537895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
         public async Task EmbededStatement1()
         {
             var content = @"using System;
@@ -1767,8 +1757,7 @@ class Program
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(4019, "https://github.com/dotnet/roslyn/issues/4019")]
-        [Fact]
+        [Fact, WorkItem(4019, "https://github.com/dotnet/roslyn/issues/4019")]
         public void FormatWithTabs()
         {
             var code = @"#region Assembly mscorlib
@@ -1815,8 +1804,7 @@ class F
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
-        [Fact]
+        [Fact, WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
         public async Task SingleLineComment_AtEndOfFile_DoesNotAddNewLine()
         {
             await AssertNoFormattingChangesAsync(@"class Program { }
@@ -1824,8 +1812,7 @@ class F
 // Test");
         }
 
-        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
-        [Fact]
+        [Fact, WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
         public async Task MultiLineComment_AtEndOfFile_DoesNotAddNewLine()
         {
             await AssertNoFormattingChangesAsync(@"class Program { }
@@ -1833,8 +1820,7 @@ class F
 /* Test */");
         }
 
-        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
-        [Fact]
+        [Fact, WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
         public async Task DocComment_AtEndOfFile_DoesNotAddNewLine()
         {
             await AssertNoFormattingChangesAsync(@"class Program { }

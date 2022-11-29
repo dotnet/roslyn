@@ -483,8 +483,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact]
-        [WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
+        [Fact, WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
         public async Task ShouldNotTriggerIfCallsOtherLocalFunction()
         {
             await TestMissingAsync(
@@ -548,8 +547,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact]
-        [WorkItem(53179, "https://github.com/dotnet/roslyn/issues/53179")]
+        [Fact, WorkItem(53179, "https://github.com/dotnet/roslyn/issues/53179")]
         public async Task TestLocalFunctionAsTopLevelStatement()
         {
             await TestAsync(@"

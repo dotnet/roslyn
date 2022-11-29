@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!pinnedTemp.Type.IsManagedTypeNoUseSiteDiagnostics);
-
                     // temp = ref *default(T*);
                     cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), _factory.NullRef(pinnedTemp.TypeWithAnnotations), isRef: true);
                 }

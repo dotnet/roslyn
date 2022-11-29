@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestTemporaryStorage(service, text);
         }
 
-        [WorkItem(531188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
-        [Fact]
+        [Fact, WorkItem(531188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
         public void TestTemporaryStorageStream()
         {
             using var workspace = new AdhocWorkspace();

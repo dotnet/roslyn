@@ -152,8 +152,7 @@ internal record NewRecord(int A, int B);
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
 
-        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
-        [Fact]
+        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         public async Task ConvertSingleAnonymousType_Explicit()
         {
             var text = @"
@@ -1517,8 +1516,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        [Fact]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task ConvertSingleAnonymousTypeSelection1()
         {
             var text = @"
@@ -1568,8 +1566,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        [Fact]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task ConvertSingleAnonymousTypeSelection2()
         {
             var text = @"
@@ -1619,8 +1616,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        [Fact]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task ConvertSingleAnonymousTypeSelection3()
         {
             var text = @"
@@ -1670,8 +1666,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
-        [WorkItem(45747, "https://github.com/dotnet/roslyn/issues/45747")]
-        [Fact]
+        [Fact, WorkItem(45747, "https://github.com/dotnet/roslyn/issues/45747")]
         public async Task ConvertOmittingTrailingComma()
         {
             var text = @"
@@ -1728,8 +1723,7 @@ internal class NewClass
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
-        [WorkItem(45747, "https://github.com/dotnet/roslyn/issues/45747")]
-        [Fact]
+        [Fact, WorkItem(45747, "https://github.com/dotnet/roslyn/issues/45747")]
         public async Task ConvertOmittingTrailingCommaButPreservingTrivia()
         {
             var text = @"

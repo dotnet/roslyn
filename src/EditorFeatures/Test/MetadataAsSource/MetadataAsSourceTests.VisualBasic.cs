@@ -93,8 +93,7 @@ End Module";
 
             // This test depends on the version of mscorlib used by the TestWorkspace and may 
             // change in the future
-            [WorkItem(530526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
-            [Theory]
+            [Theory, WorkItem(530526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
             [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
             [InlineData(true)]
             public async Task BracketedIdentifierSimplificationTest(bool signaturesOnly)

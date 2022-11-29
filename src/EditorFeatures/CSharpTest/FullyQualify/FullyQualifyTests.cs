@@ -559,8 +559,7 @@ class Class
 }");
         }
 
-        [WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
-        [Fact]
+        [Fact, WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
         public async Task TestExtensionMethods()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -576,8 +575,7 @@ class Goo
 }");
         }
 
-        [WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
-        [Fact]
+        [Fact, WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
         public async Task TestAfterNew()
         {
             await TestInRegularAndScriptAsync(
@@ -729,8 +727,7 @@ namespace C
     }");
         }
 
-        [WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
-        [Fact]
+        [Fact, WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
         public async Task TestBeforeNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -770,8 +767,7 @@ namespace B
 }");
         }
 
-        [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
-        [Fact]
+        [Fact, WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
         public async Task TestSimpleNameWithLeadingTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -779,8 +775,7 @@ namespace B
 @"class Class { void Test() { /*goo*/System.Int32 i; } }");
         }
 
-        [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
-        [Fact]
+        [Fact, WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
         public async Task TestGenericNameWithLeadingTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -788,8 +783,7 @@ namespace B
 @"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }");
         }
 
-        [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
-        [Fact]
+        [Fact, WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
         public async Task TestFullyQualifyTypeName()
         {
             await TestInRegularAndScriptAsync(
@@ -817,8 +811,7 @@ class Test
 }");
         }
 
-        [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
-        [Fact]
+        [Fact, WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
         public async Task TestFullyQualifyUnboundIdentifier3()
         {
             await TestInRegularAndScriptAsync(
@@ -846,8 +839,7 @@ class Test
 }");
         }
 
-        [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
-        [Fact]
+        [Fact, WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
         public async Task TestFullyQualifyTypeName_NotForGenericType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -864,8 +856,7 @@ class Test
 }");
         }
 
-        [WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
-        [Fact]
+        [Fact, WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
         public async Task TestFullyQualifyThroughAlias()
         {
             await TestInRegularAndScriptAsync(
@@ -883,8 +874,7 @@ class C
 }");
         }
 
-        [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
-        [Fact]
+        [Fact, WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1()
         {
             await TestInRegularAndScriptAsync(
@@ -918,8 +908,7 @@ class Test
 }");
         }
 
-        [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
-        [Fact]
+        [Fact, WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2()
         {
             await TestInRegularAndScriptAsync(
@@ -954,8 +943,7 @@ class Test
 index: 1);
         }
 
-        [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
-        [Fact]
+        [Fact, WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
         public async Task BugFix5950()
         {
             await TestAsync(
@@ -964,8 +952,7 @@ index: 1);
 parseOptions: GetScriptOptions());
         }
 
-        [WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
-        [Fact]
+        [Fact, WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
         public async Task TestAfterAlias()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -982,8 +969,7 @@ class Program
 }");
         }
 
-        [WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
-        [Fact]
+        [Fact, WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
         public async Task TestMissingOnIncompleteStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -998,8 +984,7 @@ class C
 }");
         }
 
-        [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
-        [Fact]
+        [Fact, WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
         public async Task TestAssemblyAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -1007,8 +992,7 @@ class C
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]");
         }
 
-        [WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
-        [Fact]
+        [Fact, WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
         public async Task TestMissingOnAliasName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1043,8 +1027,7 @@ class M
 }");
         }
 
-        [WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
-        [Fact]
+        [Fact, WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
         public async Task TestNotOnAbstractConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1059,8 +1042,7 @@ class Program
 }");
         }
 
-        [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
-        [Fact]
+        [Fact, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         public async Task TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -1071,8 +1053,7 @@ input,
 @"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
-        [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
-        [Fact]
+        [Fact, WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
         public async Task TestGeneratePropertyFromAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1089,8 +1070,7 @@ class D
 }");
         }
 
-        [WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
-        [Fact]
+        [Fact, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
         public async Task ShouldTriggerOnCS0308()
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
@@ -1115,8 +1095,7 @@ class Test
 }");
         }
 
-        [WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
-        [Fact]
+        [Fact, WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
         public async Task AmbiguousTypeFix()
         {
             await TestInRegularAndScriptAsync(
@@ -1170,8 +1149,7 @@ namespace n2
 }");
         }
 
-        [WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
-        [Fact]
+        [Fact, WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
         public async Task NonPublicNamespaces()
         {
             await TestInRegularAndScriptAsync(
@@ -1263,8 +1241,7 @@ public class Program
 }", index: 1);
         }
 
-        [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
-        [Fact]
+        [Fact, WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
         public async Task AmbiguousFixOrdering()
         {
             await TestInRegularAndScriptAsync(
@@ -1358,8 +1335,7 @@ namespace n2
 }");
         }
 
-        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
-        [Fact]
+        [Fact, WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
         public async Task TestContextualKeyword1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1380,8 +1356,7 @@ class C
 }");
         }
 
-        [WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
-        [Fact]
+        [Fact, WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
         public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1393,8 +1368,7 @@ class Program : [|IReadOnlyCollection|]
 }");
         }
 
-        [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
-        [Fact]
+        [Fact, WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
         public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
         {
             var code = @"
@@ -1421,8 +1395,7 @@ class C
 }");
         }
 
-        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact]
+        [Fact, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
         public async Task TestInUsingContext_Type()
         {
             await TestInRegularAndScriptAsync(
@@ -1444,8 +1417,7 @@ class Class
     }");
         }
 
-        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact]
+        [Fact, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
         public async Task TestInUsingContext_Namespace()
         {
             await TestInRegularAndScriptAsync(
@@ -1467,8 +1439,7 @@ class Class
     }");
         }
 
-        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact]
+        [Fact, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
         public async Task TestInUsingContext_UsingStatic()
         {
             await TestInRegularAndScriptAsync(
@@ -1490,8 +1461,7 @@ class Class
     }");
         }
 
-        [WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
-        [Fact]
+        [Fact, WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
         public async Task TestInUsingContext_UsingAlias()
         {
             await TestInRegularAndScriptAsync(
@@ -1499,8 +1469,7 @@ class Class
 @"using M = System.Math");
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [Fact, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableNeverSameProject()
         {
             const string InitialWorkspace = @"
@@ -1541,8 +1510,7 @@ class Program
             await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText);
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [Fact, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableNeverDifferentProject()
         {
             const string InitialWorkspace = @"
@@ -1573,8 +1541,7 @@ class Program
             await TestMissingAsync(InitialWorkspace);
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [Fact, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn()
         {
             const string InitialWorkspace = @"
@@ -1615,8 +1582,7 @@ class Program
             await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText);
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [Fact, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff()
         {
             var initialWorkspace = @"

@@ -414,8 +414,7 @@ class C
 }");
         }
 
-        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
-        [Fact]
+        [Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
         public async Task TestNonApplicableKeyword()
         {
             await TestMissingAsync(
@@ -426,8 +425,7 @@ class C<TKey>
 }");
         }
 
-        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
-        [Fact]
+        [Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
         public async Task TestInXMLAttribute()
         {
             await TestMissingAsync(
@@ -439,8 +437,7 @@ class C
 }");
         }
 
-        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
-        [Fact]
+        [Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
         public async Task TestInXMLAttribute2()
         {
             await TestMissingAsync(
@@ -452,8 +449,7 @@ class C
 }");
         }
 
-        [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
-        [Fact]
+        [Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
         public async Task TestBaseKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -470,8 +466,7 @@ class C<TKey>
 }");
         }
 
-        [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
-        [Fact]
+        [Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
         public async Task TestThisKeyword()
         {
             await TestInRegularAndScriptAsync(

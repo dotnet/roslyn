@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
@@ -42,8 +43,18 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private static async Task GenerateAsync(FileInfo? solution, FileInfo? project, FileInfo? compilerInvocation, FileInfo? binLog, string? output, LsifFormat outputFormat, string? log)
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
-            using var outputFile = output != null ? new StreamWriter(output) : null;
-            var outputWriter = outputFile ?? Console.Out;
+            using var outputFile = output != null ? new StreamWriter(output, append: false, Encoding.UTF8) : null;
+            TextWriter outputWriter;
+
+            if (outputFile is null)
+            {
+                Console.OutputEncoding = Encoding.UTF8;
+                outputWriter = Console.Out;
+            }
+            else
+            {
+                outputWriter = outputFile;
+            }
 
             using var logFile = log != null ? new StreamWriter(log) : TextWriter.Null;
             ILsifJsonWriter lsifWriter = outputFormat switch

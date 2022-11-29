@@ -153,8 +153,7 @@ class C
 $$"));
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact]
+        [Fact, WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterMethodReference()
         {
             await VerifyAbsenceAsync(
@@ -166,8 +165,7 @@ class C {
         var v = Console.WriteLine $$");
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact]
+        [Fact, WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterAnonymousMethod()
         {
             await VerifyAbsenceAsync(
@@ -179,8 +177,7 @@ class C {
         Action a = delegate { } $$");
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact]
+        [Fact, WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterLambda1()
         {
             await VerifyAbsenceAsync(
@@ -192,8 +189,7 @@ class C {
         Action b = (() => 0) $$");
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact]
+        [Fact, WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterLambda2()
         {
             await VerifyAbsenceAsync(
@@ -205,8 +201,7 @@ class C {
         Action b = () => {} $$");
         }
 
-        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
-        [Fact]
+        [Fact, WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteral()
         {
             await VerifyAbsenceAsync(
@@ -220,8 +215,7 @@ class C
 }");
         }
 
-        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
-        [Fact]
+        [Fact, WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteralAndDot()
         {
             await VerifyAbsenceAsync(
@@ -235,8 +229,7 @@ class C
 }");
         }
 
-        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
-        [Fact]
+        [Fact, WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteralDotAndSpace()
         {
             await VerifyAbsenceAsync(
@@ -250,8 +243,7 @@ class C
 }");
         }
 
-        [WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
-        [Fact]
+        [Fact, WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
         public async Task TestMissingInCaseClause1()
         {
             await VerifyAbsenceAsync(
@@ -274,8 +266,7 @@ class C
 ");
         }
 
-        [WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
-        [Fact]
+        [Fact, WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
         public async Task TestMissingInCaseClause2()
         {
             await VerifyAbsenceAsync(

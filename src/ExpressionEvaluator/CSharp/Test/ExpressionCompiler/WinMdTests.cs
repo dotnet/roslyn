@@ -146,8 +146,7 @@ class C
                 "Windows.Storage");
         }
 
-        [WorkItem(1108135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108135")]
-        [Fact]
+        [Fact, WorkItem(1108135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108135")]
         public void Win10OnWin10()
         {
             CompileTimeAndRuntimeAssemblies(
@@ -295,8 +294,7 @@ class C
             });
         }
 
-        [WorkItem(1117084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1117084")]
-        [Fact]
+        [Fact, WorkItem(1117084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1117084")]
         public void OtherFrameworkAssembly()
         {
             var source =

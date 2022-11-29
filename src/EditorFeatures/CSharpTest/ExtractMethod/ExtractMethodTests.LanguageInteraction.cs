@@ -177,8 +177,7 @@ class Program
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528198")]
-            [Fact]
+            [Fact, WorkItem(528198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528198")]
             public async Task BugFix6794()
             {
                 var code = @"using System;
@@ -226,8 +225,7 @@ class Program
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528198")]
-            [Fact]
+            [Fact, WorkItem(528198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528198")]
             public async Task BugFix6794_1()
             {
                 var code = @"using System;
@@ -442,8 +440,7 @@ class Test11<T>
 
             #region ExpressionBodiedMembers
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedMethod()
             {
                 var code = @"using System;
@@ -466,8 +463,7 @@ class T
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedOperator()
             {
                 var code = @"using System;
@@ -500,8 +496,7 @@ class Complex
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedConversionOperator()
             {
                 var code = @"using System;
@@ -538,8 +533,7 @@ public struct DBBool
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedProperty()
             {
                 var code = @"using System;
@@ -560,8 +554,7 @@ class T
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedIndexer()
             {
                 var code = @"using System;
@@ -584,8 +577,7 @@ class SampleCollection<T>
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedIndexer2()
             {
                 var code = @"using System;
@@ -608,8 +600,7 @@ class SampleCollection<T>
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
             {
                 var code = @"using System;
@@ -636,8 +627,7 @@ class TestClass
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
             {
                 var code = @"using System;
@@ -658,8 +648,7 @@ class TestClass
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
             {
                 var code = @"using System;
@@ -686,8 +675,7 @@ class TestClass
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
             {
                 var code = @"using System;
@@ -708,8 +696,7 @@ class TestClass
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
             {
                 var code = @"using System;
@@ -736,8 +723,7 @@ class TestClass
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedMethodWithExpressionBodiedParenthesizedLambdaExpression()
             {
                 var code = @"using System;
@@ -758,8 +744,7 @@ class TestClass
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
             {
                 var code = @"using System;
@@ -796,8 +781,7 @@ class TestClass
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
-            [Fact]
+            [Fact, WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             public async Task LeadingAndTrailingTriviaOnExpressionBodiedMethod()
             {
                 var code = @"using System;
@@ -826,8 +810,7 @@ class TestClass
 
             #region Patterns
 
-            [WorkItem(9244, "https://github.com/dotnet/roslyn/issues/9244")]
-            [Fact]
+            [Fact, WorkItem(9244, "https://github.com/dotnet/roslyn/issues/9244")]
             public async Task PatternIsDisabled()
             {
                 var code = @"
@@ -851,8 +834,7 @@ class Program
 
             #endregion
 
-            [WorkItem(11155, "DevDiv_Projects/Roslyn")]
-            [Fact]
+            [Fact, WorkItem(11155, "DevDiv_Projects/Roslyn")]
             public async Task AnonymousTypeMember1()
             {
                 var code = @"using System;
@@ -869,8 +851,7 @@ class Program
                 await ExpectExtractMethodToFailAsync(code);
             }
 
-            [WorkItem(544259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544259")]
-            [Fact]
+            [Fact, WorkItem(544259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544259")]
             public async Task ExtractMethod_ConstructorInitializer()
             {
                 var code = @"class Program
@@ -896,8 +877,7 @@ class Program
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(543984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
-            [Fact]
+            [Fact, WorkItem(543984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
             public async Task ExtractMethod_UnsafeAddressTaken()
             {
                 var code = @"class C
@@ -925,8 +905,7 @@ class Program
                 await ExpectExtractMethodToFailAsync(code, expected);
             }
 
-            [WorkItem(544387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544387")]
-            [Fact]
+            [Fact, WorkItem(544387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544387")]
             public async Task ExtractMethod_PointerType()
             {
                 var code = @"class Test
@@ -960,8 +939,7 @@ class Program
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(544514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544514")]
-            [Fact]
+            [Fact, WorkItem(544514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544514")]
             public async Task ExtractMethod_AnonymousType()
             {
                 var code = @"public class Test
@@ -993,8 +971,7 @@ class Program
                 await ExpectExtractMethodToFailAsync(code, expected);
             }
 
-            [WorkItem(544920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544920")]
-            [Fact]
+            [Fact, WorkItem(544920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544920")]
             public async Task ExtractMethod_StackAllocExpression()
             {
                 var code = @"
@@ -1024,8 +1001,7 @@ unsafe class C
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(539310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539310")]
-            [Fact]
+            [Fact, WorkItem(539310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539310")]
             public async Task Readonly_Field_WrittenTo()
             {
                 var code = @"class C
@@ -1040,8 +1016,7 @@ unsafe class C
                 await ExpectExtractMethodToFailAsync(code);
             }
 
-            [WorkItem(539310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539310")]
-            [Fact]
+            [Fact, WorkItem(539310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539310")]
             public async Task Readonly_Field()
             {
                 var code = @"class C
@@ -1072,8 +1047,7 @@ unsafe class C
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(545180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545180")]
-            [Fact]
+            [Fact, WorkItem(545180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545180")]
             public async Task NodeHasSyntacticErrors()
             {
                 var code = @"using System;
@@ -1094,8 +1068,7 @@ class Program
                 await ExpectExtractMethodToFailAsync(code);
             }
 
-            [WorkItem(545292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545292")]
-            [Fact]
+            [Fact, WorkItem(545292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545292")]
             public async Task LocalConst()
             {
                 var code = @"class Test
@@ -1108,8 +1081,7 @@ class Program
                 await ExpectExtractMethodToFailAsync(code);
             }
 
-            [WorkItem(545315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545315")]
-            [Fact]
+            [Fact, WorkItem(545315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545315")]
             public async Task Nullable()
             {
                 var code = @"using System;
@@ -1139,8 +1111,7 @@ class Program
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(545263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545263")]
-            [Fact]
+            [Fact, WorkItem(545263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545263")]
             public async Task SyntacticErrorInSelection()
             {
                 var code = @"class Program
@@ -1161,8 +1132,7 @@ class Program
                 await ExpectExtractMethodToFailAsync(code);
             }
 
-            [WorkItem(544497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544497")]
-            [Fact]
+            [Fact, WorkItem(544497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544497")]
             public async Task StackAllocExpression()
             {
                 var code = @"using System;
@@ -1189,8 +1159,7 @@ class Test
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(545503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545503")]
-            [Fact]
+            [Fact, WorkItem(545503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545503")]
             public async Task MethodBodyInScript()
             {
                 var code = @"#r ""System.Management""
@@ -1245,8 +1214,7 @@ void NewMethod(string query, string[,] labelKeys)
                 await TestExtractMethodAsync(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
             }
 
-            [WorkItem(544920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544920")]
-            [Fact]
+            [Fact, WorkItem(544920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544920")]
             public async Task NoSimplificationForStackAlloc()
             {
                 var code = @"using System;
@@ -1278,8 +1246,7 @@ unsafe class C
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(545553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
-            [Fact]
+            [Fact, WorkItem(545553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
             public async Task CheckStatementContext1()
             {
                 var code = @"using System;
@@ -1327,8 +1294,7 @@ class X
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(545553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
-            [Fact]
+            [Fact, WorkItem(545553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
             public async Task CheckStatementContext2()
             {
                 var code = @"using System;
@@ -1373,8 +1339,7 @@ class X
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(545553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
-            [Fact]
+            [Fact, WorkItem(545553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
             public async Task CheckStatementContext3()
             {
                 var code = @"using System;
@@ -1424,8 +1389,7 @@ class X
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(545553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
-            [Fact]
+            [Fact, WorkItem(545553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
             public async Task CheckExpressionContext1()
             {
                 var code = @"using System;
@@ -1812,8 +1776,7 @@ class X
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(1064798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064798")]
-            [Fact]
+            [Fact, WorkItem(1064798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064798")]
             public async Task ExpressionInStringInterpolation()
             {
                 var code = @"using System;
@@ -1842,8 +1805,7 @@ class X
                 await TestExtractMethodAsync(code, expected);
             }
 
-            [WorkItem(859493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/859493")]
-            [Fact]
+            [Fact, WorkItem(859493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/859493")]
             public async Task ExpressionInYieldReturnStatement()
             {
                 var code = @"using System;
@@ -1899,8 +1861,7 @@ public class Test<T>
             }
         }
 
-        [WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
-        [Fact]
+        [Fact, WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
         public async Task HandleFormattableStringTargetTyping1()
         {
             const string code = CodeSnippets.FormattableStringType + @"
@@ -1939,8 +1900,7 @@ namespace N
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(17971, "https://github.com/dotnet/roslyn/issues/17971")]
-        [Fact]
+        [Fact, WorkItem(17971, "https://github.com/dotnet/roslyn/issues/17971")]
         public async Task BrokenForeachLoop()
         {
             var code = @"using System;
@@ -1978,8 +1938,7 @@ namespace ConsoleApp1
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
-        [Fact]
+        [Fact, WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
         public async Task ExtractMethod_LocalVariableCrossingLocalFunction()
         {
             var code = @"using System;

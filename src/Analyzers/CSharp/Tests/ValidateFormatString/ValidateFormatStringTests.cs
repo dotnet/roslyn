@@ -997,8 +997,7 @@ class Program
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
-        [WorkItem(29398, "https://github.com/dotnet/roslyn/issues/29398")]
-        [Fact]
+        [Fact, WorkItem(29398, "https://github.com/dotnet/roslyn/issues/29398")]
         public async Task LocalFunctionNamedFormat()
         {
             await TestDiagnosticMissingAsync(@"public class C

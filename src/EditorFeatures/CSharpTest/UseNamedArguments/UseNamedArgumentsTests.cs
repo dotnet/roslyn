@@ -254,8 +254,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestAvailableOnSelectionOfArgument1()
         {
             await TestWithCSharp7(
@@ -271,8 +270,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestAvailableOnFirstTokenOfArgument1()
         {
             await TestWithCSharp7(
@@ -288,8 +286,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestAvailableOnFirstTokenOfArgument2()
         {
             await TestWithCSharp7(
@@ -305,8 +302,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument1()
         {
             await TestWithCSharp7(
@@ -328,8 +324,7 @@ class C
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument2_CSharp7()
         {
             await TestInRegularAndScript1Async(
@@ -346,8 +341,7 @@ class C
                 parameters: new TestParameters(parseOptions: TestOptions.Regular7));
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument2()
         {
             await TestInRegularAndScript1Async(
@@ -363,8 +357,7 @@ class C
 }", parameters: new TestParameters(parseOptions: TestOptions.Regular7_3));
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument3()
         {
             await TestWithCSharp7(
@@ -386,8 +379,7 @@ class C
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument4()
         {
             await TestWithCSharp7(
@@ -403,8 +395,7 @@ class C
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestMissingNotOnStartingLineOfArgument1()
         {
             await TestMissingAsync(
@@ -420,8 +411,7 @@ class C
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestMissingWithSelection()
         {
             await TestMissingAsync(
@@ -435,8 +425,7 @@ class C
 }");
         }
 
-        [WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
-        [Fact]
+        [Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
         public async Task TestCaretPositionAtTheEnd1()
         {
             await TestWithCSharp7(
@@ -450,8 +439,7 @@ class C
 }");
         }
 
-        [WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
-        [Fact]
+        [Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
         public async Task TestCaretPositionAtTheEnd2()
         {
             await TestWithCSharp7(
@@ -465,8 +453,7 @@ class C
 }");
         }
 
-        [WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")]
-        [Fact]
+        [Fact, WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")]
         public async Task TestOnTuple()
         {
             await TestInRegularAndScript1Async(
@@ -484,8 +471,7 @@ class C
 ");
         }
 
-        [WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
-        [Fact]
+        [Fact, WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
         public async Task TestCharacterEscape1()
         {
             await TestWithCSharp7(
@@ -499,8 +485,7 @@ class C
 }");
         }
 
-        [WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
-        [Fact]
+        [Fact, WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
         public async Task TestCharacterEscape2()
         {
             await TestWithCSharp7(

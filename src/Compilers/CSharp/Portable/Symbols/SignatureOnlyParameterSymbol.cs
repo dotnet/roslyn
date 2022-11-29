@@ -48,9 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get { return false; } }
 
-        internal override DeclarationScope DeclaredScope
+        internal override DeclarationScope EffectiveScope
             => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
-        internal override DeclarationScope EffectiveScope => DeclaredScope;
 
         internal override bool UseUpdatedEscapeRules => false;
 

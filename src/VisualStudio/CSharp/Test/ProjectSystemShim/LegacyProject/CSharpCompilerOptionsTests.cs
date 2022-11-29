@@ -25,8 +25,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class CSharpCompilerOptionsTests
     {
-        [WpfFact]
-        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
+        [WpfFact, WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public void DocumentationModeSetToDiagnoseIfProducingDocFile()
         {
             using var environment = new TestEnvironment();
@@ -40,8 +39,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(DocumentationMode.Diagnose, options.DocumentationMode);
         }
 
-        [WpfFact]
-        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
+        [WpfFact, WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public void DocumentationModeSetToParseIfNotProducingDocFile()
         {
             using var environment = new TestEnvironment();
@@ -86,8 +84,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         ////    }
         ////}
 
-        [WpfFact]
-        [WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
+        [WpfFact, WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
         [WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")]
         [WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")]
         public void ProjectSettingsOptionAddAndRemove()
@@ -104,8 +101,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
         }
 
-        [WpfFact]
-        [WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")]
+        [WpfFact, WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")]
         public void ProjectOutputPathAndOutputExeNameChange()
         {
             using var environment = new TestEnvironment();

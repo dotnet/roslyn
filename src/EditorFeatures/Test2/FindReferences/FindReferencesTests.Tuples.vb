@@ -6,6 +6,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
         Private ReadOnly tuple2 As XCData =
         <![CDATA[
@@ -31,7 +32,7 @@ namespace System
 }
 ]]>
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldSameTuples01(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -57,7 +58,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldSameTuples02(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -83,7 +84,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldSameTuples03(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -109,7 +110,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldSameTuplesMultidocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -154,7 +155,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldDifferentTuples01(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -180,7 +181,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldSameTuplesMatchOuterSymbols01(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -206,7 +207,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldSameTuplesMatchOuterSymbols02(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -233,7 +234,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldItem01(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -259,7 +260,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldItem02(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -285,7 +286,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldItem03(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -312,7 +313,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTupleFieldItem04(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -340,7 +341,7 @@ namespace System
         End Function
 
         <WorkItem(41598, "https://github.com/dotnet/roslyn/issues/41598")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTuplesAcrossCoreAndStandard1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -377,7 +378,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTuplesUseInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

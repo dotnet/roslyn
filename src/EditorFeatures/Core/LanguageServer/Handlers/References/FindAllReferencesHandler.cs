@@ -56,7 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
 
             var document = context.Document;
+            var workspace = context.Workspace;
             Contract.ThrowIfNull(document);
+            Contract.ThrowIfNull(workspace);
 
             using var progress = BufferedProgress.Create<VSInternalReferenceItem>(referenceParams.PartialResultToken);
 
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
             var findUsagesContext = new FindUsagesLSPContext(
-                progress, document, position, _metadataAsSourceFileService, _asyncListener, _globalOptions, cancellationToken);
+                progress, workspace, document, position, _metadataAsSourceFileService, _asyncListener, _globalOptions, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
             await findUsagesService.FindReferencesAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);

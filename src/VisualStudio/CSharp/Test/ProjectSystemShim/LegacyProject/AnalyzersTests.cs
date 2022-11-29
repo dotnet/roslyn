@@ -153,8 +153,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(expected: ruleSetFile.Path, actual: projectRuleSetFile);
         }
 
-        [WpfFact]
-        [WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
+        [WpfFact, WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
         [WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")]
         [WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")]
         [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
@@ -192,8 +191,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(expected: ReportDiagnostic.Suppress, actual: options.SpecificDiagnosticOptions["CS1014"]);
         }
 
-        [WpfFact]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_ProjectNoWarnOverridesOtherSettings()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(

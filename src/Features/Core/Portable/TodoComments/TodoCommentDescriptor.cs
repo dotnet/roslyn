@@ -2,22 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Immutable;
-using System.Globalization;
-using System.Linq.Expressions;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
+using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <summary>
     /// Description of a TODO comment type to find in a user's comments.
     /// </summary>
+    [DataContract]
+    [Obsolete($"Use {nameof(TaskListItemDescriptor)} instead")]
     internal readonly struct TodoCommentDescriptor
     {
+        [DataMember(Order = 0)]
         public string Text { get; }
+        [DataMember(Order = 1)]
         public int Priority { get; }
 
         public TodoCommentDescriptor(string text, int priority)
@@ -27,20 +28,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         public static ImmutableArray<TodoCommentDescriptor> Parse(ImmutableArray<string> items)
-        {
-            using var _ = ArrayBuilder<TodoCommentDescriptor>.GetInstance(out var result);
-
-            foreach (var item in items)
-            {
-                if (item.Split(':') is [var token, var priorityString] &&
-                    !string.IsNullOrWhiteSpace(token) &&
-                    int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
-                {
-                    result.Add(new TodoCommentDescriptor(token, priority));
-                }
-            }
-
-            return result.ToImmutable();
-        }
+            => TaskListItemDescriptor.Parse(items).SelectAsArray(d => new TodoCommentDescriptor(d.Text, d.Priority));
     }
 }

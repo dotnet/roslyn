@@ -127,8 +127,7 @@ $$");
 @"[$$");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeNestClass()
         {
             await VerifyAbsenceAsync(
@@ -141,8 +140,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeNamespace()
         {
             await VerifyKeywordAsync(
@@ -150,8 +148,7 @@ $$");
 namespace Goo {");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeFileScopedNamespace()
         {
             await VerifyKeywordAsync(
@@ -159,8 +156,7 @@ namespace Goo {");
 namespace Goo;");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeNamespaceWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
@@ -168,8 +164,7 @@ namespace Goo;");
 namespace Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeNamespaceAndAfterUsingWithNoOpenBracket()
         {
             await VerifyAbsenceAsync(
@@ -191,8 +186,7 @@ $$
 namespace Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeNamespaceAndAfterUsingWithOpenBracket()
         {
             await VerifyKeywordAsync(
@@ -214,8 +208,7 @@ global using System;
 namespace Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeAssemblyWithOpenBracket()
         {
             await VerifyKeywordAsync(
@@ -225,8 +218,7 @@ namespace Goo {}");
 namespace Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeClass()
         {
             await VerifyKeywordAsync(
@@ -235,8 +227,7 @@ namespace Goo {}");
 class Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeInterface()
         {
             await VerifyKeywordAsync(
@@ -245,8 +236,7 @@ class Goo {}");
 interface IGoo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeStruct()
         {
             await VerifyKeywordAsync(
@@ -255,8 +245,7 @@ interface IGoo {}");
 struct Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeEnum()
         {
             await VerifyKeywordAsync(
@@ -265,8 +254,7 @@ struct Goo {}");
 enum Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeOtherAttributeWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
@@ -276,8 +264,7 @@ $$
 namespace Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
@@ -301,8 +288,7 @@ $$
 namespace Goo {}");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInBeforeAttributeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
         {
             await VerifyKeywordAsync(
@@ -342,8 +328,7 @@ namespace Goo {}");
     void Goo([$$");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInElementAccess()
         {
             await VerifyAbsenceAsync(
@@ -352,8 +337,7 @@ namespace Goo {}");
         array[$$");
         }
 
-        [Fact]
-        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        [Fact, WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInIndex()
         {
             await VerifyAbsenceAsync(

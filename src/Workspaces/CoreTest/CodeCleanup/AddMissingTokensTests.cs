@@ -75,8 +75,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544318")]
+        [Fact, WorkItem(544318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544318")]
         public async Task MethodInvocation_TypeArgParens()
         {
             var code = @"[|Imports System
@@ -729,8 +728,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544225")]
+        [Fact, WorkItem(544225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544225")]
         public async Task StructuredTrivia_Expression_DontCrash()
         {
             var code = @"[|#Const Goo1 = 1
@@ -748,8 +746,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544169")]
+        [Fact, WorkItem(544169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544169")]
         public async Task EventStatement_AsClause()
         {
             var code = @"[|Imports System.ComponentModel
@@ -764,8 +761,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544167")]
+        [Fact, WorkItem(544167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544167")]
         public async Task InvocationExpression_NoParenthesesForPredefinedCastExpression()
         {
             var code = @"[|Class Program
@@ -782,8 +778,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
+        [Fact, WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
         [WorkItem(544317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
         public async Task ObjectCreationExpression()
         {
@@ -801,8 +796,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
+        [Fact, WorkItem(544317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
         public async Task ObjectCreationExpression_Initializer()
         {
             var code = @"[|Public Class SomeClass
@@ -823,8 +817,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
+        [Fact, WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
         public async Task ObjectCreationExpression_GenericName()
         {
             var code = @"[|Imports System
@@ -846,8 +839,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
+        [Fact, WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
         public async Task ObjectCreationExpression_AsNewClause()
         {
             var code = @"[|Class C
@@ -860,8 +852,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
+        [Fact, WorkItem(544301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
         public async Task ContinueStatement_While()
         {
             var code = @"Module M
@@ -882,8 +873,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
+        [Fact, WorkItem(544301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
         public async Task ContinueStatement_For()
         {
             var code = @"Module M
@@ -904,8 +894,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544380")]
+        [Fact, WorkItem(544380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544380")]
         public async Task IfDirective()
         {
             var code = @"[|#If VBC_VER >= 9.0
@@ -920,8 +909,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544386")]
+        [Fact, WorkItem(544386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544386")]
         public async Task NamedFieldInitializer()
         {
             var code = @"[|Class S
@@ -944,8 +932,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544526")]
+        [Fact, WorkItem(544526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544526")]
         public async Task DontCrash_ImplementsStatement()
         {
             var code = @"[|Class C
@@ -962,8 +949,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544525")]
+        [Fact, WorkItem(544525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544525")]
         public async Task AccessorStatement_AddRemoveHandler_RaiseEvent()
         {
             var code = @"[|Class C
@@ -990,8 +976,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545176")]
+        [Fact, WorkItem(545176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545176")]
         public async Task CallStatement_Lambda()
         {
             var code = @"[|Module Program
@@ -1008,8 +993,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545256")]
+        [Fact, WorkItem(545256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545256")]
         public async Task HandlesClauseItem_DontAddParentheses()
         {
             var code = @"[|Structure s1
@@ -1026,8 +1010,7 @@ End Structure";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
+        [Fact, WorkItem(545380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
         public async Task DontAddParenthesesInForEachControlVariable()
         {
             var code = @"[|Module Module1
@@ -1050,8 +1033,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
+        [Fact, WorkItem(545380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
         public async Task DontAddParenthesesInForControlVariable()
         {
             var code = @"[|Module Module1
@@ -1074,8 +1056,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
+        [Fact, WorkItem(545483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
         public async Task DontAddParenthesesForMissingName()
         {
             var code = @"[|Class C
@@ -1086,8 +1067,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
+        [Fact, WorkItem(545483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
         public async Task CombinedDelegates()
         {
             var code = @"[|Imports System
@@ -1112,8 +1092,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(546581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
+        [Fact, WorkItem(546581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
         public async Task ThenOmittedWithSurroundingErrors()
         {
             var code = @"[|
@@ -1124,8 +1103,7 @@ End Class";
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [WorkItem(546581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
+        [Fact, WorkItem(546581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
         public async Task ThenOmittedWithSurroundingErrors1()
         {
             var code = @"[|
@@ -1136,8 +1114,7 @@ End Class";
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [WorkItem(546797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546797")]
+        [Fact, WorkItem(546797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546797")]
         public async Task ParenthesisWithLineContinuation()
         {
             var code = @"[|
@@ -1147,8 +1124,7 @@ End Class";
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [WorkItem(546806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546806")]
+        [Fact, WorkItem(546806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546806")]
         public async Task ThenWithLineContinuation()
         {
             var code = @"[|
@@ -1162,8 +1138,7 @@ End Class";
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [WorkItem(531278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531278")]
+        [Fact, WorkItem(531278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531278")]
         public async Task ThenInIfDirective()
         {
             var code = @"#Const ccConst = 0
@@ -1189,8 +1164,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(607792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607792")]
+        [Fact, WorkItem(607792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607792")]
         public async Task CaseKeywordInSelectStatement()
         {
             var code = @"
@@ -1230,8 +1204,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(530789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530789")]
+        [Fact, WorkItem(530789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530789")]
         public async Task Bug530789()
         {
             var code = @"Imports System
@@ -1251,8 +1224,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(530039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530039")]
+        [Fact, WorkItem(530039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530039")]
         public async Task TestArraySyntax()
         {
             var code = @"[|Module TestMod
@@ -1272,8 +1244,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestAsyncFunctionWithoutAsClause()
         {
             var code = @"[|
@@ -1359,8 +1330,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestAsyncFunctionWithoutAsClause_WithAddedImports()
         {
             var code = @"[|
@@ -1452,8 +1422,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestIteratorFunctionWithoutAsClause()
         {
             var code = @"[|
@@ -1533,8 +1502,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestIteratorFunctionWithoutAsClause_WithAddedImports()
         {
             var code = @"[|
@@ -1622,8 +1590,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestAsyncFunctionWithAsClause()
         {
             var code = @"[|
@@ -1791,8 +1758,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestAsyncFunctionWithAsClause_WithAddedImports()
         {
             var code = @"[|
@@ -1966,8 +1932,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestIteratorFunctionWithAsClause()
         {
             var code = @"[|
@@ -2161,8 +2126,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestIteratorFunctionWithAsClause_WithAddedImports()
         {
             var code = @"[|
@@ -2362,8 +2326,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestAsyncFunctionWithAliasedReturnType()
         {
             var code = @"[|
@@ -2391,8 +2354,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestIteratorFunctionWithAliasedReturnType()
         {
             var code = @"[|
@@ -2420,8 +2382,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestAsyncFunctionWithAliasedReturnType_2()
         {
             var code = @"[|
@@ -2447,8 +2408,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestIteratorFunctionWithAliasedReturnType_2()
         {
             var code = @"[|
@@ -2474,8 +2434,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestAsyncFunctionWithQualifiedNameReturnType()
         {
             var code = @"[|
@@ -2499,8 +2458,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestIteratorFunctionWithQualifiedNameReturnType()
         {
             var code = @"[|
@@ -2524,8 +2482,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestAsyncLambdaFunction()
         {
             var code = @"[|
@@ -2591,8 +2548,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+        [Fact, WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         public async Task TestIteratorLambdaFunction()
         {
             var code = @"[|

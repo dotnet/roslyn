@@ -260,22 +260,22 @@ ref struct R { }
             var method = comp.GetMember<MethodSymbol>("A.F1");
             Assert.Equal("void A.F1(scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             var parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.ValueScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.ValueScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F2");
             Assert.Equal("void A.F2(System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.Unscoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.Unscoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F3");
             Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[1];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
-            Assert.Equal("void A.F4(ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F4(scoped ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
         }
 
         [Fact]
@@ -321,8 +321,6 @@ ref struct R { }
     }
 }";
             var comp = CreateCompilation(source1, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/61647: If the [ScopedRef] scoped value is an int
-            // rather than a pair of bools, the compiler should reject attribute values that it does not recognize.
             comp.VerifyDiagnostics();
         }
 
@@ -344,6 +342,9 @@ struct S
     [ScopedRef] ref System.Int32 i
 void S.F(R r)
     [ScopedRef] R r
+S S.op_Addition(S a, in R b)
+    S a
+    [ScopedRef] in R b
 System.Object S.this[in System.Int32 i].get
     [ScopedRef] in System.Int32 i
 ";
@@ -413,10 +414,13 @@ class Program
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"";
+@"void Program.F4(ref R r)
+    [ScopedRef] ref R r
+void Program.F5(in R r)
+    [ScopedRef] in R r";
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                Assert.Null(GetScopedRefType(module));
+                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
                 AssertScopedRefAttributes(module, expected);
             });
 

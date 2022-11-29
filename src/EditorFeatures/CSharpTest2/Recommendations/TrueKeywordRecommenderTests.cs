@@ -87,8 +87,7 @@ $$");
 @"var q = $$"));
         }
 
-        [WorkItem(542970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542970")]
-        [Fact]
+        [Fact, WorkItem(542970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542970")]
         public async Task TestInPPIf()
         {
             await VerifyKeywordAsync(
@@ -229,32 +228,28 @@ $$");
          H");
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Fact]
+        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotAfterTypeOf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Fact]
+        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotAfterDefault()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"default($$"));
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Fact]
+        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotAfterSizeOf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
-        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
-        [Fact]
+        [Fact, WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"

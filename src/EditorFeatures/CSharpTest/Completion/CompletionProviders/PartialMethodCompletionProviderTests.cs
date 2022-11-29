@@ -595,8 +595,7 @@ partial class c
             await VerifyNoItemsExistAsync(text);
         }
 
-        [WorkItem(578757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
-        [Fact]
+        [Fact, WorkItem(578757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
         public async Task DoNotConsiderFollowingDeclarationPartial()
         {
             var text = @"class Program
@@ -612,8 +611,7 @@ partial class c
             await VerifyNoItemsExistAsync(text);
         }
 
-        [WorkItem(578757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
-        [Fact]
+        [Fact, WorkItem(578757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
         public async Task DoNotConsiderFollowingDeclarationExtendedPartial()
         {
             var text = @"class Program

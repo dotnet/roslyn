@@ -469,6 +469,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
+            internal override bool IsMetadataIn => RefKind == RefKind.In;
+
+            internal override bool IsMetadataOut => RefKind == RefKind.Out;
+
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if (obj == (object)this)

@@ -244,8 +244,7 @@ internal record struct NewStruct(int A, int B)
             await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
         public async Task ConvertSingleTupleType_ChangeArgumentNameCase(TestHost host)
         {
             var text = @"
@@ -311,8 +310,7 @@ internal struct NewStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
         public async Task ConvertSingleTupleType_ChangeArgumentNameCase_Uppercase(TestHost host)
         {
             var text = @"
@@ -408,8 +406,7 @@ internal struct NewStruct
             await TestAsync(text, expected, options: options, testHost: host);
         }
 
-        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916"), CombinatorialData]
         public async Task ConvertSingleTupleType_Explicit(TestHost host)
         {
             var text = @"
@@ -2318,7 +2315,7 @@ internal struct NewStruct
                 {
                     ExpectedDiagnostics =
                     {
-    // /0/Test0.cs(6,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'NewStruct.NewStruct(int, int)'
+    // /0/Test0.cs(6,22): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'NewStruct.NewStruct(int, int)'
     DiagnosticResult.CompilerError("CS7036").WithSpan(6, 22, 6, 31).WithArguments("a", "NewStruct.NewStruct(int, int)"),
     // /0/Test0.cs(13,16): error CS0102: The type 'NewStruct' already contains a definition for 'a'
     DiagnosticResult.CompilerError("CS0102").WithSpan(13, 16, 13, 17).WithArguments("NewStruct", "a"),

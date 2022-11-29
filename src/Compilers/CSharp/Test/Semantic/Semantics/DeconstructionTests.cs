@@ -181,7 +181,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("c", "C.Deconstruct(out int, out int, out int)").WithLocation(7, 28),
                 // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
@@ -551,7 +551,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
+                // CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "C.Deconstruct(out int, out string, __arglist)").WithLocation(9, 28),
                 // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
@@ -4120,9 +4120,9 @@ unsafe class C
                 // (9,10): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(9, 10),
-                // (9,10): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                // (9,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('var')
                 //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
                 // (9,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'var*[]'. An explicit conversion exists (are you missing a cast?)
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "var*[] x4").WithArguments("dynamic", "var*[]").WithLocation(9, 10),

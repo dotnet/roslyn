@@ -520,13 +520,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             await ExpandNavigationBarAsync(index, cancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.HOME);
+            await TestServices.Input.SendAsync(VirtualKeyCode.HOME, cancellationToken);
             for (var i = 0; i < itemIndex; i++)
             {
-                await TestServices.Input.SendAsync(VirtualKeyCode.DOWN);
+                await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, cancellationToken);
             }
 
-            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN);
+            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, cancellationToken);
 
             // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
@@ -704,7 +704,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 // Workaround for extremely unstable async lightbulb (can dismiss itself when SuggestedActionsChanged
                 // fires while expanding the light bulb).
-                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL));
+                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL), cancellationToken);
                 await Task.Delay(5000, cancellationToken);
 
                 await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
@@ -804,7 +804,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(cancellationToken);
-                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value, cancellationToken);
+                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction!, fixAllScope.Value, cancellationToken);
                     if (fixAllAction == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope} code fix for suggested action '{action.DisplayText}'.");
@@ -890,9 +890,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         foreach (var action in actionSet.Actions)
                         {
                             actions.Add(action);
-                            var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
-                            var nestedActions = await SelectActionsAsync(nestedActionSets, cancellationToken);
-                            actions.AddRange(nestedActions);
+                            if (action.HasActionSets)
+                            {
+                                var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
+                                var nestedActions = await SelectActionsAsync(nestedActionSets!, cancellationToken);
+                                actions.AddRange(nestedActions);
+                            }
                         }
                     }
                 }
@@ -921,7 +924,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     if (action.HasActionSets)
                     {
                         var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
-                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope, cancellationToken);
+                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets!, fixAllScope, cancellationToken);
                         if (fixAllCodeAction != null)
                         {
                             return fixAllCodeAction;

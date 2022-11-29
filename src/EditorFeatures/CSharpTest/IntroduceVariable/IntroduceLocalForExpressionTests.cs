@@ -103,8 +103,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task IntroduceLocal_Inside_Expression()
         {
             await TestInRegularAndScriptAsync(

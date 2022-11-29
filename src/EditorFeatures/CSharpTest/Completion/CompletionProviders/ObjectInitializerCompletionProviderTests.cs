@@ -41,8 +41,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact]
-        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        [Fact, WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
         public async Task ImplicitObjectCreation_NothingToInitialize()
         {
             var markup = @"
@@ -79,8 +78,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact]
-        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        [Fact, WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
         public async Task ImplicitObjectCreation_OneItem1()
         {
             var markup = @"
@@ -315,8 +313,7 @@ class D
             await VerifyExclusiveAsync(markup, false);
         }
 
-        [WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
-        [Fact]
+        [Fact, WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
         public async Task NotInArgumentList()
         {
             var markup = @"class C
@@ -330,8 +327,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")]
-        [Fact]
+        [Fact, WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")]
         public async Task NotInArgumentList2()
         {
             var markup = @"class C
@@ -346,8 +342,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(544289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544289")]
-        [Fact]
+        [Fact, WorkItem(544289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544289")]
         public async Task DerivedMembers()
         {
             var markup = @"using System;
@@ -383,8 +378,7 @@ namespace ConsoleApplication1
             await VerifyItemIsAbsentAsync(markup, "BasePrivate");
         }
 
-        [WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
-        [Fact]
+        [Fact, WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
         public async Task NotInCollectionInitializer()
         {
             var markup = @"using System.Collections.Generic;
@@ -421,8 +415,7 @@ class C
             await VerifyItemExistsAsync(markup, "goo");
         }
 
-        [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
-        [Fact]
+        [Fact, WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
         public async Task ReadOnlyPropertiesShouldNotBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -439,8 +432,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Count");
         }
 
-        [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
-        [Fact]
+        [Fact, WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
         public async Task IndexersShouldNotBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -477,8 +469,7 @@ class C
             await VerifyItemExistsAsync(markup, "bar");
         }
 
-        [WorkItem(544607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544607")]
-        [Fact]
+        [Fact, WorkItem(544607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544607")]
         public async Task DoNotIncludeStaticMember()
         {
             var markup = @"
@@ -498,8 +489,7 @@ class Bar
             await VerifyItemIsAbsentAsync(markup, "Gibberish");
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationAlways()
         {
             var markup = @"
@@ -527,8 +517,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationNever()
         {
             var markup = @"
@@ -555,8 +544,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationAdvanced()
         {
             var markup = @"
@@ -644,8 +632,7 @@ class D
         public void TestTrigger()
             => TestCommonIsTextualTriggerCharacter();
 
-        [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
-        [Fact]
+        [Fact, WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
         public async Task DoNotIncludeIndexedPropertyWithNonOptionalParameter()
         {
             var markup = @"C c01 = new C() {$$ }";
@@ -671,8 +658,7 @@ End Class";
                 referencedLanguage: LanguageNames.VisualBasic);
         }
 
-        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
-        [Fact]
+        [Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         public async Task CollectionInitializerPatternFromBaseType()
         {
             var markup = @"
@@ -714,8 +700,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
-        [Fact]
+        [Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         public async Task CollectionInitializerPatternFromBaseTypeInaccessible()
         {
             var markup = @"
@@ -758,8 +743,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
-        [Fact]
+        [Fact, WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
         public async Task CollectionInitializerForInterfaceType1()
         {
             var markup = @"
@@ -783,8 +767,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
-        [Fact]
+        [Fact, WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
         public async Task CollectionInitializerForInterfaceType2()
         {
             var markup = @"
@@ -810,8 +793,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
-        [Fact]
+        [Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         public async Task CollectionInitializerPatternFromBaseTypeAccessible()
         {
             var markup = @"
@@ -850,8 +832,7 @@ class Container
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
-        [Fact]
+        [Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         public async Task ObjectInitializerOfGenericTypeConstructedWithInaccessibleType()
         {
             var markup = @"
@@ -876,8 +857,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Value");
         }
 
-        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
-        [Fact]
+        [Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         public async Task ObjectInitializerOfGenericTypeСonstraint1()
         {
             var markup = @"
@@ -903,8 +883,7 @@ internal class Example
             await VerifyItemExistsAsync(markup, "B");
         }
 
-        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
-        [Fact]
+        [Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         public async Task ObjectInitializerOfGenericTypeСonstraint2()
         {
             var markup = @"
@@ -923,8 +902,7 @@ internal class Example
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
-        [Fact]
+        [Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         public async Task ObjectInitializerOfGenericTypeСonstraint3()
         {
             var markup = @"
@@ -944,8 +922,7 @@ internal class Example
             await VerifyItemExistsAsync(markup, "Method");
         }
 
-        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
-        [Fact]
+        [Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         public async Task ObjectInitializerOfGenericTypeСonstraint4()
         {
             var markup = @"
@@ -964,8 +941,7 @@ internal class Example
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
-        [Fact]
+        [Fact, WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
         public async Task ObjectInitializerEscapeKeywords()
         {
             var markup = @"
@@ -1016,8 +992,7 @@ class D
             await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: FeaturesResources.Required);
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers1()
         {
             var markup = @"
@@ -1043,8 +1018,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers2()
         {
             var markup = @"
@@ -1075,8 +1049,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers3()
         {
             var markup = @"
@@ -1121,8 +1094,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers4()
         {
             var markup = @"
@@ -1153,8 +1125,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers5()
         {
             var markup = @"
@@ -1184,8 +1155,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(36702, "https://github.com/dotnet/roslyn/issues/36702")]
-        [Fact]
+        [Fact, WorkItem(36702, "https://github.com/dotnet/roslyn/issues/36702")]
         public async Task NestedPropertyInitializers6()
         {
             var markup = @"

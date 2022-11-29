@@ -154,8 +154,7 @@ $$"));
       $$"));
         }
 
-        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
-        [Fact]
+        [Fact, WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestAfterArrow()
         {
             await VerifyKeywordAsync(
@@ -165,8 +164,7 @@ $$"));
 ");
         }
 
-        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
-        [Fact]
+        [Fact, WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestAfterQuestionQuestion()
         {
             await VerifyKeywordAsync(
@@ -178,8 +176,7 @@ $$"));
 ");
         }
 
-        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
-        [Fact]
+        [Fact, WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestInConditional1()
         {
             await VerifyKeywordAsync(
@@ -191,8 +188,7 @@ $$"));
 ");
         }
 
-        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
-        [Fact]
+        [Fact, WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestInConditional2()
         {
             await VerifyKeywordAsync(

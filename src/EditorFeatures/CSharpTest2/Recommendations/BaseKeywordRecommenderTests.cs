@@ -119,8 +119,7 @@ record C {
 @"$$"));
         }
 
-        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
-        [Fact]
+        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestNotInEnumMemberInitializer1()
         {
             await VerifyAbsenceAsync(
@@ -129,8 +128,7 @@ record C {
 }");
         }
 
-        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
-        [Fact]
+        [Fact, WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"
@@ -142,8 +140,7 @@ class C
         var c = new C { x = 2, y = 3, $$");
         }
 
-        [WorkItem(16335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16335")]
-        [Fact]
+        [Fact, WorkItem(16335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16335")]
         public async Task InExpressionBodyAccessor()
         {
             await VerifyKeywordAsync(@"

@@ -29,13 +29,11 @@ namespace goo
 }");
         }
 
-        [WorkItem(543628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543628")]
-        [Fact]
+        [Fact, WorkItem(543628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543628")]
         public async Task TestNotInEnumDeclaration()
             => await VerifyAbsenceAsync(@"enum Goo { $$ }");
 
-        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
-        [Fact]
+        [Fact, WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"

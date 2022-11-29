@@ -833,8 +833,7 @@ class C
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact]
-        [WorkItem(57570, "https://github.com/dotnet/roslyn/issues/57570")]
+        [Fact, WorkItem(57570, "https://github.com/dotnet/roslyn/issues/57570")]
         public async Task TestUseExpressionBodyTopLevelStatment()
         {
             await new VerifyCS.Test
@@ -866,8 +865,7 @@ int Bar(int x) => x;
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(57570, "https://github.com/dotnet/roslyn/issues/57570")]
+        [Fact, WorkItem(57570, "https://github.com/dotnet/roslyn/issues/57570")]
         public async Task TestUseBlockBodyTopLevelStatment()
         {
             await new VerifyCS.Test

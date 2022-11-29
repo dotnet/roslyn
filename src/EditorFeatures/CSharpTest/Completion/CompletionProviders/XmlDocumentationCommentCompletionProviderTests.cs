@@ -265,8 +265,7 @@ public class goo
 }", "returns");
         }
 
-        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact]
+        [Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
         public async Task ReadWritePropertyNoReturns()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -278,8 +277,7 @@ public class goo
 }", "returns");
         }
 
-        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact]
+        [Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
         public async Task ReadWritePropertyValue()
         {
             await VerifyItemExistsAsync(@"
@@ -291,8 +289,7 @@ public class goo
 }", "value");
         }
 
-        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact]
+        [Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
         public async Task ReadOnlyPropertyNoReturns()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -304,8 +301,7 @@ public class goo
 }", "returns");
         }
 
-        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact]
+        [Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
         public async Task ReadOnlyPropertyValue()
         {
             await VerifyItemExistsAsync(@"
@@ -317,8 +313,7 @@ public class goo
 }", "value");
         }
 
-        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact]
+        [Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
         public async Task WriteOnlyPropertyNoReturns()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -330,8 +325,7 @@ public class goo
 }", "returns");
         }
 
-        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact]
+        [Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
         public async Task WriteOnlyPropertyValue()
         {
             await VerifyItemExistsAsync(@"
@@ -370,8 +364,7 @@ public class goo<T>
 }", "param name=\"green\"");
         }
 
-        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
-        [Fact]
+        [Fact, WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
         public async Task MethodParamRefName()
         {
             var text = @"
@@ -417,8 +410,7 @@ public class goo<T>
 }", "typeparam name=\"T\"");
         }
 
-        [WorkItem(638802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638802")]
-        [Fact]
+        [Fact, WorkItem(638802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638802")]
         public async Task TagsAfterSameLineClosedTag()
         {
             var text = @"/// <summary>
@@ -430,8 +422,7 @@ public class goo<T>
             await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "inheritdoc", "list", "para", "seealso", "see");
         }
 
-        [WorkItem(734825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734825")]
-        [Fact]
+        [Fact, WorkItem(734825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734825")]
         public async Task EnumMember()
         {
             var text = @"public enum z
@@ -447,8 +438,7 @@ public class goo<T>
             await VerifyItemsExistAsync(text);
         }
 
-        [WorkItem(954679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954679")]
-        [Fact]
+        [Fact, WorkItem(954679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954679")]
         public async Task CompletionList()
         {
             await VerifyItemExistsAsync(@"
@@ -458,9 +448,8 @@ public class goo
 }", "completionlist");
         }
 
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        [Fact]
         public async Task ParamRefNames()
         {
             // Local functions do not support documentation comments
@@ -474,9 +463,8 @@ static void Main(string[] args)
 ", "args", sourceCodeKind: SourceCodeKind.Regular);
         }
 
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        [Fact]
         public async Task ParamRefNames_Interactive()
         {
             await VerifyItemExistsAsync(@"
@@ -489,8 +477,7 @@ static void Main(string[] args)
 ", "args", sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ParamNamesInEmptyAttribute()
         {
             // Local functions do not support documentation comments
@@ -502,8 +489,7 @@ static void Goo(string str)
 ", "str", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ParamNamesInEmptyAttribute_Interactive()
         {
             await VerifyItemExistsAsync(@"
@@ -514,8 +500,7 @@ static void Goo(string str)
 ", "str", sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact]
-        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        [Fact, WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
         public async Task DelegateParams()
         {
             await VerifyItemExistsAsync(@"
@@ -524,8 +509,7 @@ delegate void D(object o);
 ", "param name=\"o\"");
         }
 
-        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
-        [Fact]
+        [Fact, WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
         public async Task TypeParamRefNamesInEmptyAttribute()
         {
             var text = @"
@@ -543,8 +527,7 @@ public class Outer<TOuter>
             await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
         }
 
-        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
-        [Fact]
+        [Fact, WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
         public async Task TypeParamRefNamesPartiallyTyped()
         {
             var text = @"
@@ -615,8 +598,7 @@ public class Outer<TOuter>
             await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
         }
 
-        [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
-        [Fact]
+        [Fact, WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
         public async Task PartialTagCompletion()
         {
             await VerifyItemsExistAsync(@"
@@ -627,8 +609,7 @@ public class goo
 }", "!--", "![CDATA[", "completionlist", "example", "exception", "include", "inheritdoc", "permission", "remarks", "see", "seealso", "summary");
         }
 
-        [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
-        [Fact]
+        [Fact, WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
         public async Task PartialTagCompletionNestedTags()
         {
             await VerifyItemsExistAsync(@"
@@ -641,8 +622,7 @@ public class goo
 }", "!--", "![CDATA[", "c", "code", "inheritdoc", "list", "para", "see", "seealso");
         }
 
-        [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
-        [Fact]
+        [Fact, WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
         public async Task TypeParamAtTopLevelOnly()
         {
             await VerifyItemsAbsentAsync(@"
@@ -654,8 +634,7 @@ public class Goo<T>
 }", "typeparam name=\"T\"");
         }
 
-        [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
-        [Fact]
+        [Fact, WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
         public async Task ParamAtTopLevelOnly()
         {
             await VerifyItemsAbsentAsync(@"
@@ -697,9 +676,8 @@ class C
 }", "bullet", "number", "table");
         }
 
+        [Fact, WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
-        [WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
-        [Fact]
         public async Task SeeAttributeNames()
         {
             await VerifyItemsExistAsync(@"
@@ -714,8 +692,7 @@ class C
 }", "cref", "langword", "href");
         }
 
-        [WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
-        [Fact]
+        [Fact, WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
         public async Task SeeAlsoAttributeNames()
         {
             await VerifyItemsExistAsync(@"
@@ -730,8 +707,7 @@ class C
 }", "cref", "href");
         }
 
-        [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
-        [Fact]
+        [Fact, WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
         public async Task LangwordCompletionInPlainText()
         {
             await VerifyItemsExistAsync(@"
@@ -746,8 +722,7 @@ class C
 }", "null", "sealed", "true", "false", "await");
         }
 
-        [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
-        [Fact]
+        [Fact, WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
         public async Task LangwordCompletionAfterAngleBracket1()
         {
             await VerifyItemsAbsentAsync(@"
@@ -762,8 +737,7 @@ class C
 }", "null", "sealed", "true", "false", "await");
         }
 
-        [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
-        [Fact]
+        [Fact, WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
         public async Task LangwordCompletionAfterAngleBracket2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -778,8 +752,7 @@ class C
 }", "null", "sealed", "true", "false", "await");
         }
 
-        [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
-        [Fact]
+        [Fact, WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
         public async Task LangwordCompletionAfterAngleBracket3()
         {
             await VerifyItemsExistAsync(@"
@@ -794,8 +767,7 @@ class C
 }", "null", "sealed", "true", "false", "await");
         }
 
-        [WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")]
-        [Fact]
+        [Fact, WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")]
         public async Task SeeLangwordAttributeValue()
         {
             await VerifyItemsExistAsync(@"
@@ -838,8 +810,7 @@ class C
 }", "cref", "path");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameAfterTagNameInIncompleteTag()
         {
             var text = @"
@@ -853,8 +824,7 @@ class C
             await VerifyItemExistsAsync(text, "cref", usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameAfterTagNameInElementStartTag()
         {
             var text = @"
@@ -867,8 +837,7 @@ class C
             await VerifyItemExistsAsync(text, "cref");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameAfterTagNameInEmptyElement()
         {
             var text = @"
@@ -881,8 +850,7 @@ class C
             await VerifyItemExistsAsync(text, "cref");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameAfterTagNamePartiallyTyped()
         {
             var text = @"
@@ -895,8 +863,7 @@ class C
             await VerifyItemExistsAsync(text, "cref");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameAfterSpecialCrefAttribute()
         {
             var text = @"
@@ -911,8 +878,7 @@ class C
             await VerifyItemExistsAsync(text, "type");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameAfterSpecialNameAttribute()
         {
             var text = @"
@@ -927,8 +893,7 @@ class C
             await VerifyItemExistsAsync(text, "type");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameAfterTextAttribute()
         {
             var text = @"
@@ -943,8 +908,7 @@ class C
             await VerifyItemExistsAsync(text, "type");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameInWrongTagTypeEmptyElement()
         {
             var text = @"
@@ -959,8 +923,7 @@ class C
             await VerifyItemExistsAsync(text, "type");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeNameInWrongTagTypeElementStartTag()
         {
             var text = @"
@@ -975,8 +938,7 @@ class C
             await VerifyItemExistsAsync(text, "langword");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact]
+        [Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         public async Task AttributeValueOnQuote()
         {
             var text = @"
@@ -992,8 +954,7 @@ class C
             await VerifyItemExistsAsync(text, "await", usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")]
-        [Fact]
+        [Fact, WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")]
         public async Task TermAndDescriptionInsideItem()
         {
             var text = @"
@@ -1014,8 +975,7 @@ class C
             await VerifyItemExistsAsync(text, "description");
         }
 
-        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
-        [Fact]
+        [Fact, WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
         public async Task RecordParam()
         {
             await VerifyItemsExistAsync(@"
@@ -1024,8 +984,7 @@ public record Goo<T>(string MyParameter);
 ", "param name=\"MyParameter\"", "typeparam name=\"T\"");
         }
 
-        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
-        [Fact]
+        [Fact, WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
         public async Task RecordParamRef()
         {
             await VerifyItemsExistAsync(@"

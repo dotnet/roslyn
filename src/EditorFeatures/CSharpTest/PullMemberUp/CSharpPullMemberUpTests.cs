@@ -616,8 +616,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullPropertyToInterfaceWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -664,8 +663,7 @@ public class Derived : IBase
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToInterfaceWithoutAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -720,8 +718,7 @@ public class Derived : IBase
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodWithNewReturnTypeToInterfaceWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -774,8 +771,7 @@ public class Derived : IBase
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodWithNewParamTypeToInterfaceWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -830,8 +826,7 @@ public class Derived : IBase
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullEventToInterfaceWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -898,8 +893,7 @@ public class Derived : IBase
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullPropertyToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -944,8 +938,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullPropertyToClassWithAddUsingsViaQuickAction2()
         {
             var testText = @"
@@ -988,8 +981,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullPropertyToClassWithoutDuplicatingUsingsViaQuickAction()
         {
             var testText = @"
@@ -1037,8 +1029,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullPropertyWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -1099,8 +1090,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodWithNewNonDeclaredBodyTypeToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -1151,8 +1141,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithOverlappingUsingsViaQuickAction()
         {
             var testText = @"
@@ -1223,8 +1212,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithUnnecessaryFirstUsingViaQuickAction()
         {
             var testText = @"
@@ -1291,8 +1279,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithUnusedBaseUsingsViaQuickAction()
         {
             var testText = @"
@@ -1351,8 +1338,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithRetainCommentsViaQuickAction()
         {
             var testText = @"
@@ -1406,8 +1392,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithRetainPreImportCommentsViaQuickAction()
         {
             var testText = @"
@@ -1458,8 +1443,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithRetainPostImportCommentsViaQuickAction()
         {
             var testText = @"
@@ -1510,8 +1494,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithLambdaUsingsViaQuickAction()
         {
             var testText = @"
@@ -1569,8 +1552,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithUnusedUsingsViaQuickAction()
         {
             var testText = @"
@@ -1629,8 +1611,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassKeepSystemFirstViaQuickAction()
         {
             var testText = @"
@@ -1707,8 +1688,7 @@ namespace A_TestNs2
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassKeepSystemFirstViaQuickAction2()
         {
             var testText = @"
@@ -1784,8 +1764,7 @@ namespace A_TestNs2
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithExtensionViaQuickAction()
         {
             var testText = @"
@@ -1874,8 +1853,7 @@ namespace TestNs2
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithExtensionViaQuickAction2()
         {
             var testText = @"
@@ -1989,8 +1967,7 @@ namespace TestNs4
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithAliasUsingsViaQuickAction()
         {
             var testText = @"
@@ -2050,8 +2027,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullPropertyToClassWithBaseAliasUsingsViaQuickAction()
         {
             var testText = @"
@@ -2108,8 +2084,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithMultipleNamespacedUsingsViaQuickAction()
         {
             var testText = @"
@@ -2164,8 +2139,7 @@ namespace TestNs2
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithNestedNamespacedUsingsViaQuickAction()
         {
             var testText = @"
@@ -2249,8 +2223,7 @@ namespace TestNs2
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithNewNamespaceUsingViaQuickAction()
         {
             var testText = @"
@@ -2311,8 +2284,7 @@ namespace X.Y
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithFileNamespaceUsingViaQuickAction()
         {
             var testText = @"
@@ -2367,8 +2339,7 @@ class Other
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithUnusedNamespaceUsingViaQuickAction()
         {
             var testText = @"
@@ -2428,8 +2399,7 @@ namespace X.Y
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithMultipleNamespacesAndCommentsViaQuickAction()
         {
             var testText = @"
@@ -2489,8 +2459,7 @@ namespace TestNs2
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithMultipleNamespacedUsingsAndCommentsViaQuickAction()
         {
             var testText = @"
@@ -2553,8 +2522,7 @@ namespace TestNs2
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithNamespacedUsingsViaQuickAction()
         {
             var testText = @"
@@ -2623,8 +2591,7 @@ namespace ClassLibrary1
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithDuplicateNamespacedUsingsViaQuickAction()
         {
             var testText = @"
@@ -2695,8 +2662,7 @@ namespace ClassLibrary1
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodWithNewReturnTypeToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -2747,8 +2713,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodWithNewParamTypeToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -2801,8 +2766,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -2857,8 +2821,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullEventToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -2923,8 +2886,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullFieldToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -2969,8 +2931,7 @@ public class Derived : Base
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        [Fact, WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullFieldToClassNoConstructorWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -3852,8 +3813,7 @@ public class TestClass : VBInterface
             await TestQuickActionNotProvidedAsync(input);
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestPullMethodWithToClassWithAddUsingsInsideNamespaceViaQuickAction()
         {
             var testText = @"
@@ -3920,8 +3880,7 @@ namespace N
                 options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestPullMethodWithToClassWithAddUsingsSystemUsingsLastViaQuickAction()
         {
             var testText = @"
@@ -4013,8 +3972,7 @@ namespace N2
                 });
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullMethodToClassWithDirective()
         {
             var text = @"
@@ -4043,8 +4001,7 @@ public class Bar : BaseClass
             return TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullMethodToClassBeforeDirective()
         {
             var text = @"
@@ -4074,8 +4031,7 @@ public class Bar : BaseClass
             return TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullMethodToClassBeforeDirective2()
         {
             var text = @"
@@ -4108,8 +4064,7 @@ public class Bar : BaseClass
             return TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullFieldToClassBeforeDirective1()
         {
             var text = @"
@@ -4139,8 +4094,7 @@ public class Bar : BaseClass
             return TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullFieldToClassBeforeDirective2()
         {
             var text = @"
@@ -4171,8 +4125,7 @@ public class Bar : BaseClass
             return TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullFieldToClassBeforeDirective()
         {
             var text = @"
@@ -4201,8 +4154,7 @@ public class Bar : BaseClass
             return TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullEventToClassBeforeDirective()
         {
             var text = @"
@@ -4233,8 +4185,7 @@ public class Bar : BaseClass
             return TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullPropertyToClassBeforeDirective()
         {
             var text = @"
@@ -5077,8 +5028,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [WorkItem(34268, "https://github.com/dotnet/roslyn/issues/34268")]
-        [Fact]
+        [Fact, WorkItem(34268, "https://github.com/dotnet/roslyn/issues/34268")]
         public async Task TestPullPropertyToAbstractClassViaDialogWithMakeAbstractOption()
         {
             var testText = @"
@@ -5194,8 +5144,7 @@ namespace PushUpTest
         #endregion Dialog
 
         #region Selections and caret position
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestArgsIsPartOfHeader()
         {
             var testText = @"
@@ -5242,8 +5191,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringCaretBeforeAttributes()
         {
             var testText = @"
@@ -5290,8 +5238,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMissingRefactoringCaretBetweenAttributes()
         {
             var testText = @"
@@ -5317,8 +5264,7 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(testText);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringSelectionWithAttributes1()
         {
             var testText = @"
@@ -5361,8 +5307,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringSelectionWithAttributes2()
         {
             var testText = @"
@@ -5405,8 +5350,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringSelectionWithAttributes3()
         {
             var testText = @"
@@ -5450,8 +5394,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMissingRefactoringInAttributeList()
         {
             var testText = @"
@@ -5475,8 +5418,7 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(testText);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMissingRefactoringSelectionAttributeList()
         {
             var testText = @"
@@ -5502,8 +5444,7 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(testText);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMissingRefactoringCaretInAttributeList()
         {
             var testText = @"
@@ -5529,8 +5470,7 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(testText);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMissingRefactoringCaretBetweenAttributeLists()
         {
             var testText = @"
@@ -5556,8 +5496,7 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(testText);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMissingRefactoringSelectionAttributeList2()
         {
             var testText = @"
@@ -5583,8 +5522,7 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(testText);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMissingRefactoringSelectAttributeList()
         {
             var testText = @"
@@ -5608,8 +5546,7 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(testText);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringCaretLocAfterAttributes1()
         {
             var testText = @"
@@ -5652,8 +5589,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringCaretLocAfterAttributes2()
         {
             var testText = @"
@@ -5704,8 +5640,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringCaretLoc1()
         {
             var testText = @"
@@ -5740,8 +5675,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringSelection()
         {
             var testText = @"
@@ -5776,8 +5710,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringSelectionComments()
         {
             var testText = @"
@@ -5814,8 +5747,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringSelectionComments2()
         {
             var testText = @"
@@ -5856,8 +5788,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringSelectionComments3()
         {
             var testText = @"

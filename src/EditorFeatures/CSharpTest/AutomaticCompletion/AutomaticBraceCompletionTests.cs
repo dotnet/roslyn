@@ -49,8 +49,7 @@ class C
             CheckText(session.Session, expected);
         }
 
-        [WpfFact]
-        [WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
+        [WpfFact, WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
         public void ImplicitObjectCreationExpressionBracesSameLine()
         {
             var code = @"
@@ -429,8 +428,7 @@ $$
             CheckReturn(session.Session, 4);
         }
 
-        [WpfFact]
-        [WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [WpfFact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
         public void WithExpression()
         {
             var code = @"
