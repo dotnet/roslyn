@@ -10,6 +10,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -217,7 +219,10 @@ internal abstract class AbstractFullyQualifyService<TSimpleNameSyntax> : IFullyQ
     {
         var newRoot = await ReplaceNodeAsync(simpleName, containerName, originalSymbol.IsType, cancellationToken).ConfigureAwait(false);
         var newDocument = document.WithSyntaxRoot(newRoot);
-        return await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+        var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+            newDocument, CodeCleanupOptions.GetDefault(document.Project.Services), cancellationToken).ConfigureAwait(false);
+
+        return await cleanedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
     }
 
     private static bool IsValidNamedTypeSearchResult(
