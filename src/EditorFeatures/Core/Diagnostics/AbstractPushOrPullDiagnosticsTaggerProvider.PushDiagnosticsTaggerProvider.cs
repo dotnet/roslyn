@@ -58,10 +58,6 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
-        private bool IsEnabled => _callback.IsEnabled;
-        private bool IncludeDiagnostic(DiagnosticData data) => _callback.IncludeDiagnostic(data);
-        private bool SupportsDignosticMode(DiagnosticMode mode) => _callback.SupportsDiagnosticMode(mode);
-
         private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
         {
             if (e.Solution == null || e.DocumentId == null)
@@ -140,11 +136,11 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         private async Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
         {
-            if (!this.IsEnabled)
+            if (!_callback.IsEnabled)
                 return;
 
             var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (!SupportsDignosticMode(diagnosticMode))
+            if (!_callback.SupportsDiagnosticMode(diagnosticMode))
                 return;
 
             var document = spanToTag.Document;
@@ -220,7 +216,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
                 foreach (var diagnosticData in diagnostics)
                 {
-                    if (this.IncludeDiagnostic(diagnosticData))
+                    if (_callback.IncludeDiagnostic(diagnosticData))
                     {
                         // We're going to be retrieving the diagnostics against the last time the engine
                         // computed them against this document *id*.  That might have been a different
@@ -239,7 +235,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
                             {
-                                var tagSpan = this.CreateTagSpan(workspace, isLiveUpdate, diagnosticSpan, diagnosticData);
+                                var tagSpan = _callback.CreateTagSpan(workspace, isLiveUpdate, diagnosticSpan, diagnosticData);
                                 if (tagSpan != null)
                                 {
                                     context.AddTag(tagSpan);
