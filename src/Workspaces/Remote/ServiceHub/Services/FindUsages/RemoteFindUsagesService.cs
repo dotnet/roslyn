@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-
     internal sealed class RemoteFindUsagesService : BrokeredServiceBase, IRemoteFindUsagesService
     {
         internal sealed class Factory : FactoryBase<IRemoteFindUsagesService, IRemoteFindUsagesService.ICallback>
