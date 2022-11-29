@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -78,7 +79,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         protected abstract bool CanFullyQualify(SyntaxNode node, [NotNullWhen(true)] out TSimpleNameSyntax? simpleName);
         protected abstract Task<SyntaxNode> ReplaceNodeAsync(TSimpleNameSyntax simpleName, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken);
 
-        public async Task<FullyQualifyFixData?> GetFixDataAsync(Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
+        public async Task<FullyQualifyFixData?> GetFixDataAsync(
+            Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
@@ -94,10 +96,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 return result.Value;
             }
 
-            return await GetFixDataInCurrentProcessAsync(document, span, cancellationToken).ConfigureAwait(false);
+            return await GetFixDataInCurrentProcessAsync(document, span, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<FullyQualifyFixData?> GetFixDataInCurrentProcessAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<FullyQualifyFixData?> GetFixDataInCurrentProcessAsync(
+            Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
         {
             var project = document.Project;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -125,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 // We found some matches for the name alone.  Do some more checks to see if those matches are applicable in this location.
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, matchingTypes.Concat(matchingAttributeTypes));
+                var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, hideAdvancedMembers, matchingTypes.Concat(matchingAttributeTypes));
                 var matchingNamespaceSearchResults = GetNamespaceSearchResults(semanticModel, simpleName, matchingNamespaces);
                 if (matchingTypeSearchResults.IsEmpty && matchingNamespaceSearchResults.IsEmpty)
                     return null;
@@ -136,22 +139,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 var proposedContainers = matchingTypeContainers
                     .Concat(matchingNamespaceContainers)
                     .Distinct()
-                    .Take(MaxResults);
+                    .Take(MaxResults)
+                    .ToImmutableArray();
 
-                var codeActions = CreateActions(document, semanticModel, simpleName, name, proposedContainers).ToImmutableArray();
-                if (codeActions.Length > 1)
-                {
-                    // Wrap the spell checking actions into a single top level suggestion
-                    // so as to not clutter the list.
-                    context.RegisterCodeFix(CodeAction.Create(
-                        string.Format(FeaturesResources.Fully_qualify_0, name),
-                        codeActions,
-                        isInlinable: true), context.Diagnostics);
-                }
-                else
-                {
-                    context.RegisterFixes(codeActions, context.Diagnostics);
-                }
+                using var _1 = ArrayBuilder<FullyQualifyIndividualFixData>.GetInstance(out var fixes);
+                await AddFixesAsync(document, semanticModel, simpleName, name, proposedContainers, fixes, cancellationToken).ConfigureAwait(false);
+
+                if (fixes.Count == 0)
+                    return null;
+
+                return new FullyQualifyFixData(name, fixes.ToImmutable());
             }
 
             async Task<ImmutableArray<ISymbol>> FindAsync(string name, bool ignoreCase, SymbolFilter filter)
@@ -163,11 +160,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             ImmutableArray<SymbolResult> GetTypeSearchResults(
                 SemanticModel semanticModel,
                 TSimpleNameSyntax simpleName,
+                bool hideAdvancedMembers,
                 ImmutableArray<ISymbol> matchingTypes)
             {
                 var editorBrowserInfo = new EditorBrowsableInfo(semanticModel.Compilation);
 
-                var hideAdvancedMembers = context.Options.GetOptions(document.Project.Services).HideAdvancedMembers;
                 var looksGeneric = syntaxFacts.LooksGeneric(simpleName);
 
                 var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
@@ -224,12 +221,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
         }
 
-        private IEnumerable<CodeAction> CreateActions(
+        private async Task AddFixesAsync(
             Document document,
             SemanticModel semanticModel,
             TSimpleNameSyntax simpleName,
             string name,
-            IEnumerable<SymbolResult> proposedContainers)
+            ImmutableArray<SymbolResult> proposedContainers,
+            ArrayBuilder<FullyQualifyIndividualFixData> fixes,
+            CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
@@ -253,19 +252,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 }
 
                 var title = $"{containerName}.{memberName}";
-                var codeAction = CodeAction.Create(
-                    title,
-                    cancellationToken => ProcessNodeAsync(document, simpleName, containerName, symbolResult.OriginalSymbol, cancellationToken),
-                    title);
-
-                yield return codeAction;
+                var textChanges = await ProcessNodeAsync(document, simpleName, containerName, symbolResult.OriginalSymbol, cancellationToken).ConfigureAwait(false);
+                fixes.Add(new FullyQualifyIndividualFixData(title, textChanges.ToImmutableArray()));
             }
         }
 
-        private async Task<Document> ProcessNodeAsync(Document document, TSimpleNameSyntax simpleName, string containerName, INamespaceOrTypeSymbol originalSymbol, CancellationToken cancellationToken)
+        private async Task<IEnumerable<TextChange>> ProcessNodeAsync(Document document, TSimpleNameSyntax simpleName, string containerName, INamespaceOrTypeSymbol originalSymbol, CancellationToken cancellationToken)
         {
             var newRoot = await ReplaceNodeAsync(simpleName, containerName, originalSymbol.IsType, cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(newRoot);
+            var newDocument = document.WithSyntaxRoot(newRoot);
+            return await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         private static bool IsValidNamedTypeSearchResult(
