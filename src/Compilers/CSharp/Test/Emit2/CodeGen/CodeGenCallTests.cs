@@ -17541,7 +17541,7 @@ Position set for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitIndexIndexer_Class()
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class()
         {
             var source = @"
 using System;
@@ -17684,7 +17684,7 @@ Position get for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitIndexIndexer_Struct()
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct()
         {
             var source = @"
 using System;
@@ -17784,7 +17784,7 @@ Position get for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitIndexIndexer_Class_Ref()
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Ref()
         {
             var source = @"
 using System;
@@ -17928,7 +17928,7 @@ Position get for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitIndexIndexer_Struct_Ref()
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Ref()
         {
             var source = @"
 using System;
@@ -18028,7 +18028,7 @@ Position get for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitIndexIndexer_Class_Async_01()
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Async_01()
         {
             var source = @"
 using System;
@@ -18325,7 +18325,7 @@ Position get for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitIndexIndexer_Struct_Async_01()
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Async_01()
         {
             var source = @"
 using System;

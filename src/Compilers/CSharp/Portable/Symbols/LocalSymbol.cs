@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        /// <summary>
+        /// This property is used to avoid creating unnecessary
+        /// copies of reference type receivers for
+        /// constrained calls.
+        /// </summary>
         internal abstract bool IsKnownToReferToTempIfReferenceType
         {
             get;

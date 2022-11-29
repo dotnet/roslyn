@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsKnownToReferToTempIfReferenceType
+        internal sealed override bool IsKnownToReferToTempIfReferenceType
         {
             get { return false; }
         }

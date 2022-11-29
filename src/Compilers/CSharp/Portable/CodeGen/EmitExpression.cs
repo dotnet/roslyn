@@ -1810,15 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         internal static bool IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray<BoundExpression> arguments)
         {
-            for (int a = 0; a < arguments.Length; ++a)
-            {
-                if (!isSafeToDereferenceReceiverRefAfterEvaluatingArgument(arguments[a]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return arguments.All(isSafeToDereferenceReceiverRefAfterEvaluatingArgument);
 
             static bool isSafeToDereferenceReceiverRefAfterEvaluatingArgument(BoundExpression expression)
             {

@@ -378,20 +378,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private enum ReceiverCaptureMode
         {
             /// <summary>
-            /// No special cupture of the receiver, unless arguments need to refere to it.
+            /// No special capture of the receiver, unless arguments need to refer to it.
             /// For example, in case of a string interpolation handler.
             /// </summary>
             Default = 0,
 
             /// <summary>
-            /// Used for a regular indexer coumpond assignment rewrite.
+            /// Used for a regular indexer compound assignment rewrite.
             /// Everything is going to be in a single setter call with a getter call inside its value argument.
-            /// Only receiver and the indexes can be evaluated prior to evauating the setter call. 
+            /// Only receiver and the indexes can be evaluated prior to evaluating the setter call. 
             /// </summary>
             CompoundAssignment,
 
             /// <summary>
-            /// Used for situations when additional arbitrary sideeffect are possibly involved.
+            /// Used for situations when additional arbitrary side-effects are possibly involved.
             /// Think about deconstruction, etc.
             /// </summary>
             UseTwiceComplex
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> tempsOpt)
+        private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(assignmentToTemp.IsRef);
 
@@ -685,13 +685,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundLocal cache = _factory.Local(_factory.SynthesizedLocal(receiverType));
 
-            tempsOpt.Add(cache.LocalSymbol);
+            temps.Add(cache.LocalSymbol);
 
             if (!receiverType.IsReferenceType)
             {
                 // Store receiver ref to a different ref local - intermediate ref
                 var intermediateRef = _factory.Local(_factory.SynthesizedLocal(receiverType, refKind: RefKind.Ref));
-                tempsOpt.Add(intermediateRef.LocalSymbol);
+                temps.Add(intermediateRef.LocalSymbol);
                 extraRefInitialization = assignmentToTemp.Update(intermediateRef, assignmentToTemp.Right, assignmentToTemp.IsRef, assignmentToTemp.Type);
 
                 // If condition `(object)default(T) != null` is true at execution time,
