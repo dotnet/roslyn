@@ -732,7 +732,7 @@ class C
 using System;
 class C
 {
-    int Goo { {|IDE0027:get {|CS8059:=> {|CS8059:throw|} new NotImplementedException()|};|} }
+    int Goo { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
 }";
             var fixedCode = @"
 using System;
@@ -756,8 +756,8 @@ class C
 using System;
 class C
 {
-    int Goo { {|IDE0027:get {|CS8059:=> {|CS8059:throw|} new NotImplementedException()|};|} }
-    int Bar { {|IDE0027:get {|CS8059:=> {|CS8059:throw|} new NotImplementedException()|};|} }
+    int Goo { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
+    int Bar { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
 }";
             var fixedCode = @"
 using System;

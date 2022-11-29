@@ -170,5 +170,29 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // So how could we then not find the string in the table?
             throw new InvalidOperationException();
         }
+
+        private void LoadExistingStringIds(SqlConnection connection)
+        {
+            try
+            {
+                using var resettableStatement = connection.GetResettableStatement(_select_star_from_string_table);
+                var statement = resettableStatement.Statement;
+
+                Result stepResult;
+                while ((stepResult = statement.Step()) == Result.ROW)
+                {
+                    var id = statement.GetInt32At(columnIndex: 0);
+                    var value = statement.GetStringAt(columnIndex: 1);
+                    _stringToIdMap.TryAdd(value, id);
+                }
+            }
+            catch (Exception ex)
+            {
+                // If we simply failed to even talk to the DB then we have to bail out.  There's
+                // nothing we can accomplish at this point.
+                StorageDatabaseLogger.LogException(ex);
+                return;
+            }
+        }
     }
 }

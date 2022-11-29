@@ -3466,9 +3466,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
         /// </summary>
-        internal virtual BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
-                                                      BindingDiagnosticBag diagnostics)
+        internal virtual BoundBlock BindExpressionBodyAsBlock(
+            ArrowExpressionClauseSyntax expressionBody,
+            BindingDiagnosticBag diagnostics)
         {
+            var messageId = expressionBody.Parent switch
+            {
+                ConstructorDeclarationSyntax or DestructorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedDeOrConstructor,
+                AccessorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedAccessor,
+                BaseMethodDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedMethod,
+                IndexerDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedIndexer,
+                PropertyDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedProperty,
+                // No need to check if expression bodies are allowed if we have a local function. Local functions
+                // themselves are checked for availability, and if they are available then expression bodies must 
+                // also be available.
+                LocalFunctionStatementSyntax => (MessageID?)null,
+                // null in speculative scenarios.
+                null => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(expressionBody.Parent.Kind()),
+            };
+
+            messageId?.CheckFeatureAvailability(diagnostics, expressionBody, expressionBody.ArrowToken.GetLocation());
+
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
 
@@ -3560,10 +3579,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, BindingDiagnosticBag diagnostics)
         {
             ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
+            var first = true;
             foreach (var statement in compilationUnit.Members)
             {
                 if (statement is GlobalStatementSyntax topLevelStatement)
                 {
+                    if (first)
+                    {
+                        first = false;
+                        MessageID.IDS_TopLevelStatements.CheckFeatureAvailability(diagnostics, topLevelStatement);
+                    }
+
                     var boundStatement = BindStatement(topLevelStatement.Statement, diagnostics);
                     boundStatements.Add(boundStatement);
                 }

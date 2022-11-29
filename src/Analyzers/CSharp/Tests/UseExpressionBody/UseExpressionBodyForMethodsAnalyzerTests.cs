@@ -534,7 +534,7 @@ class Program
 using System;
 class C
 {
-    {|IDE0022:void M() {|CS8026:=> {|CS8026:throw|} new NotImplementedException()|};|}
+    {|IDE0022:void M() {|CS8026:=>|} {|CS8026:throw|} new NotImplementedException();|}
 }";
             var fixedCode = @"
 using System;

@@ -60,14 +60,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : ImmutableArray.Create(new DiagnosticBucket(this, workspace, GetProjectId(workspace), GetDocumentId(workspace)));
         }
 
-        internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location)
+        internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location, DiagnosticKind diagnosticKind)
         {
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             _diagnosticData = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
                 location: location),
                 document);
 
-            analyzerService.Diagnostics = ImmutableArray.Create(_diagnosticData);
+            analyzerService.AddDiagnostic(_diagnosticData, diagnosticKind);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 this, workspace, workspace.CurrentSolution,
                 GetProjectId(workspace), GetDocumentId(workspace),
