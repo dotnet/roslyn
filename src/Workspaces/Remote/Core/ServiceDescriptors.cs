@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteConvertTupleToStructCodeRefactoringService), typeof(IRemoteConvertTupleToStructCodeRefactoringService.ICallback)),
             (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
+            (typeof(IRemoteFullyQualifyService), null),
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
             (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteMissingImportDiscoveryService), typeof(IRemoteMissingImportDiscoveryService.ICallback)),
