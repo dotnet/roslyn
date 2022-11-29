@@ -45,9 +45,17 @@ internal static class TextBufferOptionProviders
     public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool explicitFormat)
         => GetSyntaxFormattingOptionsImpl(textBuffer, optionsProvider.Factory.GetOptions(textBuffer), optionsProvider.IndentationManager, optionsProvider.GlobalOptions, languageServices, explicitFormat);
 
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, AnalyzerConfigOptions configOptions, EditorOptionsService optionsProvider, LanguageServices languageServices, bool explicitFormat)
+        => GetSyntaxFormattingOptionsImpl(textBuffer, configOptions, optionsProvider.Factory.GetOptions(textBuffer), optionsProvider.IndentationManager, optionsProvider.GlobalOptions, languageServices, explicitFormat);
+
     private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, LanguageServices languageServices, bool explicitFormat)
     {
         var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
+        return GetSyntaxFormattingOptionsImpl(textBuffer, configOptions, editorOptions, indentationManager, globalOptions, languageServices, explicitFormat);
+    }
+
+    private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, AnalyzerConfigOptions configOptions, IEditorOptions editorOptions, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, LanguageServices languageServices, bool explicitFormat)
+    {
         var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices);
         var options = configOptions.GetSyntaxFormattingOptions(fallbackOptions, languageServices);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, indentationManager, explicitFormat);

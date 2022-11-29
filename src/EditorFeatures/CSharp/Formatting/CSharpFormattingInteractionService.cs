@@ -9,7 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
@@ -85,6 +87,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return _supportedChars.Contains(ch);
         }
 
+        private SyntaxFormattingOptions GetSyntaxFormattingOptions(
+            Document document,
+            ITextBuffer textBuffer,
+            LanguageServices languageServices,
+            CancellationToken cancellationToken)
+        {
+            SyntaxFormattingOptions options;
+            var legacyDocumentOptionsProvider = document.Project.Solution.Workspace.Services.GetService<ILegacyDocumentOptionsProvider>();
+            if (legacyDocumentOptionsProvider != null)
+            {
+                var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+                var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
+
+                options = textBuffer.GetSyntaxFormattingOptions(configOptions, _editorOptionsService, languageServices, explicitFormat: true);
+            }
+            else
+            {
+                options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, languageServices, explicitFormat: true);
+            }
+
+            return options;
+        }
+
         public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
             Document document,
             ITextBuffer textBuffer,
@@ -92,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+
+            var options = GetSyntaxFormattingOptions(document, textBuffer, parsedDocument.LanguageServices, cancellationToken);
 
             var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
@@ -103,7 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+
+            var options = GetSyntaxFormattingOptions(document, textBuffer, parsedDocument.LanguageServices, cancellationToken);
+
             var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
             return Task.FromResult(service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken));
         }
