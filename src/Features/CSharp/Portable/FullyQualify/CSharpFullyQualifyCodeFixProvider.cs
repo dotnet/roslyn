@@ -51,10 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId); }
-        }
+        public override ImmutableArray<string> FixableDiagnosticIds =
+            ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId);
 
         protected override bool CanFullyQualify(Diagnostic diagnostic, SyntaxNode node, [NotNullWhen(true)] out SimpleNameSyntax? simpleName)
         {
@@ -71,18 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             return true;
         }
 
-        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> ReplaceNodeAsync(SimpleNameSyntax simpleName, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken)
         {
-            var simpleName = (SimpleNameSyntax)node;
-
             var leadingTrivia = simpleName.GetLeadingTrivia();
             var newName = simpleName.WithLeadingTrivia(SyntaxTriviaList.Empty);
 
-            var qualifiedName = SyntaxFactory.QualifiedName(
-                SyntaxFactory.ParseName(containerName), newName);
-
-            qualifiedName = qualifiedName.WithLeadingTrivia(leadingTrivia);
-            qualifiedName = qualifiedName.WithAdditionalAnnotations(Formatter.Annotation);
+            var qualifiedName = SyntaxFactory.QualifiedName(SyntaxFactory.ParseName(containerName), newName)
+                .WithLeadingTrivia(leadingTrivia)
+                .WithAdditionalAnnotations(Formatter.Annotation);
 
             var syntaxTree = simpleName.SyntaxTree;
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -92,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             // CS0138 that would result from the former.  Don't do this for using aliases though as `static` and using
             // aliases cannot be combined.
             if (resultingSymbolIsType &&
-                node.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword.RawKind: 0 } usingDirective)
+                simpleName.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword.RawKind: 0 } usingDirective)
             {
                 var newUsingDirective = usingDirective
                     .WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword))

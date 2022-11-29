@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         protected abstract bool CanFullyQualify(Diagnostic diagnostic, SyntaxNode node, [NotNullWhen(true)] out TSimpleNameSyntax? simpleName);
-        protected abstract Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> ReplaceNodeAsync(TSimpleNameSyntax simpleName, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     .Distinct()
                     .Take(MaxResults);
 
-                var codeActions = CreateActions(document, semanticModel, node, name, proposedContainers).ToImmutableArray();
+                var codeActions = CreateActions(document, semanticModel, simpleName, name, proposedContainers).ToImmutableArray();
                 if (codeActions.Length > 1)
                 {
                     // Wrap the spell checking actions into a single top level suggestion
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         private IEnumerable<CodeAction> CreateActions(
             Document document,
             SemanticModel semanticModel,
-            SyntaxNode node,
+            TSimpleNameSyntax simpleName,
             string name,
             IEnumerable<SymbolResult> proposedContainers)
         {
@@ -205,7 +205,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             foreach (var symbolResult in proposedContainers)
             {
                 var container = symbolResult.Symbol;
-                var containerName = container.ToMinimalDisplayString(semanticModel, node.SpanStart);
+                Contract.ThrowIfNull(symbolResult.OriginalSymbol);
+                var containerName = container.ToMinimalDisplayString(semanticModel, simpleName.SpanStart);
 
                 // Actual member name might differ by case.
                 string memberName;
@@ -222,18 +223,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 var title = $"{containerName}.{memberName}";
                 var codeAction = CodeAction.Create(
                     title,
-                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c),
+                    cancellationToken => ProcessNodeAsync(document, simpleName, containerName, symbolResult.OriginalSymbol, cancellationToken),
                     title);
 
                 yield return codeAction;
             }
         }
 
-        private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, INamespaceOrTypeSymbol? originalSymbol, CancellationToken cancellationToken)
+        private async Task<Document> ProcessNodeAsync(Document document, TSimpleNameSyntax simpleName, string containerName, INamespaceOrTypeSymbol originalSymbol, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(originalSymbol, "Original symbol information missing. Haven't called GetContainers?");
-
-            var newRoot = await ReplaceNodeAsync(node, containerName, originalSymbol.IsType, cancellationToken).ConfigureAwait(false);
+            var newRoot = await ReplaceNodeAsync(simpleName, containerName, originalSymbol.IsType, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 
