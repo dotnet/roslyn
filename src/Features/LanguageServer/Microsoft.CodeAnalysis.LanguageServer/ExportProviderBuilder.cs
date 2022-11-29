@@ -17,7 +17,7 @@ internal sealed class ExportProviderBuilder
         var baseDirectory = AppContext.BaseDirectory;
 
         // Load any Roslyn assemblies from the extension directory
-        var assembliesToDiscover = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis.*.dll");
+        var assembliesToDiscover = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
 
         var discovery = PartDiscovery.Combine(
             new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
