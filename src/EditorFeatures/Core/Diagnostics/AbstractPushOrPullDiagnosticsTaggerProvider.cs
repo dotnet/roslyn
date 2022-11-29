@@ -13,24 +13,21 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-/// <summary>
-/// Base type for all taggers that interact with the <see cref="IDiagnosticAnalyzerService"/> and produce tags for the
-/// diagnostics with different UI presentations.  It does no computation work itself, but instead defers that to it's
-/// underlying <see cref="SingleDiagnosticKindTaggerProvider"/>s.
-/// </summary>
-internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag> : ITaggerProvider
+internal static class DiagnosticTaggingOptions
+{
+    public static readonly Option2<bool> PullDiagnosticTagging = new(
+        "DiagnosticTaggingOptions", "PullDiagnosticTagging", defaultValue: true,
+        new FeatureFlagStorageLocation("Roslyn.PullDiagnosticTagging"));
+}
+
+internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag> : ITaggerProvider
     where TTag : ITag
 {
-    /// <summary>
-    /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.  The ordering of
-    /// these taggers is not relevant.  They are not executed serially.  Rather, they all run concurrently, notifying us
-    /// (potentially concurrently as well) when change occur.
-    /// </summary>
-    private readonly ImmutableArray<SingleDiagnosticKindTaggerProvider> _diagnosticsTaggerProviders;
+    private readonly ITaggerProvider _underlyingTaggerProvider;
 
     protected readonly IGlobalOptionService GlobalOptions;
 
-    protected AbstractAggregateDiagnosticsTaggerProvider(
+    protected AbstractPushOrPullDiagnosticsTaggerProvider(
         IThreadingContext threadingContext,
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
@@ -40,33 +37,20 @@ internal abstract partial class AbstractAggregateDiagnosticsTaggerProvider<TTag>
     {
         GlobalOptions = globalOptions;
 
-        _diagnosticsTaggerProviders = ImmutableArray.Create(
-            CreateDiagnosticsTaggerProvider(DiagnosticKind.CompilerSyntax),
-            CreateDiagnosticsTaggerProvider(DiagnosticKind.CompilerSemantic),
-            CreateDiagnosticsTaggerProvider(DiagnosticKind.AnalyzerSyntax),
-            CreateDiagnosticsTaggerProvider(DiagnosticKind.AnalyzerSemantic));
-
-        return;
-
-        SingleDiagnosticKindTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
-            => new(this, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
-    }
-
-    public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
-    {
-        using var _ = ArrayBuilder<ITagger<TTag>>.GetInstance(out var taggers);
-        foreach (var taggerProvider in _diagnosticsTaggerProviders)
-            taggers.AddIfNotNull(taggerProvider.CreateTagger<TTag>(buffer));
-
-        var tagger = new AggregateTagger(taggers.ToImmutable());
-        if (tagger is not ITagger<T> genericTagger)
+        if (globalOptions.GetOption(DiagnosticTaggingOptions.PullDiagnosticTagging))
         {
-            tagger.Dispose();
-            return null;
+            _underlyingTaggerProvider = new AggregatePullDiagnosticsTaggerProvider(
+                this, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
         }
-
-        return genericTagger;
+        else
+        {
+            //_underlyingTaggerProvider = new PushDiagnosticsTaggerProvider(
+            //    this, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
+        }
     }
+
+    public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        => _underlyingTaggerProvider.CreateTagger<T>(buffer);
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual
     // SingleDiagnosticKindTaggerProvider will defer to these to do the work so that they otherwise operate
