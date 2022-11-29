@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
     /// </summary>
     internal abstract class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
     {
+        // Just to silence analyzer.
+        public abstract override FixAllProvider? GetFixAllProvider();
     }
 
     internal abstract partial class AbstractFullyQualifyCodeFixProvider<TSimpleNameSyntax> : AbstractFullyQualifyCodeFixProvider
