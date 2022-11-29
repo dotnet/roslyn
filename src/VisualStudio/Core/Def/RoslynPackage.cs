@@ -295,6 +295,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void Dispose(bool disposing)
         {
+            DisposeVisualStudioServices();
+
             UnregisterAnalyzerTracker();
             UnregisterRuleSetEventHandler();
 
@@ -317,6 +319,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             ChangeSignatureLogger.ReportTelemetry();
             InheritanceMarginLogger.ReportTelemetry();
             ComponentModel.GetService<VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory>().ReportOtherWorkspaceTelemetry();
+        }
+
+        private void DisposeVisualStudioServices()
+        {
+            var referenceManager = this.ComponentModel.GetService<VisualStudioMetadataReferenceManager>();
+            referenceManager.DisconnectFromVisualStudioNativeServices();
         }
 
         private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)
