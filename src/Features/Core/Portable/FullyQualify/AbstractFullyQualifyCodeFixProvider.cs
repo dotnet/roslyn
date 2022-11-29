@@ -67,20 +67,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 if (node == null || !CanFullyQualify(diagnostic, node, out var simpleName))
                     return;
 
-                var cacheService = project.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
-                var info = await cacheService.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(project, cancellationToken).ConfigureAwait(false);
-                if (info is null)
-                    return;
+                //var cacheService = project.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
+                //var info = await cacheService.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                //if (info is null)
+                //    return;
 
                 var ignoreCase = !syntaxFacts.IsCaseSensitive;
                 syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out var name, out _);
                 var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
 
-                var lazyAssembly = GetLazyAssembly(project);
-
-                var matchingTypes = await info.FindAsync(SearchQuery.Create(name, ignoreCase), lazyAssembly, SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
-                var matchingAttributeTypes = inAttributeContext ? await info.FindAsync(SearchQuery.Create(name + nameof(Attribute), ignoreCase), lazyAssembly, SymbolFilter.Type, cancellationToken).ConfigureAwait(false) : ImmutableArray<ISymbol>.Empty;
-                var matchingNamespaces = inAttributeContext ? ImmutableArray<ISymbol>.Empty : await info.FindAsync(SearchQuery.Create(name, ignoreCase), lazyAssembly, SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
+                var matchingTypes = await FindAsync(name, ignoreCase, SymbolFilter.Type).ConfigureAwait(false);
+                var matchingAttributeTypes = inAttributeContext ? await FindAsync(name + nameof(Attribute), ignoreCase, SymbolFilter.Type).ConfigureAwait(false) : ImmutableArray<ISymbol>.Empty;
+                var matchingNamespaces = inAttributeContext ? ImmutableArray<ISymbol>.Empty : await FindAsync(name, ignoreCase, SymbolFilter.Namespace).ConfigureAwait(false);
 
                 if (matchingTypes.IsEmpty && matchingAttributeTypes.IsEmpty && matchingNamespaces.IsEmpty)
                     return;
@@ -101,13 +99,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     .Distinct()
                     .Take(MaxResults);
 
-                var codeActions = CreateActions(document, node, semanticModel, proposedContainers).ToImmutableArray();
+                var codeActions = CreateActions(document, semanticModel, node, name, proposedContainers).ToImmutableArray();
                 if (codeActions.Length > 1)
                 {
                     // Wrap the spell checking actions into a single top level suggestion
                     // so as to not clutter the list.
                     context.RegisterCodeFix(CodeAction.Create(
-                        string.Format(FeaturesResources.Fully_qualify_0, GetNodeName(document, node)),
+                        string.Format(FeaturesResources.Fully_qualify_0, name),
                         codeActions,
                         isInlinable: true), context.Diagnostics);
                 }
@@ -117,12 +115,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 }
             }
 
-            static AsyncLazy<IAssemblySymbol> GetLazyAssembly(Project project)
-                => new(async cancellationToken =>
-                {
-                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    return compilation.Assembly;
-                }, cacheResult: true);
+            async Task<ImmutableArray<ISymbol>> FindAsync(string name, bool ignoreCase, SymbolFilter filter)
+            {
+                return await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                    project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken).ConfigureAwait(false);
+            }
+
+            //static AsyncLazy<IAssemblySymbol> GetLazyAssembly(Project project)
+            //    => new(async cancellationToken =>
+            //    {
+            //        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            //        return compilation.Assembly;
+            //    }, cacheResult: true);
 
             ImmutableArray<SymbolResult> GetTypeSearchResults(
                 SemanticModel semanticModel,
@@ -189,7 +193,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private IEnumerable<CodeAction> CreateActions(
-            Document document, SyntaxNode node, SemanticModel semanticModel,
+            Document document,
+            SemanticModel semanticModel,
+            SyntaxNode node,
+            string name,
             IEnumerable<SymbolResult> proposedContainers)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -199,8 +206,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             {
                 var container = symbolResult.Symbol;
                 var containerName = container.ToMinimalDisplayString(semanticModel, node.SpanStart);
-
-                var name = GetNodeName(document, node);
 
                 // Actual member name might differ by case.
                 string memberName;
@@ -222,15 +227,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                 yield return codeAction;
             }
-        }
-
-        private static string GetNodeName(Document document, SyntaxNode node)
-        {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out _);
-
-            Contract.ThrowIfNull(name, "node isn't a SimpleNameSyntax? CanFullyQualify should have returned false.");
-            return name;
         }
 
         private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, INamespaceOrTypeSymbol? originalSymbol, CancellationToken cancellationToken)
