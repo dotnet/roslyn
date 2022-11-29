@@ -8253,6 +8253,35 @@ class Program
         }
 
         [Fact]
+        public void ParamsArray_Symbol_ExternalReference()
+        {
+            var source = """
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                var lam1 = (params int[] xs) => xs.Length;
+                Report(lam1);
+                var lam2 = (int[] xs) => xs.Length;
+                Report(lam2);
+                var lam3 = (int[] xs, params int[] ys) => xs.Length + ys.Length;
+                Report(lam3);
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0
+                System.Func`2[System.Int32[],System.Int32]
+                <>f__AnonymousDelegate1
+                """, symbolValidator: static module =>
+                {
+                    var lam1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate0");
+                    Assert.True(lam1.DelegateParameters().Single().IsParams);
+
+                    var lam3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate1");
+                    var lam3Parameters = lam3.DelegateParameters();
+                    Assert.Equal(2, lam3Parameters.Length);
+                    Assert.False(lam3Parameters[0].IsParams);
+                    Assert.True(lam3Parameters[1].IsParams);
+                });
+        }
+
+        [Fact]
         public void ParamsArray_NotLast()
         {
             var source = """
