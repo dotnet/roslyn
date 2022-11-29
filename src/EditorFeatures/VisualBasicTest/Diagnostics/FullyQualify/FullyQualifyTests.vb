@@ -837,16 +837,16 @@ End Namespace</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
                         New VisualBasicFullyQualifyCodeFixProvider())
             End Function
 
-            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-            Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget(testHost As TestHost) As Task
+            Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget() As Task
                 Await TestInRegularAndScriptAsync(
 "Module Program
     <[|Extension|]>
 End Module",
 "Module Program
     <System.Runtime.CompilerServices.Extension>
-End Module", testHost:=testHost)
+End Module")
             End Function
         End Class
     End Class
