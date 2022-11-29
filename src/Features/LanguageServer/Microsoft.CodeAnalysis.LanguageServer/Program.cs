@@ -4,12 +4,9 @@
 
 using System.Diagnostics;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSCode.API;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
@@ -37,9 +34,9 @@ var solutionPath = GetSolutionPath(args);
 var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(solutionPath) });
 MSBuildLocator.RegisterInstance(msbuildInstances.First());
 
-var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
+var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync().ConfigureAwait(false);
 var hostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
-using (var workspace = await LanguageServerWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, hostServices, loggerFactory))
+using (var workspace = await LanguageServerWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, hostServices, loggerFactory).ConfigureAwait(false))
 {
     var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, hostServices, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
 
