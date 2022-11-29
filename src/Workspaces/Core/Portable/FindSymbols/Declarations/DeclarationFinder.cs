@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DeclarationFinder
     {
-        private static Task AddCompilationDeclarationsWithNormalQueryAsync(
+        private static Task AddCompilationSourceDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter filter,
             ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
-            return AddCompilationDeclarationsWithNormalQueryAsync(
+            return AddCompilationSourceDeclarationsWithNormalQueryAsync(
                 project, query, filter, list,
                 startingCompilation: null,
                 startingAssembly: null,
                 cancellationToken: cancellationToken);
         }
 
-        private static async Task AddCompilationDeclarationsWithNormalQueryAsync(
+        private static async Task AddCompilationSourceDeclarationsWithNormalQueryAsync(
             Project project,
             SearchQuery query,
             SymbolFilter filter,

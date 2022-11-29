@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 // get declarations from the compilation's assembly
-                await AddCompilationDeclarationsWithNormalQueryAsync(
+                await AddCompilationSourceDeclarationsWithNormalQueryAsync(
                     project, query, criteria, buffer, cancellationToken).ConfigureAwait(false);
 
                 // get declarations from directly referenced projects and metadata
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
                     if (assemblyProject != null)
                     {
-                        await AddCompilationDeclarationsWithNormalQueryAsync(
+                        await AddCompilationSourceDeclarationsWithNormalQueryAsync(
                             assemblyProject, query, criteria, buffer,
                             compilation, assembly, cancellationToken).ConfigureAwait(false);
                     }
