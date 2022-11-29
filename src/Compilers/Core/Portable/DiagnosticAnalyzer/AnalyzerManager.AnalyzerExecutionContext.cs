@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // We re-check if lazyDescriptors is default inside the lock statement
                     // to ensure that we don't invoke 'computeDescriptorsNoLock' multiple times.
                     // 'computeDescriptorsNoLock' makes analyzer callbacks and these can throw
-                    // exception, leading to AD0001 diagnostics and duplicate callbacks can
+                    // exceptions, leading to AD0001 diagnostics and duplicate callbacks can
                     // lead to duplicate AD0001 diagnostics.
                     if (lazyDescriptors.IsDefault)
                     {
