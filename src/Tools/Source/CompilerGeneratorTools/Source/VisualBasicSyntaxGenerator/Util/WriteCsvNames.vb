@@ -121,14 +121,14 @@ Friend Class WriteCsvNames
     End Sub
 
     Private Sub GenerateFactoryMethods(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
-        GenerateFactoryMethod(nodeStructure, nodeKind, False)
-        If HasSimplifiedFactory(nodeStructure, nodeKind) Then
-            GenerateFactoryMethod(nodeStructure, nodeKind, True)
+        GenerateFactoryMethod(nodeStructure, nodeKind)
+        If HasSimplifiedFactory(nodeStructure) Then
+            GenerateFactoryMethod(nodeStructure, nodeKind)
         End If
     End Sub
 
     ' Should we generator a simplified factory method also?
-    Private Function HasSimplifiedFactory(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind) As Boolean
+    Private Function HasSimplifiedFactory(nodeStructure As ParseNodeStructure) As Boolean
         ' Currently, all tokens have simplified factories.
         Return nodeStructure.IsToken
     End Function
@@ -139,7 +139,7 @@ Friend Class WriteCsvNames
     ' The simplified form is:
     '   Defaults the text for any token with token-text defined
     '   Defaults the trivia to a single trailing space for any token
-    Private Sub GenerateFactoryMethod(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, simplifiedForm As Boolean)
+    Private Sub GenerateFactoryMethod(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
         Dim factoryFunctionName As String       ' name of the factory method.
 
         If nodeKind IsNot Nothing Then

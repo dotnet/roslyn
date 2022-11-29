@@ -109,9 +109,9 @@ Friend Class GreenNodeWriter
         GenerateNodeStructureMembers(nodeStructure)
 
         ' Create the constructor.
-        GenerateNodeStructureConstructor(nodeStructure, False, noExtra:=True)
-        GenerateNodeStructureConstructor(nodeStructure, False, noExtra:=True, contextual:=True)
-        GenerateNodeStructureConstructor(nodeStructure, False)
+        GenerateNodeStructureConstructor(nodeStructure, noExtra:=True)
+        GenerateNodeStructureConstructor(nodeStructure, noExtra:=True, contextual:=True)
+        GenerateNodeStructureConstructor(nodeStructure)
 
         ' Serialization
         GenerateNodeStructureSerialization(nodeStructure)
@@ -121,14 +121,14 @@ Friend Class GreenNodeWriter
         ' Create the property accessor for each of the fields
         Dim fields = nodeStructure.Fields
         For i = 0 To fields.Count - 1
-            GenerateNodeFieldProperty(fields(i), i, fields(i).ContainingStructure IsNot nodeStructure)
+            GenerateNodeFieldProperty(fields(i))
         Next
 
         ' Create the property accessor for each of the children
         Dim children = nodeStructure.Children
         For i = 0 To children.Count - 1
-            GenerateNodeChildProperty(nodeStructure, children(i), i)
-            GenerateNodeWithChildProperty(children(i), i, nodeStructure)
+            GenerateNodeChildProperty(nodeStructure, children(i))
+            GenerateNodeWithChildProperty(children(i), nodeStructure)
         Next
 
         If Not (_parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken) Then
@@ -158,7 +158,7 @@ Friend Class GreenNodeWriter
 
         ' Special methods for the root node.
         If IsRoot(nodeStructure) Then
-            GenerateRootNodeSpecialMethods(nodeStructure)
+            GenerateRootNodeSpecialMethods()
         End If
 
         ' End the class
@@ -387,7 +387,6 @@ Friend Class GreenNodeWriter
 
     ' Generate constructor for a node structure
     Private Sub GenerateNodeStructureConstructor(nodeStructure As ParseNodeStructure,
-                                                 isRaw As Boolean,
                                                  Optional noExtra As Boolean = False,
                                                  Optional contextual As Boolean = False)
 
@@ -561,7 +560,7 @@ Friend Class GreenNodeWriter
     End Sub
 
     ' Get modifiers
-    Private Function GetModifiers(containingStructure As ParseNodeStructure, isOverride As Boolean, name As String) As String
+    Private Function GetModifiers(name As String) As String
         ' Is this overridable or an override?
         Dim modifiers = ""
         'If isOverride Then
@@ -580,11 +579,11 @@ Friend Class GreenNodeWriter
     End Function
 
     ' Generate a public property for a node field
-    Private Sub GenerateNodeFieldProperty(field As ParseNodeField, fieldIndex As Integer, isOverride As Boolean)
+    Private Sub GenerateNodeFieldProperty(field As ParseNodeField)
         ' XML comment
         GenerateXmlComment(_writer, field, 8)
 
-        _writer.WriteLine("        Friend {2}ReadOnly Property {0} As {1}", FieldPropertyName(field), FieldTypeRef(field), GetModifiers(field.ContainingStructure, isOverride, field.Name))
+        _writer.WriteLine("        Friend {2}ReadOnly Property {0} As {1}", FieldPropertyName(field), FieldTypeRef(field), GetModifiers(field.Name))
         _writer.WriteLine("            Get")
         _writer.WriteLine("                Return Me.{0}", FieldVarName(field))
         _writer.WriteLine("            End Get")
@@ -593,13 +592,13 @@ Friend Class GreenNodeWriter
     End Sub
 
     ' Generate a public property for a child
-    Private Sub GenerateNodeChildProperty(node As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer)
+    Private Sub GenerateNodeChildProperty(node As ParseNodeStructure, child As ParseNodeChild)
         ' XML comment
         GenerateXmlComment(_writer, child, 8)
 
         Dim isToken = KindTypeStructure(child.ChildKind).IsToken
 
-        _writer.WriteLine("        Friend {2}ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(node, child, True), GetModifiers(child.ContainingStructure, False, child.Name))
+        _writer.WriteLine("        Friend {2}ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(node, child, True), GetModifiers(child.Name))
         _writer.WriteLine("            Get")
         If Not child.IsList Then
             _writer.WriteLine("                Return Me.{0}", ChildVarName(child))
@@ -620,7 +619,7 @@ Friend Class GreenNodeWriter
     End Sub
 
     ' Generate a public property for a child
-    Private Sub GenerateNodeWithChildProperty(withChild As ParseNodeChild, childIndex As Integer, nodeStructure As ParseNodeStructure)
+    Private Sub GenerateNodeWithChildProperty(withChild As ParseNodeChild, nodeStructure As ParseNodeStructure)
         Dim isOverride As Boolean = withChild.ContainingStructure IsNot nodeStructure
         If withChild.GenerateWith Then
 
@@ -629,7 +628,7 @@ Friend Class GreenNodeWriter
             If Not isAbstract Then
                 ' XML comment
                 GenerateWithXmlComment(_writer, withChild, 8)
-                _writer.WriteLine("        Friend {2}Function {0}({3} as {4}) As {1}", ChildWithFunctionName(withChild), StructureTypeName(withChild.ContainingStructure), GetModifiers(withChild.ContainingStructure, isOverride, withChild.Name), Ident(UpperFirstCharacter(withChild.Name)), ChildConstructorTypeRef(withChild))
+                _writer.WriteLine("        Friend {2}Function {0}({3} as {4}) As {1}", ChildWithFunctionName(withChild), StructureTypeName(withChild.ContainingStructure), GetModifiers(withChild.Name), Ident(UpperFirstCharacter(withChild.Name)), ChildConstructorTypeRef(withChild))
                 _writer.WriteLine("            Ensures(Result(Of {0}) IsNot Nothing)", StructureTypeName(withChild.ContainingStructure))
                 _writer.Write("            return New {0}(", StructureTypeName(nodeStructure))
 
@@ -674,7 +673,7 @@ Friend Class GreenNodeWriter
     End Sub
 
     ' Generate special methods and properties for the root node. These only appear in the root node.
-    Private Sub GenerateRootNodeSpecialMethods(nodeStructure As ParseNodeStructure)
+    Private Sub GenerateRootNodeSpecialMethods()
 
         _writer.WriteLine()
     End Sub

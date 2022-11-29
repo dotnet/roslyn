@@ -118,7 +118,7 @@ Friend Class GreenNodeFactoryWriter
     ' If kind is Nothing, generate a factory method that takes a Kind parameter, and can create any kind.
     ' If kind is not Nothing, generator a factory method customized to that particular kind.
     Private Sub GenerateFactoryMethods(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, contextual As Boolean)
-        GenerateFactoryMethod(nodeStructure, nodeKind, internalForm:=True, contextual:=contextual)
+        GenerateFactoryMethod(nodeStructure, nodeKind, contextual:=contextual)
 
         'Dim tokenChildren = AllFactoryChildrenOfStructure(nodeStructure).Where(
         '       Function(c)
@@ -170,7 +170,7 @@ Friend Class GreenNodeFactoryWriter
     ' The simplified form is:
     '   Defaults the text for any token with token-text defined
     '   Defaults the trivia to a single trailing space for any token
-    Private Sub GenerateFactoryMethod(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, internalForm As Boolean, contextual As Boolean)
+    Private Sub GenerateFactoryMethod(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, contextual As Boolean)
 
         Dim factoryFunctionName As String       ' name of the factory method.
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)

@@ -160,7 +160,7 @@ Friend Class RedNodeWriter
         ' Create the property accessor for each of the fields
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)
         For i = 0 To allFields.Count - 1
-            GenerateNodeFieldProperty(allFields(i), StructureTypeName(nodeStructure), allFields(i).ContainingStructure IsNot nodeStructure)
+            GenerateNodeFieldProperty(allFields(i), StructureTypeName(nodeStructure))
         Next
 
         ' Create the property accessor for each of the children
@@ -173,11 +173,11 @@ Friend Class RedNodeWriter
             Else
                 GenerateNodeChildProperty(nodeStructure, child, i, child.ContainingStructure IsNot nodeStructure)
             End If
-            GenerateNodeWithChildProperty(child, i, nodeStructure)
+            GenerateNodeWithChildProperty(child, nodeStructure)
 
             If child.IsList Then
                 GenerateChildListAccessor(nodeStructure, child)
-            ElseIf HasNestedList(nodeStructure, child) Then
+            ElseIf HasNestedList(child) Then
                 GeneratedNestedChildListAccessor(nodeStructure, child)
             End If
         Next
@@ -196,7 +196,7 @@ Friend Class RedNodeWriter
 
         ' Special methods for the root node.
         If IsRoot(nodeStructure) Then
-            GenerateRootNodeSpecialMethods(nodeStructure)
+            GenerateRootNodeSpecialMethods()
         End If
 
         ' End the class
@@ -234,14 +234,14 @@ Friend Class RedNodeWriter
         End If
     End Sub
 
-    Private Function HasNestedList(nodeStructure As ParseNodeStructure, child As ParseNodeChild) As Boolean
-        Dim nestedList = GetNestedList(nodeStructure, child)
+    Private Function HasNestedList(child As ParseNodeChild) As Boolean
+        Dim nestedList = GetNestedList(child)
         Return nestedList IsNot Nothing
     End Function
 
     ' The nested list of a structure is the one and only list child
     ' The structure's other children must be auto-creatable.
-    Private Function GetNestedList(nodeStructure As ParseNodeStructure, child As ParseNodeChild) As ParseNodeChild
+    Private Function GetNestedList(child As ParseNodeChild) As ParseNodeChild
         Dim childStructure = KindTypeStructure(child.ChildKind)
         If childStructure.IsToken Then Return Nothing
         Dim children = GetAllChildrenOfStructure(childStructure).ToList()
@@ -254,7 +254,7 @@ Friend Class RedNodeWriter
                     ' More than one list!
                     Return Nothing
                 End If
-            ElseIf Not IsAutoCreatableChild(childStructure, Nothing, childNodeChild) Then
+            ElseIf Not IsAutoCreatableChild(Nothing, childNodeChild) Then
                 Return Nothing
             End If
         Next
@@ -267,7 +267,7 @@ Friend Class RedNodeWriter
             Return
         End If
 
-        Dim nestedList = GetNestedList(nodeStructure, child)
+        Dim nestedList = GetNestedList(child)
         Dim nestedListStructure = KindTypeStructure(nestedList.ChildKind)
         Dim itemType = If(nestedListStructure.IsToken, "SyntaxToken", nestedListStructure.Name)
 
@@ -461,7 +461,7 @@ Friend Class RedNodeWriter
     End Function
 
     ' Generate a public property for a node field
-    Private Sub GenerateNodeFieldProperty(field As ParseNodeField, TypeName As String, isOverride As Boolean)
+    Private Sub GenerateNodeFieldProperty(field As ParseNodeField, TypeName As String)
         ' XML comment
         GenerateXmlComment(_writer, field, 8)
 
@@ -490,7 +490,7 @@ Friend Class RedNodeWriter
             _writer.WriteLine("")
 
             _writer.WriteLine("        Friend {0}Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride, extraIndent:="")
+            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, extraIndent:="")
             _writer.WriteLine("        End Function")
             _writer.WriteLine()
 
@@ -498,7 +498,7 @@ Friend Class RedNodeWriter
 
             _writer.WriteLine("        Public {0}ReadOnly Property {1} As {2}", If(isOverride, "Shadows ", ""), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
             _writer.WriteLine("            Get")
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride, extraIndent:="    ")
+            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, extraIndent:="    ")
             _writer.WriteLine("            End Get")
             _writer.WriteLine("        End Property")
             _writer.WriteLine("")
@@ -512,7 +512,7 @@ Friend Class RedNodeWriter
 
             _writer.WriteLine("        Public {0}ReadOnly Property {1} As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
             _writer.WriteLine("            Get")
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride, extraIndent:="    ")
+            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, extraIndent:="    ")
             _writer.WriteLine("            End Get")
             _writer.WriteLine("        End Property")
             _writer.WriteLine("")
@@ -520,7 +520,7 @@ Friend Class RedNodeWriter
         End If
     End Sub
 
-    Private Sub GenerateNodeChildPropertyRedAccessLogic(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, isOverride As Boolean, extraIndent As String)
+    Private Sub GenerateNodeChildPropertyRedAccessLogic(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, extraIndent As String)
         If KindTypeStructure(child.ChildKind).IsToken Then
             If child.IsList Then
                 _writer.WriteLine($"            {extraIndent}Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{{0}}).{{1}}", StructureTypeName(nodeStructure), ChildVarName(child))
@@ -584,7 +584,7 @@ Friend Class RedNodeWriter
     End Function
 
     ' Generate a public property for a child
-    Private Sub GenerateNodeWithChildProperty(withChild As ParseNodeChild, childIndex As Integer, nodeStructure As ParseNodeStructure)
+    Private Sub GenerateNodeWithChildProperty(withChild As ParseNodeChild, nodeStructure As ParseNodeStructure)
         'Dim isOverride As Boolean = withChild.ContainingStructure IsNot nodeStructure
         Dim hasPrevious As Boolean
 
@@ -789,7 +789,7 @@ Friend Class RedNodeWriter
     End Sub
 
     ' Generate special methods and properties for the root node. These only appear in the root node.
-    Private Sub GenerateRootNodeSpecialMethods(nodeStructure As ParseNodeStructure)
+    Private Sub GenerateRootNodeSpecialMethods()
         _writer.WriteLine()
     End Sub
 

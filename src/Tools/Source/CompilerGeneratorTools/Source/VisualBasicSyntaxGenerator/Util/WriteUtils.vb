@@ -915,7 +915,7 @@ Public MustInherit Class WriteUtils
         Return childNodeKind
     End Function
 
-    Public Function IsAutoCreatableToken(node As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
+    Public Function IsAutoCreatableToken(nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
         Dim childNodeKind = GetChildNodeKind(nodeKind, child)
 
         If childNodeKind IsNot Nothing Then
@@ -928,7 +928,7 @@ Public MustInherit Class WriteUtils
         Return False
     End Function
 
-    Public Function IsAutoCreatableNodeOfAutoCreatableTokens(node As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
+    Public Function IsAutoCreatableNodeOfAutoCreatableTokens(nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
         Dim childNodeKind = GetChildNodeKind(nodeKind, child)
 
         ' Node contains only auto-creatable tokens
@@ -937,7 +937,7 @@ Public MustInherit Class WriteUtils
             If Not childNodeStructure.IsToken Then
                 Dim allChildren = GetAllChildrenOfStructure(childNodeStructure)
                 For Each childNodeChild In allChildren
-                    If Not IsAutoCreatableToken(childNodeStructure, childNodeKind, childNodeChild) Then
+                    If Not IsAutoCreatableToken(childNodeKind, childNodeChild) Then
                         Return False
                     End If
                 Next
@@ -949,8 +949,8 @@ Public MustInherit Class WriteUtils
         Return False
     End Function
 
-    Public Function IsAutoCreatableChild(node As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
-        Return IsAutoCreatableToken(node, nodeKind, child) OrElse IsAutoCreatableNodeOfAutoCreatableTokens(node, nodeKind, child)
+    Public Function IsAutoCreatableChild(nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
+        Return IsAutoCreatableToken(nodeKind, child) OrElse IsAutoCreatableNodeOfAutoCreatableTokens(nodeKind, child)
     End Function
 
 End Class
