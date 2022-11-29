@@ -5,31 +5,68 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 {
-    /// <summary>
-    /// Exists only for interactive to do a type check for this precise fixer.
-    /// </summary>
-    internal abstract class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
+    [DataContract]
+    internal readonly struct FullyQualifyFixData
     {
-        // Just to silence analyzer.
-        public abstract override FixAllProvider? GetFixAllProvider();
+        [DataMember(Order = 0)]
+        public readonly string Name;
+
+        [DataMember(Order = 1)]
+        public readonly ImmutableArray<FullyQualifyIndividualFixData> IndividualFixData;
+
+        public FullyQualifyFixData(string name, ImmutableArray<FullyQualifyIndividualFixData> individualFixData)
+        {
+            Name = name;
+            IndividualFixData = individualFixData;
+        }
     }
 
-    internal abstract partial class AbstractFullyQualifyCodeFixProvider<TSimpleNameSyntax> : AbstractFullyQualifyCodeFixProvider
+    [DataContract]
+    internal readonly struct FullyQualifyIndividualFixData
+    {
+        [DataMember(Order = 0)]
+        public readonly string Title;
+        [DataMember(Order = 1)]
+        public readonly ImmutableArray<TextChange> TextChanges;
+
+        public FullyQualifyIndividualFixData(string title, ImmutableArray<TextChange> textChanges)
+        {
+            Title = title;
+            TextChanges = textChanges;
+        }
+    }
+
+    internal interface IFullyQualifyService : ILanguageService
+    {
+        Task<FullyQualifyFixData?> GetFixDataAsync(Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken);
+    }
+
+    internal interface IRemoteFullyQualifyService
+    {
+        ValueTask<FullyQualifyFixData?> GetFixDataAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken);
+    }
+
+    internal abstract class AbstractFullyQualifyService<TSimpleNameSyntax> : IFullyQualifyService
         where TSimpleNameSyntax : SyntaxNode
     {
         private const int MaxResults = 3;
@@ -38,36 +75,41 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         private const int TypeWeight = 1;
         private const int NamespaceWithErrorsWeight = 2;
 
-        public override FixAllProvider? GetFixAllProvider()
-        {
-            // Fix All is not supported by this code fix
-            // https://github.com/dotnet/roslyn/issues/34465
-            return null;
-        }
-
-        protected abstract bool CanFullyQualify(Diagnostic diagnostic, SyntaxNode node, [NotNullWhen(true)] out TSimpleNameSyntax? simpleName);
+        protected abstract bool CanFullyQualify(SyntaxNode node, [NotNullWhen(true)] out TSimpleNameSyntax? simpleName);
         protected abstract Task<SyntaxNode> ReplaceNodeAsync(TSimpleNameSyntax simpleName, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken);
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public async Task<FullyQualifyFixData?> GetFixDataAsync(Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteFullyQualifyService, FullyQualifyFixData?>(
+                    document.Project,
+                    (service, solutionChecksum, cancellationToken) => service.GetFixDataAsync(solutionChecksum, document.Id, span, hideAdvancedMembers, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (!result.HasValue)
+                    return null;
+
+                return result.Value;
+            }
+
+            return await GetFixDataInCurrentProcessAsync(document, span, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<FullyQualifyFixData?> GetFixDataInCurrentProcessAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
             var project = document.Project;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             using (Logger.LogBlock(FunctionId.Refactoring_FullyQualify, cancellationToken))
             {
-                var span = context.Span;
-                var diagnostics = context.Diagnostics;
-
-                var diagnostic = diagnostics.First();
-
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var node = root.FindToken(span.Start).GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
 
                 // Has to be a simple identifier or generic name.
-                if (node == null || !CanFullyQualify(diagnostic, node, out var simpleName))
-                    return;
+                if (node == null || !CanFullyQualify(node, out var simpleName))
+                    return null;
 
                 var ignoreCase = !syntaxFacts.IsCaseSensitive;
                 syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out var name, out _);
@@ -78,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 var matchingNamespaces = inAttributeContext ? ImmutableArray<ISymbol>.Empty : await FindAsync(name, ignoreCase, SymbolFilter.Namespace).ConfigureAwait(false);
 
                 if (matchingTypes.IsEmpty && matchingAttributeTypes.IsEmpty && matchingNamespaces.IsEmpty)
-                    return;
+                    return null;
 
                 // We found some matches for the name alone.  Do some more checks to see if those matches are applicable in this location.
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -86,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, matchingTypes.Concat(matchingAttributeTypes));
                 var matchingNamespaceSearchResults = GetNamespaceSearchResults(semanticModel, simpleName, matchingNamespaces);
                 if (matchingTypeSearchResults.IsEmpty && matchingNamespaceSearchResults.IsEmpty)
-                    return;
+                    return null;
 
                 var matchingTypeContainers = FilterAndSort(GetContainers(matchingTypeSearchResults, semanticModel.Compilation));
                 var matchingNamespaceContainers = FilterAndSort(GetContainers(matchingNamespaceSearchResults, semanticModel.Compilation));
@@ -311,5 +353,104 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             => symbols.Distinct()
                .Where(n => n.Symbol is INamedTypeSymbol or INamespaceSymbol { IsGlobalNamespace: false })
                .Order();
+
+        private readonly struct SymbolResult : IEquatable<SymbolResult>, IComparable<SymbolResult>
+        {
+            public readonly INamespaceOrTypeSymbol Symbol;
+            public readonly int Weight;
+            public readonly INamespaceOrTypeSymbol? OriginalSymbol;
+            public readonly IReadOnlyList<string> NameParts;
+
+            public SymbolResult(INamespaceOrTypeSymbol symbol, int weight)
+                : this(symbol, weight, originalSymbol: null)
+            {
+            }
+
+            private SymbolResult(INamespaceOrTypeSymbol symbol, int weight, INamespaceOrTypeSymbol? originalSymbol)
+            {
+                Symbol = symbol;
+                Weight = weight;
+                NameParts = INamespaceOrTypeSymbolExtensions.GetNameParts(symbol);
+                OriginalSymbol = originalSymbol;
+            }
+
+            public override bool Equals(object? obj)
+                => obj is SymbolResult result && Equals(result);
+
+            public bool Equals(SymbolResult other)
+                => Equals(Symbol, other.Symbol);
+
+            public override int GetHashCode()
+                => Symbol.GetHashCode();
+
+            public SymbolResult WithSymbol(INamespaceOrTypeSymbol other)
+                => new(other, Weight, Symbol);
+
+            public int CompareTo(SymbolResult other)
+            {
+                Debug.Assert(Symbol is INamespaceSymbol || !((INamedTypeSymbol)Symbol).IsGenericType);
+                Debug.Assert(other.Symbol is INamespaceSymbol || !((INamedTypeSymbol)other.Symbol).IsGenericType);
+
+                var diff = Weight - other.Weight;
+                if (diff != 0)
+                {
+                    return diff;
+                }
+
+                return INamespaceOrTypeSymbolExtensions.CompareNameParts(
+                    NameParts, other.NameParts, placeSystemNamespaceFirst: true);
+            }
+        }
+    }
+
+    internal abstract class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
+    {
+        public override FixAllProvider? GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            // https://github.com/dotnet/roslyn/issues/34465
+            return null;
+        }
+
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            var document = context.Document;
+            var hideAdvancedMembers = context.Options.GetOptions(document.Project.Services).HideAdvancedMembers;
+
+            var service = document.GetRequiredLanguageService<IFullyQualifyService>();
+            var optFixData = await service.GetFixDataAsync(document, context.Span, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+            if (optFixData is null)
+                return;
+
+            var fixData = optFixData.Value;
+            if (fixData.IndividualFixData.Length == 0)
+                return;
+
+            var codeActions = fixData.IndividualFixData.SelectAsArray(
+                d => CodeAction.Create(
+                    d.Title,
+                    async cancellationToken =>
+                    {
+                        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = sourceText.WithChanges(d.TextChanges);
+                        return document.WithText(newText);
+                    },
+                    d.Title));
+
+            if (codeActions.Length >= 2)
+            {
+                // Wrap the spell actions into a single top level suggestion
+                // so as to not clutter the list.
+                context.RegisterCodeFix(CodeAction.Create(
+                    string.Format(FeaturesResources.Fully_qualify_0, fixData.Name),
+                    codeActions,
+                    isInlinable: true), context.Diagnostics);
+            }
+            else
+            {
+                context.RegisterFixes(codeActions, context.Diagnostics);
+            }
+        }
     }
 }
