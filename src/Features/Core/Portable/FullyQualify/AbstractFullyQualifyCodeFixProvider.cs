@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
             if (codeActions.Length >= 2)
             {
-                // Wrap the spell actions into a single top level suggestion
-                // so as to not clutter the list.
+                // Wrap the actions into a single top level suggestion so as to not clutter the list.
                 context.RegisterCodeFix(CodeAction.Create(
                     string.Format(FeaturesResources.Fully_qualify_0, fixData.Name),
                     codeActions,
