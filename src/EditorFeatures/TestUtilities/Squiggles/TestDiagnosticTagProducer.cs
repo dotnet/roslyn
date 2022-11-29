@@ -32,24 +32,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
+        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs, DiagnosticKind diagnosticKind)
         {
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             var source = new TestDiagnosticUpdateSource(globalOptions);
 
             using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
 
-            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(firstDocument.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
 
             var analyzerServer = (MockDiagnosticAnalyzerService)workspace.GetService<IDiagnosticAnalyzerService>();
-            analyzerServer.Diagnostics = updateArgs.GetAllDiagnosticsRegardlessOfPushPullSetting();
+            analyzerServer.AddDiagnostics(updateArgs.GetAllDiagnosticsRegardlessOfPushPullSetting(), diagnosticKind);
 
             source.RaiseDiagnosticsUpdated(updateArgs);
 
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
             return spans;

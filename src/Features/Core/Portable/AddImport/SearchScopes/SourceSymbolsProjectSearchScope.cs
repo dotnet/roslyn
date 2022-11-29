@@ -52,16 +52,16 @@ namespace Microsoft.CodeAnalysis.AddImport
                     searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
 
                 return declarations;
-            }
 
-            private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
-            {
-                return new AsyncLazy<IAssemblySymbol>(
-                    async c =>
-                    {
-                        var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
-                        return compilation.Assembly;
-                    }, cacheResult: true);
+                static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
+                {
+                    return new AsyncLazy<IAssemblySymbol>(
+                        async c =>
+                        {
+                            var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
+                            return compilation.Assembly;
+                        }, cacheResult: true);
+                }
             }
         }
     }
