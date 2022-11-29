@@ -1587,8 +1587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (FallBackOnDiscard(identifier, diagnostics))
                     {
-                        // Cannot escape out of the current expression, as it's a compiler-synthesized location.
-                        expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
+                        // ValEscape is the same as for an uninitialized local
+                        expression = new BoundDiscardExpression(node, Binder.CallingMethodScope, type: null);
                     }
                 }
 

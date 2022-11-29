@@ -853,8 +853,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            // Cannot escape out of the current expression, as it's a compiler-synthesized location.
-            return new BoundDiscardExpression(syntax, LocalScopeDepth, declTypeWithAnnotations.Type);
+            // ValEscape is the same as for an uninitialized local
+            return new BoundDiscardExpression(syntax, Binder.CallingMethodScope, declTypeWithAnnotations.Type); // PROTOTYPE: Since ValEscape is always CallingMethodScope, can we just remove the property?
         }
 
         /// <summary>
