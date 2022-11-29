@@ -13180,7 +13180,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaDefaultDisardParameter_DelegateConversion_DefaultValueMismatch()
+        public void LambdaDefaultDiscardParameter_DelegateConversion_DefaultValueMismatch()
         {
             var source = """
 using System;
@@ -13227,6 +13227,18 @@ class Program
                 // (12,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
                 //         Console.WriteLine(d(4));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void Lambda_DiscardParameters()
+        {
+            var source = """
+                var lam1 = (string _, int _ = 1) => { };
+                lam1("s", 2);
+                var lam2 = (string _, params int[] _) => { };
+                lam2("s", 3, 4, 5);
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -13337,6 +13349,11 @@ class Program
         [InlineData("char", "'a'", "a")]
         [InlineData("string", @"""a string""", "a string")]
         [InlineData("C", "null", "")]
+        [InlineData("C", "default(C)", "")]
+        [InlineData("C", "default", "")]
+        [InlineData("S", "new S()", "Program+S")]
+        [InlineData("S", "default(S)", "Program+S")]
+        [InlineData("S", "default", "Program+S")]
         public void LambdaDefaultParameter_AllConstantValueTypes(string parameterType, string defaultValue = "0", string expectedOutput = "0")
         {
             var source = $$"""
@@ -13349,6 +13366,8 @@ public class Program
     }
     
     class C {}
+
+    struct S {}
 
     public static void Main()
     {
@@ -13381,7 +13400,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(1, 18));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultParameter_TargetTypedValidNonLiteralConversion()
         {
             var source = """
@@ -13391,7 +13410,7 @@ public class Program
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultParameter_InterpolatedStringHandler()
         {
             var source = """
@@ -13451,7 +13470,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
         {
             var source = """
@@ -13481,6 +13500,52 @@ class Program
                 // (1,12): error CS0246: The type or namespace name 'ReadOnlySpan<>' could not be found (are you missing a using directive or an assembly reference?)
                 // var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ReadOnlySpan<byte>").WithArguments("ReadOnlySpan<>").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_EmbeddedType_Propagated()
+        {
+            var source1 = """
+                using System.Runtime.InteropServices;
+                [assembly: PrimaryInteropAssembly(0, 0)]
+                [assembly: Guid("863D5BC0-46A1-49AC-97AA-A5F0D441A9DA")]
+                [ComImport, Guid("863D5BC0-46A1-49AD-97AA-A5F0D441A9DA")]
+                public interface MyEmbeddedType { }
+                """;
+            var comp1 = CreateCompilation(source1);
+            var ref1 = comp1.EmitToImageReference(embedInteropTypes: true);
+
+            var source2 = """
+                var l = (MyEmbeddedType t = null) => {};
+                """;
+            var comp2 = CreateCompilation(source2, new[] { ref1 });
+            CompileAndVerify(comp2, symbolValidator: static module =>
+            {
+                Assert.Contains("MyEmbeddedType", module.TypeNames);
+            });
+        }
+
+        [Fact]
+        public void LambdaWithDefault_EmbeddedType_NotPropagated_Default()
+        {
+            var source1 = """
+                using System.Runtime.InteropServices;
+                [assembly: PrimaryInteropAssembly(0, 0)]
+                [assembly: Guid("863D5BC0-46A1-49AC-97AA-A5F0D441A9DA")]
+                [ComImport, Guid("863D5BC0-46A1-49AD-97AA-A5F0D441A9DA")]
+                public interface MyEmbeddedType { }
+                """;
+            var comp1 = CreateCompilation(source1);
+            var ref1 = comp1.EmitToImageReference(embedInteropTypes: true);
+
+            var source2 = """
+                var l = (object o = default(MyEmbeddedType)) => {};
+                """;
+            var comp2 = CreateCompilation(source2, new[] { ref1 });
+            CompileAndVerify(comp2, symbolValidator: static module =>
+            {
+                Assert.DoesNotContain("MyEmbeddedType", module.TypeNames);
+            });
         }
 
         [Fact]
