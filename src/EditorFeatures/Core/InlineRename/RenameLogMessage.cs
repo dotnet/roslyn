@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private const string RenameInComments = nameof(RenameInComments);
         private const string RenameInStrings = nameof(RenameInStrings);
         private const string RenameOverloads = nameof(RenameOverloads);
+        private const string RenameFile = nameof(RenameFile);
 
         private const string Committed = nameof(Committed);
         private const string Canceled = nameof(Canceled);
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 m[RenameInComments] = options.RenameInComments;
                 m[RenameInStrings] = options.RenameInStrings;
                 m[RenameOverloads] = options.RenameOverloads;
+                m[RenameFile] = options.RenameFile;
 
                 m[Committed] = (outcome & UserActionOutcome.Committed) == UserActionOutcome.Committed;
                 m[Canceled] = (outcome & UserActionOutcome.Canceled) == UserActionOutcome.Canceled;
