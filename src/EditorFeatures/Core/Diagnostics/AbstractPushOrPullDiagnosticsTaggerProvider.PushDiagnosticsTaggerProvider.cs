@@ -104,28 +104,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
         protected sealed override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
-            // executed on content which was produced by a source generator but is not yet reflected in an open text
-            // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
-            // triggers a text changed event) to ensure diagnostics are positioned correctly.
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
-                TaggerEventSources.OnTextChanged(subjectBuffer));
-        }
-
-        /// <summary>
-        /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
-        /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides can change it (e.g. unnecessary classifications).
-        /// </summary>
-        /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
-        /// <returns>an array of locations that should have the tag applied.</returns>
-        private ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
-            => _callback.GetLocationsToTag(diagnosticData);
-
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+            => CreateEventSourceWorker(subjectBuffer, _diagnosticService);
 
         protected override Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
@@ -229,7 +209,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                         //    So we'll eventually reach a point where the diagnostics exactly match the
                         //    editorSnapshot.
 
-                        var diagnosticSpans = this.GetLocationsToTag(diagnosticData)
+                        var diagnosticSpans = _callback.GetLocationsToTag(diagnosticData)
                             .Select(location => GetDiagnosticSnapshotSpan(location, diagnosticSnapshot, editorSnapshot, sourceText));
                         foreach (var diagnosticSpan in diagnosticSpans)
                         {

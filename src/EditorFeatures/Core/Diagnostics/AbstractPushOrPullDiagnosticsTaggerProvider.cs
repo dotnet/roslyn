@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -52,6 +54,20 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
     public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         => _underlyingTaggerProvider.CreateTagger<T>(buffer);
+
+    private static ITaggerEventSource CreateEventSourceWorker(ITextBuffer subjectBuffer, IDiagnosticService diagnosticService)
+    {
+        // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
+        // executed on content which was produced by a source generator but is not yet reflected in an open text
+        // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
+        // triggers a text changed event) to ensure diagnostics are positioned correctly.
+        return TaggerEventSources.Compose(
+            TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+            TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
+            TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, diagnosticService),
+            TaggerEventSources.OnTextChanged(subjectBuffer));
+    }
+
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual
     // SingleDiagnosticKindTaggerProvider will defer to these to do the work so that they otherwise operate

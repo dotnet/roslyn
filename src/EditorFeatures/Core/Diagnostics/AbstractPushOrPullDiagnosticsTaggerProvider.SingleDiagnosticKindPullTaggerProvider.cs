@@ -72,17 +72,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             => _callback.TagEquals(tag1, tag2);
 
         protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
-            // executed on content which was produced by a source generator but is not yet reflected in an open text
-            // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
-            // triggers a text changed event) to ensure diagnostics are positioned correctly.
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
-                TaggerEventSources.OnTextChanged(subjectBuffer));
-        }
+            => CreateEventSourceWorker(subjectBuffer, _diagnosticService);
 
         protected sealed override Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
