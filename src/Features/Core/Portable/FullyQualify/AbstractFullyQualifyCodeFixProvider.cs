@@ -67,11 +67,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 if (node == null || !CanFullyQualify(diagnostic, node, out var simpleName))
                     return;
 
-                //var cacheService = project.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
-                //var info = await cacheService.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(project, cancellationToken).ConfigureAwait(false);
-                //if (info is null)
-                //    return;
-
                 var ignoreCase = !syntaxFacts.IsCaseSensitive;
                 syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out var name, out _);
                 var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
@@ -120,13 +115,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 return await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                     project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken).ConfigureAwait(false);
             }
-
-            //static AsyncLazy<IAssemblySymbol> GetLazyAssembly(Project project)
-            //    => new(async cancellationToken =>
-            //    {
-            //        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            //        return compilation.Assembly;
-            //    }, cacheResult: true);
 
             ImmutableArray<SymbolResult> GetTypeSearchResults(
                 SemanticModel semanticModel,
