@@ -8352,9 +8352,9 @@ class Program
                 Report(lam3);
                 """;
             CompileAndVerify(source, expectedOutput: """
-                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0`2[System.Int32[],System.Int32]
                 System.Func`2[System.Int32[],System.Int32]
-                <>f__AnonymousDelegate1
+                <>f__AnonymousDelegate1`3[System.Int32[],System.Int32[],System.Int32]
                 """, symbolValidator: static module =>
                 {
                     var lam1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate0");

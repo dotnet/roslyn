@@ -14364,7 +14364,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 	)
                 	// Fields
                 	.field public static initonly class Program/'<>c' '<>9'
-                	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
+                	.field public static class '<>f__AnonymousDelegate0`2'<int32, int32[]> '<>9__0_0'
                 	// Methods
                 	.method private hidebysig specialname rtspecialname static 
                 		void .cctor () cil managed 
