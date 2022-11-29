@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics = false,
             CodeActionRequestPriority priority = CodeActionRequestPriority.None,
-            DiagnosticKinds diagnosticKinds = DiagnosticKinds.All,
+            DiagnosticKind diagnosticKinds = DiagnosticKind.All,
             CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,
             Func<string, IDisposable?>? addOperationScope,
-            DiagnosticKinds diagnosticKinds,
+            DiagnosticKind diagnosticKinds,
             CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
