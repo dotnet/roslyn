@@ -44,7 +44,8 @@ class 123 { }
 
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
-                Dim miscService = DirectCast(workspace.GetService(Of IDiagnosticAnalyzerService), DiagnosticAnalyzerService)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
+                Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
