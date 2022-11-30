@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnType
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQualify
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FixIncorrectFunctionReturnType
     <Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
     Public Class FixIncorrectFunctionReturnTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest

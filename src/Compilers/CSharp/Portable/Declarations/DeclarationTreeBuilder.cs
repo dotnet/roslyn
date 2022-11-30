@@ -593,9 +593,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
-            SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
-                SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
-                SingleTypeDeclaration.TypeDeclarationFlags.None;
+            var declFlags = node.AttributeLists.Any()
+                ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes
+                : SingleTypeDeclaration.TypeDeclarationFlags.None;
 
             if (node.BaseList != null)
             {
@@ -616,6 +616,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is RecordDeclarationSyntax { ParameterList: { } })
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+            }
+
+            // If we have `record class` or `record struct` check that this is supported in the language. Note: we don't
+            // have to do any check for the simple `record` case as the parser itself would never produce such a node
+            // unless the language version was sufficient (since it actually will not produce the node at all on
+            // previous versions).
+            if (node is RecordDeclarationSyntax record &&
+                record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
+            {
+                MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
