@@ -9,24 +9,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticModeExtensions
     {
-        public static DiagnosticMode GetDiagnosticMode(this IGlobalOptionService globalOptions)
+        public static DiagnosticMode GetDiagnosticMode(this IGlobalOptionService globalOptions, Option2<DiagnosticMode>? option = null)
         {
-            var diagnosticModeOption = globalOptions.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            option ??= InternalDiagnosticsOptions.NormalDiagnosticMode;
+            var diagnosticModeOption = globalOptions.GetOption(option);
 
             // If the workspace diagnostic mode is set to Default, defer to the feature flag service.
-            if (diagnosticModeOption == DiagnosticMode.Default)
-            {
-                return globalOptions.GetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag) ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush;
-            }
-
-            // Otherwise, defer to the workspace+option to determine what mode we're in.
-            return diagnosticModeOption;
+            return diagnosticModeOption == DiagnosticMode.Default
+                ? globalOptions.GetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag) ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush
+                : diagnosticModeOption;
         }
 
-        public static bool IsLspPullDiagnostics(this IGlobalOptionService globalOptions)
-            => GetDiagnosticMode(globalOptions) == DiagnosticMode.LspPull;
+        public static bool IsLspPullDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode>? option = null)
+            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.LspPull;
 
-        public static bool IsSolutionCrawlerPushDiagnostics(this IGlobalOptionService globalOptions)
-            => GetDiagnosticMode(globalOptions) == DiagnosticMode.SolutionCrawlerPush;
+        public static bool IsSolutionCrawlerPushDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode>? option = null)
+            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.SolutionCrawlerPush;
     }
 }

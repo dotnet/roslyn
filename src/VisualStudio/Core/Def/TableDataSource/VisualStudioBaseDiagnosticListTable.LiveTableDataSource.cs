@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     // if we're in lsp mode we never respond to any diagnostics we hear about, lsp client is fully
                     // responsible for populating the error list.
-                    var diagnostics = GlobalOptions.IsLspPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode)
+                    var diagnostics = GlobalOptions.IsLspPullDiagnostics()
                         ? ImmutableArray<DiagnosticData>.Empty
                         : e.Diagnostics;
 
