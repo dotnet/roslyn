@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static arg => GetDiagnosticUpdatedMessage(arg.globalOptions, arg.e), (globalOptions: GlobalOptions, e), CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static e => GetDiagnosticUpdatedMessage(e), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
@@ -319,9 +319,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
+                    // If we're in lsp pull mode then lsp client owns the error list.
                     var diagnosticMode = _globalOptions.GetDiagnosticMode();
+                    if (diagnosticMode == DiagnosticMode.LspPull)
+                        return ImmutableArray<DiagnosticTableItem>.Empty;
+
                     var provider = _source._diagnosticService;
-                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, diagnosticMode, cancellationToken: CancellationToken.None)
+                    var items = provider.GetDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, CancellationToken.None)
                         .AsTask()
                         .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
                                         .Where(ShouldInclude)
