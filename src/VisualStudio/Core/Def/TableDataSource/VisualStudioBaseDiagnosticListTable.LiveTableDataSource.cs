@@ -206,7 +206,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return;
                     }
 
-                    var diagnostics = e.GetSolutionCrawlerPushDiagnostics(GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    // if we're in lsp mode we never respond to any diagnostics we hear about, lsp client is fully
+                    // responsible for populating the error list.
+                    var diagnostics = GlobalOptions.IsLspPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode)
+                        ? ImmutableArray<DiagnosticData>.Empty
+                        : e.Diagnostics;
+
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
