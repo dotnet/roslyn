@@ -221,7 +221,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _parameter = parameter
             End Sub
 
-
             Public Overrides Function InferTypeAndPropagateHints() As Boolean
                 Dim numberOfIncomingEdges As Integer = IncomingEdges.Count
                 Dim restartAlgorithm As Boolean = False
@@ -259,7 +258,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
                 Next
-
 
                 If numberOfIncomingEdges > 0 AndAlso numberOfIncomingEdges = numberOfIncomingWithNothing Then
                     '  !! Inference has failed: All incoming type hints, were based on 'Nothing' 
@@ -353,7 +351,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return restartAlgorithm
             End Function
 
-
             Public Sub AddTypeHint(
                 type As TypeSymbol,
                 typeByAssumption As Boolean,
@@ -408,7 +405,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
         End Class
-
 
         Private Class ArgumentNode
             Inherits InferenceNode
@@ -591,7 +587,6 @@ HandleAsAGeneralExpression:
                             inferenceRestrictions)
                 End Select
 
-
                 If Not inferenceOk Then
                     '  !! Inference has failed. Mismatch of Argument and Parameter signature, so could not find type hints.
                     Graph.MarkInferenceFailure()
@@ -606,7 +601,6 @@ HandleAsAGeneralExpression:
                 Return False ' // Don't restart the algorithm;
             End Function
         End Class
-
 
         Private Class InferenceGraph
             Inherits Graph(Of InferenceNode)
@@ -701,7 +695,6 @@ HandleAsAGeneralExpression:
                     _typeInferenceLevel = typeInferenceLevel
                 End If
             End Sub
-
 
             Public Shared Function Infer(
                 candidate As MethodSymbol,
@@ -846,7 +839,6 @@ HandleAsAGeneralExpression:
 
                     Exit Do
                 Loop
-
 
                 'The commented code below is from Dev10, but it looks like
                 'it doesn't do anything useful because topoSortedGraph contains
@@ -1284,8 +1276,6 @@ HandleAsAGeneralExpression:
                 Return True
             End Function
 
-
-
             Public Sub RegisterTypeParameterHint(
                 genericParameter As TypeParameterSymbol,
                 inferredType As TypeSymbol,
@@ -1301,7 +1291,6 @@ HandleAsAGeneralExpression:
                     typeNode.AddTypeHint(inferredType, inferredTypeByAssumption, argumentLocation, parameter, inferredFromObject, inferenceRestrictions)
                 End If
             End Sub
-
 
             Private Function RefersToGenericParameterToInferArgumentFor(
                 parameterType As TypeSymbol
@@ -1404,7 +1393,6 @@ HandleAsAGeneralExpression:
                     Return True
                 End If
 
-
                 Dim parameterElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
                 Dim argumentElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
 
@@ -1452,7 +1440,6 @@ HandleAsAGeneralExpression:
                                 Do
 
                                     For typeArgumentIndex As Integer = 0 To parameterTypeAsNamedType.Arity - 1 Step 1
-
 
                                         ' The following code is subtle. Let's recap what's going on...
                                         ' We've so far encountered some context, e.g. "_" or "ICovariant(_)"
@@ -1598,7 +1585,6 @@ HandleAsAGeneralExpression:
                 Return True
             End Function
 
-
             ' Given an argument type, a parameter type, and a set of (possibly unbound) type arguments
             ' to a generic method, infer type arguments corresponding to type parameters that occur
             ' in the parameter type.
@@ -1653,7 +1639,6 @@ HandleAsAGeneralExpression:
                     ' argument was something unmatchable, e.g. an AddressOf.
                     Return False
                 End If
-
 
                 ' If we didn't find a direct match, we will have to look in base classes for a match.
                 ' We'll either fix ParameterType and look amongst the bases of ArgumentType,

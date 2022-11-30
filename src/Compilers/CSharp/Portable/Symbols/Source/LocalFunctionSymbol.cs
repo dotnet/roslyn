@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LocalFunctionSymbol : SourceMethodSymbolWithAttributes
+    internal sealed class LocalFunctionSymbol : LocalFunctionOrSourceMemberMethodSymbol
     {
         private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
         private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
         private TypeWithAnnotations.Boxed? _lazyReturnType;
-        private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol containingSymbol,
             LocalFunctionStatementSyntax syntax)
-            : base(syntax.GetReference())
+            : base(syntax.GetReference(), isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             Debug.Assert(containingSymbol.DeclaringCompilation == binder.Compilation);
             _containingSymbol = containingSymbol;
@@ -47,11 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationModifiers =
                 DeclarationModifiers.Private |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics.DiagnosticBag);
-
-            if (SyntaxFacts.HasYieldOperations(syntax.Body))
-            {
-                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
-            }
 
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
 
@@ -312,21 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
             }
         }
-
-        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
-        {
-            get
-            {
-                return _lazyIteratorElementType?.Value ?? default;
-            }
-            set
-            {
-                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || (_lazyIteratorElementType is object && TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2)));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
-            }
-        }
-
-        internal override bool IsIterator => _lazyIteratorElementType is object;
 
         public override MethodKind MethodKind => MethodKind.LocalFunction;
 

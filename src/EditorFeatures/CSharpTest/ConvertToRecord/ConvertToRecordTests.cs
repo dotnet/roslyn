@@ -4738,8 +4738,8 @@ namespace N
 
         private class TestAnalyzer : DiagnosticAnalyzer
         {
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-                ImmutableArray.Create(new DiagnosticDescriptor(
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => ImmutableArray.Create(new DiagnosticDescriptor(
                     "CS8865",
                     "Only records may inherit from records.",
                     "Only records may inherit from records.",

@@ -73,13 +73,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override System.Reflection.MethodImplAttributes MethodImplementationFlags => _constructedFrom.MethodImplementationFlags;
 
-        public override IMethodSymbol OverriddenMethod =>
+        public override IMethodSymbol OverriddenMethod
                 // TODO(cyrusn): Construct this.
-                _constructedFrom.OverriddenMethod;
+                => _constructedFrom.OverriddenMethod;
 
-        public override IMethodSymbol ReducedFrom =>
+        public override IMethodSymbol ReducedFrom
                 // TODO(cyrusn): Construct this.
-                _constructedFrom.ReducedFrom;
+                => _constructedFrom.ReducedFrom;
 
         public override ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
             => throw new System.InvalidOperationException();
@@ -90,17 +90,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return null;
         }
 
-        public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations =>
+        public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
                 // TODO(cyrusn): Construct this.
-                _constructedFrom.ExplicitInterfaceImplementations;
+                => _constructedFrom.ExplicitInterfaceImplementations;
 
-        public override IMethodSymbol PartialDefinitionPart =>
+        public override IMethodSymbol PartialDefinitionPart
                 // TODO(cyrusn): Construct this.
-                _constructedFrom.PartialDefinitionPart;
+                => _constructedFrom.PartialDefinitionPart;
 
-        public override IMethodSymbol PartialImplementationPart =>
+        public override IMethodSymbol PartialImplementationPart
                 // TODO(cyrusn): Construct this.
-                _constructedFrom.PartialImplementationPart;
+                => _constructedFrom.PartialImplementationPart;
 
         public override bool IsPartialDefinition => _constructedFrom.IsPartialDefinition;
 

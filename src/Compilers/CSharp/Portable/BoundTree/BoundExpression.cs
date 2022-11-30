@@ -192,6 +192,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
+    internal partial class BoundCapturedReceiverPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference
+        {
+            get
+            {
+                Debug.Assert(false); // Getting here is unexpected.
+                return false;
+            }
+        }
+    }
+
     internal partial class BoundThisReference
     {
         public sealed override bool IsEquivalentToThisReference => true;

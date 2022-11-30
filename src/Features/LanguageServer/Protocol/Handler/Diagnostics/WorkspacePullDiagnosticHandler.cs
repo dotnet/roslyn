@@ -20,28 +20,30 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
-    internal sealed partial class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
+    internal sealed partial class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>
     {
         public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource, IGlobalOptionService globalOptions)
             : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
         {
         }
 
-        protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-            => new VSInternalWorkspaceDiagnosticReport
-            {
-                TextDocument = identifier,
-                Diagnostics = diagnostics,
-                ResultId = resultId,
-                // Mark these diagnostics as having come from us.  They will be superseded by any diagnostics for the
-                // same file produced by the DocumentPullDiagnosticHandler.
-                Identifier = WorkspaceDiagnosticIdentifier,
+        protected override VSInternalWorkspaceDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
+            => new[] {
+                new VSInternalWorkspaceDiagnosticReport
+                {
+                    TextDocument = identifier,
+                    Diagnostics = diagnostics,
+                    ResultId = resultId,
+                    // Mark these diagnostics as having come from us.  They will be superseded by any diagnostics for the
+                    // same file produced by the DocumentPullDiagnosticHandler.
+                    Identifier = WorkspaceDiagnosticIdentifier,
+                }
             };
 
-        protected override VSInternalWorkspaceDiagnosticReport CreateRemovedReport(TextDocumentIdentifier identifier)
+        protected override VSInternalWorkspaceDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
             => CreateReport(identifier, diagnostics: null, resultId: null);
 
-        protected override VSInternalWorkspaceDiagnosticReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+        protected override VSInternalWorkspaceDiagnosticReport[] CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
             => CreateReport(identifier, diagnostics: null, resultId);
 
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
@@ -57,9 +59,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
             => GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
 
-        protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport> progress)
+        protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
         {
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
 
                 // If all features are enabled for source generated documents, then compute todo-comments/diagnostics for them.
-                if (solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
+                if (solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true)
                 {
                     var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                     documents = documents.AddRange(sourceGeneratedDocuments);

@@ -536,11 +536,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
         // ISyntaxFacts should have a GetPartsOfXXX helper instead, and GetXXXOfYYY should be built off of that
         // inside ISyntaxFactsExtensions
 
+        SyntaxNode GetArgumentListOfImplicitElementAccess(SyntaxNode node);
+
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfRefExpression(SyntaxNode node);
         SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node);
+        SyntaxNode? GetExpressionOfThrowStatement(SyntaxNode node);
 
         bool IsEqualsValueOfPropertyDeclaration([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node);

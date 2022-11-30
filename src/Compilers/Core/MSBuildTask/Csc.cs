@@ -318,7 +318,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // See if there was an "Alias" attribute on the reference.
                 string aliasString = reference.GetMetadata("Aliases");
 
-
                 string switchName = "/reference:";
                 if (!isInteractive)
                 {

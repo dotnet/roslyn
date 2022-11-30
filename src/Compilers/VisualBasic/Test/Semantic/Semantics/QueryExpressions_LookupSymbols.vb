@@ -1069,7 +1069,6 @@ End Module
 
         End Sub
 
-
         <Fact>
         Public Sub Join_Lookup()
             Dim compilation = CreateCompilationWithMscorlib40(

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -52,6 +53,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         [DataMember(Order = 7)]
         public readonly ImmutableArray<TextSpan> NameMatchSpans;
 
+        [DataMember(Order = 8)]
+        public readonly ImmutableArray<PatternMatch> Matches;
+
         public RoslynNavigateToItem(
             bool isStale,
             DocumentId documentId,
@@ -60,7 +64,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string kind,
             NavigateToMatchKind matchKind,
             bool isCaseSensitive,
-            ImmutableArray<TextSpan> nameMatchSpans)
+            ImmutableArray<TextSpan> nameMatchSpans,
+            ImmutableArray<PatternMatch> matches)
         {
             IsStale = isStale;
             DocumentId = documentId;
@@ -70,9 +75,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             MatchKind = matchKind;
             IsCaseSensitive = isCaseSensitive;
             NameMatchSpans = nameMatchSpans;
+            Matches = matches;
         }
 
-        public async ValueTask<INavigateToSearchResult?> TryCreateSearchResultAsync(
+        public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(
             Solution solution, Document? activeDocument, CancellationToken cancellationToken)
         {
             if (IsStale)
@@ -278,6 +284,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string? INavigateToSearchResult.Summary => null;
 
             INavigableItem INavigateToSearchResult.NavigableItem => this;
+
+            ImmutableArray<PatternMatch> INavigateToSearchResult.Matches => _item.Matches;
 
             #region INavigableItem
 

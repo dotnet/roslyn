@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild RemoveRedundantNullableDirective = /*IDE0240*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveUnnecessaryNullableDirective = /*IDE0241*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild MakeStructReadOnly = /*IDE0250*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UsePatternMatchingAsAndMemberAccess = /*IDE0260*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCoalesceExpressionForIfNullCheck = /*IDE0270*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
@@ -107,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ConsecutiveBracePlacement = /*IDE2002*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConsecutiveStatementPlacement = /*IDE2003*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConstructorInitializerPlacement = /*IDE2004*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ConditionalExpressionPlacement = /*IDE2005*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ArrowExpressionClausePlacement = /*IDE2006*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Json = /*JSON001*/ EnforceOnBuild.WhenExplicitlyEnabled;

@@ -20,7 +20,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
-        where TDiagnosticsParams : IPartialResultParams<TReport[]>
+        where TDiagnosticsParams : IPartialResultParams<TReport>
     {
         public AbstractDocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
     /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
-    internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
+    internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
+        where TDiagnosticsParams : IPartialResultParams<TReport>
     {
         /// <summary>
         /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
@@ -168,12 +169,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(
-                        context, diagnosticSource, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false));
+                    await ComputeAndReportCurrentDiagnosticsAsync(
+                        context, diagnosticSource, progress, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.GetDocumentIdentifier().Uri} in {diagnosticSource.GetProject().Name}");
+                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.ToDisplayString()}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
@@ -254,21 +255,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return diagnosticMode;
         }
 
-        private async Task<TReport> ComputeAndReportCurrentDiagnosticsAsync(
+        private async Task ComputeAndReportCurrentDiagnosticsAsync(
             RequestContext context,
             IDiagnosticSource diagnosticSource,
+            BufferedProgress<TReport> progress,
             string resultId,
             ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
             var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
-            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetDocumentIdentifier().Uri} in {diagnosticSource.GetProject().Name}");
+
+            // If we can't get a text document identifier we can't report diagnostics for this source.
+            // This can happen for 'fake' projects (e.g. used for TS script blocks).
+            var documentIdentifier = diagnosticSource.GetDocumentIdentifier();
+            if (documentIdentifier == null)
+            {
+                // We are not expecting to get any diagnostics for sources that don't have a path.
+                Contract.ThrowIfFalse(diagnostics.IsEmpty);
+                return;
+            }
+
+            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
 
             foreach (var diagnostic in diagnostics)
                 result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-            return CreateReport(diagnosticSource.GetDocumentIdentifier(), result.ToArray(), resultId);
+            var report = CreateReport(documentIdentifier, result.ToArray(), resultId);
+            progress.Report(report);
         }
 
         private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)
@@ -287,6 +301,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
+            // VSCode throws on hidden diagnostics without a message (all hint diagnostic messages are rendered on hover).
+            // Roslyn creates these for example in remove unnecessary imports, see RemoveUnnecessaryImportsConstants.DiagnosticFixableId.
+            // TODO - We should probably not be creating these as separate diagnostics or have a 'really really' hidden tag.
+            if (!capabilities.HasVisualStudioLspCapability() && string.IsNullOrEmpty(diagnosticData.Message) && diagnosticData.Severity == DiagnosticSeverity.Hidden)
+            {
+                return ImmutableArray<LSP.Diagnostic>.Empty;
+            }
+
             var project = diagnosticSource.GetProject();
             var diagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
 
@@ -348,16 +370,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 diagnostic.Range = GetRange(diagnosticData.DataLocation);
 
-                // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
-                // to be merged from separate projects if they have the same code, filepath, range, and message.
-                //
-                // Note: LSP pull diagnostics only operates on unmapped locations.  So the code here and below only accesses OriginalFilePath
-                diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
-                    .GetHashCode().ToString();
-
                 if (capabilities.HasVisualStudioLspCapability())
                 {
                     diagnostic.DiagnosticType = diagnosticData.Category;
+                    diagnostic.ExpandedMessage = diagnosticData.Description;
                     diagnostic.Projects = new[]
                     {
                         new VSDiagnosticProjectInformation
@@ -366,6 +382,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                             ProjectName = project.Name,
                         },
                     };
+
+                    // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
+                    // to be merged from separate projects if they have the same code, filepath, range, and message.
+                    //
+                    // Note: LSP pull diagnostics only operates on unmapped locations.
+                    diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
+                        .GetHashCode().ToString();
                 }
 
                 return diagnostic;

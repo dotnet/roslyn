@@ -373,13 +373,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
-        private static bool IsContainerNode(SyntaxNode container) =>
-            container is CompilationUnitSyntax or
+        private static bool IsContainerNode(SyntaxNode container)
+            => container is CompilationUnitSyntax or
             BaseNamespaceDeclarationSyntax or
             BaseTypeDeclarationSyntax;
 
-        private static bool IsNamespaceOrTypeDeclaration(SyntaxNode node) =>
-            node is BaseNamespaceDeclarationSyntax or
+        private static bool IsNamespaceOrTypeDeclaration(SyntaxNode node)
+            => node is BaseNamespaceDeclarationSyntax or
             BaseTypeDeclarationSyntax or
             DelegateDeclarationSyntax;
 
@@ -794,7 +794,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         public override string? GetUnescapedName(string? name)
         {
             return name != null && name.Length > 1 && name[0] == '@'
-                ? name.Substring(1)
+                ? name[1..]
                 : name;
         }
 
@@ -1371,7 +1371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var line = lines[i].TrimStart();
                 if (line.StartsWith("///", StringComparison.Ordinal))
                 {
-                    line = line.Substring(3);
+                    line = line[3..];
                 }
 
                 if (line.Length > 0)
@@ -1387,7 +1387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var line = lines[i];
                 if (line.Length > lengthToStrip)
                 {
-                    lines[i] = line.Substring(lengthToStrip);
+                    lines[i] = line[lengthToStrip..];
                 }
             }
 

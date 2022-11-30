@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return string.Join(Environment.NewLine, stackFrameLines);
         }
 
-        private static bool ShouldShowFrame(Type declaringType) =>
-            !(declaringType != null && typeof(INotifyCompletion).IsAssignableFrom(declaringType));
+        private static bool ShouldShowFrame(Type declaringType)
+            => !(declaringType != null && typeof(INotifyCompletion).IsAssignableFrom(declaringType));
 
         private static string FormatFrame(MethodBase method, Type declaringType)
         {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 var end = fullName.LastIndexOf('>');
                 if (start >= 0 && end >= 0)
                 {
-                    stringBuilder.Append(fullName.Remove(start, 1).Substring(0, end - 1));
+                    stringBuilder.Append(fullName.Remove(start, 1)[..(end - 1)]);
                 }
                 else
                 {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             stringBuilder.Append("[" + string.Join(",", genericTypeArguments.Select(args => args.Name)) + "]");
         }
 
-        private static void FormatParameters(StringBuilder stringBuilder, MethodBase method) =>
-            stringBuilder.Append(string.Join(",", method?.GetParameters().Select(t => (t.ParameterType?.Name ?? "<UnknownType>") + " " + t.Name) ?? Array.Empty<string>()));
+        private static void FormatParameters(StringBuilder stringBuilder, MethodBase method)
+            => stringBuilder.Append(string.Join(",", method?.GetParameters().Select(t => (t.ParameterType?.Name ?? "<UnknownType>") + " " + t.Name) ?? Array.Empty<string>()));
     }
 }

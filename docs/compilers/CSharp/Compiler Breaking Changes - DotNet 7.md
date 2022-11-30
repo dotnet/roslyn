@@ -1,5 +1,76 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Inferred delegate type for methods includes default parameter values and `params` modifier
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+In .NET SDK 7.0.100 or earlier, delegate types inferred from methods ignored default parameter values and `params` modifiers
+as demonstrated in the following code:
+
+```csharp
+void Method(int i = 0, params int[] xs) { }
+var action = Method; // System.Action<int, int[]>
+DoAction(action, 1); // ok
+void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
+```
+
+In .NET SDK 7.0.200 or later, such methods are inferred as anonymous synthesized delegate types
+with the same default parameter values and `params` modifiers.
+This change can break the code above as demonstrated below:
+
+```csharp
+void Method(int i = 0, params int[] xs) { }
+var action = Method; // delegate void <anonymous delegate>(int arg1 = 0, params int[] arg2)
+DoAction(action, 1); // error CS1503: Argument 1: cannot convert from '<anonymous delegate>' to 'System.Action<int, int[]>'
+void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
+```
+
+You can learn more about this change in the associated [proposal](https://github.com/dotnet/csharplang/blob/main/proposals/lambda-method-group-defaults.md#breaking-change).
+
+## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+For the purpose of definite assignment analysis, invocations of an async local function is
+no longer treated as being awaited and, therefore, the local function is not considered to
+be fully executed. See https://github.com/dotnet/roslyn/issues/43697 for the rationale.
+
+The code below is now going to report a definite assignment error:
+```csharp
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a); // error CS0165: Use of unassigned local variable 'a'  
+
+        async Task M1()
+        {
+            if ("" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+```
+
+## `INoneOperation` nodes for attributes are now `IAttributeOperation` nodes.
+
+***Introduced in Visual Studio 2022 version 17.5, .NET SDK version 7.0.200***
+
+In previous versions of the compiler, the `IOperation` tree for an attribute was rooted with an `INoneOperation` node.
+We have added native support for attributes, which means that the root of the tree is now an `IAttributeOperation`. Some
+analyzers, including older versions of the .NET SDK analyzers, are not expecting this tree shape, and will incorrectly
+warn (or potentially fail to warn) when encountering it. The workarounds for this are:
+
+* Update your analyzer version, if possible. If using the .NET SDK or older versions of Microsoft.CodeAnalysis.FxCopAnalyzers,
+update to Microsoft.CodeAnalysis.NetAnalyzers 7.0.0-preview1.22464.1 or newer.
+* Suppress any false-positives from the analyzers until they can be updated with a version that takes this change into
+account.
+
 ## Type tests for `ref` structs are not supported.
 
 ***Introduced in Visual Studio 2022 version 17.4***
@@ -240,9 +311,9 @@ ref struct R<T>
 
 ## Method ref struct return escape analysis depends on ref escape of ref arguments
 
-***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
 
-With language version C# 11 or later, or with .NET 7.0 or later, the return value of a method invocation that returns a `ref struct` is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref struct` returned from a method invocation, either as a return value or in an `out` parameters, is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
 
 ```csharp
 ref struct R { }

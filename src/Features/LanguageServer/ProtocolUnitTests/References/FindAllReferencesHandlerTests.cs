@@ -95,7 +95,7 @@ class B
             // with the test creating one, and the handler another, we have to unwrap.
             // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual VSInternalReferenceItem
             // so we have to correctly convert the JObject into the expected type.
-            results = progress.GetValues().Select(reference => ((JObject)reference).ToObject<LSP.VSInternalReferenceItem>()).ToArray();
+            results = progress.GetValues().Select(reference => ((JArray)reference).ToObject<LSP.VSInternalReferenceItem[]>()).SelectMany(v => v).ToArray();
 
             Assert.NotNull(results);
             Assert.NotEmpty(results);
@@ -292,8 +292,8 @@ class C
             Assert.Equal(9, textRuns.Count());
         }
 
-        private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress) =>
-            new LSP.ReferenceParams()
+        private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
+            => new LSP.ReferenceParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,

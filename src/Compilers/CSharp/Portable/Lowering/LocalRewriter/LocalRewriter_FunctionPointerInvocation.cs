@@ -21,13 +21,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol functionPointer = node.FunctionPointer.Signature;
             var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
             BoundExpression? discardedReceiver = null;
-            var rewrittenArgs = VisitArguments(
+            ArrayBuilder<LocalSymbol>? temps = null;
+            var rewrittenArgs = VisitArgumentsAndCaptureReceiverIfNeeded(
+                rewrittenReceiver: ref discardedReceiver,
+                captureReceiverForMultipleInvocations: false,
                 node.Arguments,
                 functionPointer,
                 argsToParamsOpt: default,
                 argumentRefKindsOpt: argumentRefKindsOpt,
-                rewrittenReceiver: ref discardedReceiver,
-                temps: out ArrayBuilder<LocalSymbol>? temps);
+                storesOpt: null,
+                ref temps);
+
+            Debug.Assert(discardedReceiver is null);
 
             rewrittenArgs = MakeArguments(
                 node.Syntax,

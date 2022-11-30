@@ -195,7 +195,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         argument = ApplyImplicitConversion(argument.Syntax, objectType, argument, diagnostics)
                     End If
 
-
                     If builder IsNot Nothing Then
                         builder.Add(argument)
                     Else

@@ -1227,7 +1227,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We are explicitly ignoring scenario where the type might be defined in an added module.
             For Each reference As AssemblySymbol In sourceAssembly.SourceModule.GetReferencedAssemblySymbols()
                 Debug.Assert(Not reference.IsMissing)
-                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim candidate As NamedTypeSymbol = reference.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
 
                 If sourceAssembly.IsValidWellKnownType(candidate) AndAlso AssemblySymbol.IsAcceptableMatchForGetTypeByNameAndArity(candidate) Then
                     Return True
