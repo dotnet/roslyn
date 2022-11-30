@@ -178,8 +178,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
                 var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-                var diagnostics = diagnosticService.GetSolutionCrawlerPushDiagnosticBuckets(
-                    workspace, projectId: null, documentId: null, diagnosticMode, cancellationToken: CancellationToken.None);
+
+                // If we're not in Solution-Crawler mode, then don't add any diagnostics to the table.  Instead, the LSP
+                // client will be handling everything.
+                var diagnostics = diagnosticMode != DiagnosticMode.SolutionCrawlerPush
+                    ? ImmutableArray<DiagnosticBucket>.Empty
+                    : diagnosticService.GetDiagnosticBuckets(
+                        workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None);
 
                 foreach (var bucket in diagnostics)
                 {
@@ -538,7 +543,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.GetLspPullDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }

@@ -28,35 +28,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static bool IsSolutionCrawlerPushDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
             => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.SolutionCrawlerPush;
-
-        /// <summary>
-        /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
-        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
-        /// diagnostics in their scenario (or an empty array if not in their scenario).
-        /// </summary>
-        public static ImmutableArray<DiagnosticData> GetLspPullDiagnostics(
-            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
-        {
-            // If solution crawler diagnostics are on, they get nothing since they're asking for pull diagnostics.
-            if (globalOptions.IsSolutionCrawlerPushDiagnostics(diagnosticMode))
-                return ImmutableArray<DiagnosticData>.Empty;
-
-            return args.GetAllDiagnosticsRegardlessOfPushPullSetting();
-        }
-
-        /// <summary>
-        /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
-        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
-        /// diagnostics in their scenario (or an empty array if not in their scenario).
-        /// </summary>
-        public static ImmutableArray<DiagnosticData> GetSolutionCrawlerPushDiagnostics(
-            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
-        {
-            // If lsp pull diagnostics are on, they get nothing since they're asking for push diagnostics.
-            if (globalOptions.IsLspPullDiagnostics(diagnosticMode))
-                return ImmutableArray<DiagnosticData>.Empty;
-
-            return args.GetAllDiagnosticsRegardlessOfPushPullSetting();
-        }
     }
 }
