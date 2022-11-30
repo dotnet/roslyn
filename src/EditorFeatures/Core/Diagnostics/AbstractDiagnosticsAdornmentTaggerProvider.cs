@@ -49,10 +49,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new TagSpan<TTag>(adjustedSpan, errorTag);
         }
 
-        // By default, tags must have at least length '1' so that they can be visible in the UI layer.
-        protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span)
-            => AdjustSnapshotSpan(span, minimumLength: 1);
-
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
             => AdjustSnapshotSpan(span, minimumLength, maximumLength: int.MaxValue);
 

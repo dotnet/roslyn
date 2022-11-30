@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected sealed override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
             => new RoslynErrorTag(PredefinedErrorTypeNames.HintedSuggestion, workspace, diagnostic);
 
-        protected sealed override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
+        protected sealed override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {
             // We always want suggestion tags to be two characters long.
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
