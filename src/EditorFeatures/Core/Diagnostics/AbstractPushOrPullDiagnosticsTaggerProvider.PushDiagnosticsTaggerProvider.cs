@@ -36,11 +36,10 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         private readonly IDiagnosticService _diagnosticService;
 
         /// <summary>
-        /// Keep track of the ITextSnapshot for the open Document that was used when diagnostics were
-        /// produced for it.  We need that because the DiagnoticService does not keep track of this
-        /// snapshot (so as to not hold onto a lot of memory), which means when we query it for 
-        /// diagnostics, we don't know how to map the span of the diagnostic to the current snapshot
-        /// we're tagging.
+        /// Keep track of the ITextSnapshot for the open Document that was used when diagnostics were produced for it.
+        /// We need that because the DiagnosticService does not keep track of this snapshot (so as to not hold onto a
+        /// lot of memory), which means when we query it for diagnostics, we don't know how to map the span of the
+        /// diagnostic to the current snapshot we're tagging.
         /// </summary>
         private static readonly ConditionalWeakTable<object, ITextSnapshot> _diagnosticIdToTextSnapshot = new();
 
