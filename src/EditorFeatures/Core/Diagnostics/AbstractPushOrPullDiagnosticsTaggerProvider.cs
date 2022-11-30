@@ -45,6 +45,21 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
     {
         GlobalOptions = globalOptions;
 
+        // We make an up front check if tagging itself is in 'pull' mode (directly using snapshots and calling through
+        // IDiagnosticAnalyzerService) or in 'push' mode (listening to events from IDiagnosticService and trying to map
+        // them to the current document snapshot).  Note that this flag is independent of the flag to determine if LSP
+        // pull diagnostics is on or not.  We support the following combinations:
+        //
+        //  Diagnostic Mode | Tagging Mode | Classification | Squiggles   | Suggestions | Inline Diagnostics
+        //  ------------------------------------------------------------------------------------------------
+        //  Pull            | Pull         | LSP            | LSP         | LSP         | Pull Tagger
+        //  Pull            | Push         | LSP            | LSP         | LSP         | Push Tagger
+        //  Push            | Pull         | Pull Tagger    | Pull Tagger | Pull Tagger | Pull Tagger
+        //  Push            | Push         | Push Tagger    | Push Tagger | Push Tagger | Push Tagger
+        //
+        // Put another way, if DiagnosticMode is 'Push' (non-LSP), then this type does all the work, choosing tagging
+        // pull/push for all features.   If DiagnosticMode is 'pull' (LSP), then LSP takes over classification,
+        // squiggles, and suggestions, while we still handle inline-diagnostics.
         if (globalOptions.GetOption(DiagnosticTaggingOptions.PullDiagnosticTagging))
         {
             _underlyingTaggerProvider = new PullDiagnosticsTaggerProvider(
