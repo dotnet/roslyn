@@ -42,7 +42,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
         if (globalOptions.GetOption(DiagnosticTaggingOptions.PullDiagnosticTagging))
         {
-            _underlyingTaggerProvider = new AggregatePullDiagnosticsTaggerProvider(
+            _underlyingTaggerProvider = new PullDiagnosticsTaggerProvider(
                 this, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
         }
         else

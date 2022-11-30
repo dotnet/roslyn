@@ -18,9 +18,9 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
     /// <summary>
     /// Base type for all taggers that interact with the <see cref="IDiagnosticAnalyzerService"/> and produce tags for the
     /// diagnostics with different UI presentations.  It does no computation work itself, but instead defers that to it's
-    /// underlying <see cref="SingleDiagnosticKindTaggerProvider"/>s.
+    /// underlying <see cref="SingleDiagnosticKindPullTaggerProvider"/>s.
     /// </summary>
-    private sealed partial class AggregatePullDiagnosticsTaggerProvider : ITaggerProvider
+    private sealed partial class PullDiagnosticsTaggerProvider : ITaggerProvider
     {
         /// <summary>
         /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.  The ordering of
@@ -29,7 +29,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         /// </summary>
         private readonly ImmutableArray<SingleDiagnosticKindPullTaggerProvider> _diagnosticsTaggerProviders;
 
-        public AggregatePullDiagnosticsTaggerProvider(
+        public PullDiagnosticsTaggerProvider(
             AbstractPushOrPullDiagnosticsTaggerProvider<TTag> callback,
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag>
 {
-    private sealed partial class AggregatePullDiagnosticsTaggerProvider
+    private sealed partial class PullDiagnosticsTaggerProvider
     {
         /// <summary>
         /// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as

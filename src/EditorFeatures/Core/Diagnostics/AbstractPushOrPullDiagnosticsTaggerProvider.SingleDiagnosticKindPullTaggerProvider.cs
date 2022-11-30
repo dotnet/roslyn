@@ -30,8 +30,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
     /// <summary>
     /// Low level tagger responsible for producing specific diagnostics tags for some feature for some particular <see
     /// cref="DiagnosticKind"/>.  It is itself never exported directly, but it it is used by the <see
-    /// cref="AggregatePullDiagnosticsTaggerProvider"/> which aggregates its results and the results for all the
-    /// other <see cref="DiagnosticKind"/> to produce all the diagnostics for that feature.
+    /// cref="PullDiagnosticsTaggerProvider"/> which aggregates its results and the results for all the other <see
+    /// cref="DiagnosticKind"/> to produce all the diagnostics for that feature.
     /// </summary>
     private sealed class SingleDiagnosticKindPullTaggerProvider : AsynchronousTaggerProvider<TTag>
     {
