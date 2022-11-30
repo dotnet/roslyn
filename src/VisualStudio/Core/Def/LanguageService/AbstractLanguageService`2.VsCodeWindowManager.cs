@@ -236,6 +236,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // that ReleaseOutline will be called on the old window before GetOutline is called for the new window. 
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
             {
+                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsMetadata.EnableDocumentOutline);
+                if (!enabled)
+                {
+                    phwnd = default;
+                    ppCmdTarget = null;
+                    return VSConstants.S_OK;
+                }
+
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
@@ -267,6 +275,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
             {
+                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsMetadata.EnableDocumentOutline);
+                if (!enabled)
+                {
+                    return VSConstants.S_OK;
+                }
+
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
