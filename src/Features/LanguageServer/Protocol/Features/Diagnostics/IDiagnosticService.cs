@@ -30,7 +30,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
         /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested diagnostics.</param>
-        ValueTask<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(
+        ValueTask<ImmutableArray<DiagnosticData>> GetLspPullDiagnosticsAsync(
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
+            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Get current diagnostics stored in IDiagnosticUpdateSource.
+        /// </summary>
+        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
+        /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
+        /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
+        /// will return the requested diagnostics.</param>
+        ValueTask<ImmutableArray<DiagnosticData>> GetSolutionCrawlerPushDiagnosticsAsync(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
             DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
@@ -41,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
         /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested buckets.</param>
-        ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(
+        ImmutableArray<DiagnosticBucket> GetLspPullDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId,
             DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
@@ -52,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).  If
         /// the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested buckets.</param>
-        ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(
+        ImmutableArray<DiagnosticBucket> GetSolutionCrawlerPushDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId,
             DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
     }

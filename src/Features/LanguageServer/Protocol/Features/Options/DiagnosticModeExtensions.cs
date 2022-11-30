@@ -16,29 +16,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // If the workspace diagnostic mode is set to Default, defer to the feature flag service.
             if (diagnosticModeOption == DiagnosticMode.Default)
             {
-                return globalOptions.GetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag) ? DiagnosticMode.Pull : DiagnosticMode.Push;
+                return globalOptions.GetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag) ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush;
             }
 
             // Otherwise, defer to the workspace+option to determine what mode we're in.
             return diagnosticModeOption;
         }
 
-        public static bool IsPullDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
-            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.Pull;
+        public static bool IsLspPullDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
+            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.LspPull;
 
-        public static bool IsPushDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
-            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.Push;
+        public static bool IsSolutionCrawlerPushDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
+            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.SolutionCrawlerPush;
 
         /// <summary>
         /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
         /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
-        public static ImmutableArray<DiagnosticData> GetPullDiagnostics(
+        public static ImmutableArray<DiagnosticData> GetLspPullDiagnostics(
             this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
         {
-            // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
-            if (globalOptions.IsPushDiagnostics(diagnosticMode))
+            // If solution crawler diagnostics are on, they get nothing since they're asking for pull diagnostics.
+            if (globalOptions.IsSolutionCrawlerPushDiagnostics(diagnosticMode))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return args.GetAllDiagnosticsRegardlessOfPushPullSetting();
@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
-        public static ImmutableArray<DiagnosticData> GetPushDiagnostics(
+        public static ImmutableArray<DiagnosticData> GetSolutionCrawlerPushDiagnostics(
             this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
         {
-            // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
-            if (globalOptions.IsPullDiagnostics(diagnosticMode))
+            // If lsp pull diagnostics are on, they get nothing since they're asking for push diagnostics.
+            if (globalOptions.IsLspPullDiagnostics(diagnosticMode))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return args.GetAllDiagnosticsRegardlessOfPushPullSetting();

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
-            var result = await _service.GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode), cancellationToken).ConfigureAwait(false);
+            var result = await _service.GetSolutionCrawlerPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode), cancellationToken).ConfigureAwait(false);
             return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
         }
 

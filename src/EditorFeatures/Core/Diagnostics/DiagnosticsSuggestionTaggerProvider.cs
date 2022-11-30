@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
-            // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
-            // lsp client.
-            return mode == DiagnosticMode.Push;
+            // We only support solution crawler push diagnostics.  When lsp pull diagnostics are on, ellipses
+            // suggestions are handled by the lsp client.
+            return mode == DiagnosticMode.SolutionCrawlerPush;
         }
 
         protected sealed override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)

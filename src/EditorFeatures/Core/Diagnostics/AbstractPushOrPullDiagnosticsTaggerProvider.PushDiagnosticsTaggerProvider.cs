@@ -146,35 +146,48 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             // since GetPushDiagnosticBuckets returns nothing with LSP pull diagnostics is on.
             var buckets = diagnosticMode switch
             {
-                DiagnosticMode.Pull => _diagnosticService.GetPullDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
-                DiagnosticMode.Push => _diagnosticService.GetPushDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
+                DiagnosticMode.LspPull => _diagnosticService.GetLspPullDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
+                DiagnosticMode.SolutionCrawlerPush => _diagnosticService.GetSolutionCrawlerPushDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(diagnosticMode),
             };
 
             foreach (var bucket in buckets)
             {
                 await ProduceTagsAsync(
-                    context, spanToTag, workspace, document,
-                    suppressedDiagnosticsSpans, bucket, cancellationToken).ConfigureAwait(false);
+                    context, spanToTag, workspace, document, suppressedDiagnosticsSpans, 
+                    diagnosticMode, bucket, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task ProduceTagsAsync(
-            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
-            Workspace workspace, Document document,
+            TaggerContext<TTag> context,
+            DocumentSnapshotSpan spanToTag,
+            Workspace workspace,
+            Document document,
             NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
-            DiagnosticBucket bucket, CancellationToken cancellationToken)
+            DiagnosticMode mode,
+            DiagnosticBucket bucket,
+            CancellationToken cancellationToken)
         {
             try
             {
                 var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
                 var id = bucket.Id;
-                var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, id,
-                    includeSuppressedDiagnostics: false,
-                    diagnosticMode,
-                    cancellationToken).ConfigureAwait(false);
+                var diagnostics = mode switch
+                {
+                    DiagnosticMode.SolutionCrawlerPush => await _diagnosticService.GetSolutionCrawlerPushDiagnosticsAsync(
+                        workspace, document.Project.Id, document.Id, id,
+                        includeSuppressedDiagnostics: false,
+                        diagnosticMode,
+                        cancellationToken).ConfigureAwait(false),
+                    DiagnosticMode.LspPull => await _diagnosticService.GetLspPullDiagnosticsAsync(
+                        workspace, document.Project.Id, document.Id, id,
+                        includeSuppressedDiagnostics: false,
+                        diagnosticMode,
+                        cancellationToken).ConfigureAwait(false),
+                    _ => throw ExceptionUtilities.UnexpectedValue(diagnosticMode),
+                };
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 

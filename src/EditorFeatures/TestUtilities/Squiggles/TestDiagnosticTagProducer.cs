@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
             {
-                _diagnostics = args.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                _diagnostics = args.GetSolutionCrawlerPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 

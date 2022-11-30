@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
                 var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-                var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
+                var diagnostics = diagnosticService.GetSolutionCrawlerPushDiagnosticBuckets(
                     workspace, projectId: null, documentId: null, diagnosticMode, cancellationToken: CancellationToken.None);
 
                 foreach (var bucket in diagnostics)
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return;
                     }
 
-                    var diagnostics = e.GetPushDiagnostics(GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    var diagnostics = e.GetSolutionCrawlerPushDiagnostics(GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);

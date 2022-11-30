@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             serverCapabilities.ProjectContextProvider = true;
             serverCapabilities.BreakableRangeProvider = true;
 
-            var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var isPullDiagnostics = GlobalOptions.IsLspPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
             if (isPullDiagnostics)
             {
                 serverCapabilities.SupportsDiagnosticRequests = true;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// they will get no diagnostics.  When not enabled we don't show the failure box (failure will still be recorded in the task status center)
         /// as the failure is not catastrophic.
         /// </summary>
-        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsLspPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
         public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.AlwaysActiveVSLspServer;
     }
