@@ -536,7 +536,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 #endregion
             }
 
-            private static string GetDiagnosticUpdatedMessage(IGlobalOptionService globalOptions, DiagnosticsUpdatedArgs e)
+            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
                 if (e.Id is LiveDiagnosticUpdateArgsId live)
@@ -548,7 +548,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                var diagnostics = e.GetLspPullDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.Diagnostics;
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }

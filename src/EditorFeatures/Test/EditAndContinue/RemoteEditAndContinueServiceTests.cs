@@ -242,7 +242,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 $"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "some error")}",
                 $"[{projectId}] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "some error")}"
-            }, emitDiagnosticsUpdated.Select(update => Inspect(update.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Single())));
+            }, emitDiagnosticsUpdated.Select(update => Inspect(update.Diagnostics.Single())));
 
             emitDiagnosticsUpdated.Clear();
 
