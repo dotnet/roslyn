@@ -86,7 +86,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             if (!_callback.IsEnabled)
                 return;
 
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var diagnosticMode = GlobalOptions.GetDiagnosticMode();
             if (!_callback.SupportsDiagnosticMode(diagnosticMode))
                 return;
 

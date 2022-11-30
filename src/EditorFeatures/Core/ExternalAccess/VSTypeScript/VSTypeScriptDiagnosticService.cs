@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             // this is the TS entrypoint to get push diagnostics.  Only return diagnostics if we're actually in push-mode.
-            var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var diagnosticMode = _globalOptions.GetDiagnosticMode();
             if (diagnosticMode != DiagnosticMode.SolutionCrawlerPush)
                 return ImmutableArray<VSTypeScriptDiagnosticData>.Empty;
 

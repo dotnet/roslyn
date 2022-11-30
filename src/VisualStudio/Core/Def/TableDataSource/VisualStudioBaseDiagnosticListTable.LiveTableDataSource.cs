@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnosticMode = GlobalOptions.GetDiagnosticMode();
 
                 // If we're not in Solution-Crawler mode, then don't add any diagnostics to the table.  Instead, the LSP
                 // client will be handling everything.
@@ -319,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
-                    var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    var diagnosticMode = _globalOptions.GetDiagnosticMode();
                     var provider = _source._diagnosticService;
                     var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, diagnosticMode, cancellationToken: CancellationToken.None)
                         .AsTask()

@@ -118,7 +118,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             if (!_callback.IsEnabled)
                 return;
 
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var diagnosticMode = GlobalOptions.GetDiagnosticMode();
             if (!_callback.SupportsDiagnosticMode(diagnosticMode))
                 return;
 
@@ -157,7 +157,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         {
             try
             {
-                var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnosticMode = GlobalOptions.GetDiagnosticMode();
 
                 var id = bucket.Id;
                 var diagnostics = await _diagnosticService.GetDiagnosticsAsync(
