@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var readonlyToken = modifiers.FirstOrDefault(static t => t.Kind() == SyntaxKind.ReadOnlyKeyword);
             if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
-                modifierErrors |= MessageID.IDS_FeatureReadOnlyMembers.CheckFeatureAvailability(diagnostics, readonlyToken.Parent, readonlyToken.GetLocation());
+                modifierErrors |= !MessageID.IDS_FeatureReadOnlyMembers.CheckFeatureAvailability(diagnostics, readonlyToken.Parent, readonlyToken.GetLocation());
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
                 result |= defaultAccess;
