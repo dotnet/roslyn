@@ -275,26 +275,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
             {
-                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsMetadata.EnableDocumentOutline);
-                if (!enabled)
-                {
-                    return VSConstants.S_OK;
-                }
-
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
-                // Assert that we are not attempting to double free the Document Outline Control and host.
-                Contract.ThrowIfNull(_documentOutlineViewHost);
-                Contract.ThrowIfNull(_documentOutlineControl);
-
-                _documentOutlineViewHost.SuspendLayout();
-                _documentOutlineControl.Dispose();
-                _documentOutlineControl = null;
-                _documentOutlineViewHost.Child = null;
-                _documentOutlineViewHost.Parent = null;
-                _documentOutlineViewHost.Dispose();
-                _documentOutlineViewHost = null;
+                if (_documentOutlineControl is not null &&
+                    _documentOutlineViewHost is not null)
+                {
+                    _documentOutlineViewHost.SuspendLayout();
+                    _documentOutlineControl.Dispose();
+                    _documentOutlineControl = null;
+                    _documentOutlineViewHost.Child = null;
+                    _documentOutlineViewHost.Parent = null;
+                    _documentOutlineViewHost.Dispose();
+                    _documentOutlineViewHost = null;
+                }
 
                 return VSConstants.S_OK;
             }
