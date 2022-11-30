@@ -1515,20 +1515,6 @@ tryAgain:
             }
         }
 
-        /// <summary>
-        /// checks for modifiers whose feature is not available
-        /// </summary>
-        private void CheckForVersionSpecificModifiers(SyntaxListBuilder modifiers, SyntaxKind kind, MessageID feature)
-        {
-            for (int i = 0, n = modifiers.Count; i < n; i++)
-            {
-                if (modifiers[i].RawKind == (int)kind)
-                {
-                    modifiers[i] = CheckFeatureAvailability(modifiers[i], feature);
-                }
-            }
-        }
-
 #nullable enable
 
         private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
