@@ -4221,7 +4221,6 @@ parse_member_name:;
                 var accAttrs = this.ParseAttributeDeclarations();
                 this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
 
-
                 var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
                     isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
                 var accessorKind = GetAccessorKind(accessorName);
