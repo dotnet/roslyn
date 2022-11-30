@@ -33330,5 +33330,36 @@ public class C5 : I1<C5>
                     );
             }
         }
+
+        [Fact, WorkItem(65685, "https://github.com/dotnet/roslyn/issues/65685")]
+        public void NoDuplicateConversionForImplicitAndExplicit()
+        {
+            CreateCompilation("""
+                interface ISam1<T> where T : ISam1<T>
+                {
+                    static abstract T operator +(T a, T b);
+                    static abstract implicit operator int(T t);
+                }
+
+                interface ISam2<T> where T : ISam2<T>
+                {
+                    static abstract T operator +(T a, T b);
+                    static abstract implicit operator int(T t);
+                }
+
+                class Foo : ISam1<Foo>, ISam2<Foo>
+                {
+                    static Foo ISam1<Foo>.operator +(Foo a, Foo b) => a + b;
+                    static Foo ISam2<Foo>.operator +(Foo a, Foo b) => a + b;
+
+                    public static Foo operator +(Foo a, Foo b) => a;
+
+                    static implicit ISam1<Foo>.operator int(Foo t) => 1;
+                    static implicit ISam2<Foo>.operator int(Foo t) => 2;
+
+                    public static implicit operator int(Foo t) => 42;
+                }
+                """, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics();
+        }
     }
 }
