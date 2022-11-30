@@ -5248,24 +5248,15 @@ tryAgain:
 
                     var equals = this.EatToken();
 
-                    SyntaxToken refKeyword = null;
-                    if (isLocalOrField && !isConst &&
-                        this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                        // check for lambda expression with explicit ref return type: `ref int () => { ... }`
-                        !this.IsPossibleLambdaExpression(Precedence.Expression)
-                        )
-                    {
-                        refKeyword = this.EatToken();
-                        refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
-                    }
+                    // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                    var refKeyword = isLocalOrField && !isConst && this.CurrentToken.Kind == SyntaxKind.RefKeyword && !this.IsPossibleLambdaExpression(Precedence.Expression)
+                        ? this.EatToken()
+                        : null;
 
                     var init = this.ParseVariableInitializer();
-                    if (refKeyword != null)
-                    {
-                        init = _syntaxFactory.RefExpression(refKeyword, init);
-                    }
-
-                    initializer = _syntaxFactory.EqualsValueClause(equals, init);
+                    initializer = _syntaxFactory.EqualsValueClause(
+                        equals,
+                        refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init));
                     break;
 
                 case SyntaxKind.LessThanToken:
