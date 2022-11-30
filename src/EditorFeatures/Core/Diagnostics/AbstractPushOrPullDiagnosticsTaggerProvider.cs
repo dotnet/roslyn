@@ -73,7 +73,6 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             TaggerEventSources.OnTextChanged(subjectBuffer));
     }
 
-
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual
     // SingleDiagnosticKindTaggerProvider will defer to these to do the work so that they otherwise operate
     // identically.
