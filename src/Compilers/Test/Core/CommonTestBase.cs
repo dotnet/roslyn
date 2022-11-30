@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,10 +23,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     [Flags]
-    public enum Verification
+    public enum VerificationStatus
     {
-        Skipped = 0,
-        Passes = 1 << 1,
+        /// <summary>
+        /// default(<see cref="Verification"/>) should be passing.
+        /// </summary>
+        Passes = 0,
+
+        Skipped = 1 << 1,
 
         FailsPEVerify = 1 << 2,
         FailsILVerify = 1 << 3,
@@ -36,6 +38,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         PassesOrFailFast = 1 << 4,
     }
+
+    public readonly record struct Verification(VerificationStatus Status, string? ILVerifyMessage = null, string? PEVerifyMessage = null)
+    {
+        public static readonly Verification Skipped = new(VerificationStatus.Skipped);
+        public static readonly Verification Passes = new(VerificationStatus.Passes);
+        public static readonly Verification FailsPEVerify = new(VerificationStatus.FailsPEVerify);
+        public static readonly Verification FailsILVerify = new(VerificationStatus.FailsILVerify);
+        public static readonly Verification Fails = new(VerificationStatus.Fails);
+        public static readonly Verification PassesOrFailFast = new(VerificationStatus.PassesOrFailFast);
+    }
+
+#nullable disable
 
     /// <summary>
     /// Base class for all language specific tests.
@@ -57,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             Assert.NotNull(compilation);
 

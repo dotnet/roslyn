@@ -15,6 +15,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -311,12 +312,12 @@ namespace Roslyn.Test.Utilities.Desktop
                 return;
             }
 
-            if (verification == Verification.Skipped)
+            if (verification.Status.HasFlag(VerificationStatus.Skipped))
             {
                 return;
             }
 
-            var shouldSucceed = (verification & Verification.FailsPEVerify) == 0;
+            var shouldSucceed = !verification.Status.HasFlag(VerificationStatus.FailsPEVerify);
             var emitData = GetEmitData();
 
             try
@@ -333,6 +334,15 @@ namespace Roslyn.Test.Utilities.Desktop
                 if (shouldSucceed)
                 {
                     throw new Exception("Verification failed", ex);
+                }
+
+                if (verification.PEVerifyMessage != null)
+                {
+                    // remove token values to avoid dependency on on metadata ordering
+                    var actualMessage = Regex.Replace(ex.Output, @"\[mdToken=0x[0-9a-fA-F]+\]", "");
+                    var expectedMessage = Regex.Replace(verification.PEVerifyMessage, @"\[mdToken=0x[0-9a-fA-F]+\]", "");
+
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedMessage, actualMessage);
                 }
             }
         }
