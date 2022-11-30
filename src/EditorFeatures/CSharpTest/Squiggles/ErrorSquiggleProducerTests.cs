@@ -15,8 +15,9 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -279,10 +280,6 @@ class Program
             Assert.True(spans.Count == 0);
         }
 
-        private static readonly TestComposition s_mockComposition = EditorTestCompositions.EditorFeatures
-            .AddExcludedPartTypes(typeof(IDiagnosticAnalyzerService))
-            .AddParts(typeof(MockDiagnosticAnalyzerService));
-
         [WpfFact]
         public async Task BuildErrorZeroLengthSpan()
         {
@@ -297,23 +294,21 @@ class Program
     </Project>
 </Workspace>";
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+            using var workspace = TestWorkspace.Create(workspaceXml);
             var document = workspace.Documents.First();
 
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
-                ImmutableArray.Create(
-                    TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 0)),
-                    TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 1))));
+                    new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
+                    ImmutableArray.Create(
+                        TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                        TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs);
 
-            Assert.Equal(2, spans.Count());
+            Assert.Equal(1, spans.Count());
             var first = spans.First();
-            var second = spans.Last();
 
             Assert.Equal(1, first.Span.Span.Length);
-            Assert.Equal(1, second.Span.Span.Length);
         }
 
         [WpfFact]
@@ -330,14 +325,14 @@ class Program
     </Project>
 </Workspace>";
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+            using var workspace = TestWorkspace.Create(workspaceXml);
             var document = workspace.Documents.First();
 
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
-                ImmutableArray.Create(
-                    TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 0)),
-                    TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 1))));
+                    new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
+                    ImmutableArray.Create(
+                        TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                        TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs);
 
