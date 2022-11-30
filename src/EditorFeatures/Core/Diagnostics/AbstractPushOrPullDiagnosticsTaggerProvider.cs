@@ -23,6 +23,11 @@ internal static class DiagnosticTaggingOptions
         new FeatureFlagStorageLocation("Roslyn.PullDiagnosticTagging"));
 }
 
+/// <summary>
+/// Base type of all diagnostic taggers (classification, squiggles, suggestions, inline-diags).  Subclasses can control
+/// things by overriding functionality in this type.  Internally, this will switch to either a pull or push cased
+/// approach at instantiation time depending on our internal feature flag.
+/// </summary>
 internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag> : ITaggerProvider
     where TTag : ITag
 {
