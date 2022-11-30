@@ -11959,11 +11959,11 @@ tryAgain:
                     {
                         // Looks like a cast, so parse it as one.
                         this.Reset(ref resetPoint);
-                        var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                        var type = this.ParseType();
-                        var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                        var expr = this.ParseSubExpression(Precedence.Cast);
-                        return _syntaxFactory.CastExpression(openParen, type, closeParen, expr);
+                        return _syntaxFactory.CastExpression(
+                            this.EatToken(SyntaxKind.OpenParenToken),
+                            this.ParseType(),
+                            this.EatToken(SyntaxKind.CloseParenToken),
+                            this.ParseSubExpression(Precedence.Cast));
                     }
                 }
 
@@ -11976,22 +11976,26 @@ tryAgain:
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression);
-                        return ParseTupleExpressionTail(openParen, firstArg);
+                        return ParseTupleExpressionTail(
+                            openParen,
+                            _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression));
                     }
 
                     // ( name:
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
-                        var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
-
-                        var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
-                        return ParseTupleExpressionTail(openParen, firstArg);
+                        return ParseTupleExpressionTail(
+                            openParen,
+                             _syntaxFactory.Argument(
+                                 _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken()),
+                                 refKindKeyword: null,
+                                 this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true)));
                     }
 
-                    var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                    return _syntaxFactory.ParenthesizedExpression(openParen, expression, closeParen);
+                    return _syntaxFactory.ParenthesizedExpression(
+                        openParen,
+                        expression,
+                        this.EatToken(SyntaxKind.CloseParenToken));
                 }
             }
             finally
@@ -12007,39 +12011,31 @@ tryAgain:
 
             while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                var comma = this.EatToken(SyntaxKind.CommaToken);
-                list.AddSeparator(comma);
-
-                ArgumentSyntax arg;
+                list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
                 var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
-                if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                {
-                    var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                    expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
-                    arg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
-                }
-                else
-                {
-                    arg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression);
-                }
+                var argument = expression.Kind != SyntaxKind.IdentifierName || this.CurrentToken.Kind != SyntaxKind.ColonToken
+                    ? _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression)
+                    : _syntaxFactory.Argument(
+                        _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken()),
+                        refKindKeyword: null,
+                        ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true));
 
-                list.Add(arg);
+                list.Add(argument);
             }
 
             if (list.Count < 2)
             {
                 list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
-                var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
-                list.Add(_syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: missing));
+                list.Add(_syntaxFactory.Argument(
+                    nameColon: null, refKindKeyword: null,
+                    this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements)));
             }
 
-            var result = _syntaxFactory.TupleExpression(
+            return _syntaxFactory.TupleExpression(
                 openParen,
                 _pool.ToListAndFree(list),
                 this.EatToken(SyntaxKind.CloseParenToken));
-
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
         }
 
         private bool ScanCast(bool forPattern = false)
