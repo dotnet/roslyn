@@ -50,9 +50,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            var clientCapabilities = context.GetRequiredClientCapabilities();
-            Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
-
             var document = context.Document;
             var workspace = context.Workspace;
             Contract.ThrowIfNull(document);
