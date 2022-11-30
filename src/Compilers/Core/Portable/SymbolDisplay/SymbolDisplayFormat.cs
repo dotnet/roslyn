@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
                 compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
 
-        internal static SymbolDisplayFormat CSharpErrorMessageTypeFormat { get; } = CSharpErrorMessageFormat
+        internal static SymbolDisplayFormat CSharpErrorMessageNoParameterNamesFormat { get; } = CSharpErrorMessageFormat
             .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
 
         /// <summary>
