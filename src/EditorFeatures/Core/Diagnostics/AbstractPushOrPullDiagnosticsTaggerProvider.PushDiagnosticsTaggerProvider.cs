@@ -136,26 +136,13 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
-            // This may look confusing, as we are the "PushDiagnosticTaggerProvider" but we're potentially get push vs.
-            // pull diagnostic buckets here.  The reason for this is that the DiagnosticMode being discussed here is
-            // whether or not we're in lsp-pull or push mode, not if tagging is in push/pull.  So, for example, we may
-            // be in LSP pull mode.  In that case, classification/squiggles/suggestions will all be disabled since LSP
-            // takes it over.  However, inline-diagnostics is still running in non-LSP, and it may be in either tagging
-            // push/pull mode.  If it's tagging-push mode, we will reach here, but then call GetPullDiagnosticBuckets
-            // since we're in LSP pull mode.  If it didn't call GetPullDiagnosticBuckets, it would get nothing back
-            // since GetPushDiagnosticBuckets returns nothing with LSP pull diagnostics is on.
-            var buckets = diagnosticMode switch
-            {
-                DiagnosticMode.LspPull => _diagnosticService.GetLspPullDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
-                DiagnosticMode.SolutionCrawlerPush => _diagnosticService.GetSolutionCrawlerPushDiagnosticBuckets(workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken),
-                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticMode),
-            };
+            var buckets = _diagnosticService.GetDiagnosticBuckets(
+                workspace, document.Project.Id, document.Id, cancellationToken);
 
             foreach (var bucket in buckets)
             {
                 await ProduceTagsAsync(
-                    context, spanToTag, workspace, document, suppressedDiagnosticsSpans, 
-                    diagnosticMode, bucket, cancellationToken).ConfigureAwait(false);
+                    context, spanToTag, workspace, document, suppressedDiagnosticsSpans, bucket, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -165,7 +152,6 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             Workspace workspace,
             Document document,
             NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
-            DiagnosticMode mode,
             DiagnosticBucket bucket,
             CancellationToken cancellationToken)
         {
@@ -174,20 +160,10 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                 var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
                 var id = bucket.Id;
-                var diagnostics = mode switch
-                {
-                    DiagnosticMode.SolutionCrawlerPush => await _diagnosticService.GetSolutionCrawlerPushDiagnosticsAsync(
-                        workspace, document.Project.Id, document.Id, id,
-                        includeSuppressedDiagnostics: false,
-                        diagnosticMode,
-                        cancellationToken).ConfigureAwait(false),
-                    DiagnosticMode.LspPull => await _diagnosticService.GetLspPullDiagnosticsAsync(
-                        workspace, document.Project.Id, document.Id, id,
-                        includeSuppressedDiagnostics: false,
-                        diagnosticMode,
-                        cancellationToken).ConfigureAwait(false),
-                    _ => throw ExceptionUtilities.UnexpectedValue(diagnosticMode),
-                };
+                var diagnostics = await _diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, id,
+                    includeSuppressedDiagnostics: false,
+                    cancellationToken).ConfigureAwait(false);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 
