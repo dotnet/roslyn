@@ -190,6 +190,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
+            AssertIfNull(e.Diagnostics);
+
             // all events are serialized by async event handler
             RaiseDiagnosticsUpdated((IDiagnosticUpdateSource)sender, e);
         }
