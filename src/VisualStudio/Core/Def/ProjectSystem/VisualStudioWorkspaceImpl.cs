@@ -51,6 +51,7 @@ using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 using Task = System.Threading.Tasks.Task;
 using Solution = Microsoft.CodeAnalysis.Solution;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -126,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private VirtualMemoryNotificationListener? _memoryListener;
 
         private OpenFileTracker? _openFileTracker;
-        internal FileChangeWatcher FileChangeWatcher { get; }
+        internal IFileChangeWatcher FileChangeWatcher { get; }
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;

@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences
 {
@@ -33,13 +34,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
         /// <summary>
         /// A file change context used to watch metadata references.
         /// </summary>
-        private readonly FileChangeWatcher.IContext _fileReferenceChangeContext;
+        private readonly IFileChangeContext _fileReferenceChangeContext;
 
         /// <summary>
         /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
         /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
         /// </summary>
-        private readonly Dictionary<PortableExecutableReference, FileChangeWatcher.IFileWatchingToken> _metadataReferenceFileWatchingTokens = new();
+        private readonly Dictionary<PortableExecutableReference, IFileWatchingToken> _metadataReferenceFileWatchingTokens = new();
 
         /// <summary>
         /// <see cref="CancellationTokenSource"/>s for in-flight refreshing of metadata references. When we see a file change, we wait a bit before trying to actually
@@ -59,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
             // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
             // watches on individual .dlls that effectively never change.
             var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
-            var referenceAssemblies = new FileChangeWatcher.WatchedDirectory(referenceAssembliesPath, ".dll");
+            var referenceAssemblies = new WatchedDirectory(referenceAssembliesPath, ".dll");
 
             // TODO: set this to watch the NuGet directory as well; there's some concern that watching the entire directory
             // might make restores take longer because we'll be watching changes that may not impact your project.
