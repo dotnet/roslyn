@@ -118,7 +118,6 @@ class Program
             using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             var language = workspace.Projects.Single().Language;
 
-
             workspace.GlobalOptions.SetGlobalOption(
                 new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
