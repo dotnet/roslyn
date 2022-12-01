@@ -29,7 +29,7 @@ internal class VSCodeAnalyzerLoader
 
     public void InitializeDiagnosticsServices(Workspace workspace)
     {
-        _globalOptionService.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.Pull);
+        _globalOptionService.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.LspPull);
         _ = ((IIncrementalAnalyzerProvider)_analyzerService).CreateIncrementalAnalyzer(workspace);
         _diagnosticService.Register((IDiagnosticUpdateSource)_analyzerService);
     }

@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
             var errorLocation = new SourceLocation(firstIdentifier);
-            DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+            DeclarationModifiers result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
                 isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 

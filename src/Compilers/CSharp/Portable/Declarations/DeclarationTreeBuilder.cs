@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
             }
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = GetQuickAttributes(node.AttributeLists);
 
             foreach (var modifier in node.Modifiers)
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableSegmentedDictionary<string, VoidResult> memberNames = GetEnumMemberNames(members, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(

@@ -1450,23 +1450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDeconstruction(node, diagnostics);
             }
 
-            BindValueKind lhsKind;
-            ExpressionSyntax rhsExpr;
-            bool isRef = false;
+            var rhsExpr = node.Right.CheckAndUnwrapRefExpression(diagnostics, out var refKind);
+            var isRef = refKind == RefKind.Ref;
+            var lhsKind = isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable;
 
-            if (node.Right is RefExpressionSyntax refExpression)
-            {
-                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
-
-                isRef = true;
-                lhsKind = BindValueKind.RefAssignable;
-                rhsExpr = refExpression.Expression;
-            }
-            else
-            {
-                lhsKind = BindValueKind.Assignable;
-                rhsExpr = node.Right;
-            }
+            if (isRef)
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right, node.Right.GetFirstToken().GetLocation());
 
             var op1 = BindValue(node.Left, diagnostics, lhsKind);
             ReportSuppressionIfNeeded(op1, diagnostics);

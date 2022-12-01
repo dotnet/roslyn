@@ -275,16 +275,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out RefKind refKind)
         {
-            refKind = RefKind.None;
-            if (syntax?.Kind() == SyntaxKind.RefExpression)
+            if (syntax is not RefExpressionSyntax { Expression: var expression } refExpression)
             {
-                refKind = RefKind.Ref;
-                syntax = ((RefExpressionSyntax)syntax).Expression;
-
-                syntax.CheckDeconstructionCompatibleArgument(diagnostics);
+                refKind = RefKind.None;
+                return syntax;
             }
 
-            return syntax;
+            MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(
+                diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
+
+            refKind = RefKind.Ref;
+            expression.CheckDeconstructionCompatibleArgument(diagnostics);
+            return expression;
         }
 
         internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, BindingDiagnosticBag diagnostics)
