@@ -368,11 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool looksLikeCast()
             {
-                var resetPoint = this.GetResetPoint();
-                bool result = this.ScanCast(forPattern: true);
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-                return result;
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                return this.ScanCast(forPattern: true);
             }
         }
 
