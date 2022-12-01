@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            if (_globalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode))
+            if (_globalOptions.IsLspPullDiagnostics())
             {
                 // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
                 // have happened to the project or closed files outside of VS.
