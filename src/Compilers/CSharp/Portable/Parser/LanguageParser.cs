@@ -11973,10 +11973,10 @@ tryAgain:
                     {
                         return ParseTupleExpressionTail(
                             openParen,
-                             _syntaxFactory.Argument(
-                                 _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken()),
-                                 refKindKeyword: null,
-                                 this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, permitTupleDesignation: true)));
+                            _syntaxFactory.Argument(
+                                _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken()),
+                                refKindKeyword: null,
+                                this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, permitTupleDesignation: true)));
                     }
 
                     return _syntaxFactory.ParenthesizedExpression(
