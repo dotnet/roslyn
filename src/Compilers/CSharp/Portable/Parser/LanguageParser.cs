@@ -9813,25 +9813,18 @@ tryAgain:
 
                     if (this.CurrentToken.Kind is not (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
                     {
-                        var afterScopedResetPoint = this.GetResetPoint();
+                        using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
-                        try
+                        if (ScanType() == ScanTypeFlags.NotType ||
+                            (isFunctionPointerParameter ?
+                                 this.CurrentToken.Kind is not (SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken) :
+                                 this.CurrentToken.Kind != SyntaxKind.IdentifierToken))
                         {
-                            if (ScanType() == ScanTypeFlags.NotType ||
-                                (isFunctionPointerParameter ?
-                                     this.CurrentToken.Kind is not (SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken) :
-                                     this.CurrentToken.Kind != SyntaxKind.IdentifierToken))
-                            {
-                                this.Reset(ref beforeScopedResetPoint);
-                                return null;
-                            }
+                            this.Reset(ref beforeScopedResetPoint);
+                            return null;
+                        }
 
-                            this.Reset(ref afterScopedResetPoint);
-                        }
-                        finally
-                        {
-                            this.Release(ref afterScopedResetPoint);
-                        }
+                        afterScopedResetPoint.Reset();
                     }
 
                     return scopedKeyword;
