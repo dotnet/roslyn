@@ -1169,7 +1169,6 @@ class App{
 #endif
                 ;
 
-
             var comp = CreateCompilation(text, targetFramework: framework,
                     parseOptions: parseOptions, options: compOptions);
             comp.VerifyDiagnostics();
@@ -1272,7 +1271,6 @@ class App{
                 "Before {X} After"
 #endif
                 ;
-
 
             var comp = CreateCompilation(text, targetFramework: framework,
                     parseOptions: parseOptions, options: compOptions);
@@ -3939,7 +3937,6 @@ class MyException : Exception
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp, expectedOutput: @"
 Starting try
 Caught");
-
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -7665,7 +7662,6 @@ literal:text
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) => Console.WriteLine(c.ToString());
                 Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(6, 27)
 
-
             );
 
             verifyIL(verifier);
@@ -8770,17 +8766,17 @@ literal:literal
 {
   // Code size       56 (0x38)
   .maxstack  9
-  .locals init (string V_0,
-                C V_1,
+  .locals init (C V_0,
+                string V_1,
                 int V_2,
                 string V_3,
                 CustomHandler V_4)
   IL_0000:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
   IL_0007:  call       ""string Program.<<Main>$>g__GetString|0_2()""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
   IL_000e:  stloc.3
   IL_000f:  call       ""int Program.<<Main>$>g__GetInt|0_1()""
   IL_0014:  stloc.2
@@ -8789,8 +8785,8 @@ literal:literal
   IL_0017:  ldloca.s   V_4
   IL_0019:  ldc.i4.7
   IL_001a:  ldc.i4.0
-  IL_001b:  ldloc.0
-  IL_001c:  ldloc.1
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.0
   IL_001d:  ldloc.2
   IL_001e:  call       ""CustomHandler..ctor(int, int, string, C, int)""
   IL_0023:  ldloca.s   V_4
@@ -8806,18 +8802,18 @@ literal:literal
 {
   // Code size       65 (0x41)
   .maxstack  9
-  .locals init (string V_0,
-                C V_1,
+  .locals init (C V_0,
+                string V_1,
                 int V_2,
                 string V_3,
                 CustomHandler V_4,
                 bool V_5)
   IL_0000:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
   IL_0007:  call       ""string Program.<<Main>$>g__GetString|0_2()""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
   IL_000e:  stloc.3
   IL_000f:  call       ""int Program.<<Main>$>g__GetInt|0_1()""
   IL_0014:  stloc.2
@@ -8825,8 +8821,8 @@ literal:literal
   IL_0016:  ldloc.3
   IL_0017:  ldc.i4.7
   IL_0018:  ldc.i4.0
-  IL_0019:  ldloc.0
-  IL_001a:  ldloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  ldloc.0
   IL_001b:  ldloc.2
   IL_001c:  ldloca.s   V_5
   IL_001e:  newobj     ""CustomHandler..ctor(int, int, string, C, int, out bool)""
@@ -9365,25 +9361,25 @@ literal:literal
 {
   // Code size       51 (0x33)
   .maxstack  9
-  .locals init (int V_0,
-                C V_1,
+  .locals init (C V_0,
+                int V_1,
                 string V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.5
   IL_0001:  newobj     ""C..ctor(int)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
   IL_0008:  ldc.i4.s   10
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
   IL_000c:  ldstr      ""str""
   IL_0011:  stloc.2
   IL_0012:  ldloc.2
   IL_0013:  ldloca.s   V_3
   IL_0015:  ldc.i4.7
   IL_0016:  ldc.i4.0
-  IL_0017:  ldloc.0
-  IL_0018:  ldloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.0
   IL_0019:  ldloc.2
   IL_001a:  call       ""CustomHandler..ctor(int, int, int, C, string)""
   IL_001f:  ldloca.s   V_3
@@ -9399,25 +9395,25 @@ literal:literal
 {
   // Code size       59 (0x3b)
   .maxstack  9
-  .locals init (int V_0,
-                C V_1,
+  .locals init (C V_0,
+                int V_1,
                 string V_2,
                 CustomHandler V_3,
                 bool V_4)
   IL_0000:  ldc.i4.5
   IL_0001:  newobj     ""C..ctor(int)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
   IL_0008:  ldc.i4.s   10
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
   IL_000c:  ldstr      ""str""
   IL_0011:  stloc.2
   IL_0012:  ldloc.2
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.0
-  IL_0015:  ldloc.0
-  IL_0016:  ldloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  ldloc.0
   IL_0017:  ldloc.2
   IL_0018:  ldloca.s   V_4
   IL_001a:  newobj     ""CustomHandler..ctor(int, int, int, C, string, out bool)""
@@ -9829,36 +9825,40 @@ s2.I:2");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       56 (0x38)
+  // Code size       63 (0x3f)
   .maxstack  6
-  .locals init (S V_0, //s2
-                S V_1,
-                S V_2)
-  IL_0000:  ldloca.s   V_1
+  .locals init (S V_0, //s1
+                S V_1, //s2
+                S V_2,
+                S& V_3)
+  IL_0000:  ldloca.s   V_2
   IL_0002:  initobj    ""S""
-  IL_0008:  ldloca.s   V_1
+  IL_0008:  ldloca.s   V_2
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.I""
-  IL_0010:  ldloc.1
-  IL_0011:  ldloca.s   V_1
-  IL_0013:  initobj    ""S""
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.2
-  IL_001c:  stfld      ""int S.I""
-  IL_0021:  ldloc.1
-  IL_0022:  stloc.0
+  IL_0010:  ldloc.2
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  initobj    ""S""
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  ldc.i4.2
+  IL_001d:  stfld      ""int S.I""
+  IL_0022:  ldloc.2
   IL_0023:  stloc.1
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  ldloc.0
-  IL_0027:  stloc.2
-  IL_0028:  ldloc.2
-  IL_0029:  ldc.i4.0
-  IL_002a:  ldc.i4.0
-  IL_002b:  ldloc.1
-  IL_002c:  ldloc.2
-  IL_002d:  newobj     ""CustomHandler..ctor(int, int, S, S)""
-  IL_0032:  call       ""void S.M(S, CustomHandler)""
-  IL_0037:  ret
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.3
+  IL_0028:  ldloc.1
+  IL_0029:  stloc.2
+  IL_002a:  ldloc.2
+  IL_002b:  ldc.i4.0
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldloc.3
+  IL_002e:  ldobj      ""S""
+  IL_0033:  ldloc.2
+  IL_0034:  newobj     ""CustomHandler..ctor(int, int, S, S)""
+  IL_0039:  call       ""void S.M(S, CustomHandler)""
+  IL_003e:  ret
 }
 ");
 
@@ -9892,6 +9892,7 @@ internal readonly struct StructLogger
     {
         _disabled = disabled;
         _id = id;
+        Console.WriteLine(""Creating StructLogger"");
     }
 
     public void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler) => Console.WriteLine($""StructLogger#{_id}: "" + handler.GetContent());
@@ -9914,9 +9915,9 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
+Creating StructLogger
 Creating DummyHandler from StructLogger#1
 StructLogger#1: 
 (1) i=0");
@@ -10017,7 +10018,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from StructLogger#1
@@ -10032,14 +10032,14 @@ StructLogger#2:
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      169 (0xa9)
+  // Code size      175 (0xaf)
   .maxstack  4
   .locals init (int V_0, //i
                 StructLogger V_1, //s
                 StructLogger V_2,
                 DummyHandler V_3,
                 bool V_4,
-                StructLogger V_5)
+                StructLogger& V_5)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_2
@@ -10080,39 +10080,40 @@ StructLogger#2:
   IL_0055:  ldc.i4.1
   IL_0056:  ldc.i4.2
   IL_0057:  call       ""StructLogger..ctor(bool, int)""
-  IL_005c:  ldloc.1
-  IL_005d:  stloc.s    V_5
-  IL_005f:  ldc.i4.4
-  IL_0060:  ldc.i4.1
-  IL_0061:  ldloc.s    V_5
-  IL_0063:  ldloca.s   V_4
-  IL_0065:  newobj     ""DummyHandler..ctor(int, int, StructLogger, out bool)""
-  IL_006a:  stloc.3
-  IL_006b:  ldloc.s    V_4
-  IL_006d:  brfalse.s  IL_0089
-  IL_006f:  ldloca.s   V_3
-  IL_0071:  ldstr      ""log:""
-  IL_0076:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_007b:  nop
-  IL_007c:  ldloca.s   V_3
-  IL_007e:  ldloc.0
-  IL_007f:  dup
-  IL_0080:  ldc.i4.1
-  IL_0081:  add
-  IL_0082:  stloc.0
-  IL_0083:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_0088:  nop
-  IL_0089:  ldloca.s   V_5
-  IL_008b:  ldloc.3
-  IL_008c:  call       ""void StructLogger.Log(DummyHandler)""
-  IL_0091:  nop
-  IL_0092:  ldstr      ""(2) i={0}""
-  IL_0097:  ldloc.0
-  IL_0098:  box        ""int""
-  IL_009d:  call       ""string string.Format(string, object)""
-  IL_00a2:  call       ""void System.Console.WriteLine(string)""
-  IL_00a7:  nop
-  IL_00a8:  ret
+  IL_005c:  ldloca.s   V_1
+  IL_005e:  stloc.s    V_5
+  IL_0060:  ldc.i4.4
+  IL_0061:  ldc.i4.1
+  IL_0062:  ldloc.s    V_5
+  IL_0064:  ldobj      ""StructLogger""
+  IL_0069:  ldloca.s   V_4
+  IL_006b:  newobj     ""DummyHandler..ctor(int, int, StructLogger, out bool)""
+  IL_0070:  stloc.3
+  IL_0071:  ldloc.s    V_4
+  IL_0073:  brfalse.s  IL_008f
+  IL_0075:  ldloca.s   V_3
+  IL_0077:  ldstr      ""log:""
+  IL_007c:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0081:  nop
+  IL_0082:  ldloca.s   V_3
+  IL_0084:  ldloc.0
+  IL_0085:  dup
+  IL_0086:  ldc.i4.1
+  IL_0087:  add
+  IL_0088:  stloc.0
+  IL_0089:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_008e:  nop
+  IL_008f:  ldloc.s    V_5
+  IL_0091:  ldloc.3
+  IL_0092:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_0097:  nop
+  IL_0098:  ldstr      ""(2) i={0}""
+  IL_009d:  ldloc.0
+  IL_009e:  box        ""int""
+  IL_00a3:  call       ""string string.Format(string, object)""
+  IL_00a8:  call       ""void System.Console.WriteLine(string)""
+  IL_00ad:  nop
+  IL_00ae:  ret
 }
 ");
         }
@@ -10162,7 +10163,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder?.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -10263,7 +10263,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from StructLogger#1
@@ -10362,7 +10361,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (7,9): error CS1510: A ref or out value must be an assignable variable
@@ -10416,7 +10414,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder?.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -10517,7 +10514,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from ClassLogger#1
@@ -10617,7 +10613,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from ClassLogger#1
@@ -10716,7 +10711,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (7,9): error CS1510: A ref or out value must be an assignable variable
@@ -10728,7 +10722,7 @@ internal ref struct DummyHandler
         [Theory]
         [InlineData(@"$""""")]
         [InlineData(@"$"""" + $""""")]
-        public void StructReceiver_Lvalue(string expression)
+        public void StructReceiver_Lvalue_01(string expression)
         {
             var code = @"
 using System;
@@ -10767,6 +10761,764 @@ public partial struct CustomHandler
                 // s1.M(ref s2, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s1").WithArguments("3", "ref").WithLocation(8, 1)
             );
+        }
+
+        [Fact]
+        [WorkItem(65470, "https://github.com/dotnet/roslyn/issues/65470")]
+        public void StructReceiver_Lvalue_02()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var l = new StructLogger();
+Console.WriteLine(""logged = {0}"", l._logged);
+l = test(l);
+Console.WriteLine(""logged = {0}"", l._logged);
+
+StructLogger test(StructLogger l)
+{
+    l.Log($""log:{0}"");
+    return l;
+}
+
+internal struct StructLogger
+{
+    public int _logged;
+
+    public void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler)
+    {
+        _logged++;
+        Console.WriteLine($""StructLogger: "" + handler.GetContent());
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, StructLogger structLogger)
+    {
+        Console.WriteLine($""Creating DummyHandler"");
+        _builder = new StringBuilder();
+    }
+    public string GetContent() => _builder.ToString();
+
+    public void AppendLiteral(string s) => _builder.Append(s);
+    public void AppendFormatted<T>(T t) => _builder.Append(t);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+logged = 0
+Creating DummyHandler
+StructLogger: log:0
+logged = 1
+");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  5
+  .locals init (StructLogger& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  ldc.i4.4
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      ""StructLogger""
+  IL_000e:  call       ""DummyHandler..ctor(int, int, StructLogger)""
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  ldstr      ""log:""
+  IL_001a:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldc.i4.0
+  IL_0022:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0027:  ldloc.1
+  IL_0028:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_002d:  ldarg.0
+  IL_002e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void StructReceiver_Lvalue_03()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var l = new StructLogger();
+Console.WriteLine(""logged = {0}"", l._logged);
+test(ref l);
+Console.WriteLine(""logged = {0}"", l._logged);
+
+void test(ref StructLogger l)
+{
+    l.Log($""log:{0}"");
+}
+
+internal struct StructLogger
+{
+    public int _logged;
+
+    public void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler)
+    {
+        _logged++;
+        Console.WriteLine($""StructLogger: "" + handler.GetContent());
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, StructLogger structLogger)
+    {
+        Console.WriteLine($""Creating DummyHandler"");
+        _builder = new StringBuilder();
+    }
+    public string GetContent() => _builder.ToString();
+
+    public void AppendLiteral(string s) => _builder.Append(s);
+    public void AppendFormatted<T>(T t) => _builder.Append(t);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+logged = 0
+Creating DummyHandler
+StructLogger: log:0
+logged = 1
+");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  5
+  .locals init (StructLogger& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""StructLogger""
+  IL_000d:  call       ""DummyHandler..ctor(int, int, StructLogger)""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldstr      ""log:""
+  IL_0019:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_001e:  ldloca.s   V_1
+  IL_0020:  ldc.i4.0
+  IL_0021:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0026:  ldloc.1
+  IL_0027:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_002c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void StructReceiver_Lvalue_04()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var l = new StructLogger();
+Console.WriteLine(""logged = {0}"", l._logged);
+l = test1(l);
+Console.WriteLine(""logged = {0}"", l._logged);
+l = test2(l);
+Console.WriteLine(""logged = {0}"", l._logged);
+test3(ref l);
+Console.WriteLine(""logged = {0}"", l._logged);
+test4(ref l);
+Console.WriteLine(""logged = {0}"", l._logged);
+
+T test1<T>(T l) where T : ILogger
+{
+    l.Log($""log:{-1}"");
+    return l;
+}
+
+T test2<T>(T l) where T : struct, ILogger
+{
+    l.Log($""log:{-2}"");
+    return l;
+}
+
+void test3<T>(ref T l) where T : ILogger
+{
+    l.Log($""log:{-3}"");
+}
+
+void test4<T>(ref T l) where T : struct, ILogger
+{
+    l.Log($""log:{-4}"");
+}
+
+interface ILogger
+{
+    void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler);
+}
+
+internal struct StructLogger : ILogger
+{
+    public int _logged;
+
+    public void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler)
+    {
+        _logged++;
+        Console.WriteLine($""StructLogger: "" + handler.GetContent());
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, ILogger structLogger)
+    {
+        Console.WriteLine($""Creating DummyHandler"");
+        _builder = new StringBuilder();
+    }
+    public string GetContent() => _builder.ToString();
+
+    public void AppendLiteral(string s) => _builder.Append(s);
+    public void AppendFormatted<T>(T t) => _builder.Append(t);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+logged = 0
+Creating DummyHandler
+StructLogger: log:-1
+logged = 1
+Creating DummyHandler
+StructLogger: log:-2
+logged = 2
+Creating DummyHandler
+StructLogger: log:-3
+logged = 3
+Creating DummyHandler
+StructLogger: log:-4
+logged = 4
+");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test1|0_0<T>",
+@"
+{
+  // Code size       58 (0x3a)
+  .maxstack  5
+  .locals init (T& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  ldc.i4.4
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      ""T""
+  IL_000e:  box        ""T""
+  IL_0013:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  ldstr      ""log:""
+  IL_001f:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldc.i4.m1
+  IL_0027:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_002c:  ldloc.1
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0038:  ldarg.0
+  IL_0039:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<<Main>$>g__test2|0_1<T>",
+@"
+{
+  // Code size       59 (0x3b)
+  .maxstack  5
+  .locals init (T& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  ldc.i4.4
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      ""T""
+  IL_000e:  box        ""T""
+  IL_0013:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  ldstr      ""log:""
+  IL_001f:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldc.i4.s   -2
+  IL_0028:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_002d:  ldloc.1
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0039:  ldarg.0
+  IL_003a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<<Main>$>g__test3|0_2<T>",
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  5
+  .locals init (T& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  box        ""T""
+  IL_0012:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      ""log:""
+  IL_001e:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldc.i4.s   -3
+  IL_0027:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_002c:  ldloc.1
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0038:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<<Main>$>g__test4|0_3<T>",
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  5
+  .locals init (T& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  box        ""T""
+  IL_0012:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      ""log:""
+  IL_001e:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldc.i4.s   -4
+  IL_0027:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_002c:  ldloc.1
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0038:  ret
+}
+");
+        }
+
+        [Fact]
+        public void StructReceiver_Lvalue_05()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var l = new StructLogger();
+Console.WriteLine(""logged = {0}"", l._logged);
+test3(ref l);
+Console.WriteLine(""logged = {0}"", l._logged);
+test4(ref l);
+Console.WriteLine(""logged = {0}"", l._logged);
+
+void test3<T>(ref T l) where T : ILogger
+{
+    get3(ref l)[$""log:{-3}""] += 1;
+}
+
+void test4<T>(ref T l) where T : struct, ILogger
+{
+    get4(ref l)[$""log:{-4}""] += 1;
+}
+
+ref T get3<T>(ref T l) where T : ILogger
+{
+    Console.WriteLine(""get3"");
+    return ref l;
+}
+
+ref T get4<T>(ref T l) where T : struct, ILogger
+{
+    Console.WriteLine(""get4"");
+    return ref l;
+}
+
+interface ILogger
+{
+    int this[[InterpolatedStringHandlerArgument("""")] DummyHandler handler] { get;set; }
+}
+
+internal struct StructLogger : ILogger
+{
+    public int _logged;
+
+    public int this[[InterpolatedStringHandlerArgument("""")] DummyHandler handler]
+    {
+        get
+        {
+            Console.WriteLine($""StructLogger get: "" + handler.GetContent());
+            Console.WriteLine(_logged);
+            _logged++;
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine($""StructLogger set: "" + handler.GetContent());
+            Console.WriteLine(_logged);
+            _logged++;
+        }
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, ILogger structLogger)
+    {
+        Console.WriteLine($""Creating DummyHandler"");
+        _builder = new StringBuilder();
+    }
+    public string GetContent() => _builder.ToString();
+
+    public void AppendLiteral(string s) => _builder.Append(s);
+    public void AppendFormatted<T>(T t) => _builder.Append(t);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+logged = 0
+get3
+Creating DummyHandler
+StructLogger get: log:-3
+0
+StructLogger set: log:-3
+1
+logged = 2
+get4
+Creating DummyHandler
+StructLogger get: log:-4
+2
+StructLogger set: log:-4
+3
+logged = 4
+", verify: Verification.Skipped);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test3|0_0<T>",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (T& V_0,
+                DummyHandler V_1,
+                DummyHandler V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref T Program.<<Main>$>g__get3|0_2<T>(ref T)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  ldc.i4.4
+  IL_000a:  ldc.i4.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""log:""
+  IL_0022:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  ldc.i4.s   -3
+  IL_002b:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0030:  ldloc.2
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.0
+  IL_0033:  ldloc.1
+  IL_0034:  ldloc.0
+  IL_0035:  ldloc.1
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""int ILogger.this[DummyHandler].get""
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  constrained. ""T""
+  IL_0049:  callvirt   ""void ILogger.this[DummyHandler].set""
+  IL_004e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<<Main>$>g__test4|0_1<T>",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (T& V_0,
+                DummyHandler V_1,
+                DummyHandler V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref T Program.<<Main>$>g__get4|0_3<T>(ref T)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  ldc.i4.4
+  IL_000a:  ldc.i4.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""log:""
+  IL_0022:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  ldc.i4.s   -4
+  IL_002b:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0030:  ldloc.2
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.0
+  IL_0033:  ldloc.1
+  IL_0034:  ldloc.0
+  IL_0035:  ldloc.1
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""int ILogger.this[DummyHandler].get""
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  constrained. ""T""
+  IL_0049:  callvirt   ""void ILogger.this[DummyHandler].set""
+  IL_004e:  ret
+}
+
+");
+        }
+
+        [Fact]
+        public void StructReceiver_Lvalue_06()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var c = new Container();
+Console.WriteLine(""logged = {0}"", c.Logger._logged);
+test3(c);
+Console.WriteLine(""logged = {0}"", c.Logger._logged);
+
+void test3(Container c)
+{
+    get3(c).Logger[$""log:{-3}""] += 1;
+}
+
+Container get3(Container c)
+{
+    Console.WriteLine(""get3"");
+    return c;
+}
+
+class Container
+{
+    public StructLogger Logger = default;
+}
+
+internal struct StructLogger
+{
+    public int _logged;
+
+    public int this[[InterpolatedStringHandlerArgument("""")] DummyHandler handler]
+    {
+        get
+        {
+            Console.WriteLine($""StructLogger get: "" + handler.GetContent());
+            Console.WriteLine(_logged);
+            _logged++;
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine($""StructLogger set: "" + handler.GetContent());
+            Console.WriteLine(_logged);
+            _logged++;
+        }
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, StructLogger structLogger)
+    {
+        Console.WriteLine($""Creating DummyHandler"");
+        _builder = new StringBuilder();
+    }
+    public string GetContent() => _builder.ToString();
+
+    public void AppendLiteral(string s) => _builder.Append(s);
+    public void AppendFormatted<T>(T t) => _builder.Append(t);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+logged = 0
+get3
+Creating DummyHandler
+StructLogger get: log:-3
+0
+StructLogger set: log:-3
+1
+logged = 2
+", verify: Verification.Skipped);
+
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StructReceiver_Lvalue_07()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var c = new Container<StructLogger>();
+Console.WriteLine(""logged = {0}"", c.Logger._logged);
+test3(c);
+Console.WriteLine(""logged = {0}"", c.Logger._logged);
+test4(c);
+Console.WriteLine(""logged = {0}"", c.Logger._logged);
+
+void test3<T>(Container<T> c) where T : ILogger
+{
+    get3(c).Logger[$""log:{-3}""] += 1;
+}
+
+void test4<T>(Container<T> c) where T : struct, ILogger
+{
+    get4(c).Logger[$""log:{-4}""] += 1;
+}
+
+Container<T> get3<T>(Container<T> c) where T : ILogger
+{
+    Console.WriteLine(""get3"");
+    return c;
+}
+
+Container<T> get4<T>(Container<T> c) where T : ILogger
+{
+    Console.WriteLine(""get4"");
+    return c;
+}
+
+class Container<T> where T : ILogger
+{
+    public T Logger = default;
+}
+
+interface ILogger
+{
+    int this[[InterpolatedStringHandlerArgument("""")] DummyHandler handler] { get;set; }
+}
+
+internal struct StructLogger : ILogger
+{
+    public int _logged;
+
+    public int this[[InterpolatedStringHandlerArgument("""")] DummyHandler handler]
+    {
+        get
+        {
+            Console.WriteLine($""StructLogger get: "" + handler.GetContent());
+            Console.WriteLine(_logged);
+            _logged++;
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine($""StructLogger set: "" + handler.GetContent());
+            Console.WriteLine(_logged);
+            _logged++;
+        }
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, ILogger structLogger)
+    {
+        Console.WriteLine($""Creating DummyHandler"");
+        _builder = new StringBuilder();
+    }
+    public string GetContent() => _builder.ToString();
+
+    public void AppendLiteral(string s) => _builder.Append(s);
+    public void AppendFormatted<T>(T t) => _builder.Append(t);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+logged = 0
+get3
+Creating DummyHandler
+StructLogger get: log:-3
+0
+StructLogger set: log:-3
+1
+logged = 2
+get4
+Creating DummyHandler
+StructLogger get: log:-4
+2
+StructLogger set: log:-4
+3
+logged = 4
+", verify: Verification.Skipped);
+
+            verifier.VerifyDiagnostics();
         }
 
         [Theory]
@@ -11121,25 +11873,25 @@ format:
   // Code size       85 (0x55)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 CustomHandler V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
+  IL_0007:  stloc.1
   IL_0008:  ldc.i4.1
   IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
+  IL_000e:  stloc.2
+  IL_000f:  ldloc.2
   IL_0010:  stloc.3
   IL_0011:  ldloca.s   V_5
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_5
   IL_001e:  ldstr      ""literal""
@@ -11152,10 +11904,10 @@ format:
   IL_0032:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
   IL_0037:  ldloc.s    V_5
   IL_0039:  stloc.s    V_4
-  IL_003b:  ldloc.2
+  IL_003b:  ldloc.1
   IL_003c:  ldloc.3
   IL_003d:  ldloc.s    V_4
-  IL_003f:  ldloc.2
+  IL_003f:  ldloc.1
   IL_0040:  ldloc.3
   IL_0041:  ldloc.s    V_4
   IL_0043:  callvirt   ""int C.this[int, CustomHandler].get""
@@ -11168,56 +11920,56 @@ format:
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       95 (0x5f)
+  // Code size       94 (0x5e)
   .maxstack  6
   .locals init (int V_0, //i
                 CustomHandler V_1,
                 bool V_2,
-                int V_3,
-                C V_4,
+                C V_3,
+                int V_4,
                 int V_5,
                 CustomHandler V_6)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.3
-  IL_0010:  ldloc.3
-  IL_0011:  stloc.s    V_5
-  IL_0013:  ldc.i4.7
-  IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.3
+  IL_0007:  stloc.3
+  IL_0008:  ldc.i4.1
+  IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_000e:  stloc.s    V_4
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  stloc.s    V_5
+  IL_0014:  ldc.i4.7
+  IL_0015:  ldc.i4.1
   IL_0016:  ldloc.s    V_4
-  IL_0018:  ldloca.s   V_2
-  IL_001a:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.2
-  IL_0021:  brfalse.s  IL_003e
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldstr      ""literal""
-  IL_002a:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_002f:  ldloca.s   V_1
-  IL_0031:  ldloc.0
-  IL_0032:  box        ""int""
-  IL_0037:  ldc.i4.0
-  IL_0038:  ldnull
-  IL_0039:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003e:  ldloc.1
-  IL_003f:  stloc.s    V_6
-  IL_0041:  ldloc.s    V_4
+  IL_0018:  ldloc.3
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.2
+  IL_0022:  brfalse.s  IL_003f
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldstr      ""literal""
+  IL_002b:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0030:  ldloca.s   V_1
+  IL_0032:  ldloc.0
+  IL_0033:  box        ""int""
+  IL_0038:  ldc.i4.0
+  IL_0039:  ldnull
+  IL_003a:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003f:  ldloc.1
+  IL_0040:  stloc.s    V_6
+  IL_0042:  ldloc.3
   IL_0043:  ldloc.s    V_5
   IL_0045:  ldloc.s    V_6
-  IL_0047:  ldloc.s    V_4
-  IL_0049:  ldloc.s    V_5
-  IL_004b:  ldloc.s    V_6
-  IL_004d:  callvirt   ""int C.this[int, CustomHandler].get""
-  IL_0052:  ldc.i4.2
-  IL_0053:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_0058:  add
-  IL_0059:  callvirt   ""void C.this[int, CustomHandler].set""
-  IL_005e:  ret
+  IL_0047:  ldloc.3
+  IL_0048:  ldloc.s    V_5
+  IL_004a:  ldloc.s    V_6
+  IL_004c:  callvirt   ""int C.this[int, CustomHandler].get""
+  IL_0051:  ldc.i4.2
+  IL_0052:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_0057:  add
+  IL_0058:  callvirt   ""void C.this[int, CustomHandler].set""
+  IL_005d:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -11225,25 +11977,25 @@ format:
   // Code size       91 (0x5b)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 CustomHandler V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
+  IL_0007:  stloc.1
   IL_0008:  ldc.i4.1
   IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
+  IL_000e:  stloc.2
+  IL_000f:  ldloc.2
   IL_0010:  stloc.3
   IL_0011:  ldloca.s   V_5
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_5
   IL_001e:  ldstr      ""literal""
@@ -11260,10 +12012,10 @@ format:
   IL_003c:  pop
   IL_003d:  ldloc.s    V_5
   IL_003f:  stloc.s    V_4
-  IL_0041:  ldloc.2
+  IL_0041:  ldloc.1
   IL_0042:  ldloc.3
   IL_0043:  ldloc.s    V_4
-  IL_0045:  ldloc.2
+  IL_0045:  ldloc.1
   IL_0046:  ldloc.3
   IL_0047:  ldloc.s    V_4
   IL_0049:  callvirt   ""int C.this[int, CustomHandler].get""
@@ -11279,8 +12031,8 @@ format:
   // Code size       97 (0x61)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 CustomHandler V_5,
@@ -11288,16 +12040,16 @@ format:
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
+  IL_0007:  stloc.1
   IL_0008:  ldc.i4.1
   IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
+  IL_000e:  stloc.2
+  IL_000f:  ldloc.2
   IL_0010:  stloc.3
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
+  IL_0013:  ldloc.2
+  IL_0014:  ldloc.1
   IL_0015:  ldloca.s   V_6
   IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001c:  stloc.s    V_5
@@ -11318,10 +12070,10 @@ format:
   IL_0042:  pop
   IL_0043:  ldloc.s    V_5
   IL_0045:  stloc.s    V_4
-  IL_0047:  ldloc.2
+  IL_0047:  ldloc.1
   IL_0048:  ldloc.3
   IL_0049:  ldloc.s    V_4
-  IL_004b:  ldloc.2
+  IL_004b:  ldloc.1
   IL_004c:  ldloc.3
   IL_004d:  ldloc.s    V_4
   IL_004f:  callvirt   ""int C.this[int, CustomHandler].get""
@@ -11413,23 +12165,23 @@ GetInt2
   // Code size       72 (0x48)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldloca.s   V_3
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_3
   IL_001e:  ldstr      ""literal""
@@ -11456,25 +12208,25 @@ GetInt2
   // Code size       81 (0x51)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 bool V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  stloc.3
   IL_0012:  ldc.i4.7
   IL_0013:  ldc.i4.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldloc.2
+  IL_0014:  ldloc.2
+  IL_0015:  ldloc.1
   IL_0016:  ldloca.s   V_5
   IL_0018:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001d:  stloc.s    V_4
@@ -11506,23 +12258,23 @@ GetInt2
   // Code size       78 (0x4e)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldloca.s   V_3
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_3
   IL_001e:  ldstr      ""literal""
@@ -11553,23 +12305,23 @@ GetInt2
   // Code size       83 (0x53)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3,
                 bool V_4)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
+  IL_0013:  ldloc.2
+  IL_0014:  ldloc.1
   IL_0015:  ldloca.s   V_4
   IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001c:  stloc.3
@@ -11677,23 +12429,23 @@ GetInt2
   // Code size       72 (0x48)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldloca.s   V_3
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_3
   IL_001e:  ldstr      ""literal""
@@ -11720,25 +12472,25 @@ GetInt2
   // Code size       81 (0x51)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 bool V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  stloc.3
   IL_0012:  ldc.i4.7
   IL_0013:  ldc.i4.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldloc.2
+  IL_0014:  ldloc.2
+  IL_0015:  ldloc.1
   IL_0016:  ldloca.s   V_5
   IL_0018:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001d:  stloc.s    V_4
@@ -11770,23 +12522,23 @@ GetInt2
   // Code size       78 (0x4e)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldloca.s   V_3
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_3
   IL_001e:  ldstr      ""literal""
@@ -11817,23 +12569,23 @@ GetInt2
   // Code size       83 (0x53)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3,
                 bool V_4)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
+  IL_0013:  ldloc.2
+  IL_0014:  ldloc.1
   IL_0015:  ldloca.s   V_4
   IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001c:  stloc.3
@@ -15177,47 +15929,44 @@ format:
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       91 (0x5b)
-  .maxstack  4
+  // Code size       89 (0x59)
+  .maxstack  5
   .locals init (CustomHandler V_0, //c1
                 CustomHandler V_1, //c2
-                CustomHandler V_2,
-                CustomHandler V_3)
-  IL_0000:  ldloca.s   V_3
+                CustomHandler V_2)
+  IL_0000:  ldloca.s   V_2
   IL_0002:  ldc.i4.0
   IL_0003:  ldc.i4.1
   IL_0004:  call       ""CustomHandler..ctor(int, int)""
-  IL_0009:  ldloca.s   V_3
+  IL_0009:  ldloca.s   V_2
   IL_000b:  ldc.i4.1
   IL_000c:  box        ""int""
   IL_0011:  ldc.i4.0
   IL_0012:  ldnull
   IL_0013:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0018:  ldloc.3
-  IL_0019:  stloc.2
-  IL_001a:  ldloca.s   V_3
-  IL_001c:  ldc.i4.0
-  IL_001d:  ldc.i4.1
-  IL_001e:  call       ""CustomHandler..ctor(int, int)""
-  IL_0023:  ldloca.s   V_3
-  IL_0025:  ldc.i4.2
-  IL_0026:  box        ""int""
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldnull
-  IL_002d:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0032:  ldloc.3
-  IL_0033:  ldloc.2
-  IL_0034:  stloc.0
-  IL_0035:  stloc.1
-  IL_0036:  ldloca.s   V_0
-  IL_0038:  constrained. ""CustomHandler""
-  IL_003e:  callvirt   ""string object.ToString()""
-  IL_0043:  call       ""void System.Console.Write(string)""
-  IL_0048:  ldloca.s   V_1
-  IL_004a:  constrained. ""CustomHandler""
-  IL_0050:  callvirt   ""string object.ToString()""
-  IL_0055:  call       ""void System.Console.WriteLine(string)""
-  IL_005a:  ret
+  IL_0018:  ldloc.2
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""CustomHandler..ctor(int, int)""
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  ldc.i4.2
+  IL_0025:  box        ""int""
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldnull
+  IL_002c:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0031:  ldloc.2
+  IL_0032:  stloc.1
+  IL_0033:  stloc.0
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  constrained. ""CustomHandler""
+  IL_003c:  callvirt   ""string object.ToString()""
+  IL_0041:  call       ""void System.Console.Write(string)""
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  constrained. ""CustomHandler""
+  IL_004e:  callvirt   ""string object.ToString()""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  ret
 }
 ");
         }
@@ -15286,7 +16035,6 @@ format:
 }
 ");
         }
-
 
         [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""{h1}{h2}""")]
@@ -16295,7 +17043,6 @@ class C
         return $""hello + {other}"";
     }
 }";
-
 
             CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
                 // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.

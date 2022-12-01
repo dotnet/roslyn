@@ -2121,7 +2121,6 @@ class C
                 Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a.b\0b"));
             Assert.Null(parsedArgs.PdbPath);
 
-
             parsedArgs = DefaultParse(new[] { "/pdb:a\uD800b.pdb", "/debug", "a.cs" }, WorkingDirectory);
             //parsedArgs.Errors.Verify(
             //    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a\uD800b.pdb"));
@@ -2580,7 +2579,6 @@ print Goodbye, World";
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[1].Properties);
 
-
             parsedArgs = DefaultParse(new string[] { @"/l:goo.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
@@ -2591,7 +2589,6 @@ print Goodbye, World";
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly.WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[1].Properties);
 
-
             parsedArgs = DefaultParse(new string[] { @"/addmodule:goo.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
@@ -2601,7 +2598,6 @@ print Goodbye, World";
 
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Module, parsedArgs.MetadataReferences[1].Properties);
-
 
             parsedArgs = DefaultParse(new string[] { @"/r:a=goo.dll", "/l:b=bar.dll", "/addmodule:c=mod.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -4307,7 +4303,6 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 Console.WriteLine(outWriter.ToString());
                 Assert.Equal(0, exitCode);
             }
-
 
             Assert.Equal(1, Directory.EnumerateFiles(dir.Path, exeName).Count());
 
@@ -7480,7 +7475,6 @@ class C
   </trustInfo>
 </assembly>";
 
-
             var expectedManifest =
 @"<?xml version=""1.0"" encoding=""utf-16""?>
 <ManifestResource Size=""476"">
@@ -10177,7 +10171,6 @@ a = globalA");
             Assert.Equal("globalA", globalA);
             Assert.Equal("localA", localA);
 
-
             RunWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(2, configOptionsCallbackCount); // we can't compare the provider directly, so we consider it modified
@@ -10196,7 +10189,6 @@ a = diffLocalA
             Assert.Equal(2, filteredLocalCallbackCount);
             Assert.Equal("globalA", globalA);
             Assert.Equal("diffLocalA", localA);
-
 
             globalconfig.WriteAllText(@"
 is_global = true
@@ -11682,7 +11674,6 @@ class C
 </doc>";
             Assert.Equal(expectedDoc, content.Trim());
 
-
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
         }
@@ -11778,7 +11769,7 @@ class C
                 $@"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
 System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors>b__0(Object _)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
 -----
 Analyzer 'TestAnalyzer' threw the following exception:
@@ -13929,7 +13920,6 @@ option1 = def");
             Assert.Contains("'option1'", output, StringComparison.Ordinal);
             Assert.Contains("'Global Section'", output, StringComparison.Ordinal);
 
-
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
 global_level = 100
@@ -14051,7 +14041,6 @@ dotnet_diagnostic.CS0164.severity = warning;
             // the editor config downgrades the error back to warning, but the cmdline setting overrides it
             verify(configs: globalAndSpecific, expectedWarnings: 1);
             verify(configs: globalAndSpecific, noWarn: "CS0164", expectedWarnings: 0);
-
 
             void verify(TempFile[] configs, int expectedWarnings = 0, int expectedErrors = 0, string noWarn = "0")
                 => VerifyOutput(dir, src,

@@ -2366,7 +2366,6 @@ class MyException : Exception
 Starting try
 Caught");
 
-
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size      122 (0x7a)
@@ -7052,17 +7051,17 @@ literal:literal
 {
   // Code size       56 (0x38)
   .maxstack  9
-  .locals init (string V_0,
-                C V_1,
+  .locals init (C V_0,
+                string V_1,
                 int V_2,
                 string V_3,
                 CustomHandler V_4)
   IL_0000:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
   IL_0007:  call       ""string Program.<<Main>$>g__GetString|0_2()""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
   IL_000e:  stloc.3
   IL_000f:  call       ""int Program.<<Main>$>g__GetInt|0_1()""
   IL_0014:  stloc.2
@@ -7071,8 +7070,8 @@ literal:literal
   IL_0017:  ldloca.s   V_4
   IL_0019:  ldc.i4.7
   IL_001a:  ldc.i4.0
-  IL_001b:  ldloc.0
-  IL_001c:  ldloc.1
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.0
   IL_001d:  ldloc.2
   IL_001e:  call       ""CustomHandler..ctor(int, int, string, C, int)""
   IL_0023:  ldloca.s   V_4
@@ -7084,22 +7083,22 @@ literal:literal
   IL_0037:  ret
 }
 "
-            : @"
+                : @"
 {
   // Code size       65 (0x41)
   .maxstack  9
-  .locals init (string V_0,
-                C V_1,
+  .locals init (C V_0,
+                string V_1,
                 int V_2,
                 string V_3,
                 CustomHandler V_4,
                 bool V_5)
   IL_0000:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
   IL_0007:  call       ""string Program.<<Main>$>g__GetString|0_2()""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
   IL_000e:  stloc.3
   IL_000f:  call       ""int Program.<<Main>$>g__GetInt|0_1()""
   IL_0014:  stloc.2
@@ -7107,8 +7106,8 @@ literal:literal
   IL_0016:  ldloc.3
   IL_0017:  ldc.i4.7
   IL_0018:  ldc.i4.0
-  IL_0019:  ldloc.0
-  IL_001a:  ldloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  ldloc.0
   IL_001b:  ldloc.2
   IL_001c:  ldloca.s   V_5
   IL_001e:  newobj     ""CustomHandler..ctor(int, int, string, C, int, out bool)""
@@ -7664,25 +7663,25 @@ literal:literal
 {
   // Code size       51 (0x33)
   .maxstack  9
-  .locals init (int V_0,
-                C V_1,
+  .locals init (C V_0,
+                int V_1,
                 string V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.5
   IL_0001:  newobj     ""C..ctor(int)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
   IL_0008:  ldc.i4.s   10
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
   IL_000c:  ldstr      ""str""
   IL_0011:  stloc.2
   IL_0012:  ldloc.2
   IL_0013:  ldloca.s   V_3
   IL_0015:  ldc.i4.7
   IL_0016:  ldc.i4.0
-  IL_0017:  ldloc.0
-  IL_0018:  ldloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.0
   IL_0019:  ldloc.2
   IL_001a:  call       ""CustomHandler..ctor(int, int, int, C, string)""
   IL_001f:  ldloca.s   V_3
@@ -7698,25 +7697,25 @@ literal:literal
 {
   // Code size       59 (0x3b)
   .maxstack  9
-  .locals init (int V_0,
-                C V_1,
+  .locals init (C V_0,
+                int V_1,
                 string V_2,
                 CustomHandler V_3,
                 bool V_4)
   IL_0000:  ldc.i4.5
   IL_0001:  newobj     ""C..ctor(int)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
   IL_0008:  ldc.i4.s   10
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
   IL_000c:  ldstr      ""str""
   IL_0011:  stloc.2
   IL_0012:  ldloc.2
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.0
-  IL_0015:  ldloc.0
-  IL_0016:  ldloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  ldloc.0
   IL_0017:  ldloc.2
   IL_0018:  ldloca.s   V_4
   IL_001a:  newobj     ""CustomHandler..ctor(int, int, int, C, string, out bool)""
@@ -8148,36 +8147,40 @@ s2.I:2");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       56 (0x38)
+  // Code size       63 (0x3f)
   .maxstack  6
-  .locals init (S V_0, //s2
-                S V_1,
-                S V_2)
-  IL_0000:  ldloca.s   V_1
+  .locals init (S V_0, //s1
+                S V_1, //s2
+                S V_2,
+                S& V_3)
+  IL_0000:  ldloca.s   V_2
   IL_0002:  initobj    ""S""
-  IL_0008:  ldloca.s   V_1
+  IL_0008:  ldloca.s   V_2
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.I""
-  IL_0010:  ldloc.1
-  IL_0011:  ldloca.s   V_1
-  IL_0013:  initobj    ""S""
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.2
-  IL_001c:  stfld      ""int S.I""
-  IL_0021:  ldloc.1
-  IL_0022:  stloc.0
+  IL_0010:  ldloc.2
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  initobj    ""S""
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  ldc.i4.2
+  IL_001d:  stfld      ""int S.I""
+  IL_0022:  ldloc.2
   IL_0023:  stloc.1
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  ldloc.0
-  IL_0027:  stloc.2
-  IL_0028:  ldloc.2
-  IL_0029:  ldc.i4.0
-  IL_002a:  ldc.i4.0
-  IL_002b:  ldloc.1
-  IL_002c:  ldloc.2
-  IL_002d:  newobj     ""CustomHandler..ctor(int, int, S, S)""
-  IL_0032:  call       ""void S.M(S, CustomHandler)""
-  IL_0037:  ret
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.3
+  IL_0028:  ldloc.1
+  IL_0029:  stloc.2
+  IL_002a:  ldloc.2
+  IL_002b:  ldc.i4.0
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldloc.3
+  IL_002e:  ldobj      ""S""
+  IL_0033:  ldloc.2
+  IL_0034:  newobj     ""CustomHandler..ctor(int, int, S, S)""
+  IL_0039:  call       ""void S.M(S, CustomHandler)""
+  IL_003e:  ret
 }
 ");
     }
@@ -8601,25 +8604,25 @@ format:
   // Code size       85 (0x55)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 CustomHandler V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
+  IL_0007:  stloc.1
   IL_0008:  ldc.i4.1
   IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
+  IL_000e:  stloc.2
+  IL_000f:  ldloc.2
   IL_0010:  stloc.3
   IL_0011:  ldloca.s   V_5
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_5
   IL_001e:  ldstr      ""literal""
@@ -8632,10 +8635,10 @@ format:
   IL_0032:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
   IL_0037:  ldloc.s    V_5
   IL_0039:  stloc.s    V_4
-  IL_003b:  ldloc.2
+  IL_003b:  ldloc.1
   IL_003c:  ldloc.3
   IL_003d:  ldloc.s    V_4
-  IL_003f:  ldloc.2
+  IL_003f:  ldloc.1
   IL_0040:  ldloc.3
   IL_0041:  ldloc.s    V_4
   IL_0043:  callvirt   ""int C.this[int, CustomHandler].get""
@@ -8648,56 +8651,56 @@ format:
 ",
             (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       95 (0x5f)
+  // Code size       94 (0x5e)
   .maxstack  6
   .locals init (int V_0, //i
                 CustomHandler V_1,
                 bool V_2,
-                int V_3,
-                C V_4,
+                C V_3,
+                int V_4,
                 int V_5,
                 CustomHandler V_6)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.3
-  IL_0010:  ldloc.3
-  IL_0011:  stloc.s    V_5
-  IL_0013:  ldc.i4.7
-  IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.3
+  IL_0007:  stloc.3
+  IL_0008:  ldc.i4.1
+  IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_000e:  stloc.s    V_4
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  stloc.s    V_5
+  IL_0014:  ldc.i4.7
+  IL_0015:  ldc.i4.1
   IL_0016:  ldloc.s    V_4
-  IL_0018:  ldloca.s   V_2
-  IL_001a:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.2
-  IL_0021:  brfalse.s  IL_003e
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldstr      ""literal""
-  IL_002a:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_002f:  ldloca.s   V_1
-  IL_0031:  ldloc.0
-  IL_0032:  box        ""int""
-  IL_0037:  ldc.i4.0
-  IL_0038:  ldnull
-  IL_0039:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003e:  ldloc.1
-  IL_003f:  stloc.s    V_6
-  IL_0041:  ldloc.s    V_4
+  IL_0018:  ldloc.3
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.2
+  IL_0022:  brfalse.s  IL_003f
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldstr      ""literal""
+  IL_002b:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0030:  ldloca.s   V_1
+  IL_0032:  ldloc.0
+  IL_0033:  box        ""int""
+  IL_0038:  ldc.i4.0
+  IL_0039:  ldnull
+  IL_003a:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003f:  ldloc.1
+  IL_0040:  stloc.s    V_6
+  IL_0042:  ldloc.3
   IL_0043:  ldloc.s    V_5
   IL_0045:  ldloc.s    V_6
-  IL_0047:  ldloc.s    V_4
-  IL_0049:  ldloc.s    V_5
-  IL_004b:  ldloc.s    V_6
-  IL_004d:  callvirt   ""int C.this[int, CustomHandler].get""
-  IL_0052:  ldc.i4.2
-  IL_0053:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_0058:  add
-  IL_0059:  callvirt   ""void C.this[int, CustomHandler].set""
-  IL_005e:  ret
+  IL_0047:  ldloc.3
+  IL_0048:  ldloc.s    V_5
+  IL_004a:  ldloc.s    V_6
+  IL_004c:  callvirt   ""int C.this[int, CustomHandler].get""
+  IL_0051:  ldc.i4.2
+  IL_0052:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_0057:  add
+  IL_0058:  callvirt   ""void C.this[int, CustomHandler].set""
+  IL_005d:  ret
 }
 ",
             (useBoolReturns: true, validityParameter: false) => @"
@@ -8705,25 +8708,25 @@ format:
   // Code size       91 (0x5b)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 CustomHandler V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
+  IL_0007:  stloc.1
   IL_0008:  ldc.i4.1
   IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
+  IL_000e:  stloc.2
+  IL_000f:  ldloc.2
   IL_0010:  stloc.3
   IL_0011:  ldloca.s   V_5
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_5
   IL_001e:  ldstr      ""literal""
@@ -8740,10 +8743,10 @@ format:
   IL_003c:  pop
   IL_003d:  ldloc.s    V_5
   IL_003f:  stloc.s    V_4
-  IL_0041:  ldloc.2
+  IL_0041:  ldloc.1
   IL_0042:  ldloc.3
   IL_0043:  ldloc.s    V_4
-  IL_0045:  ldloc.2
+  IL_0045:  ldloc.1
   IL_0046:  ldloc.3
   IL_0047:  ldloc.s    V_4
   IL_0049:  callvirt   ""int C.this[int, CustomHandler].get""
@@ -8759,8 +8762,8 @@ format:
   // Code size       97 (0x61)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 CustomHandler V_5,
@@ -8768,16 +8771,16 @@ format:
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
+  IL_0007:  stloc.1
   IL_0008:  ldc.i4.1
   IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
+  IL_000e:  stloc.2
+  IL_000f:  ldloc.2
   IL_0010:  stloc.3
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
+  IL_0013:  ldloc.2
+  IL_0014:  ldloc.1
   IL_0015:  ldloca.s   V_6
   IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001c:  stloc.s    V_5
@@ -8798,10 +8801,10 @@ format:
   IL_0042:  pop
   IL_0043:  ldloc.s    V_5
   IL_0045:  stloc.s    V_4
-  IL_0047:  ldloc.2
+  IL_0047:  ldloc.1
   IL_0048:  ldloc.3
   IL_0049:  ldloc.s    V_4
-  IL_004b:  ldloc.2
+  IL_004b:  ldloc.1
   IL_004c:  ldloc.3
   IL_004d:  ldloc.s    V_4
   IL_004f:  callvirt   ""int C.this[int, CustomHandler].get""
@@ -8894,23 +8897,23 @@ GetInt2
   // Code size       72 (0x48)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldloca.s   V_3
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_3
   IL_001e:  ldstr      ""literal""
@@ -8937,25 +8940,25 @@ GetInt2
   // Code size       81 (0x51)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 bool V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  stloc.3
   IL_0012:  ldc.i4.7
   IL_0013:  ldc.i4.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldloc.2
+  IL_0014:  ldloc.2
+  IL_0015:  ldloc.1
   IL_0016:  ldloca.s   V_5
   IL_0018:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001d:  stloc.s    V_4
@@ -8987,23 +8990,23 @@ GetInt2
   // Code size       78 (0x4e)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldloca.s   V_3
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_3
   IL_001e:  ldstr      ""literal""
@@ -9034,23 +9037,23 @@ GetInt2
   // Code size       83 (0x53)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3,
                 bool V_4)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
+  IL_0013:  ldloc.2
+  IL_0014:  ldloc.1
   IL_0015:  ldloca.s   V_4
   IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001c:  stloc.3
@@ -9159,23 +9162,23 @@ GetInt2
   // Code size       72 (0x48)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldloca.s   V_3
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_3
   IL_001e:  ldstr      ""literal""
@@ -9202,25 +9205,25 @@ GetInt2
   // Code size       81 (0x51)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 int V_3,
                 CustomHandler V_4,
                 bool V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  stloc.3
   IL_0012:  ldc.i4.7
   IL_0013:  ldc.i4.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldloc.2
+  IL_0014:  ldloc.2
+  IL_0015:  ldloc.1
   IL_0016:  ldloca.s   V_5
   IL_0018:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001d:  stloc.s    V_4
@@ -9252,23 +9255,23 @@ GetInt2
   // Code size       78 (0x4e)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldloca.s   V_3
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  call       ""CustomHandler..ctor(int, int, int, C)""
   IL_001c:  ldloca.s   V_3
   IL_001e:  ldstr      ""literal""
@@ -9299,23 +9302,23 @@ GetInt2
   // Code size       83 (0x53)
   .maxstack  7
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                C V_1,
+                int V_2,
                 CustomHandler V_3,
                 bool V_4)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
   IL_0009:  ldc.i4.1
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
+  IL_0013:  ldloc.2
+  IL_0014:  ldloc.1
   IL_0015:  ldloca.s   V_4
   IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
   IL_001c:  stloc.3
@@ -12490,49 +12493,45 @@ format:
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       91 (0x5b)
-  .maxstack  4
+  // Code size       89 (0x59)
+  .maxstack  5
   .locals init (CustomHandler V_0, //c1
                 CustomHandler V_1, //c2
-                CustomHandler V_2,
-                CustomHandler V_3)
-  IL_0000:  ldloca.s   V_3
+                CustomHandler V_2)
+  IL_0000:  ldloca.s   V_2
   IL_0002:  ldc.i4.0
   IL_0003:  ldc.i4.1
   IL_0004:  call       ""CustomHandler..ctor(int, int)""
-  IL_0009:  ldloca.s   V_3
+  IL_0009:  ldloca.s   V_2
   IL_000b:  ldc.i4.1
   IL_000c:  box        ""int""
   IL_0011:  ldc.i4.0
   IL_0012:  ldnull
   IL_0013:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0018:  ldloc.3
-  IL_0019:  stloc.2
-  IL_001a:  ldloca.s   V_3
-  IL_001c:  ldc.i4.0
-  IL_001d:  ldc.i4.1
-  IL_001e:  call       ""CustomHandler..ctor(int, int)""
-  IL_0023:  ldloca.s   V_3
-  IL_0025:  ldc.i4.2
-  IL_0026:  box        ""int""
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldnull
-  IL_002d:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0032:  ldloc.3
-  IL_0033:  ldloc.2
-  IL_0034:  stloc.0
-  IL_0035:  stloc.1
-  IL_0036:  ldloca.s   V_0
-  IL_0038:  constrained. ""CustomHandler""
-  IL_003e:  callvirt   ""string object.ToString()""
-  IL_0043:  call       ""void System.Console.Write(string)""
-  IL_0048:  ldloca.s   V_1
-  IL_004a:  constrained. ""CustomHandler""
-  IL_0050:  callvirt   ""string object.ToString()""
-  IL_0055:  call       ""void System.Console.WriteLine(string)""
-  IL_005a:  ret
-}
-");
+  IL_0018:  ldloc.2
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""CustomHandler..ctor(int, int)""
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  ldc.i4.2
+  IL_0025:  box        ""int""
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldnull
+  IL_002c:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0031:  ldloc.2
+  IL_0032:  stloc.1
+  IL_0033:  stloc.0
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  constrained. ""CustomHandler""
+  IL_003c:  callvirt   ""string object.ToString()""
+  IL_0041:  call       ""void System.Console.Write(string)""
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  constrained. ""CustomHandler""
+  IL_004e:  callvirt   ""string object.ToString()""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  ret
+}");
     }
 
     [Theory]
@@ -12603,7 +12602,6 @@ format:
 }
 ");
     }
-
 
     [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
     [InlineData(@"$""""""{h1}{h2}""""""")]

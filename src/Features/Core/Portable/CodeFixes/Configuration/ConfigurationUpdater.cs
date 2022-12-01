@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     {
                         // We splice on the last occurrence of '.' to account for filenames containing periods.
                         var nameExtensionSplitIndex = mostRecentHeaderText.LastIndexOf('.');
-                        var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
+                        var fileName = mostRecentHeaderText[..nameExtensionSplitIndex];
                         var splicedFileExtensions = mostRecentHeaderText[(nameExtensionSplitIndex + 1)..].Split(',', ' ', '{', '}');
 
                         // Replacing characters in the header with the regex equivalent.
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         if (headerRegex.IsMatch(relativePath))
                         {
                             var match = headerRegex.Match(relativePath).Value;
-                            var matchWithoutExtension = match.Substring(0, match.LastIndexOf('.'));
+                            var matchWithoutExtension = match[..match.LastIndexOf('.')];
 
                             // Edge case: The below statement checks that we correctly handle cases such as a header of [m.cs] and
                             // a file name of Program.cs.

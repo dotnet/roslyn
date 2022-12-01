@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document,
-            SyntaxNode funcOrRecord,
+            SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
             IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes,
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             TParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
-            SyntaxNode funcOrRecord,
+            SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
             IBlockOperation? blockStatementOpt,
             CleanCodeGenerationOptionsProvider fallbackOptions,
@@ -101,22 +100,21 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             using var result = TemporaryArray<CodeAction>.Empty;
             result.Add(CodeAction.Create(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, parameter, funcOrRecord, methodSymbol, blockStatementOpt, simplifierOptions, c),
+                c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, simplifierOptions, c),
                 nameof(FeaturesResources.Add_null_check)));
 
             // Also, if this was a string, offer to add the special checks to string.IsNullOrEmpty and
-            // string.IsNullOrWhitespace.  We cannot do this for records though as they have no location
-            // to place the checks.
-            if (parameter.Type.SpecialType == SpecialType.System_String && !IsRecordDeclaration(funcOrRecord))
+            // string.IsNullOrWhitespace.
+            if (parameter.Type.SpecialType == SpecialType.System_String)
             {
                 result.Add(CodeAction.Create(
                     FeaturesResources.Add_string_IsNullOrEmpty_check,
-                    c => AddStringCheckAsync(document, parameter, funcOrRecord, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), simplifierOptions, c),
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), simplifierOptions, c),
                     nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
 
                 result.Add(CodeAction.Create(
                     FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                    c => AddStringCheckAsync(document, parameter, funcOrRecord, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), simplifierOptions, c),
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), simplifierOptions, c),
                     nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));
             }
 
@@ -139,13 +137,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var firstParameterNode = (TParameterSyntax)root.FindNode(parameterSpan);
-                var funcOrRecord = firstParameterNode.FirstAncestorOrSelf(_isFunctionDeclarationFunc) ??
-                                   firstParameterNode.FirstAncestorOrSelf(_isRecordDeclarationFunc);
-                if (funcOrRecord == null)
+                var functionDeclaration = firstParameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+                if (functionDeclaration == null)
                     continue;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var parameterNodes = (IReadOnlyList<TParameterSyntax>)generator.GetParameters(funcOrRecord);
+                var parameterNodes = (IReadOnlyList<TParameterSyntax>)generator.GetParameters(functionDeclaration);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var (parameterSyntax, parameter) = GetParameterAtOrdinal(index, parameterNodes, semanticModel, cancellationToken);
                 if (parameter == null)
@@ -154,21 +151,21 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-                if (!CanOfferRefactoring(funcOrRecord, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
+                if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
                     continue;
 
                 lazySimplifierOptions ??= (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 // If parameter is a string, default check would be IsNullOrEmpty. This is because IsNullOrEmpty is more
                 // commonly used in this regard according to telemetry and UX testing.
-                if (parameter.Type.SpecialType == SpecialType.System_String && !IsRecordDeclaration(funcOrRecord))
+                if (parameter.Type.SpecialType == SpecialType.System_String)
                 {
-                    document = await AddStringCheckAsync(document, parameter, funcOrRecord, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
+                    document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
                     continue;
                 }
 
                 // For all other parameters, add null check - updates document
-                document = await AddNullCheckAsync(document, parameter, funcOrRecord,
+                document = await AddNullCheckAsync(document, parameter, functionDeclaration,
                     (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
             }
 
@@ -219,7 +216,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (statement is IConditionalOperation ifStatement)
             {
                 var condition = ifStatement.Condition;
-                condition = UnwrapImplicitConversion(condition);
+                condition = condition.UnwrapImplicitConversion();
 
                 if (condition is IBinaryOperation binaryOperator)
                 {
@@ -326,7 +323,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private static bool IsNullCheck(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
-            => UnwrapImplicitConversion(operand1).IsNullLiteral() && IsParameterReference(operand2, parameter);
+            => operand1.UnwrapImplicitConversion().IsNullLiteral() && IsParameterReference(operand2, parameter);
 
         private async Task<Document> AddNullCheckAsync(
             Document document,

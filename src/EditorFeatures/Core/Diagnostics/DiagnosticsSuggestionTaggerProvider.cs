@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed partial class DiagnosticsSuggestionTaggerProvider :
         AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
-            ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
-
-        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,26 +43,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
             // lsp client.
             return mode == DiagnosticMode.Push;
         }
 
-        protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
+        protected sealed override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
             => new RoslynErrorTag(PredefinedErrorTypeNames.HintedSuggestion, workspace, diagnostic);
 
-        protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
+        protected sealed override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
         {
             // We always want suggestion tags to be two characters long.
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
 
-        protected override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
+        protected sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
         {
             Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
             Contract.ThrowIfFalse(tag2 is RoslynErrorTag);

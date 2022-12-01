@@ -242,7 +242,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
             ValidateOptions(builder, MessageProvider.Instance)
 

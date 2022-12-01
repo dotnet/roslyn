@@ -181,16 +181,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
                 }
 
+                MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, tpl, tpl.LessThanToken.GetLocation());
+
                 bool isInterfaceOrDelegate = typeKind == SyntaxKind.InterfaceDeclaration || typeKind == SyntaxKind.DelegateDeclaration;
                 var parameterBuilder = new List<TypeParameterBuilder>();
                 parameterBuilders1.Add(parameterBuilder);
                 int i = 0;
                 foreach (var tp in tpl.Parameters)
                 {
-                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None &&
-                        !isInterfaceOrDelegate)
+                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                        if (!isInterfaceOrDelegate)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                        }
+                        else
+                        {
+                            MessageID.IDS_FeatureTypeVariance.CheckFeatureAvailability(diagnostics, tp, tp.VarianceKeyword.GetLocation());
+                        }
                     }
 
                     var name = typeParameterNames[i];
@@ -445,7 +453,7 @@ next:;
                 }
 
                 results = MergeConstraintKindsForPartialDeclarations(results, otherPartialClauses);
-                results = ConstraintsHelper.AdjustConstraintKindsBasedOnConstraintTypes(this, typeParameters, results);
+                results = ConstraintsHelper.AdjustConstraintKindsBasedOnConstraintTypes(typeParameters, results);
 
                 if (results.All(clause => clause.Constraints == TypeParameterConstraintKind.None))
                 {

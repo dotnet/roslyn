@@ -106,13 +106,13 @@ class C : I {
         {
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_spacing_for_method_declarations });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis2, s_methodPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis, s_methodPreview, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis, CSharpVSResources.Insert_space_within_parameter_list_parentheses, s_methodPreview, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses, CSharpVSResources.Insert_space_within_empty_parameter_list_parentheses, s_methodPreview, this, optionStore));
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_spacing_for_method_calls });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterMethodCallName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis1, s_methodPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterMethodCallName, CSharpVSResources.Insert_space_between_called_method_name_and_its_opening_parenthesis, s_methodPreview, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, CSharpVSResources.Insert_space_within_argument_list_parentheses, s_methodPreview, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, CSharpVSResources.Insert_space_within_empty_argument_list_parentheses, s_methodPreview, this, optionStore));
 

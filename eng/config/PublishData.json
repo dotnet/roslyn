@@ -42,6 +42,8 @@
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
+      "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol": "vs-impl",
+      "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.Lsif.Generator": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Apex": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.CodeLens": "vs-impl",
@@ -125,6 +127,16 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.4]"
     },
+    "release/dev17.5-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.5",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.5p1]"
+    },
     "main": {
       "nugetKind": [
         "Shipping",
@@ -142,8 +154,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.5]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.5p2]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

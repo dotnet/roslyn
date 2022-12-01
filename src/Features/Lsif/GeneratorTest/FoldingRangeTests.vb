@@ -51,7 +51,7 @@ using System.Linq;|}", "imports", "...")>
                                 <%= code %>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
 
                 Dim annotatedLocations = Await AbstractLanguageServerProtocolTests.GetAnnotatedLocationsAsync(workspace, workspace.CurrentSolution)
                 Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range, collapsedText)).OrderBy(Function(range) range.StartLine).ToArray()

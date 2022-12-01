@@ -22,9 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
     public class UseExpressionBodyForAccessorsTests
     {
-        private static async Task TestWithUseExpressionBody(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
+        private static async Task TestWithUseExpressionBody(
+            string code,
+            string fixedCode,
+            LanguageVersion version = LanguageVersion.CSharp8)
         {
-            await new VerifyCS.Test
+            var test = new VerifyCS.Test
             {
                 ReferenceAssemblies = version == LanguageVersion.CSharp9 ? ReferenceAssemblies.Net.Net50 : ReferenceAssemblies.Default,
                 TestCode = code,
@@ -35,8 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible  },
                     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never },
                     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
-                }
-            }.RunAsync();
+                },
+            };
+
+            await test.RunAsync();
         }
 
         private static async Task TestWithUseExpressionBodyIncludingPropertiesAndIndexers(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
@@ -727,7 +732,7 @@ class C
 using System;
 class C
 {
-    int Goo { {|IDE0027:get {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|} }
+    int Goo { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
 }";
             var fixedCode = @"
 using System;
@@ -751,8 +756,8 @@ class C
 using System;
 class C
 {
-    int Goo { {|IDE0027:get {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|} }
-    int Bar { {|IDE0027:get {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|} }
+    int Goo { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
+    int Bar { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
 }";
             var fixedCode = @"
 using System;

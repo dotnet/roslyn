@@ -109,9 +109,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             telemetry.SetBreakState(inBreakState);
 
-            BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState ?
-                new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true) :
-                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
+            BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState
+                ? new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true)
+                : new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
 
             Capabilities = new AsyncLazy<EditAndContinueCapabilities>(GetCapabilitiesAsync, cacheResult: true);
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldProject = oldSolution.GetProject(newProject.Id);
                     if (oldProject == null)
                     {
-                        log.Write("EnC state of '{0}' queried: project not loaded", newProject.FilePath);
+                        log.Write("EnC state of '{0}' queried: project not loaded", newProject.Id);
 
                         // TODO (https://github.com/dotnet/roslyn/issues/1204):
                         //
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.FilePath);
+                    log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.Id);
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (mvid == Guid.Empty)
                     {
-                        log.Write("Emitting update of '{0}': project not built", newProject.FilePath);
+                        log.Write("Emitting update of '{0}': project not built", newProject.Id);
                         continue;
                     }
 
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                    log.Write("Project summary for '{0}': {1}", newProject.FilePath, projectSummary);
+                    log.Write("Project summary for '{0}': {1}", newProject.Id, projectSummary);
                     if (projectSummary == ProjectAnalysisSummary.NoChanges)
                     {
                         continue;
@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    log.Write("Emitting update of '{0}'", newProject.FilePath);
+                    log.Write("Emitting update of '{0}'", newProject.Id);
 
                     if (log.FileLoggingEnabled)
                     {
@@ -1074,9 +1074,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
                 }
 
-                var update = isBlocked ?
-                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors) :
-                    new SolutionUpdate(
+                var update = isBlocked
+                    ? SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors)
+                    : new SolutionUpdate(
                         new ModuleUpdates(
                             (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,
                             deltas.ToImmutable()),

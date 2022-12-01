@@ -241,7 +241,7 @@ class C
 using System;
 class C
 {
-    {|IDE0021:public C() {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|}
+    {|IDE0021:public C() {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|}
 }";
             var fixedCode = @"
 using System;
@@ -262,8 +262,8 @@ class C
 using System;
 class C
 {
-    {|IDE0021:public C() {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|}
-    {|IDE0021:public C(int i) {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|}
+    {|IDE0021:public C() {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|}
+    {|IDE0021:public C(int i) {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|}
 }";
             var fixedCode = @"
 using System;

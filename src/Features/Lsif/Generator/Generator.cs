@@ -5,11 +5,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
@@ -307,7 +311,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
-                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, LspClientCapabilities, CancellationToken.None);
+                        var hover = await HoverHandler.GetHoverAsync(
+                            semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, LspClientCapabilities, CancellationToken.None);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);

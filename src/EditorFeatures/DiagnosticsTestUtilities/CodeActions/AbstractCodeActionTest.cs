@@ -109,9 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
 
-            var codeActionOptionsProvider = parameters.globalOptions?.IsEmpty() == false ?
-                CodeActionOptionsStorage.GetCodeActionOptionsProvider(workspace.GlobalOptions) :
-                CodeActionOptions.DefaultProvider;
+            var codeActionOptionsProvider = parameters.globalOptions?.IsEmpty() == false
+                ? CodeActionOptionsStorage.GetCodeActionOptionsProvider(workspace.GlobalOptions)
+                : CodeActionOptions.DefaultProvider;
 
             var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, isBlocking: false, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);

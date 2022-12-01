@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+  This project provides Visual Basic implementations for features defined in Microsoft.CodeAnalysis.LanguageServer.Protocol
+  but that don't require dependencies on VS Editor types.  This project is not loaded in Visual Studio.
+  -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.LanguageServer</RootNamespace>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for Language Server Protocol in Visual Basic.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\EditorFeatures\VisualBasic\AddImports\VisualBasicAddImportPlacementOptionsStorage.vb" Link="VisualBasicAddImportPlacementOptionsStorage.vb" />
+    <Compile Include="..\..\..\EditorFeatures\VisualBasic\CodeGeneration\VisualBasicCodeGenerationOptionsStorage.vb" Link="VisualBasicCodeGenerationOptionsStorage.vb" />
+    <Compile Include="..\..\..\EditorFeatures\VisualBasic\CodeStyle\VisualBasicCodeStyleOptionsStorage.vb" Link="VisualBasicCodeStyleOptionsStorage.vb" />
+    <Compile Include="..\..\..\EditorFeatures\VisualBasic\Formatting\VisualBasicSyntaxFormattingOptionsStorage.vb" Link="VisualBasicSyntaxFormattingOptionsStorage.vb" />
+    <Compile Include="..\..\..\EditorFeatures\VisualBasic\Simplification\VisualBasicSimplifierOptionsStorage.vb" Link="VisualBasicSimplifierOptionsStorage.vb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+    <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+  </ItemGroup>
+
+</Project>

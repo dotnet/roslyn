@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.Equal(generation, actualGeneration);
             Assert.Equal(parameterCount, actualParameterCount);
 
-
             // We need to strip arity in order to validate round-tripping
             name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out _);
             Assert.Equal(name, GeneratedNames.MakeSynthesizedDelegateName(actualByRefs, actualReturnsVoid, actualGeneration));

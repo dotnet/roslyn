@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
             private const string PlainTextClassificationTypeName = "plain text";
 
             // Dark Theme Core Classifications
-            private static ImmutableDictionary<string, uint> DarkThemeForeground =>
-                new Dictionary<string, uint>()
+            private static ImmutableDictionary<string, uint> DarkThemeForeground
+                => new Dictionary<string, uint>()
                 {
                     [PlainTextClassificationTypeName] = DarkThemePlainText,
                     [ClassificationTypeNames.Identifier] = DarkThemeIdentifier,
@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 }.ToImmutableDictionary();
 
             // Light, Blue, or AdditionalContrast Theme Core Classifications
-            private static ImmutableDictionary<string, uint> BlueLightThemeForeground =>
-                new Dictionary<string, uint>()
+            private static ImmutableDictionary<string, uint> BlueLightThemeForeground
+                => new Dictionary<string, uint>()
                 {
                     [PlainTextClassificationTypeName] = LightThemePlainText,
                     [ClassificationTypeNames.Identifier] = LightThemeIdentifier,

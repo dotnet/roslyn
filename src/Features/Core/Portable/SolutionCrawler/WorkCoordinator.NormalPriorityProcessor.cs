@@ -29,13 +29,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private sealed class NormalPriorityProcessor : AbstractPriorityProcessor
                 {
-                    private const int MaxHighPriorityQueueCache = 29;
-
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
-                    private readonly ConcurrentDictionary<DocumentId, IDisposable?> _higherPriorityDocumentsNotProcessed;
+                    private readonly ConcurrentDictionary<DocumentId, /*unused*/object?> _higherPriorityDocumentsNotProcessed;
 
                     private ProjectId? _currentProjectProcessing;
-                    private IDisposable? _projectCache;
 
                     // this is only used in ResetState to find out solution has changed
                     // and reset some states such as logging some telemetry or
@@ -49,14 +46,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
-                        IGlobalOperationNotificationService globalOperationNotificationService,
+                        IGlobalOperationNotificationService? globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
                         : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
-                        _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable?>(concurrencyLevel: 2, capacity: 20);
+                        _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, object?>(concurrencyLevel: 2, capacity: 20);
 
                         _currentProjectProcessing = null;
 
@@ -93,37 +90,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void AddHigherPriorityDocument(DocumentId id)
                     {
-                        var cache = GetHighPriorityQueueProjectCache(id);
-                        if (!_higherPriorityDocumentsNotProcessed.TryAdd(id, cache))
-                        {
-                            // we already have the document in the queue.
-                            cache?.Dispose();
-                        }
-
+                        _higherPriorityDocumentsNotProcessed.TryAdd(id, /*unused*/ null);
                         SolutionCrawlerLogger.LogHigherPriority(Processor._logAggregator, id.Id);
                     }
 
-                    private IDisposable? GetHighPriorityQueueProjectCache(DocumentId id)
-                    {
-                        // NOTE: we have one potential issue where we can cache a lot of stuff in memory 
-                        //       since we will cache all high prioirty work's projects in memory until they are processed. 
-                        //
-                        //       To mitigate that, we will turn off cache if we have too many items in high priority queue
-                        //       this shouldn't affect active file since we always enable active file cache from background compiler.
-
-                        return _higherPriorityDocumentsNotProcessed.Count <= MaxHighPriorityQueueCache ? Processor.EnableCaching(id.ProjectId) : null;
-                    }
-
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        if (!_workItemQueue.HasAnyWork)
-                        {
-                            _projectCache?.Dispose();
-                            _projectCache = null;
-                        }
-
-                        return _workItemQueue.WaitAsync(cancellationToken);
-                    }
+                        => _workItemQueue.WaitAsync(cancellationToken);
 
                     public Task Running => _running;
                     public int WorkItemCount => _workItemQueue.WorkItemCount;
@@ -208,20 +180,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void SetProjectProcessing(ProjectId currentProject)
                     {
-                        EnableProjectCacheIfNecessary(currentProject);
-
                         _currentProjectProcessing = currentProject;
-                    }
-
-                    private void EnableProjectCacheIfNecessary(ProjectId currentProject)
-                    {
-                        if (_projectCache != null && currentProject == _currentProjectProcessing)
-                        {
-                            return;
-                        }
-
-                        _projectCache?.Dispose();
-                        _projectCache = Processor.EnableCaching(currentProject);
                     }
 
                     private IEnumerable<DocumentId> GetPrioritizedPendingDocuments()
@@ -292,10 +251,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private void RemoveHigherPriorityDocument(DocumentId documentId)
                     {
                         // remove opened document processed
-                        if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out var projectCache))
-                        {
-                            projectCache?.Dispose();
-                        }
+                        _higherPriorityDocumentsNotProcessed.TryRemove(documentId, out _);
                     }
 
                     private async Task ProcessDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
@@ -577,9 +533,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         base.Shutdown();
 
                         _workItemQueue.Dispose();
-
-                        _projectCache?.Dispose();
-                        _projectCache = null;
                     }
 
                     internal TestAccessor GetTestAccessor()

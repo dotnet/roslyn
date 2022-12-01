@@ -62,17 +62,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             AddedParameterValueOmitted
         }
 
-        internal static void LogChangeSignatureDialogLaunched() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.ChangeSignatureDialogLaunched);
+        internal static void LogChangeSignatureDialogLaunched()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.ChangeSignatureDialogLaunched);
 
-        internal static void LogChangeSignatureDialogCommitted() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.ChangeSignatureDialogCommitted);
+        internal static void LogChangeSignatureDialogCommitted()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.ChangeSignatureDialogCommitted);
 
-        internal static void LogAddParameterDialogLaunched() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddParameterDialogLaunched);
+        internal static void LogAddParameterDialogLaunched()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.AddParameterDialogLaunched);
 
-        internal static void LogAddParameterDialogCommitted() =>
-            s_countLogAggregator.IncreaseCount(ActionInfo.AddParameterDialogCommitted);
+        internal static void LogAddParameterDialogCommitted()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.AddParameterDialogCommitted);
 
         internal static void LogTransformationInformation(int numOriginalParameters, int numParametersAdded, int numParametersRemoved, bool anyParametersReordered)
         {

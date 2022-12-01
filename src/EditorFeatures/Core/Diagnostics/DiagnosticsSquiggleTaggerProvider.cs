@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -27,12 +26,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
-    internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    internal sealed partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
-            ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
-
-        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -47,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, squiggles are handled by the lsp client.
             return mode == DiagnosticMode.Push;
         }
 
-        protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
@@ -62,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
-        protected override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
+        protected sealed override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
@@ -129,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        protected override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
+        protected sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
         {
             Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
             Contract.ThrowIfFalse(tag2 is RoslynErrorTag);

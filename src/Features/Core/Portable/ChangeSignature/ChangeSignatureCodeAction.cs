@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,6 +18,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     {
         private readonly AbstractChangeSignatureService _changeSignatureService;
         private readonly ChangeSignatureAnalysisSucceededContext _context;
+
+        /// <summary>
+        /// This code action currently pops up a confirmation dialog to the user.  As such, it does more than make
+        /// document changes (and is thus restricted in which hosts it can run).
+        /// </summary>
+        public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
         public ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context)
         {

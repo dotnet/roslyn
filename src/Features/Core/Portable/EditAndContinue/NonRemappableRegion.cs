@@ -12,12 +12,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal readonly struct NonRemappableRegion : IEquatable<NonRemappableRegion>
     {
         /// <summary>
-        /// Pre-remap PDB span.
+        /// PDB span in pre-remap method version.
         /// </summary>
+        /// <remarks>
+        /// When a thread is executing in an old version of a method before it is remapped to the new version
+        /// its active statement needs to be mapped from <see cref="OldSpan"/> in the old version 
+        /// to <see cref="NewSpan"/> in the new version of the method.
+        /// </remarks>
         public readonly SourceFileSpan OldSpan;
 
         /// <summary>
-        /// New PDB span.
+        /// PDB span in the new method version.
         /// </summary>
         public readonly SourceFileSpan NewSpan;
 

@@ -177,6 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((result & DeclarationModifiers.Fixed) != 0)
             {
+                foreach (var modifier in modifiers)
+                {
+                    if (modifier.IsKind(SyntaxKind.FixedKeyword))
+                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
+                }
+
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Static, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Const, diagnostics, errorLocation);
