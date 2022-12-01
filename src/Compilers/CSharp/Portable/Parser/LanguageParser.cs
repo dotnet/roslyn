@@ -7455,12 +7455,10 @@ done:;
                 list.Add(_syntaxFactory.TupleElement(missing, identifier: null));
             }
 
-            var result = _syntaxFactory.TupleType(
+            return _syntaxFactory.TupleType(
                 open,
                 _pool.ToListAndFree(list),
                 this.EatToken(SyntaxKind.CloseParenToken));
-
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
         }
 
         private TupleElementSyntax ParseTupleElement()
