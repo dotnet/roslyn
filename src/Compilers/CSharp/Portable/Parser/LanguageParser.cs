@@ -12956,24 +12956,17 @@ tryAgain:
         /// </summary>
         private LambdaExpressionSyntax TryParseLambdaExpression()
         {
-            var resetPoint = this.GetResetPoint();
-            try
-            {
-                var result = ParseLambdaExpression();
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+            var result = ParseLambdaExpression();
 
-                if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
-                    result is ParenthesizedLambdaExpressionSyntax { ReturnType: NullableTypeSyntax { } })
-                {
-                    this.Reset(ref resetPoint);
-                    return null;
-                }
-
-                return result;
-            }
-            finally
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
+                result is ParenthesizedLambdaExpressionSyntax { ReturnType: NullableTypeSyntax })
             {
-                this.Release(ref resetPoint);
+                resetPoint.Reset();
+                return null;
             }
+
+            return result;
         }
 
         private LambdaExpressionSyntax ParseLambdaExpression()
@@ -13665,10 +13658,13 @@ tryAgain:
                 _resetPoint = resetPoint;
             }
 
+            public void Reset()
+                => _languageParser.Reset(ref _resetPoint);
+
             public void Dispose()
             {
                 if (_resetOnDispose)
-                    _languageParser.Reset(ref _resetPoint);
+                    this.Reset();
 
                 _languageParser.Release(ref _resetPoint);
             }
