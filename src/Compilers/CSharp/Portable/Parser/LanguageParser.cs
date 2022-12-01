@@ -6511,9 +6511,8 @@ tryAgain:
                     // now, scan past the next name.  if it's followed by a dot then
                     // it's part of the explicit name we're building up.  Otherwise,
                     // it should be an operator token
-                    var point = GetResetPoint();
                     bool isPartOfInterfaceName;
-                    try
+                    using (var _ = GetDisposableResetPoint(resetOnDispose: true))
                     {
                         if (IsOperatorKeyword())
                         {
@@ -6528,11 +6527,6 @@ tryAgain:
                             // missing dot token.
                             isPartOfInterfaceName = IsDotOrColonColonOrDotDot() || IsOperatorKeyword();
                         }
-                    }
-                    finally
-                    {
-                        this.Reset(ref point);
-                        this.Release(ref point);
                     }
 
                     if (!isPartOfInterfaceName)
