@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
     {
         private readonly object _gate = new();
 
-        private readonly HostWorkspaceServices _workspaceServices;
+        private readonly SolutionServices _solutionServices;
 
         /// <summary>
         /// A file change context used to watch metadata references.
@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new();
 
         public FileWatchedPortableExecutableReferenceFactory(
-            HostWorkspaceServices workspaceServices,
+            SolutionServices solutionServices,
             IFileChangeWatcher fileChangeWatcher)
         {
-            _workspaceServices = workspaceServices;
+            _solutionServices = solutionServices;
 
             var watchedDirectories = new List<WatchedDirectory>();
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         {
             lock (_gate)
             {
-                var reference = _workspaceServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
+                var reference = _solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
                 var fileWatchingToken = _fileReferenceChangeContext.EnqueueWatchingFile(fullFilePath);
 
                 _metadataReferenceFileWatchingTokens.Add(reference, fileWatchingToken);
