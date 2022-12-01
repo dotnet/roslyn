@@ -10093,19 +10093,14 @@ tryAgain:
 
             bool shouldTreatAsModifier()
             {
-                var resetPoint = this.GetResetPoint();
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
                 this.EatToken();
 
-                bool validAsModifier = IsDeclarationModifier(this.CurrentToken.Kind) ||
+                return IsDeclarationModifier(this.CurrentToken.Kind) ||
                     IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) ||
                     (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
-
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-
-                return validAsModifier;
             }
         }
 
