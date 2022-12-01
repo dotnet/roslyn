@@ -5150,51 +5150,44 @@ tryAgain:
                 //
                 // C 
                 // A()
-                var resetPoint = this.GetResetPoint();
-                try
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+                var currentTokenKind = this.CurrentToken.Kind;
+                if (currentTokenKind == SyntaxKind.IdentifierToken && !parentType.IsMissing)
                 {
-                    var currentTokenKind = this.CurrentToken.Kind;
-                    if (currentTokenKind == SyntaxKind.IdentifierToken && !parentType.IsMissing)
+                    var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia);
+                    if (isAfterNewLine)
                     {
-                        var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia);
-                        if (isAfterNewLine)
+                        int offset, width;
+                        this.GetDiagnosticSpanForMissingToken(out offset, out width);
+
+                        this.EatToken();
+                        currentTokenKind = this.CurrentToken.Kind;
+
+                        var isNonEqualsBinaryToken =
+                            currentTokenKind != SyntaxKind.EqualsToken &&
+                            SyntaxFacts.IsBinaryExpressionOperatorToken(currentTokenKind);
+
+                        if (currentTokenKind == SyntaxKind.DotToken ||
+                            currentTokenKind == SyntaxKind.OpenParenToken ||
+                            currentTokenKind == SyntaxKind.MinusGreaterThanToken ||
+                            isNonEqualsBinaryToken)
                         {
-                            int offset, width;
-                            this.GetDiagnosticSpanForMissingToken(out offset, out width);
-
-                            this.EatToken();
-                            currentTokenKind = this.CurrentToken.Kind;
-
-                            var isNonEqualsBinaryToken =
-                                currentTokenKind != SyntaxKind.EqualsToken &&
-                                SyntaxFacts.IsBinaryExpressionOperatorToken(currentTokenKind);
-
-                            if (currentTokenKind == SyntaxKind.DotToken ||
+                            var isPossibleLocalFunctionToken =
                                 currentTokenKind == SyntaxKind.OpenParenToken ||
-                                currentTokenKind == SyntaxKind.MinusGreaterThanToken ||
-                                isNonEqualsBinaryToken)
+                                currentTokenKind == SyntaxKind.LessThanToken;
+
+                            // Make sure this isn't a local function
+                            if (!isPossibleLocalFunctionToken || !IsLocalFunctionAfterIdentifier())
                             {
-                                var isPossibleLocalFunctionToken =
-                                    currentTokenKind == SyntaxKind.OpenParenToken ||
-                                    currentTokenKind == SyntaxKind.LessThanToken;
+                                var missingIdentifier = CreateMissingIdentifierToken();
+                                missingIdentifier = this.AddError(missingIdentifier, offset, width, ErrorCode.ERR_IdentifierExpected);
 
-                                // Make sure this isn't a local function
-                                if (!isPossibleLocalFunctionToken || !IsLocalFunctionAfterIdentifier())
-                                {
-                                    var missingIdentifier = CreateMissingIdentifierToken();
-                                    missingIdentifier = this.AddError(missingIdentifier, offset, width, ErrorCode.ERR_IdentifierExpected);
-
-                                    localFunction = null;
-                                    return _syntaxFactory.VariableDeclarator(missingIdentifier, null, null);
-                                }
+                                localFunction = null;
+                                return _syntaxFactory.VariableDeclarator(missingIdentifier, null, null);
                             }
                         }
                     }
-                }
-                finally
-                {
-                    this.Reset(ref resetPoint);
-                    this.Release(ref resetPoint);
                 }
             }
 
