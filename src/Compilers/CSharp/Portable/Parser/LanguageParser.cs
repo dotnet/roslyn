@@ -7246,48 +7246,42 @@ done:;
         private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
-            var resetPoint = this.GetResetPoint();
-            try
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            var questionToken = this.EatToken();
+            if (!canFollowNullableType())
             {
-                var questionToken = this.EatToken();
-                if (!canFollowNullableType())
-                {
-                    // Restore current token index
-                    this.Reset(ref resetPoint);
-                    return null;
-                }
-
-                return questionToken;
-
-                bool canFollowNullableType()
-                {
-                    switch (mode)
-                    {
-                        case ParseTypeMode.AfterIs:
-                        case ParseTypeMode.DefinitePattern:
-                        case ParseTypeMode.AsExpression:
-                            // These contexts might be a type that is at the end of an expression.
-                            // In these contexts we only permit the nullable qualifier if it is followed
-                            // by a token that could not start an expression, because for backward
-                            // compatibility we want to consider a `?` token as part of the `?:`
-                            // operator if possible.
-                            return !CanStartExpression();
-                        case ParseTypeMode.NewExpression:
-                            // A nullable qualifier is permitted as part of the type in a `new` expression.
-                            // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
-                            // Similarly `new int? {}` is allowed.
-                            return
-                                this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||   // ctor parameters
-                                this.CurrentToken.Kind == SyntaxKind.OpenBracketToken ||   // array type
-                                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;   // object initializer
-                        default:
-                            return true;
-                    }
-                }
+                // Restore current token index
+                resetPoint.Reset();
+                return null;
             }
-            finally
+
+            return questionToken;
+
+            bool canFollowNullableType()
             {
-                this.Release(ref resetPoint);
+                switch (mode)
+                {
+                    case ParseTypeMode.AfterIs:
+                    case ParseTypeMode.DefinitePattern:
+                    case ParseTypeMode.AsExpression:
+                        // These contexts might be a type that is at the end of an expression.
+                        // In these contexts we only permit the nullable qualifier if it is followed
+                        // by a token that could not start an expression, because for backward
+                        // compatibility we want to consider a `?` token as part of the `?:`
+                        // operator if possible.
+                        return !CanStartExpression();
+                    case ParseTypeMode.NewExpression:
+                        // A nullable qualifier is permitted as part of the type in a `new` expression.
+                        // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
+                        // Similarly `new int? {}` is allowed.
+                        return
+                            this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||   // ctor parameters
+                            this.CurrentToken.Kind == SyntaxKind.OpenBracketToken ||   // array type
+                            this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;   // object initializer
+                    default:
+                        return true;
+                }
             }
         }
 
