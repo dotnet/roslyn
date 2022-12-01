@@ -404,15 +404,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                     messageId.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
 
-                    if (i < modifiers.Count - 1)
+                    // There was a bug where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for backcompat.
+                    if (!(isOrdinaryMethod && i == modifiers.Count - 2 && ToDeclarationModifier(modifiers[i + 1].ContextualKind()) == DeclarationModifiers.Async))
                     {
-                        // There was a bug where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for backcompat.
-                        if (!(isOrdinaryMethod && i == modifiers.Count - 2 && ToDeclarationModifier(modifiers[i + 1].ContextualKind()) == DeclarationModifiers.Async))
-                        {
-                            diagnostics.Add(
-                                ErrorCode.ERR_PartialMisplaced,
-                                modifier.GetLocation());
-                        }
+                        diagnostics.Add(
+                            ErrorCode.ERR_PartialMisplaced,
+                            modifier.GetLocation());
                     }
                 }
 
