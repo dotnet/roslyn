@@ -11846,72 +11846,65 @@ tryAgain:
                 return false;
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            // Do we have the following, where the attributes, modifier, and type are
+            // optional? If so then parse it as a lambda.
+            //   (attributes modifier T x [, ...]) =>
+            //
+            // It's not sufficient to assume this is a lambda expression if we see a
+            // modifier such as `(ref x,` because the caller of this method may have
+            // scanned past a preceding identifier, and `F (ref x,` might be a call to
+            // method F rather than a lambda expression with return type F.
+            // Instead, we need to scan to `=>`.
+
+            while (true)
             {
-                // Do we have the following, where the attributes, modifier, and type are
-                // optional? If so then parse it as a lambda.
-                //   (attributes modifier T x [, ...]) =>
-                //
-                // It's not sufficient to assume this is a lambda expression if we see a
-                // modifier such as `(ref x,` because the caller of this method may have
-                // scanned past a preceding identifier, and `F (ref x,` might be a call to
-                // method F rather than a lambda expression with return type F.
-                // Instead, we need to scan to `=>`.
+                // Advance past the open paren or comma.
+                this.EatToken();
 
-                while (true)
+                ParseAttributeDeclarations();
+
+                bool hasModifier = false;
+                if (IsParameterModifierExcludingScoped(this.CurrentToken) || this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
-                    // Advance past the open paren or comma.
-                    this.EatToken();
+                    SyntaxListBuilder modifiers = _pool.Allocate();
+                    ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
+                    hasModifier = modifiers.Count != 0;
+                    _pool.Free(modifiers);
+                }
 
-                    _ = ParseAttributeDeclarations();
-
-                    bool hasModifier = false;
-                    if (IsParameterModifierExcludingScoped(this.CurrentToken) || this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+                if (hasModifier || ShouldParseLambdaParameterType())
+                {
+                    if (this.ScanType() == ScanTypeFlags.NotType)
                     {
-                        SyntaxListBuilder modifiers = _pool.Allocate();
-                        ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
-                        hasModifier = modifiers.Count != 0;
-                        _pool.Free(modifiers);
-                    }
-
-                    if (hasModifier || ShouldParseLambdaParameterType())
-                    {
-                        if (this.ScanType() == ScanTypeFlags.NotType)
-                        {
-                            return false;
-                        }
-                    }
-
-                    // eat the parameter name.
-                    var identifier = this.IsTrueIdentifier() ? this.EatToken() : CreateMissingIdentifierToken();
-
-                    // eat a !! if present.
-                    this.ParseParameterNullCheck(ref identifier, out var equalsToken);
-                    equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
-
-                    // If we have an `=` then parse out a default value.  Note: this is not legal, but this allows us to
-                    // to be resilient to the user writing this so we don't go completely off the rails.
-                    if (equalsToken != null)
-                        this.ParseExpressionCore();
-
-                    switch (this.CurrentToken.Kind)
-                    {
-                        case SyntaxKind.CommaToken:
-                            continue;
-
-                        case SyntaxKind.CloseParenToken:
-                            return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
-
-                        default:
-                            return false;
+                        return false;
                     }
                 }
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
+
+                // eat the parameter name.
+                var identifier = this.IsTrueIdentifier() ? this.EatToken() : CreateMissingIdentifierToken();
+
+                // eat a !! if present.
+                this.ParseParameterNullCheck(ref identifier, out var equalsToken);
+                equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+
+                // If we have an `=` then parse out a default value.  Note: this is not legal, but this allows us to
+                // to be resilient to the user writing this so we don't go completely off the rails.
+                if (equalsToken != null)
+                    this.ParseExpressionCore();
+
+                switch (this.CurrentToken.Kind)
+                {
+                    case SyntaxKind.CommaToken:
+                        continue;
+
+                    case SyntaxKind.CloseParenToken:
+                        return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
+
+                    default:
+                        return false;
+                }
             }
         }
 
