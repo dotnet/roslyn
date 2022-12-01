@@ -420,15 +420,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // these all can start a pattern
                                 return false;
                             default:
-                                if (SyntaxFacts.IsBinaryExpression(tk)) return true; // `e is int and && true` is valid C# 7.0 code with `and` being a designator
+                                {
+                                    if (SyntaxFacts.IsBinaryExpression(tk)) return true; // `e is int and && true` is valid C# 7.0 code with `and` being a designator
 
-                                // If the following token could start an expression, it may be a constant pattern after a combinator.
-                                var resetPoint = this.GetResetPoint();
-                                _ = this.EatToken();
-                                var result = !CanStartExpression();
-                                this.Reset(ref resetPoint);
-                                this.Release(ref resetPoint);
-                                return result;
+                                    // If the following token could start an expression, it may be a constant pattern after a combinator.
+                                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                                    this.EatToken();
+                                    return !CanStartExpression();
+                                }
                         }
                     case SyntaxKind.UnderscoreToken: // discard is a valid pattern designation
                     default:
@@ -480,20 +479,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool LooksLikeTupleArrayType()
         {
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
-            {
                 return false;
-            }
 
-            ResetPoint resetPoint = GetResetPoint();
-            try
-            {
-                return ScanType(forPattern: true) != ScanTypeFlags.NotType;
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
+            using var _ = GetDisposableResetPoint(resetOnDispose: true);
+            return ScanType(forPattern: true) != ScanTypeFlags.NotType;
         }
 
         private PropertyPatternClauseSyntax ParsePropertyPatternClause()

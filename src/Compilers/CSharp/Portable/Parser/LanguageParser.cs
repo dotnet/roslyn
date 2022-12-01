@@ -1438,23 +1438,16 @@ tryAgain:
             // Here we check for:
             //   partial ReturnType MemberName
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var point = this.GetResetPoint();
-            try
-            {
-                this.EatToken(); // partial
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
-                if (this.ScanType() == ScanTypeFlags.NotType)
-                {
-                    return false;
-                }
+            this.EatToken(); // partial
 
-                return IsPossibleMemberName();
-            }
-            finally
+            if (this.ScanType() == ScanTypeFlags.NotType)
             {
-                this.Reset(ref point);
-                this.Release(ref point);
+                return false;
             }
+
+            return IsPossibleMemberName();
         }
 
         private bool IsPossibleMemberName()
