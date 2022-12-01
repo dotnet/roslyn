@@ -2669,18 +2669,11 @@ parse_member_name:;
 
                 if (CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword && this.PeekToken(1).Kind == SyntaxKind.UsingKeyword)
                 {
-                    var resetPoint = this.GetResetPoint();
-                    try
-                    {
-                        // Skip 'global' keyword
-                        EatToken();
-                        return !IsPossibleTopLevelUsingLocalDeclarationStatement();
-                    }
-                    finally
-                    {
-                        this.Reset(ref resetPoint);
-                        this.Release(ref resetPoint);
-                    }
+                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+                    // Skip 'global' keyword
+                    EatToken();
+                    return !IsPossibleTopLevelUsingLocalDeclarationStatement();
                 }
 
                 return false;
