@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -19,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     /// <summary>
     /// A service that wraps the Visual Studio file watching APIs to make them more convenient for use. With this, a consumer can create
-    /// an <see cref="IContext"/> which lets you add/remove files being watched, and an event is raised when a file is modified.
+    /// an <see cref="IFileChangeContext"/> which lets you add/remove files being watched, and an event is raised when a file is modified.
     /// </summary>
-    internal sealed class FileChangeWatcher
+    internal sealed class FileChangeWatcher : IFileChangeWatcher
     {
         private readonly Task<IVsAsyncFileChangeEx> _fileChangeService;
 
@@ -75,78 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await prior.ApplyAsync(service, cancellationToken).ConfigureAwait(false);
         }
 
-        public IContext CreateContext(params WatchedDirectory[] watchedDirectories)
+        public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
         {
             return new Context(this, watchedDirectories.ToImmutableArray());
-        }
-
-        /// <summary>
-        /// Gives a hint to the <see cref="IContext"/> that we should watch a top-level directory for all changes in addition
-        /// to any files called by <see cref="IContext.EnqueueWatchingFile(string)"/>.
-        /// </summary>
-        /// <remarks>
-        /// This is largely intended as an optimization; consumers should still call <see cref="IContext.EnqueueWatchingFile(string)" />
-        /// for files they want to watch. This allows the caller to give a hint that it is expected that most of the files being
-        /// watched is under this directory, and so it's more efficient just to watch _all_ of the changes in that directory
-        /// rather than creating and tracking a bunch of file watcher state for each file separately. A good example would be
-        /// just creating a single directory watch on the root of a project for source file changes: rather than creating a file watcher
-        /// for each individual file, we can just watch the entire directory and that's it.
-        /// </remarks>
-        public sealed class WatchedDirectory
-        {
-            public WatchedDirectory(string path, string? extensionFilter)
-            {
-                // We are doing string comparisons with this path, so ensure it has a trailing \ so we don't get confused with sibling
-                // paths that won't actually be covered.
-                if (!path.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
-                {
-                    path += System.IO.Path.DirectorySeparatorChar;
-                }
-
-                if (extensionFilter != null && !extensionFilter.StartsWith("."))
-                {
-                    throw new ArgumentException($"{nameof(extensionFilter)} should start with a period.", nameof(extensionFilter));
-                }
-
-                Path = path;
-                ExtensionFilter = extensionFilter;
-            }
-
-            public string Path { get; }
-
-            /// <summary>
-            /// If non-null, only watch the directory for changes to a specific extension. String always starts with a period.
-            /// </summary>
-            public string? ExtensionFilter { get; }
-        }
-
-        /// <summary>
-        /// A context that is watching one or more files.
-        /// </summary>
-        /// <remarks>This is only implemented today by <see cref="Context"/> but we don't want to leak implementation details out.</remarks>
-        public interface IContext : IDisposable
-        {
-            /// <summary>
-            /// Raised when a file has been changed. This may be a file watched explicitly by <see cref="EnqueueWatchingFile(string)"/> or it could be any
-            /// file in the directory if the <see cref="IContext"/> was watching a directory.
-            /// </summary>
-            event EventHandler<string> FileChanged;
-
-            /// <summary>
-            /// Starts watching a file but doesn't wait for the file watcher to be registered with the operating system. Good if you know
-            /// you'll need a file watched (eventually) but it's not worth blocking yet.
-            /// </summary>
-            IFileWatchingToken EnqueueWatchingFile(string filePath);
-
-            void StopWatchingFile(IFileWatchingToken token);
-        }
-
-        /// <summary>
-        /// A marker interface for tokens returned from <see cref="IContext.EnqueueWatchingFile(string)"/>. This is just to ensure type safety and avoid
-        /// leaking the full surface area of the nested types.
-        /// </summary>
-        public interface IFileWatchingToken
-        {
         }
 
         /// <summary>
@@ -432,7 +364,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private sealed class Context : IVsFreeThreadedFileChangeEvents2, IContext
+        private sealed class Context : IVsFreeThreadedFileChangeEvents2, IFileChangeContext
         {
             private readonly FileChangeWatcher _fileChangeWatcher;
             private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
