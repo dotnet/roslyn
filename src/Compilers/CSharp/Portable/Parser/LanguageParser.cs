@@ -6471,76 +6471,69 @@ tryAgain:
             NameSyntax explicitInterfaceName = null;
             SyntaxToken separator = null;
 
-            ResetPoint beforeIdentifierPoint = GetResetPoint();
+            using var beforeIdentifierPoint = GetDisposableResetPoint(resetOnDispose: false);
 
-            try
+            while (true)
             {
-                while (true)
+                // now, scan past the next name.  if it's followed by a dot then
+                // it's part of the explicit name we're building up.  Otherwise,
+                // it should be an operator token
+                bool isPartOfInterfaceName;
+                using (var _ = GetDisposableResetPoint(resetOnDispose: true))
                 {
-                    // now, scan past the next name.  if it's followed by a dot then
-                    // it's part of the explicit name we're building up.  Otherwise,
-                    // it should be an operator token
-                    bool isPartOfInterfaceName;
-                    using (var _ = GetDisposableResetPoint(resetOnDispose: true))
+                    if (IsOperatorKeyword())
                     {
-                        if (IsOperatorKeyword())
-                        {
-                            isPartOfInterfaceName = false;
-                        }
-                        else
-                        {
-                            ScanNamedTypePart();
-
-                            // If we have part of the interface name, but no dot before the operator token, then
-                            // for the purpose of error recovery, treat this as an operator start with a
-                            // missing dot token.
-                            isPartOfInterfaceName = IsDotOrColonColonOrDotDot() || IsOperatorKeyword();
-                        }
-                    }
-
-                    if (!isPartOfInterfaceName)
-                    {
-                        // We're past any explicit interface portion
-                        if (separator != null && separator.Kind == SyntaxKind.ColonColonToken)
-                        {
-                            separator = this.AddError(separator, ErrorCode.ERR_AliasQualAsExpression);
-                            separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
-                        }
-
-                        break;
+                        isPartOfInterfaceName = false;
                     }
                     else
                     {
-                        // If we saw a . or :: then we must have something explicit.
-                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator);
+                        ScanNamedTypePart();
+
+                        // If we have part of the interface name, but no dot before the operator token, then
+                        // for the purpose of error recovery, treat this as an operator start with a
+                        // missing dot token.
+                        isPartOfInterfaceName = IsDotOrColonColonOrDotDot() || IsOperatorKeyword();
                     }
                 }
 
-                if (!IsOperatorKeyword() || explicitInterfaceName is null)
+                if (!isPartOfInterfaceName)
                 {
-                    Reset(ref beforeIdentifierPoint);
-                    return false;
-                }
+                    // We're past any explicit interface portion
+                    if (separator != null && separator.Kind == SyntaxKind.ColonColonToken)
+                    {
+                        separator = this.AddError(separator, ErrorCode.ERR_AliasQualAsExpression);
+                        separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                    }
 
-                if (!advanceParser)
+                    break;
+                }
+                else
                 {
-                    Reset(ref beforeIdentifierPoint);
-                    return true;
+                    // If we saw a . or :: then we must have something explicit.
+                    AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator);
                 }
+            }
 
-                if (separator.Kind != SyntaxKind.DotToken)
-                {
-                    separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, separator.GetLeadingTriviaWidth(), separator.Width));
-                    separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
-                }
+            if (!IsOperatorKeyword() || explicitInterfaceName is null)
+            {
+                beforeIdentifierPoint.Reset();
+                return false;
+            }
 
-                explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator);
+            if (!advanceParser)
+            {
+                beforeIdentifierPoint.Reset();
                 return true;
             }
-            finally
+
+            if (separator.Kind != SyntaxKind.DotToken)
             {
-                Release(ref beforeIdentifierPoint);
+                separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, separator.GetLeadingTriviaWidth(), separator.Width));
+                separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
             }
+
+            explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator);
+            return true;
         }
 
         private NameSyntax ParseAliasQualifiedName(NameOptions allowedParts = NameOptions.None)
