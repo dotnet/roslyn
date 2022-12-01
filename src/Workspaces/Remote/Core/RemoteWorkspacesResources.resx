@@ -156,6 +156,9 @@
   <data name="FeatureName_FindUsages" xml:space="preserve">
     <value>Find usages</value>
   </data>
+  <data name="FeatureName_FullyQualify" xml:space="preserve">
+    <value>Fully qualify</value>
+  </data>
   <data name="FeatureName_GlobalNotificationDelivery" xml:space="preserve">
     <value>Global notification delivery</value>
   </data>

@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
         }
 
+        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+        {
+            return GetDiagnosticBuckets(workspace, projectId, documentId);
+        }
+
         public ValueTask<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
         {
             return new ValueTask<ImmutableArray<DiagnosticData>>(GetDiagnostics(workspace, projectId, documentId));
