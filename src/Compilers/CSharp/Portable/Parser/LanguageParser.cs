@@ -11207,20 +11207,12 @@ tryAgain:
                 return false;
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
-            {
-                this.EatToken(); // `var`
-                return
-                    this.CurrentToken.Kind == SyntaxKind.OpenParenToken && ScanDesignator() &&
-                    this.CurrentToken.Kind == SyntaxKind.EqualsToken;
-            }
-            finally
-            {
-                // Restore current token index
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            this.EatToken(); // `var`
+            return
+                this.CurrentToken.Kind == SyntaxKind.OpenParenToken && ScanDesignator() &&
+                this.CurrentToken.Kind == SyntaxKind.EqualsToken;
         }
 
         private bool ScanDesignator()
