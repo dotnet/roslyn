@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Diagnostics.CodeAnalysis;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+    using Roslyn.Utilities;
 
     internal partial class LanguageParser : SyntaxParser
     {
@@ -24,16 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var pattern = ParsePattern(GetPrecedence(SyntaxKind.IsPatternExpression), afterIs: true);
             return pattern switch
             {
-                ConstantPatternSyntax cp when ConvertExpressionToType(cp.Expression, out NameSyntax type) => type,
+                ConstantPatternSyntax cp when ConvertExpressionToType(cp.Expression, out NameSyntax? type) => type,
                 TypePatternSyntax tp => tp.Type,
                 DiscardPatternSyntax dp => _syntaxFactory.IdentifierName(ConvertToIdentifier(dp.UnderscoreToken)),
                 var p => p,
             };
         }
 
-        private bool ConvertExpressionToType(ExpressionSyntax expression, out NameSyntax type)
+        private bool ConvertExpressionToType(ExpressionSyntax expression, [NotNullWhen(true)] out NameSyntax? type)
         {
-            type = null;
             switch (expression)
             {
                 case SimpleNameSyntax s:
@@ -47,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     type = a;
                     return true;
                 default:
+                    type = null;
                     return false;
             };
         }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var resetPoint = this.GetResetPoint();
             try
             {
-                TypeSyntax type = null;
+                TypeSyntax? type = null;
                 if (LooksLikeTypeOfPattern())
                 {
                     type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
@@ -224,9 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                PatternSyntax p = ParsePatternContinued(type, precedence, whenIsKeyword);
-                if (p != null)
-                    return p;
+                var pattern = ParsePatternContinued(type, precedence, whenIsKeyword);
+                if (pattern != null)
+                    return pattern;
 
                 this.Reset(ref resetPoint);
                 var value = this.ParseSubExpression(precedence);
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PatternSyntax ParsePatternContinued(TypeSyntax type, Precedence precedence, bool whenIsKeyword)
+        private PatternSyntax? ParsePatternContinued(TypeSyntax? type, Precedence precedence, bool whenIsKeyword)
         {
             if (type?.Kind == SyntaxKind.IdentifierName)
             {
@@ -296,28 +296,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     closeKind: SyntaxKind.CloseParenToken,
                     static p => p.ParseSubpatternElement());
 
-                parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause0);
-                TryParseSimpleDesignation(out VariableDesignationSyntax designation0, whenIsKeyword);
+                parsePropertyPatternClause(out PropertyPatternClauseSyntax? propertyPatternClause0);
+                TryParseSimpleDesignation(out VariableDesignationSyntax? designation0, whenIsKeyword);
 
                 if (type == null &&
                     propertyPatternClause0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
-                    subPatterns.SeparatorCount == 0 &&
-                    subPatterns[0].ExpressionColon == null)
+                    subPatterns.SeparatorCount == 0)
                 {
-                    var subpattern = subPatterns[0].Pattern;
-                    switch (subpattern)
+                    var firstSubPattern = subPatterns[0];
+                    RoslynDebug.AssertNotNull(firstSubPattern);
+
+                    if (firstSubPattern.ExpressionColon == null)
                     {
-                        case ConstantPatternSyntax cp:
-                            // There is an ambiguity between a positional pattern `(` pattern `)`
-                            // and a constant expression pattern that happens to be parenthesized.
-                            // Per 2017-11-20 LDM we treat such syntax as a parenthesized expression always.
-                            ExpressionSyntax expression = _syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken);
-                            expression = ParseExpressionContinued(expression, precedence);
-                            return _syntaxFactory.ConstantPattern(expression);
-                        default:
-                            return _syntaxFactory.ParenthesizedPattern(openParenToken, subPatterns[0].Pattern, closeParenToken);
+                        var subpattern = firstSubPattern.Pattern;
+                        switch (subpattern)
+                        {
+                            case ConstantPatternSyntax cp:
+                                // There is an ambiguity between a positional pattern `(` pattern `)`
+                                // and a constant expression pattern that happens to be parenthesized.
+                                // Per 2017-11-20 LDM we treat such syntax as a parenthesized expression always.
+                                ExpressionSyntax expression = _syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken);
+                                expression = ParseExpressionContinued(expression, precedence);
+                                return _syntaxFactory.ConstantPattern(expression);
+                            default:
+                                return _syntaxFactory.ParenthesizedPattern(openParenToken, subpattern, closeParenToken);
+                        }
                     }
                 }
 
@@ -326,15 +331,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return result;
             }
 
-            if (parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))
+            if (parsePropertyPatternClause(out PropertyPatternClauseSyntax? propertyPatternClause))
             {
-                TryParseSimpleDesignation(out VariableDesignationSyntax designation0, whenIsKeyword);
+                TryParseSimpleDesignation(out VariableDesignationSyntax? designation0, whenIsKeyword);
                 return _syntaxFactory.RecursivePattern(type, positionalPatternClause: null, propertyPatternClause, designation0);
             }
 
             if (type != null)
             {
-                if (TryParseSimpleDesignation(out VariableDesignationSyntax designation, whenIsKeyword))
+                if (TryParseSimpleDesignation(out VariableDesignationSyntax? designation, whenIsKeyword))
                 {
                     return _syntaxFactory.DeclarationPattern(type, designation);
                 }
@@ -354,15 +359,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // let the caller fall back to parsing an expression
             return null;
 
-            bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult)
+            bool parsePropertyPatternClause([NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClauseResult)
             {
-                propertyPatternClauseResult = null;
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
                     propertyPatternClauseResult = ParsePropertyPatternClause();
                     return true;
                 }
 
+                propertyPatternClauseResult = null;
                 return false;
             }
 
@@ -376,15 +381,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool TryParseSimpleDesignation(out VariableDesignationSyntax designationResult, bool whenIsKeyword)
+        private bool TryParseSimpleDesignation([NotNullWhen(true)] out VariableDesignationSyntax? designationResult, bool whenIsKeyword)
         {
-            designationResult = null;
             if (this.IsTrueIdentifier() && this.IsValidPatternDesignation(whenIsKeyword))
             {
                 designationResult = ParseSimpleDesignation();
                 return true;
             }
 
+            designationResult = null;
             return false;
         }
 
@@ -450,15 +455,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return pattern switch
             {
                 ConstantPatternSyntax cp => cp.Expression,
-                TypePatternSyntax tp when ConvertTypeToExpression(tp.Type, out ExpressionSyntax expr, permitTypeArguments) => expr,
+                TypePatternSyntax tp when ConvertTypeToExpression(tp.Type, out ExpressionSyntax? expr, permitTypeArguments) => expr,
                 DiscardPatternSyntax dp => _syntaxFactory.IdentifierName(ConvertToIdentifier(dp.UnderscoreToken)),
                 var p => p,
             };
         }
 
-        private bool ConvertTypeToExpression(TypeSyntax type, out ExpressionSyntax expr, bool permitTypeArguments = false)
+        private bool ConvertTypeToExpression(TypeSyntax type, [NotNullWhen(true)] out ExpressionSyntax? expr, bool permitTypeArguments = false)
         {
-            expr = null;
             switch (type)
             {
                 case GenericNameSyntax g:
@@ -473,6 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newLeft, dotToken, right);
                     return true;
                 default:
+                    expr = null;
                     return false;
             }
         }
@@ -577,7 +582,7 @@ tryAgain:
 
         private SubpatternSyntax ParseSubpatternElement()
         {
-            BaseExpressionColonSyntax exprColon = null;
+            BaseExpressionColonSyntax? exprColon = null;
 
             PatternSyntax pattern = ParsePattern(Precedence.Conditional);
             // If there is a colon but it's not preceded by a valid expression, leave it out to parse it as a missing comma, preserving C# 9.0 behavior.
@@ -681,7 +686,7 @@ tryAgain:
                 SyntaxKind.OpenBracketToken,
                 SyntaxKind.CloseBracketToken,
                 static p => p.ParsePattern(Precedence.Conditional));
-            TryParseSimpleDesignation(out VariableDesignationSyntax designation, whenIsKeyword);
+            TryParseSimpleDesignation(out VariableDesignationSyntax? designation, whenIsKeyword);
             return _syntaxFactory.ListPattern(openBracket, list, closeBracket, designation);
         }
     }
