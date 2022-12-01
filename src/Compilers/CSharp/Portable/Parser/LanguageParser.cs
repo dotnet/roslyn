@@ -3546,9 +3546,9 @@ parse_member_name:;
                     // now, scan past the next name.  if it's followed by a dot then
                     // it's part of the explicit name we're building up.  Otherwise,
                     // it should be an operator token
-                    var point = GetResetPoint();
+
                     bool isPartOfInterfaceName;
-                    try
+                    using (var _ = GetDisposableResetPoint(resetOnDispose: true))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
                         {
@@ -3562,11 +3562,6 @@ parse_member_name:;
                             isPartOfInterfaceName = IsDotOrColonColonOrDotDot() ||
                                                     (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken);
                         }
-                    }
-                    finally
-                    {
-                        this.Reset(ref point);
-                        this.Release(ref point);
                     }
 
                     if (!isPartOfInterfaceName)
