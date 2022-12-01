@@ -7939,17 +7939,8 @@ done:;
 
         private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
         {
-            var resetPoint = this.GetResetPoint();
-
-            try
-            {
-                return ParsePossibleScopedKeyword(isFunctionPointerParameter) != null;
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            return ParsePossibleScopedKeyword(isFunctionPointerParameter) != null;
         }
 
         private bool IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(bool isGlobalScriptLevel)
