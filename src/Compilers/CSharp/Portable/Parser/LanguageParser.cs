@@ -5351,28 +5351,21 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||
                          this.CurrentToken.Kind == SyntaxKind.LessThanToken);
-            var resetPoint = this.GetResetPoint();
 
-            try
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            var typeParameterListOpt = this.ParseTypeParameterList();
+            var paramList = ParseParenthesizedParameterList();
+
+            if (!paramList.IsMissing &&
+                 (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
+                  this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
+                  this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword))
             {
-                var typeParameterListOpt = this.ParseTypeParameterList();
-                var paramList = ParseParenthesizedParameterList();
-
-                if (!paramList.IsMissing &&
-                     (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                      this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
-                      this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword))
-                {
-                    return true;
-                }
-
-                return false;
+                return true;
             }
-            finally
-            {
-                Reset(ref resetPoint);
-                Release(ref resetPoint);
-            }
+
+            return false;
         }
 
         private bool IsPossibleEndOfVariableDeclaration()
