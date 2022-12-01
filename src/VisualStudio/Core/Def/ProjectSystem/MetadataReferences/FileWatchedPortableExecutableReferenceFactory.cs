@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -69,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
             _fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
         }
 
-        public event EventHandler<string> ReferenceChanged;
+        public event EventHandler<string>? ReferenceChanged;
 
         public PortableExecutableReference CreateReferenceAndStartWatchingFile(string fullFilePath, MetadataReferenceProperties properties)
         {
@@ -112,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
             }
         }
 
-        private void FileReferenceChangeContext_FileChanged(object sender, string fullFilePath)
+        private void FileReferenceChangeContext_FileChanged(object? sender, string fullFilePath)
         {
             lock (_gate)
             {
