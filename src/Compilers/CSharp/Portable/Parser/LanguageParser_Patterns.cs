@@ -209,33 +209,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         this.ParseSubExpression(Precedence.Relational));
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            TypeSyntax type = null;
+            if (LooksLikeTypeOfPattern())
             {
-                TypeSyntax type = null;
-                if (LooksLikeTypeOfPattern())
+                type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
+                if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
                 {
-                    type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
-                    if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
-                    {
-                        // either it is not shaped like a type, or it is a constant expression.
-                        this.Reset(ref resetPoint);
-                        type = null;
-                    }
+                    // either it is not shaped like a type, or it is a constant expression.
+                    resetPoint.Reset();
+                    type = null;
                 }
-
-                PatternSyntax p = ParsePatternContinued(type, precedence, whenIsKeyword);
-                if (p != null)
-                    return p;
-
-                this.Reset(ref resetPoint);
-                var value = this.ParseSubExpression(precedence);
-                return _syntaxFactory.ConstantPattern(value);
             }
-            finally
-            {
-                this.Release(ref resetPoint);
-            }
+
+            PatternSyntax p = ParsePatternContinued(type, precedence, whenIsKeyword);
+            if (p != null)
+                return p;
+
+            resetPoint.Reset();
+            var value = this.ParseSubExpression(precedence);
+            return _syntaxFactory.ConstantPattern(value);
         }
 
         /// <summary>
