@@ -12495,7 +12495,7 @@ tryAgain:
                 return false;
             }
 
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            using var _1 = this.GetDisposableResetPoint(resetOnDispose: true);
 
             this.EatToken(); // open paren
             ScanTypeFlags scanTypeFlags = ScanTupleType(out _);
@@ -12509,6 +12509,7 @@ tryAgain:
                         return false;
                 }
             }
+
             return true;
         }
 
