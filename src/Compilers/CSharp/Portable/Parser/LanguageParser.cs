@@ -13418,24 +13418,10 @@ tryAgain:
             }
 
             // from T x ...
-            var resetPoint = this.GetResetPoint();
-            try
-            {
-                this.EatToken();
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
-                ScanTypeFlags isType = this.ScanType();
-                if (isType != ScanTypeFlags.NotType && (this.CurrentToken.Kind == SyntaxKind.IdentifierToken || this.CurrentToken.Kind == SyntaxKind.InKeyword))
-                {
-                    return true;
-                }
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
-
-            return false;
+            this.EatToken();
+            return this.ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind is SyntaxKind.IdentifierToken or SyntaxKind.InKeyword;
         }
 
         private QueryExpressionSyntax ParseQueryExpression(Precedence precedence)
