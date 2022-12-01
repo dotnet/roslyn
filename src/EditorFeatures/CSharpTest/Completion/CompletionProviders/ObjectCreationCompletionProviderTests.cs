@@ -769,5 +769,34 @@ class Program
 }";
             await VerifyProviderCommitAsync(markup, "List<int>", expectedMark, commitChar: ';');
         }
+
+        [Theory]
+        [WorkItem(51629, "https://github.com/dotnet/roslyn/issues/51629")]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task DoNotAddParenthesisWhenContructorIsInaccessible(char commitChar)
+        {
+            var source = @"
+Outer x = new Out$$
+class Outer
+{
+    private Outer() { }
+
+    public class Inner
+    {
+    }
+}";
+            var expected = $@"
+Outer x = new Outer{commitChar}
+class Outer
+{{
+    private Outer() {{ }}
+
+    public class Inner
+    {{
+    }}
+}}";
+            await VerifyProviderCommitAsync(source, "Outer", expected, commitChar: commitChar);
+        }
     }
 }

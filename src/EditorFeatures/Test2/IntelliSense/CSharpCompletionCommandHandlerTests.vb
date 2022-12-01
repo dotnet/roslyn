@@ -10964,5 +10964,67 @@ public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
                 Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
             End Using
         End Function
+
+        <WpfTheory, WorkItem(51629, "https://github.com/dotnet/roslyn/issues/51629")>
+        <InlineData(";"c)>
+        <InlineData("."c)>
+        Public Async Function DoNotAddParenthesisWhenContructorIsInaccessible1(commitChar As Char) As Task
+
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+var x = new $$
+class Bar
+{
+    private Bar() {}
+}
+</Document>, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("Bar")
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+                state.SendTypeChars(commitChar)
+
+                Dim expectedText = $"
+using System;
+var x = new Bar{commitChar}
+class Bar
+{{
+    private Bar() {{}}
+}}
+"
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory, WorkItem(51629, "https://github.com/dotnet/roslyn/issues/51629")>
+        <InlineData(";"c)>
+        <InlineData("."c)>
+        Public Async Function DoNotAddParenthesisWhenContructorIsInaccessible2(commitChar As Char) As Task
+
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+Bar x = new $$
+class Bar
+{
+    private Bar() {}
+}
+</Document>, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("Bar")
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+                state.SendTypeChars(commitChar)
+
+                Dim expectedText = $"
+using System;
+Bar x = new Bar{commitChar}
+class Bar
+{{
+    private Bar() {{}}
+}}
+"
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
     End Class
 End Namespace

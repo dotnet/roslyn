@@ -224,11 +224,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
             }
-            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+            else if (symbol is INamedTypeSymbol or IAliasSymbol { Target: INamedTypeSymbol })
             {
+                var namedTypeSymbol = symbol is INamedTypeSymbol ? (INamedTypeSymbol)symbol : (INamedTypeSymbol)((IAliasSymbol)symbol).Target;
                 // If this is a type symbol/alias symbol, also consider appending parenthesis when later, it is committed by using special characters,
                 // and the type is used as constructor
-                if (context.IsObjectCreationTypeContext)
+                if (context.IsObjectCreationTypeContext && CompletionUtilities.IsConstructorAccessibleAtPosition(completionContext.Position, namedTypeSymbol, context.SemanticModel))
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
             }
 

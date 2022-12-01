@@ -183,5 +183,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return lastStatement.GetLocation().SourceSpan.End;
             }
         }
+
+        public static bool IsConstructorAccessibleAtPosition(int position, INamedTypeSymbol symbol, SemanticModel semanticModel)
+        {
+            foreach (var constructor in symbol.Constructors)
+            {
+                if (semanticModel.IsAccessible(position, constructor))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

@@ -11964,6 +11964,36 @@ class C
             await VerifyAnyItemExistsAsync(source);
         }
 
+        [Theory]
+        [WorkItem(51629, "https://github.com/dotnet/roslyn/issues/51629")]
+        [InlineData(';')]
+        [InlineData('.')]
+        public async Task DoNotCompleteParenthesisIfConstructorIsInaccessible(char commitChar)
+        {
+            var source = @"
+var x = new Out$$
+class Outer
+{
+    private Outer() { }
+
+    public class Inner
+    {
+    }
+}";
+            var expected = $@"
+var x = new Outer{commitChar}
+class Outer
+{{
+    private Outer() {{ }}
+
+    public class Inner
+    {{
+    }}
+}}";
+
+            await VerifyProviderCommitAsync(source, "Outer", expected, commitChar);
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""
