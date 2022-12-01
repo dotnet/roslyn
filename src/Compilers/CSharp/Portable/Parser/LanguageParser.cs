@@ -1166,8 +1166,6 @@ tryAgain:
                         {
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
-                            modTok = CheckFeatureAvailability(modTok,
-                                isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
                         else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {
@@ -1514,20 +1512,6 @@ tryAgain:
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.CurrentToken.Kind);
-            }
-        }
-
-        /// <summary>
-        /// checks for modifiers whose feature is not available
-        /// </summary>
-        private void CheckForVersionSpecificModifiers(SyntaxListBuilder modifiers, SyntaxKind kind, MessageID feature)
-        {
-            for (int i = 0, n = modifiers.Count; i < n; i++)
-            {
-                if (modifiers[i].RawKind == (int)kind)
-                {
-                    modifiers[i] = CheckFeatureAvailability(modifiers[i], feature);
-                }
             }
         }
 
@@ -2552,9 +2536,6 @@ parse_member_name:;
 
                     Debug.Assert(identifierOrThisOpt != null);
 
-                    // check availability of readonly members feature for indexers, properties and methods
-                    CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
-
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
                         return result;
@@ -2984,9 +2965,6 @@ parse_member_name:;
                     }
 
                     Debug.Assert(identifierOrThisOpt != null);
-
-                    // check availability of readonly members feature for indexers, properties and methods
-                    CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
 
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
@@ -3968,22 +3946,13 @@ parse_member_name:;
 
         private ExpressionSyntax ParsePossibleRefExpression()
         {
-            var refKeyword = (SyntaxToken)null;
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                // check for lambda expression with explicit ref return type: `ref int () => { ... }`
-                !this.IsPossibleLambdaExpression(Precedence.Expression))
-            {
-                refKeyword = this.EatToken();
-                refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
-            }
+            // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+            var refKeyword = this.CurrentToken.Kind == SyntaxKind.RefKeyword && !this.IsPossibleLambdaExpression(Precedence.Expression)
+                ? this.EatToken()
+                : null;
 
             var expression = this.ParseExpressionCore();
-            if (refKeyword != null)
-            {
-                expression = _syntaxFactory.RefExpression(refKeyword, expression);
-            }
-
-            return expression;
+            return refKeyword == null ? expression : _syntaxFactory.RefExpression(refKeyword, expression);
         }
 
         private PostSkipAction SkipBadAccessorListTokens(ref SyntaxToken openBrace, SyntaxListBuilder<AccessorDeclarationSyntax> list, ErrorCode error)
@@ -4228,9 +4197,6 @@ parse_member_name:;
             {
                 var accAttrs = this.ParseAttributeDeclarations();
                 this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
-
-                // check availability of readonly members feature for accessors
-                CheckForVersionSpecificModifiers(accMods, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
 
                 var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
                     isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
@@ -4783,9 +4749,6 @@ tryAgain:
 
             this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterList, isEvent: true);
 
-            // check availability of readonly members feature for custom events
-            CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
-
             // If we got an explicitInterfaceOpt but not an identifier, then we're in the special
             // case for ERR_ExplicitEventFieldImpl (see ParseMemberName for details).
             if (explicitInterfaceOpt != null && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
@@ -5285,24 +5248,15 @@ tryAgain:
 
                     var equals = this.EatToken();
 
-                    SyntaxToken refKeyword = null;
-                    if (isLocalOrField && !isConst &&
-                        this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                        // check for lambda expression with explicit ref return type: `ref int () => { ... }`
-                        !this.IsPossibleLambdaExpression(Precedence.Expression)
-                        )
-                    {
-                        refKeyword = this.EatToken();
-                        refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
-                    }
+                    // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                    var refKeyword = isLocalOrField && !isConst && this.CurrentToken.Kind == SyntaxKind.RefKeyword && !this.IsPossibleLambdaExpression(Precedence.Expression)
+                        ? this.EatToken()
+                        : null;
 
                     var init = this.ParseVariableInitializer();
-                    if (refKeyword != null)
-                    {
-                        init = _syntaxFactory.RefExpression(refKeyword, init);
-                    }
-
-                    initializer = _syntaxFactory.EqualsValueClause(equals, init);
+                    initializer = _syntaxFactory.EqualsValueClause(
+                        equals,
+                        refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init));
                     break;
 
                 case SyntaxKind.LessThanToken:
@@ -6718,8 +6672,6 @@ tryAgain:
                             identifierLeft = _syntaxFactory.IdentifierName(ConvertToKeyword(identifierLeft.Identifier));
                         }
 
-                        identifierLeft = CheckFeatureAvailability(identifierLeft, MessageID.IDS_FeatureGlobalNamespace);
-
                         // If the name on the right had errors or warnings then we need to preserve
                         // them in the tree.
                         return WithAdditionalDiagnostics(_syntaxFactory.AliasQualifiedName(identifierLeft, separator, right), left.GetDiagnostics());
@@ -7356,7 +7308,7 @@ done:;
                     return null;
                 }
 
-                return CheckFeatureAvailability(questionToken, MessageID.IDS_FeatureNullable);
+                return questionToken;
 
                 bool canFollowNullableType()
                 {
@@ -10134,10 +10086,6 @@ tryAgain:
                     }
 
                     mod = this.EatContextualToken(k);
-                    if (k == SyntaxKind.AsyncKeyword)
-                    {
-                        mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureAsync);
-                    }
                 }
                 else
                 {
