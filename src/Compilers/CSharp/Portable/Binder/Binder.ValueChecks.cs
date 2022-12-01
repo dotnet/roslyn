@@ -1729,18 +1729,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRefEscape,
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
-            foreach (var argAndParam in argsAndParamsAll)
-            {
-                var argument = argAndParam.Argument;
-                uint argEscape = argAndParam.IsRefEscape ?
-                    GetRefEscape(argument, scopeOfTheContainingExpression) :
-                    GetValEscape(argument, scopeOfTheContainingExpression);
 
-                escapeScope = Math.Max(escapeScope, argEscape);
-                if (escapeScope >= scopeOfTheContainingExpression)
+            var method = symbol switch
+            {
+                MethodSymbol m => m,
+                // We are only getting the method in order to handle a special condition where the method returns by-ref.
+                // It is an error for a property to have a setter and return by-ref, so we only bother looking for a getter here.
+                PropertySymbol p => p.GetMethod,
+                _ => null
+            };
+            var returnsWritableRefToRefStruct = method is { ReturnsByRef: true, ReturnType.IsRefLikeType: true };
+            foreach (var (param, argument, _, isArgumentRefEscape) in argsAndParamsAll)
+            {
+                // SPEC:
+                // If `M()` does return ref-to-ref-struct, the *safe-to-escape* is the same as the *safe-to-escape* of all arguments which are ref-to-ref-struct.
+                // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
+                //
+                if (!returnsWritableRefToRefStruct
+                    || (param?.RefKind.IsWritableReference() == true && param.Type.IsRefLikeType && isArgumentRefEscape == isRefEscape))
                 {
-                    // can't get any worse
-                    break;
+                    uint argEscape = isArgumentRefEscape ?
+                        GetRefEscape(argument, scopeOfTheContainingExpression) :
+                        GetValEscape(argument, scopeOfTheContainingExpression);
+
+                    escapeScope = Math.Max(escapeScope, argEscape);
+                    if (escapeScope >= scopeOfTheContainingExpression)
+                    {
+                        // can't get any worse
+                        break;
+                    }
                 }
             }
             argsAndParamsAll.Free();
