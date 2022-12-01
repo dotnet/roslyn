@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                // alignment==1 as there's no special need for alignment (.pack) here.
+                // alignment==1 as emitInitBlock is false only if the element type for the stackalloc has SizeInBytes == 1.
                 var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
 
                 EmitOpCode(ILOpCode.Dup);
@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            // map a field to the block (that makes it addressable)
+            // Map a field to the block (that makes it addressable).
+            // alignment==1 as this is only ever used when the element type has a SizeInBytes == 1.
             var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
 
             EmitOpCode(ILOpCode.Ldsflda);

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // fields mapped to metadata blocks
         private ImmutableArray<SynthesizedStaticField> _orderedSynthesizedFields;
-        private readonly ConcurrentDictionary<(ImmutableArray<byte> Data, ushort Alignment, bool IsArray), MappedField> _mappedFields = new(MappedFieldsEqualityComparer.Instance);
+        private readonly ConcurrentDictionary<(ImmutableArray<byte> Data, ushort Alignment, SpecialType ElementType), MappedField> _mappedFields = new(MappedFieldsEqualityComparer.Instance);
 
         private ModuleVersionIdField? _mvidField;
         // Dictionary that maps from analysis kind to instrumentation payload field.
@@ -149,20 +149,38 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Gets a field that can be used to cache an array allocated to store data from a corresponding <see cref="CreateDataField"/> call.
         /// </summary>
         /// <param name="data">The data that will be used to initialize the field.</param>
-        /// <param name="alignment">The alignment of the data that'll be stored in the field.</param>
         /// <param name="arrayType">The type of the field, e.g. int[].</param>
         /// <returns>The field to use to cache an array for this data and alignment.</returns>
-        internal Cci.IFieldReference CreateArrayCachingField(ImmutableArray<byte> data, ushort alignment, Cci.IArrayTypeReference arrayType)
+        internal Cci.IFieldReference CreateArrayCachingField(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SpecialType elementType)
         {
             Debug.Assert(!IsFrozen);
 
             // Create a dedicated mapped field for the array type, separate from the data that'll be stored into that array.
             // Call sites will lazily instantiate the array to cache in this field, rather than forcibly instantiating
             // all of them when the private implementation details class is first used.
-            return _mappedFields.GetOrAdd((data, alignment, IsArray: true), key =>
-                new MappedField(GenerateDataFieldName(key.Data, key.Alignment, isArray: true), this, arrayType, default));
+            return _mappedFields.GetOrAdd((data, 1, elementType), key =>
+                new MappedField(GenerateDataFieldName(key.Data, key.Alignment, key.ElementType), this, arrayType, block: default));
         }
 
+        /// <summary>
+        /// Gets a field that can be used to to store data directly in an RVA field.
+        /// </summary>
+        /// <param name="data">The data for the field.</param>
+        /// <param name="alignment">
+        /// The alignment value is the necessary alignment for addresses for the underlying element type of the array.
+        /// The data is stored by using a type whose size is equal to the total size of the blob. When the total size
+        /// of the data is 1, 2, 4, or 8 bytes, a byte, short, int, or long can be used as the type of the field, and
+        /// regardless of what the element type is for the data, it's guaranteed to have appropriate alignment. For
+        /// all other sizes, a type is generated of the same size as the data, and that type needs its .pack set to
+        /// the alignment required for the underlying data. While that .pack value isn't required by anything else
+        /// in the compiler (the compiler always aligns RVA fields at 8-byte boundaries, which accomodates any
+        /// element type that's relevant), it is necessary for IL rewriters. Such rewriters also need to ensure
+        /// an appropriate alignment is maintained for the RVA field, and while they could also simplify by choosing
+        /// a worst-case alignment as does the compiler, they may instead use the .pack value as the alignment
+        /// to use for that field, since it's an opaque blob with no other indication as to what kind of data is
+        /// stored and what alignment might be required.
+        /// </param>
+        /// <returns>The field. This may have been newly created or may be an existing field previously created for the same data and alignment.</returns>
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data, ushort alignment)
         {
             Debug.Assert(!IsFrozen);
@@ -178,8 +196,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     _ => new ExplicitSizeStruct(key.Size, key.Alignment, this, _systemValueType)
                 });
 
-            return _mappedFields.GetOrAdd((data, alignment, IsArray: false), key =>
-                new MappedField(GenerateDataFieldName(key.Data, key.Alignment), this, type, key.Data));
+            return _mappedFields.GetOrAdd((data, alignment, SpecialType.None), key =>
+                new MappedField(GenerateDataFieldName(key.Data, key.Alignment, key.ElementType), this, type, key.Data));
         }
 
         internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType)
@@ -284,9 +302,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public string NamespaceName => string.Empty;
 
-        internal static string GenerateDataFieldName(ImmutableArray<byte> data, ushort alignment, bool isArray = false)
+        /// <summary>Creates a name to use as the field for storing the specified data blob or array to cache such a blob.</summary>
+        /// <param name="data">The data that will be stored directly in the field or in an array cached in the field.</param>
+        /// <param name="alignment">The alignment of the data.</param>
+        /// <param name="elementType">NotPrimitive if this field will store the data directly; otherwise, the element primitive type if this is to be used for the array with that type.</param>
+        /// <returns></returns>
+        internal static string GenerateDataFieldName(ImmutableArray<byte> data, ushort alignment = 1, SpecialType elementType = SpecialType.None)
         {
-            var hash = CryptographicHashProvider.ComputeSourceHash(data);
+            ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(data);
             char[] c = new char[hash.Length * 2];
             int i = 0;
             foreach (var b in hash)
@@ -294,12 +317,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 c[i++] = Hexchar(b >> 4);
                 c[i++] = Hexchar(b & 0xF);
             }
+            string dataHex = new string(c);
+
+            if (alignment == 1 && elementType == SpecialType.None)
+            {
+                return dataHex;
+            }
 
             // For alignment of 1 (which is used in cases other than in fields for ReadOnlySpan<byte>),
             // just use the hex value of the data hash.  For other alignments, tack on a '2', '4', or '8'
             // accordingly.  As every byte will yield two chars, the odd number of chars used for 2/4/8
             // alignments will never produce a name that conflicts with names for an alignment of 1.
-            Debug.Assert(alignment is 1 or 2 or 4 or 8);
+            Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
             string alignmentString = alignment switch
             {
                 2 => "2",
@@ -309,10 +338,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             };
 
             // If this name is for a field to cache an array for the data rather than being for the raw
-            // data itself, tack on _Array to the otherwise identical field name.
-            string arrayString = isArray ? "_Array" : "";
-
-            return string.Concat(new string(c), alignmentString, arrayString);
+            // data itself, tack on _A(ElementType). This is needed both to differentiate the array field
+            // from the data field, but also to differentiate multiple fields that may have the same raw
+            // data but different array types.
+            return elementType == SpecialType.None ?
+                $"{dataHex}{alignmentString}" :
+                $"{dataHex}{alignmentString}_A{(int)elementType}";
         }
 
         private static char Hexchar(int x)
@@ -336,19 +367,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private sealed class MappedFieldsEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, ushort Alignment, bool IsArray)>
+        private sealed class MappedFieldsEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, ushort Alignment, SpecialType ElementType)>
         {
             public static readonly MappedFieldsEqualityComparer Instance = new();
 
             private MappedFieldsEqualityComparer() { }
 
-            public override bool Equals((ImmutableArray<byte> Data, ushort Alignment, bool IsArray) x, (ImmutableArray<byte> Data, ushort Alignment, bool IsArray) y) =>
+            public override bool Equals((ImmutableArray<byte> Data, ushort Alignment, SpecialType ElementType) x, (ImmutableArray<byte> Data, ushort Alignment, SpecialType ElementType) y) =>
                 x.Alignment == y.Alignment &&
-                x.IsArray == y.IsArray &&
+                x.ElementType == y.ElementType &&
                 ByteSequenceComparer.Equals(x.Data, y.Data);
 
-            public override int GetHashCode((ImmutableArray<byte> Data, ushort Alignment, bool IsArray) obj) =>
-                ByteSequenceComparer.GetHashCode(obj.Data); // purposefully not including Alignment/IsArray, as it won't add meaningfully to the hash code
+            public override int GetHashCode((ImmutableArray<byte> Data, ushort Alignment, SpecialType ElementType) obj) =>
+                ByteSequenceComparer.GetHashCode(obj.Data); // purposefully not including Alignment/ElementType, as it won't add meaningfully to the hash code
         }
     }
 
@@ -364,6 +395,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal ExplicitSizeStruct(uint size, ushort alignment, PrivateImplementationDetails containingType, Cci.ITypeReference sysValueType)
         {
+            Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
+
             _size = size;
             _alignment = alignment;
             _containingType = containingType;

@@ -984,6 +984,7 @@ namespace Microsoft.CodeAnalysis.Emit
         Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             Debug.Assert(SupportsPrivateImplClass);
+            Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
 
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
@@ -991,14 +992,14 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateDataField(data, alignment);
         }
 
-        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, ushort alignment, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SpecialType elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             Debug.Assert(SupportsPrivateImplClass);
 
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
             // map a field to the block (that makes it addressable via a token)
-            return privateImpl.CreateArrayCachingField(data, alignment, arrayType);
+            return privateImpl.CreateArrayCachingField(data, arrayType, elementType);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();

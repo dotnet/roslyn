@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         Cci.IFieldReference GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
 
         /// <summary>Gets a field that may be used to lazily cache an array created to store the specified data.</summary>
-        /// <remarks>This is used to cache an array created with the exact same arguments passed to <see cref="GetFieldForData"/>.</remarks>
-        Cci.IFieldReference GetArrayCachingFieldForData(ImmutableArray<byte> data, ushort alignment, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
+        /// <remarks>This is used to cache an array created with the data passed to <see cref="GetFieldForData"/>.</remarks>
+        Cci.IFieldReference GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SpecialType elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
 
         Cci.IMethodReference GetInitArrayHelper();
 

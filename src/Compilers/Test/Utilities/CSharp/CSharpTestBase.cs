@@ -2380,12 +2380,12 @@ namespace System
                     return null;
                 }
 
-                if (typeof(T) == typeof(int))
+                if (typeof(T) == typeof(sbyte))
                 {
-                    var arr = new int[count];
+                    var arr = new sbyte[count];
                     for(int i = 0; i < count; i++)
                     {
-                        arr[i] = ((int*)ptr)[i];
+                        arr[i] = ((sbyte*)ptr)[i];
                     }
 
                     return (T[])(object)arr;
@@ -2397,6 +2397,72 @@ namespace System
                     for(int i = 0; i < count; i++)
                     {
                         arr[i] = ((byte*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(short))
+                {
+                    var arr = new short[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((short*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(ushort))
+                {
+                    var arr = new ushort[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((ushort*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(int))
+                {
+                    var arr = new int[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((int*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(uint))
+                {
+                    var arr = new uint[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((uint*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(long))
+                {
+                    var arr = new long[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((long*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(ulong))
+                {
+                    var arr = new ulong[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((ulong*)ptr)[i];
                     }
 
                     return (T[])(object)arr;

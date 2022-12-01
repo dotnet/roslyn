@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -376,7 +377,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <param name="wrappedExpression">The expression being wrapped in a span.</param>
         /// <param name="used">true if the result of the expression is used; false if it's required only for its side effects.</param>
         /// <param name="inPlaceTarget">A non-null expression if the construction is initializing an existing local in-place; otherwise, null.</param>
-        /// <param name="avoidInPlace">An output Boolean indicating whether a caller trying to perform in-place initialization should instead prefer to assign the local to a new value.</param>
+        /// <param name="avoidInPlace">
+        /// An output Boolean indicating whether a caller trying to perform in-place initialization should instead prefer to assign the local to a new value.
+        /// Call sites may try to optimize an assignment to a newly-created struct by calling the constructor directly rather than assigning, but that
+        /// may then inhibit the more valuable optimization of creating a span via RuntimeHelpers.CreateSpan, which needs to assign. When a caller has passed
+        /// in an <paramref name="inPlaceTarget"/> but CreateSpan could be used if it weren't, this method may return false and set <paramref name="avoidInPlace"/>
+        /// to true to inform the caller it can try again without the <paramref name="inPlaceTarget"/>.
+        /// </param>
         /// <param name="start">The expression for the offset into the array being wrapped in a span.</param>
         /// <param name="length">The expression for the length of the subarray being wrapped in a span.</param>
         /// <returns>
@@ -386,10 +393,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </returns>
         private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace, BoundExpression? start = null, BoundExpression? length = null)
         {
-            Debug.Assert(start is null == length is null, "start and length must either both be null or both be non-null");
             Debug.Assert(inPlaceTarget is null || TargetIsNotOnHeap(inPlaceTarget), "in-place construction target should not be on heap");
+            Debug.Assert(_diagnostics.DiagnosticBag is not null, $"Expected non-null {nameof(_diagnostics)}.{nameof(_diagnostics.DiagnosticBag)}");
 
-            ImmutableArray<byte> data = default;
+            if (start is null != length is null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
             int elementCount = -1;
             avoidInPlace = false;
             SpecialType specialElementType = SpecialType.None;
@@ -421,30 +432,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //     new ReadOnlySpan<T>(PrivateImplementationDetails.ArrayField ??= new T[] { ... })
             // For non-constant data, unsupported primitive types, and other variations, this optimization will fail
             // and the method will return false indicating that no code was emitted.
+            //
+            // A pattern like the following is also special-cased via the `inPlaceTarget` parameter:
+            //     ReadOnlySpan<T> span = new ReadOnlySpan<T>(new T[] { const, const, ... });
+            // Rather than constructing a span and assigning it to the local, the caller of this method
+            // may try to initialize the local in-place.  In that case, this method is responsible for emitting
+            // a call to the span's constructor.  It can do so for some cases, but in cases that
+            // require the use of RuntimeHelpers.CreateSpan, assignment is a necessity, and as such calls
+            // requiring in-place construction will fail; the code below may set `avoidInPlace` to true
+            // indicating the caller can try again not in place and it should succeed.
+            //
+            // This optimization is also used as part of emitting UTF8 string literals. The code:
+            //     ReadOnlySpan<byte> span = "abc"u8;
+            // is lowered to the equivalent of:
+            //     ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(new byte[] { (byte)'a', (byte)'b', (byte)'c', (byte)'\0' }, 0, 3);
+            // with this optimization then being used to avoid that byte[] allocation. Support for u8
+            // is also the reason this method accepts a start/length, in order to support trimming
+            // the null terminator off as part of creating the span instance.
 
+            ImmutableArray<byte> data = default;
             ArrayTypeSymbol? arrayType = null;
             if (wrappedExpression is BoundArrayCreation ac)
             {
                 // Get the array element type.  This optimization is only supported for core primitive types.
                 arrayType = (ArrayTypeSymbol)ac.Type;
                 specialElementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf().SpecialType;
-                switch (specialElementType)
+                if (!IsTypeAllowedInBlobWrapper(specialElementType))
                 {
-                    case SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Boolean: // 1 byte
-                        // For primitives that are a single byte in size, a span can point directly to a blob
-                        // containing the constant data.
-                        break;
-
-                    case SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Char: // 2 bytes
-                    case SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Single: // 4 bytes
-                    case SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_Double: // 8 bytes
-                        // For primitives that are > 1 byte in size, we can either use CreateSpan if it's available
-                        // or fall back to caching an array.
-                        break;
-
-                    default:
-                        // Not a supported primitive.
-                        return false;
+                    return false;
                 }
 
                 // Get the data and number of elements that compose the initialization.
@@ -459,12 +474,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             Debug.Assert(arrayType is not null);
-
-            if (start is null != length is null)
-            {
-                // We can only handle the case where there's a start expression iff there's a length expression.
-                return false;
-            }
 
             int lengthForConstructor;
 
@@ -543,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitAddress(inPlaceTarget, Binder.AddressKind.Writeable);
                 }
 
-                _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
+                _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
                 _builder.EmitIntConstant(lengthForConstructor);
 
                 if (inPlaceTarget is not null)
@@ -580,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (inPlaceTarget is not null)
             {
-                // We can use RuntimeHelpers.CreateSpan / cached array but not for in-place initialization. Fail to optimize,
+                // We can use RuntimeHelpers.CreateSpan, but not for in-place initialization. Fail to optimize,
                 // but tell the caller they can call this again with a null inPlaceTarget, at which point this
                 // should be able to optimize the call.
                 avoidInPlace = true;
@@ -602,9 +611,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // CreateSpan was available. Use it.
                 // ldtoken <PrivateImplementationDetails>...
                 // call ReadOnlySpan<elementType> RuntimeHelpers::CreateSpan<elementType>(fldHandle)
-                var field = _builder.module.GetFieldForData(data, alignment: (ushort)specialElementType.SizeInBytes(), wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
+                var field = _builder.module.GetFieldForData(data, alignment: (ushort)specialElementType.SizeInBytes(), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
                 _builder.EmitOpCode(ILOpCode.Ldtoken);
-                _builder.EmitToken(field, wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
+                _builder.EmitToken(field, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
                 EmitSymbolToken(createSpan.Construct(arrayType.ElementType), wrappedExpression.Syntax, optArgList: null);
                 return true;
@@ -615,33 +624,68 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //     new ReadOnlySpan<T>(PrivateImplementationDetails.ArrayField ??= RuntimeHelpers.InitializeArray(new int[Length], PrivateImplementationDetails.DataField));
 
             var rosArrayCtor = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
-            if (rosArrayCtor is null)
+            if (rosArrayCtor is null || rosArrayCtor.GetUseSiteInfo().DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
             {
-                // The ReadOnlySpan<T>(T[] array) constructor we need is missing.
+                // The ReadOnlySpan<T>(T[] array) constructor we need is missing or something went wrong.
                 return false;
             }
             Debug.Assert(!rosArrayCtor.HasUnsupportedMetadata);
 
             ushort alignment = (ushort)specialElementType.SizeInBytes();
-            var cachingField = _builder.module.GetArrayCachingFieldForData(data, alignment, _module.Translate(arrayType), wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
-            var arrayAvailable = new object();
+            var cachingField = _builder.module.GetArrayCachingFieldForData(data, _module.Translate(arrayType), specialElementType, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+            var arrayNotNull = new object();
+
+            // T[]? array = PrivateImplementationDetails.cachingField;
+            // if (array is not null) goto arrayNotNull;
             _builder.EmitOpCode(ILOpCode.Ldsfld);
-            _builder.EmitToken(cachingField, wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
+            _builder.EmitToken(cachingField, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
             _builder.EmitOpCode(ILOpCode.Dup);
-            _builder.EmitBranch(ILOpCode.Brtrue, arrayAvailable);
+            _builder.EmitBranch(ILOpCode.Brtrue, arrayNotNull);
+
+            // array = new T[elementCount];
+            // RuntimeHelpers.InitializeArray(token, array);
+            // PrivateImplementationDetails.cachingField = array;
             _builder.EmitOpCode(ILOpCode.Pop);
             _builder.EmitIntConstant(elementCount);
             _builder.EmitOpCode(ILOpCode.Newarr);
             EmitSymbolToken(arrayType.ElementType, wrappedExpression.Syntax);
-            _builder.EmitArrayBlockInitializer(data, alignment, wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
+            _builder.EmitArrayBlockInitializer(data, alignment, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
             _builder.EmitOpCode(ILOpCode.Dup);
             _builder.EmitOpCode(ILOpCode.Stsfld);
-            _builder.EmitToken(cachingField, wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
-            _builder.MarkLabel(arrayAvailable);
+            _builder.EmitToken(cachingField, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+
+            // arrayNotNull:
+            // new ReadOnlySpan<T>(array)
+            _builder.MarkLabel(arrayNotNull);
             _builder.EmitOpCode(ILOpCode.Newobj, 0);
             EmitSymbolToken(rosArrayCtor.AsMember(spanType), wrappedExpression.Syntax, optArgList: null);
             return true;
         }
+
+        /// <summary>Gets whether the element type of an array is appropriate for storing in a blob.</summary>
+        private static bool IsTypeAllowedInBlobWrapper(SpecialType type) =>
+            type switch
+            {
+                // 1 byte
+                // For primitives that are a single byte in size, a span can point directly to a blob
+                // containing the constant data.
+                SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Boolean => true,
+
+                // For primitives that are > 1 byte in size, we can either use CreateSpan if it's available
+                // or fall back to caching an array.
+
+                // 2 bytes
+                SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Char => true,
+
+                // 4 bytes
+                SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Single => true,
+
+                // 8 bytes
+                SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_Double => true,
+
+                // Not a supported primitive.
+                _ => false,
+            };
 
 #nullable disable
 
