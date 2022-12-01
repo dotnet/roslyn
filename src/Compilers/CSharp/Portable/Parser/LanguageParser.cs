@@ -8847,30 +8847,24 @@ done:;
             //
             // In that case, parse it as a foreach, but given the appropriate message that a
             // 'foreach' keyword was expected.
-            var resetPoint = this.GetResetPoint();
-            try
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForKeyword);
+            this.EatToken();
+            if (this.EatToken().Kind == SyntaxKind.OpenParenToken &&
+                this.ScanType() != ScanTypeFlags.NotType &&
+                this.EatToken().Kind == SyntaxKind.IdentifierToken &&
+                this.EatToken().Kind == SyntaxKind.InKeyword)
             {
-                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForKeyword);
-                this.EatToken();
-                if (this.EatToken().Kind == SyntaxKind.OpenParenToken &&
-                    this.ScanType() != ScanTypeFlags.NotType &&
-                    this.EatToken().Kind == SyntaxKind.IdentifierToken &&
-                    this.EatToken().Kind == SyntaxKind.InKeyword)
-                {
-                    // Looks like a foreach statement.  Parse it that way instead
-                    this.Reset(ref resetPoint);
-                    return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
-                }
-                else
-                {
-                    // Normal for statement.
-                    this.Reset(ref resetPoint);
-                    return this.ParseForStatement(attributes);
-                }
+                // Looks like a foreach statement.  Parse it that way instead
+                resetPoint.Reset();
+                return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
             }
-            finally
+            else
             {
-                this.Release(ref resetPoint);
+                // Normal for statement.
+                resetPoint.Reset();
+                return this.ParseForStatement(attributes);
             }
         }
 
