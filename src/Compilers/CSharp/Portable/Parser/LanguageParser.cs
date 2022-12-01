@@ -2580,36 +2580,30 @@ parse_member_name:;
 
             bool tryParseStatement(SyntaxList<AttributeListSyntax> attributes, ref ResetPoint afterAttributesPoint, out MemberDeclarationSyntax result)
             {
-                var resetOnFailurePoint = this.GetResetPoint();
-                try
-                {
-                    this.Reset(ref afterAttributesPoint);
+                using var resetOnFailurePoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
-                    if (this.IsPossibleStatement(acceptAccessibilityMods: false))
+                this.Reset(ref afterAttributesPoint);
+
+                if (this.IsPossibleStatement(acceptAccessibilityMods: false))
+                {
+                    var saveTerm = _termState;
+                    _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
+                    bool wasInAsync = IsInAsync;
+                    IsInAsync = true; // We are implicitly in an async context
+
+                    var statement = this.ParseStatementCore(attributes, isGlobal: true);
+
+                    IsInAsync = wasInAsync;
+                    _termState = saveTerm;
+
+                    if (statement is not null)
                     {
-                        var saveTerm = _termState;
-                        _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                        bool wasInAsync = IsInAsync;
-                        IsInAsync = true; // We are implicitly in an async context
-
-                        var statement = this.ParseStatementCore(attributes, isGlobal: true);
-
-                        IsInAsync = wasInAsync;
-                        _termState = saveTerm;
-
-                        if (statement is not null)
-                        {
-                            result = _syntaxFactory.GlobalStatement(statement);
-                            return true;
-                        }
+                        result = _syntaxFactory.GlobalStatement(statement);
+                        return true;
                     }
+                }
 
-                    this.Reset(ref resetOnFailurePoint);
-                }
-                finally
-                {
-                    this.Release(ref resetOnFailurePoint);
-                }
+                resetOnFailurePoint.Reset();
 
                 result = null;
                 return false;
