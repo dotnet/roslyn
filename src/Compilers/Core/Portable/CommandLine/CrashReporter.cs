@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -32,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 exceptionText.AppendLine($"OS Architecture: {RuntimeInformation.OSArchitecture}");
                 exceptionText.AppendLine( $"Process Name: {process.ProcessName}" );
                 exceptionText.AppendLine( $"Process Id: {process.Id}" );
-                exceptionText.AppendLine( $"Process Kind: {ProcessKindHelper.CurrentProcessKind}" );
                 exceptionText.AppendLine( $"Command Line: {Environment.CommandLine}" );
                 exceptionText.AppendLine($"Exception type: {ex.GetType()}");
                 exceptionText.AppendLine($"Exception message: {ex.Message}");
