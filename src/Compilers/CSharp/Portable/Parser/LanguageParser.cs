@@ -12123,18 +12123,13 @@ tryAgain:
                 EatToken();
             }
 
-            var nestedResetPoint = this.GetResetPoint();
-            try
+            using (var nestedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false))
             {
                 var st = ScanType();
                 if (st == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
                 {
-                    this.Reset(ref nestedResetPoint);
+                    nestedResetPoint.Reset();
                 }
-            }
-            finally
-            {
-                this.Release(ref nestedResetPoint);
             }
 
             // However, just because we're on `async` doesn't mean we're a lambda.  We might have
