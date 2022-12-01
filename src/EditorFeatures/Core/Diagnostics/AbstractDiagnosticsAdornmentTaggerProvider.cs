@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
-        AbstractDiagnosticsTaggerProvider<TTag>
+        AbstractAggregateDiagnosticsTaggerProvider<TTag>
         where TTag : class, ITag
     {
         protected AbstractDiagnosticsAdornmentTaggerProvider(
@@ -27,9 +27,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        protected internal sealed override bool IsEnabled => true;
+        protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
 
-        protected internal sealed override ITagSpan<TTag>? CreateTagSpan(
+        protected sealed override bool IsEnabled => true;
+
+        protected sealed override ITagSpan<TTag>? CreateTagSpan(
             Workspace workspace, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(workspace, data);
@@ -62,7 +64,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // make sure length is smaller than snapshot.Length which can happen if start == 0
             return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
         }
-
-        protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
     }
 }

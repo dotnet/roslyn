@@ -184,6 +184,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)
                         {
                             hasParamsArray = true;
+
+                            ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
+                                WellKnownMember.System_ParamArrayAttribute__ctor,
+                                diagnostics,
+                                paramsKeyword.GetLocation());
                         }
                     }
 
