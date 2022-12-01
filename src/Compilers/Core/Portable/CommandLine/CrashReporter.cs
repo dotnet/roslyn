@@ -22,12 +22,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
             try
             {
                 var exceptionText = new StringBuilder();
+                var process = Process.GetCurrentProcess();
+               
 
                 exceptionText.AppendLine($"Metalama.Compiler Version: {typeof(CrashReporter).Assembly.GetName().Version}");
                 exceptionText.AppendLine($"Runtime: {RuntimeInformation.FrameworkDescription}");
                 exceptionText.AppendLine($"Processor Architecture: {RuntimeInformation.ProcessArchitecture}");
                 exceptionText.AppendLine($"OS Description: {RuntimeInformation.OSDescription}");
                 exceptionText.AppendLine($"OS Architecture: {RuntimeInformation.OSArchitecture}");
+                exceptionText.AppendLine( $"Process Name: {process.ProcessName}" );
+                exceptionText.AppendLine( $"Process Id: {process.Id}" );
+                exceptionText.AppendLine( $"Process Kind: {ProcessKindHelper.CurrentProcessKind}" );
+                exceptionText.AppendLine( $"Command Line: {Environment.CommandLine}" );
                 exceptionText.AppendLine($"Exception type: {ex.GetType()}");
                 exceptionText.AppendLine($"Exception message: {ex.Message}");
 
