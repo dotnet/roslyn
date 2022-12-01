@@ -12495,28 +12495,21 @@ tryAgain:
                 return false;
             }
 
-            var point = this.GetResetPoint();
-            try
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            this.EatToken(); // open paren
+            ScanTypeFlags scanTypeFlags = ScanTupleType(out _);
+            if (scanTypeFlags != ScanTypeFlags.NotType)
             {
-                this.EatToken(); // open paren
-                ScanTypeFlags scanTypeFlags = ScanTupleType(out _);
-                if (scanTypeFlags != ScanTypeFlags.NotType)
+                switch (this.CurrentToken.Kind)
                 {
-                    switch (this.CurrentToken.Kind)
-                    {
-                        case SyntaxKind.QuestionToken:    // e.g. `new(a, b)?()`
-                        case SyntaxKind.OpenBracketToken: // e.g. `new(a, b)[]`
-                        case SyntaxKind.OpenParenToken:   // e.g. `new(a, b)()` for better error recovery
-                            return false;
-                    }
+                    case SyntaxKind.QuestionToken:    // e.g. `new(a, b)?()`
+                    case SyntaxKind.OpenBracketToken: // e.g. `new(a, b)[]`
+                    case SyntaxKind.OpenParenToken:   // e.g. `new(a, b)()` for better error recovery
+                        return false;
                 }
-                return true;
             }
-            finally
-            {
-                this.Reset(ref point);
-                this.Release(ref point);
-            }
+            return true;
         }
 
 #nullable enable
