@@ -1452,9 +1452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rhsExpr = node.Right.CheckAndUnwrapRefExpression(diagnostics, out var refKind);
             var isRef = refKind == RefKind.Ref;
-            var lhsKind = refKind == RefKind.Ref ? BindValueKind.RefAssignable : BindValueKind.Assignable;
+            var lhsKind = isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable;
 
-            if (refKind == RefKind.Ref)
+            if (isRef)
                 MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right, node.Right.GetFirstToken().GetLocation());
 
             var op1 = BindValue(node.Left, diagnostics, lhsKind);
