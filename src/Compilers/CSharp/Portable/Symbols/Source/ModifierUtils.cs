@@ -404,8 +404,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                     messageId.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
 
-                    // There was a bug where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for backcompat.
-                    if (!(isOrdinaryMethod && i == modifiers.Count - 2 && ToDeclarationModifier(modifiers[i + 1].ContextualKind()) == DeclarationModifiers.Async))
+                    // `partial` must always be the last modifier according to the language.  However, there was a bug
+                    // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
+                    // backcompat.
+                    var isLast = i == modifiers.Count - 1;
+                    var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
+                    if (!isLast && !isPartialAsyncMethod)
                     {
                         diagnostics.Add(
                             ErrorCode.ERR_PartialMisplaced,
