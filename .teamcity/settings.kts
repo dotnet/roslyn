@@ -165,7 +165,7 @@ object PublicBuild : BuildType({
     }
 
     requirements {
-        equals("env.BuildAgentType", "caravela03")
+        equals("env.BuildAgentType", "caravela04")
     }
 
     features {
