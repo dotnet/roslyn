@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem
 {
@@ -43,10 +44,13 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
 
             var watchedDirectories = new List<WatchedDirectory>();
 
-            // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
-            // watches on individual .dlls that effectively never change.
-            var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
-            watchedDirectories.Add(new WatchedDirectory(referenceAssembliesPath, ".dll"));
+            if (PlatformInformation.IsWindows)
+            {
+                // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
+                // watches on individual .dlls that effectively never change.
+                var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
+                watchedDirectories.Add(new WatchedDirectory(referenceAssembliesPath, ".dll"));
+            }
 
             // TODO: set this to watch the NuGet directory as well; there's some concern that watching the entire directory
             // might make restores take longer because we'll be watching changes that may not impact your project.
