@@ -4,30 +4,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences
+namespace Microsoft.CodeAnalysis.ProjectSystem
 {
-    [Export]
     internal sealed class FileWatchedPortableExecutableReferenceFactory
     {
         private readonly object _gate = new();
 
-        /// <summary>
-        /// This right now acquires the entire VisualStudioWorkspace because right now the production
-        /// of metadata references depends on other workspace services. See the comments on
-        /// <see cref="VisualStudioMetadataReferenceManagerFactory"/> that this strictly shouldn't be necessary
-        /// but for now is quite the tangle to fix.
-        /// </summary>
-        private readonly Lazy<VisualStudioWorkspace> _visualStudioWorkspace;
+        private readonly HostWorkspaceServices _workspaceServices;
 
         /// <summary>
         /// A file change context used to watch metadata references.
@@ -47,23 +35,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
         /// </summary>
         private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FileWatchedPortableExecutableReferenceFactory(
-            Lazy<VisualStudioWorkspace> visualStudioWorkspace,
-            FileChangeWatcherProvider fileChangeWatcherProvider)
+            HostWorkspaceServices workspaceServices,
+            IFileChangeWatcher fileChangeWatcher)
         {
-            _visualStudioWorkspace = visualStudioWorkspace;
+            _workspaceServices = workspaceServices;
+
+            var watchedDirectories = new List<WatchedDirectory>();
 
             // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
             // watches on individual .dlls that effectively never change.
             var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
-            var referenceAssemblies = new WatchedDirectory(referenceAssembliesPath, ".dll");
+            watchedDirectories.Add(new WatchedDirectory(referenceAssembliesPath, ".dll"));
 
             // TODO: set this to watch the NuGet directory as well; there's some concern that watching the entire directory
             // might make restores take longer because we'll be watching changes that may not impact your project.
 
-            _fileReferenceChangeContext = fileChangeWatcherProvider.Watcher.CreateContext(referenceAssemblies);
+            _fileReferenceChangeContext = fileChangeWatcher.CreateContext(watchedDirectories.ToArray());
             _fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
         }
 
@@ -73,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
         {
             lock (_gate)
             {
-                var reference = _visualStudioWorkspace.Value.CreatePortableExecutableReference(fullFilePath, properties);
+                var reference = _workspaceServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
                 var fileWatchingToken = _fileReferenceChangeContext.EnqueueWatchingFile(fullFilePath);
 
                 _metadataReferenceFileWatchingTokens.Add(reference, fileWatchingToken);

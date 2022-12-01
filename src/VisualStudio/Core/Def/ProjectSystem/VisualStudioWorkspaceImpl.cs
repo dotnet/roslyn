@@ -32,7 +32,6 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
@@ -160,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
-            FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
+            FileWatchedReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(this.Services, FileChangeWatcher);
 
             FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
