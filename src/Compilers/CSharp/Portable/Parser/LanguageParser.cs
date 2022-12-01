@@ -8012,44 +8012,37 @@ done:;
                 }
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            ScanTypeFlags st = this.ScanType();
+
+            // We could always return true for st == AliasQualName in addition to MustBeType on the first line, however, we want it to return false in the case where
+            // CurrentToken.Kind != SyntaxKind.Identifier so that error cases, like: A::N(), are not parsed as variable declarations and instead are parsed as A.N() where we can give
+            // a better error message saying "did you meant to use a '.'?"
+            if (st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken && this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
             {
-                ScanTypeFlags st = this.ScanType();
+                return true;
+            }
 
-                // We could always return true for st == AliasQualName in addition to MustBeType on the first line, however, we want it to return false in the case where
-                // CurrentToken.Kind != SyntaxKind.Identifier so that error cases, like: A::N(), are not parsed as variable declarations and instead are parsed as A.N() where we can give
-                // a better error message saying "did you meant to use a '.'?"
-                if (st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken && this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
-                {
-                    return true;
-                }
+            if (st == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            {
+                return false;
+            }
 
-                if (st == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            // T? and T* might start an expression, we need to parse further to disambiguate:
+            if (isGlobalScriptLevel)
+            {
+                if (st == ScanTypeFlags.PointerOrMultiplication)
                 {
                     return false;
                 }
-
-                // T? and T* might start an expression, we need to parse further to disambiguate:
-                if (isGlobalScriptLevel)
+                else if (st == ScanTypeFlags.NullableType)
                 {
-                    if (st == ScanTypeFlags.PointerOrMultiplication)
-                    {
-                        return false;
-                    }
-                    else if (st == ScanTypeFlags.NullableType)
-                    {
-                        return IsPossibleDeclarationStatementFollowingNullableType(isGlobalScriptLevel);
-                    }
+                    return IsPossibleDeclarationStatementFollowingNullableType(isGlobalScriptLevel);
                 }
+            }
 
-                return true;
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
+            return true;
         }
 
         private bool IsPossibleTopLevelUsingLocalDeclarationStatement()
