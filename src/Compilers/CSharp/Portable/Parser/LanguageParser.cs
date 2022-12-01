@@ -12986,19 +12986,14 @@ tryAgain:
                 }
 
                 TypeSyntax returnType;
-                var resetPoint = this.GetResetPoint();
-                try
+                using (var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false))
                 {
                     returnType = ParseReturnType();
                     if (CurrentToken.Kind != SyntaxKind.OpenParenToken)
                     {
-                        this.Reset(ref resetPoint);
+                        resetPoint.Reset();
                         returnType = null;
                     }
-                }
-                finally
-                {
-                    this.Release(ref resetPoint);
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
