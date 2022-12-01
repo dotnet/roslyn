@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
-                    var typeOnly = typeSyntax.SkipScoped(out _).SkipRef(out refKind);
+                    var typeOnly = typeSyntax.SkipScoped(out _).SkipRef(diagnostics, out refKind);
                     Debug.Assert(refKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
                     type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
                     if (refKind != RefKind.None)
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     bool isVar;
-                    type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out RefKind refKindToAssert), diagnostics, out isVar);
+                    type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(diagnostics, out RefKind refKindToAssert), diagnostics, out isVar);
                     Debug.Assert(refKindToAssert == RefKind.None); // Otherwise we might need to report an error
                     Debug.Assert(type.HasType || isVar);
 

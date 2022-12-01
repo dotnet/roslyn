@@ -219,20 +219,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static RefKind GetRefKind(this TypeSyntax syntax)
+        internal static RefKind GetRefKind(this TypeSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            syntax.SkipRef(out var refKind);
+            syntax.SkipRef(diagnostics, out var refKind);
             return refKind;
         }
 
-        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        /// <summary>
+        /// For callers that just want to unwrap a <see cref="RefTypeSyntax"/> and don't care if ref/readonly was there.
+        /// As these callers don't are about 'ref', they are in scenarios where 'ref' is not legal, and existing code
+        /// will error out for them.  Callers that do want to know what the ref-kind is should use <see
+        /// cref="SkipRef(TypeSyntax, BindingDiagnosticBag, out RefKind)"/> so that an appropriate version check can be
+        /// performed to make sure using ref is legal in that language version.
+        /// </summary>
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax)
+            => syntax.SkipRef(diagnostics: null, out _);
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
         {
             if (syntax.Kind() == SyntaxKind.RefType)
             {
                 var refType = (RefTypeSyntax)syntax;
-                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
-                    RefKind.RefReadOnly :
-                    RefKind.Ref;
+                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword
+                    ? RefKind.RefReadOnly
+                    : RefKind.Ref;
+
+                if (diagnostics != null)
+                {
+                    MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics, refType, refType.RefKeyword.GetLocation());
+
+                    if (refType.ReadOnlyKeyword != default)
+                        MessageID.IDS_FeatureReadOnlyReferences.CheckFeatureAvailability(diagnostics, refType, refType.ReadOnlyKeyword.GetLocation());
+                }
+
                 return refType.Type;
             }
 
