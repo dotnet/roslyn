@@ -8078,30 +8078,23 @@ done:;
                 return true;
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            // Skip 'using' keyword
+            EatToken();
+
+            if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
             {
-                // Skip 'using' keyword
+                return true;
+            }
+
+            if (tk == SyntaxKind.StaticKeyword)
+            {
+                // Skip 'static' keyword
                 EatToken();
-
-                if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
-                {
-                    return true;
-                }
-
-                if (tk == SyntaxKind.StaticKeyword)
-                {
-                    // Skip 'static' keyword
-                    EatToken();
-                }
-
-                return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel: false);
             }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
+
+            return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel: false);
         }
 
         // Looks ahead for a declaration of a field, property or method declaration following a nullable type T?.
