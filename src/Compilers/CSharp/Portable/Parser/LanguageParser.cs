@@ -5835,10 +5835,11 @@ tryAgain:
             SimpleNameSyntax name = id;
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
-                var pt = this.GetResetPoint();
-                var kind = this.ScanTypeArgumentList(options);
-                this.Reset(ref pt);
-                this.Release(ref pt);
+                ScanTypeArgumentListKind kind;
+                using (var _ = this.GetDisposableResetPoint(resetOnDispose: true))
+                {
+                    kind = this.ScanTypeArgumentList(options);
+                }
 
                 if (kind == ScanTypeArgumentListKind.DefiniteTypeArgumentList || (kind == ScanTypeArgumentListKind.PossibleTypeArgumentList && (options & NameOptions.InTypeList) != 0))
                 {
