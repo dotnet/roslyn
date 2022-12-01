@@ -3368,40 +3368,34 @@ parse_member_name:;
                             }
                             else
                             {
-                                var scanNamePartPoint = GetResetPoint();
-                                try
+                                using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
+
+                                int lastTokenPosition = -1;
+                                IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
+                                ScanNamedTypePart();
+
+                                if (IsDotOrColonColonOrDotDot() ||
+                                    (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
                                 {
-                                    int lastTokenPosition = -1;
-                                    IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
-                                    ScanNamedTypePart();
+                                    haveExplicitInterfaceName = true;
 
-                                    if (IsDotOrColonColonOrDotDot() ||
-                                        (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                                    if (IsDotOrColonColonOrDotDot())
                                     {
-                                        haveExplicitInterfaceName = true;
-
-                                        if (IsDotOrColonColonOrDotDot())
-                                        {
-                                            separatorKind = this.CurrentToken.Kind;
-                                            EatToken();
-                                        }
-                                        else
-                                        {
-                                            separatorKind = SyntaxKind.None;
-                                        }
-
+                                        separatorKind = this.CurrentToken.Kind;
+                                        EatToken();
                                     }
                                     else
                                     {
-                                        this.Reset(ref scanNamePartPoint);
-
-                                        // We're past any explicit interface portion
-                                        break;
+                                        separatorKind = SyntaxKind.None;
                                     }
+
                                 }
-                                finally
+                                else
                                 {
-                                    this.Release(ref scanNamePartPoint);
+                                    scanNamePartPoint.Reset();
+
+                                    // We're past any explicit interface portion
+                                    break;
                                 }
                             }
                         }
