@@ -8342,21 +8342,14 @@ done:;
                 return !typedIdentifier.Value;
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
-            {
-                // skips new keyword
-                EatToken();
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
-                ScanTypeFlags st = this.ScanType();
+            // skips new keyword
+            EatToken();
+            ScanTypeFlags st = this.ScanType();
 
-                return !IsPossibleMemberName() || st == ScanTypeFlags.NotType;
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
+            // TODO(cyrusn): Why not do the `st == ScanTypeFlags.NotType` check first?
+            return !IsPossibleMemberName() || st == ScanTypeFlags.NotType;
         }
 
         /// <returns>
