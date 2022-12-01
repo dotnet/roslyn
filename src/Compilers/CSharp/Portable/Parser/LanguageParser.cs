@@ -6321,17 +6321,11 @@ tryAgain:
                     // now, scan past the next name.  if it's followed by a dot then
                     // it's part of the explicit name we're building up.  Otherwise,
                     // it's the name of the member.
-                    var point = GetResetPoint();
                     bool isMemberName;
-                    try
+                    using (var _ = GetDisposableResetPoint(resetOnDispose: true))
                     {
                         ScanNamedTypePart();
                         isMemberName = !IsDotOrColonColonOrDotDot();
-                    }
-                    finally
-                    {
-                        this.Reset(ref point);
-                        this.Release(ref point);
                     }
 
                     if (isMemberName)
