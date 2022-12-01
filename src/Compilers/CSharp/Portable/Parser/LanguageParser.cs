@@ -9805,34 +9805,27 @@ tryAgain:
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
             {
-                var beforeScopedResetPoint = this.GetResetPoint();
+                using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
-                try
+                SyntaxToken scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
+
+                if (this.CurrentToken.Kind is not (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
                 {
-                    SyntaxToken scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
+                    using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
-                    if (this.CurrentToken.Kind is not (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
+                    if (ScanType() == ScanTypeFlags.NotType ||
+                        (isFunctionPointerParameter ?
+                             this.CurrentToken.Kind is not (SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken) :
+                             this.CurrentToken.Kind != SyntaxKind.IdentifierToken))
                     {
-                        using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
-
-                        if (ScanType() == ScanTypeFlags.NotType ||
-                            (isFunctionPointerParameter ?
-                                 this.CurrentToken.Kind is not (SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken) :
-                                 this.CurrentToken.Kind != SyntaxKind.IdentifierToken))
-                        {
-                            this.Reset(ref beforeScopedResetPoint);
-                            return null;
-                        }
-
-                        afterScopedResetPoint.Reset();
+                        beforeScopedResetPoint.Reset();
+                        return null;
                     }
 
-                    return scopedKeyword;
+                    afterScopedResetPoint.Reset();
                 }
-                finally
-                {
-                    this.Release(ref beforeScopedResetPoint);
-                }
+
+                return scopedKeyword;
             }
 
             return null;
