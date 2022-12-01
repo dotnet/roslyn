@@ -4,12 +4,12 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using System.Diagnostics.CodeAnalysis;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-    using Roslyn.Utilities;
 
     internal partial class LanguageParser : SyntaxParser
     {
