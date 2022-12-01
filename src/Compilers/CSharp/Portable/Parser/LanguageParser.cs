@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Runtime.CompilerServices;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -1290,107 +1291,99 @@ tryAgain:
             // Some of our helpers start at the current token, so we'll have to advance for their
             // sake and then backtrack when we're done.  Don't leave this block without releasing
             // the reset point.
-            ResetPoint resetPoint = GetResetPoint();
+            using var _ = GetDisposableResetPoint(resetOnDispose: true);
 
-            try
+            this.EatToken(); //move past contextual token
+
+            if (!parsingStatementNotDeclaration &&
+                (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
             {
-                this.EatToken(); //move past contextual token
+                this.EatToken(); // "partial" doesn't affect our decision, so look past it.
+            }
 
-                if (!parsingStatementNotDeclaration &&
-                    (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
+            // ... 'TOKEN' [partial] <typedecl> ...
+            // ... 'TOKEN' [partial] <event> ...
+            // ... 'TOKEN' [partial] <implicit> <operator> ...
+            // ... 'TOKEN' [partial] <explicit> <operator> ...
+            // ... 'TOKEN' [partial] <typename> <operator> ...
+            // ... 'TOKEN' [partial] <typename> <membername> ...
+            // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
+            // anything other than async methods are detected as erroneous later, during the define phase
+            // The comments in general were not updated to add "async or required" everywhere to preserve
+            // history, but generally wherever async occurs, it can also be required.
+
+            if (!parsingStatementNotDeclaration)
+            {
+                var ctk = this.CurrentToken.Kind;
+                if (IsPossibleStartOfTypeDeclaration(ctk) ||
+                    ctk == SyntaxKind.EventKeyword ||
+                    ((ctk == SyntaxKind.ExplicitKeyword || ctk == SyntaxKind.ImplicitKeyword) && PeekToken(1).Kind == SyntaxKind.OperatorKeyword))
                 {
-                    this.EatToken(); // "partial" doesn't affect our decision, so look past it.
-                }
-
-                // ... 'TOKEN' [partial] <typedecl> ...
-                // ... 'TOKEN' [partial] <event> ...
-                // ... 'TOKEN' [partial] <implicit> <operator> ...
-                // ... 'TOKEN' [partial] <explicit> <operator> ...
-                // ... 'TOKEN' [partial] <typename> <operator> ...
-                // ... 'TOKEN' [partial] <typename> <membername> ...
-                // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
-                // anything other than async methods are detected as erroneous later, during the define phase
-                // The comments in general were not updated to add "async or required" everywhere to preserve
-                // history, but generally wherever async occurs, it can also be required.
-
-                if (!parsingStatementNotDeclaration)
-                {
-                    var ctk = this.CurrentToken.Kind;
-                    if (IsPossibleStartOfTypeDeclaration(ctk) ||
-                        ctk == SyntaxKind.EventKeyword ||
-                        ((ctk == SyntaxKind.ExplicitKeyword || ctk == SyntaxKind.ImplicitKeyword) && PeekToken(1).Kind == SyntaxKind.OperatorKeyword))
-                    {
-                        return true;
-                    }
-                }
-
-                if (ScanType() != ScanTypeFlags.NotType)
-                {
-                    // We've seen "TOKEN TypeName".  Now we have to determine if we should we treat 
-                    // 'TOKEN' as a modifier.  Or is the user actually writing something like 
-                    // "public TOKEN Goo" where 'TOKEN' is actually the return type.
-
-                    if (IsPossibleMemberName())
-                    {
-                        // we have: "TOKEN Type X" or "TOKEN Type this", 'TOKEN' is definitely a 
-                        // modifier here.
-                        return true;
-                    }
-
-                    var currentTokenKind = this.CurrentToken.Kind;
-
-                    // The file ends with "TOKEN TypeName", it's not legal code, and it's much 
-                    // more likely that this is meant to be a modifier.
-                    if (currentTokenKind == SyntaxKind.EndOfFileToken)
-                    {
-                        return true;
-                    }
-
-                    // "TOKEN TypeName }".  In this case, we just have an incomplete member, and 
-                    // we should definitely default to 'TOKEN' being considered a return type here.
-                    if (currentTokenKind == SyntaxKind.CloseBraceToken)
-                    {
-                        return true;
-                    }
-
-                    // "TOKEN TypeName void". In this case, we just have an incomplete member before
-                    // an existing member.  Treat this 'TOKEN' as a keyword.
-                    if (SyntaxFacts.IsPredefinedType(this.CurrentToken.Kind))
-                    {
-                        return true;
-                    }
-
-                    // "TOKEN TypeName public".  In this case, we just have an incomplete member before
-                    // an existing member.  Treat this 'TOKEN' as a keyword.
-                    if (IsNonContextualModifier(this.CurrentToken))
-                    {
-                        return true;
-                    }
-
-                    // "TOKEN TypeName class". In this case, we just have an incomplete member before
-                    // an existing type declaration.  Treat this 'TOKEN' as a keyword.
-                    if (IsTypeDeclarationStart())
-                    {
-                        return true;
-                    }
-
-                    // "TOKEN TypeName namespace". In this case, we just have an incomplete member before
-                    // an existing namespace declaration.  Treat this 'TOKEN' as a keyword.
-                    if (currentTokenKind == SyntaxKind.NamespaceKeyword)
-                    {
-                        return true;
-                    }
-
-                    if (!parsingStatementNotDeclaration && currentTokenKind == SyntaxKind.OperatorKeyword)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
-            finally
+
+            if (ScanType() != ScanTypeFlags.NotType)
             {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
+                // We've seen "TOKEN TypeName".  Now we have to determine if we should we treat 
+                // 'TOKEN' as a modifier.  Or is the user actually writing something like 
+                // "public TOKEN Goo" where 'TOKEN' is actually the return type.
+
+                if (IsPossibleMemberName())
+                {
+                    // we have: "TOKEN Type X" or "TOKEN Type this", 'TOKEN' is definitely a 
+                    // modifier here.
+                    return true;
+                }
+
+                var currentTokenKind = this.CurrentToken.Kind;
+
+                // The file ends with "TOKEN TypeName", it's not legal code, and it's much 
+                // more likely that this is meant to be a modifier.
+                if (currentTokenKind == SyntaxKind.EndOfFileToken)
+                {
+                    return true;
+                }
+
+                // "TOKEN TypeName }".  In this case, we just have an incomplete member, and 
+                // we should definitely default to 'TOKEN' being considered a return type here.
+                if (currentTokenKind == SyntaxKind.CloseBraceToken)
+                {
+                    return true;
+                }
+
+                // "TOKEN TypeName void". In this case, we just have an incomplete member before
+                // an existing member.  Treat this 'TOKEN' as a keyword.
+                if (SyntaxFacts.IsPredefinedType(this.CurrentToken.Kind))
+                {
+                    return true;
+                }
+
+                // "TOKEN TypeName public".  In this case, we just have an incomplete member before
+                // an existing member.  Treat this 'TOKEN' as a keyword.
+                if (IsNonContextualModifier(this.CurrentToken))
+                {
+                    return true;
+                }
+
+                // "TOKEN TypeName class". In this case, we just have an incomplete member before
+                // an existing type declaration.  Treat this 'TOKEN' as a keyword.
+                if (IsTypeDeclarationStart())
+                {
+                    return true;
+                }
+
+                // "TOKEN TypeName namespace". In this case, we just have an incomplete member before
+                // an existing namespace declaration.  Treat this 'TOKEN' as a keyword.
+                if (currentTokenKind == SyntaxKind.NamespaceKeyword)
+                {
+                    return true;
+                }
+
+                if (!parsingStatementNotDeclaration && currentTokenKind == SyntaxKind.OperatorKeyword)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -13755,6 +13748,9 @@ tryAgain:
             _syntaxFactoryContext.QueryDepth--;
         }
 
+        private DisposableResetPoint GetDisposableResetPoint(bool resetOnDispose)
+            => new(this, resetOnDispose, GetResetPoint());
+
         private new ResetPoint GetResetPoint()
         {
             return new ResetPoint(
@@ -13775,6 +13771,28 @@ tryAgain:
         private void Release(ref ResetPoint state)
         {
             base.Release(ref state.BaseResetPoint);
+        }
+
+        private ref struct DisposableResetPoint
+        {
+            private readonly LanguageParser _languageParser;
+            private readonly bool _resetOnDispose;
+            private ResetPoint _resetPoint;
+
+            public DisposableResetPoint(LanguageParser languageParser, bool resetOnDispose, ResetPoint resetPoint)
+            {
+                _languageParser = languageParser;
+                _resetOnDispose = resetOnDispose;
+                _resetPoint = resetPoint;
+            }
+
+            public void Dispose()
+            {
+                if (_resetOnDispose)
+                    _languageParser.Reset(ref _resetPoint);
+
+                _languageParser.Release(ref _resetPoint);
+            }
         }
 
         private new struct ResetPoint
