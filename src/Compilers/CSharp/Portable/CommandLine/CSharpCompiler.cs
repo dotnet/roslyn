@@ -8,7 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
+using System.Runtime.InteropServices;
 using Metalama.Compiler;
 using Metalama.Compiler.Interface.TypeForwards;
 using Microsoft.CodeAnalysis.Collections;
@@ -21,6 +23,7 @@ using Metalama.Backstage.Licensing;
 using Metalama.Backstage.Licensing.Consumption;
 using Metalama.Backstage.Telemetry;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -649,28 +652,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 catch (Exception ex)
                 {
-                    var crashReportDirectory = Path.Combine( Path.GetTempPath(), "Metalama", "CrashReports");
-                    var crashReportPath = Path.Combine( crashReportDirectory, Guid.NewGuid() + ".txt");
+                    var crashReportPath = CrashReporter.WriteCrashReport(ex);
 
                     // Report a diagnostic.
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
                         MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.Message, crashReportPath));
+
                     diagnostics.Add(diagnostic);
-
-                    // Write the detailed file.
-                    try
-                    {
-                        if (!Directory.Exists(crashReportDirectory))
-                        {
-                            Directory.CreateDirectory(crashReportDirectory);
-                        }
-
-                        File.WriteAllText(crashReportPath, ex.ToString());
-                    }
-                    catch
-                    {
-                        
-                    }
                 }
             }
 
@@ -685,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AttachedProperties.Add(resource.Resource, RefAssemblyResourceMarker.Instance);
             }
-            
+
             return new TransformersResult(
                 annotatedInputCompilation, 
                 outputCompilation,
@@ -693,8 +681,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
                 addedResources.SelectAsArray( m => m.Resource),
                 GetMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider) );
-            
-    
         }
         // </Metalama>
     }

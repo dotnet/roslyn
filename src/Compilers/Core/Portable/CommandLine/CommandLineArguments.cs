@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Metalama.Compiler;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -496,19 +497,9 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticInfo? diagnostic;
 
                 // <Metalama>
-                if ( e.Exception != null)
+                if (e.Exception != null)
                 {
-                    try
-                    {
-                        var crashReportDirectory = Path.Combine( Path.GetTempPath(), "Metalama", "ExtractExceptions" );
-                        if (!Directory.Exists(crashReportDirectory))
-                        {
-                            Directory.CreateDirectory(crashReportDirectory);
-                        }
-                        var crashReportPath = Path.Combine( crashReportDirectory, $"exception-{Guid.NewGuid()}.txt");
-                        File.WriteAllText( crashReportPath, e.Exception.ToString());
-                    }
-                    catch {}
+                    CrashReporter.WriteCrashReport(e.Exception);
                 }
                 // </Metalama>
 
