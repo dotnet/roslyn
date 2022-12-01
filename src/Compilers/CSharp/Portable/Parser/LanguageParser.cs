@@ -2617,23 +2617,17 @@ parse_member_name:;
 
             bool tryParseLocalDeclarationStatementFromStartPoint<DeclarationSyntax>(SyntaxList<AttributeListSyntax> attributes, ref ResetPoint startPoint, out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
             {
-                var resetOnFailurePoint = this.GetResetPoint();
-                try
-                {
-                    this.Reset(ref startPoint);
+                using var resetOnFailurePoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
-                    if (tryParseLocalDeclarationStatement<DeclarationSyntax>(attributes, out result))
-                    {
-                        return true;
-                    }
+                this.Reset(ref startPoint);
 
-                    this.Reset(ref resetOnFailurePoint);
-                    return false;
-                }
-                finally
+                if (tryParseLocalDeclarationStatement<DeclarationSyntax>(attributes, out result))
                 {
-                    this.Release(ref resetOnFailurePoint);
+                    return true;
                 }
+
+                resetOnFailurePoint.Reset();
+                return false;
             }
 
             static bool isAcceptableNonDeclarationStatement(StatementSyntax statement, bool isScript)
