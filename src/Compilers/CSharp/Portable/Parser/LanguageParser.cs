@@ -13509,27 +13509,21 @@ tryAgain:
         private JoinClauseSyntax ParseJoinClause()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.JoinKeyword);
-            var @join = this.EatContextualToken(SyntaxKind.JoinKeyword);
-            var type = this.PeekToken(1).Kind != SyntaxKind.InKeyword
-                ? this.ParseType()
-                : null;
-
-            var name = this.ParseIdentifierToken();
-            var @in = this.EatToken(SyntaxKind.InKeyword);
-            var inExpression = this.ParseExpressionCore();
-            var @on = this.EatContextualToken(SyntaxKind.OnKeyword, ErrorCode.ERR_ExpectedContextualKeywordOn);
-            var leftExpression = this.ParseExpressionCore();
-            var @equals = this.EatContextualToken(SyntaxKind.EqualsKeyword, ErrorCode.ERR_ExpectedContextualKeywordEquals);
-            var rightExpression = this.ParseExpressionCore();
-            JoinIntoClauseSyntax joinInto = null;
-            if (this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword)
-            {
-                var @into = ConvertToKeyword(this.EatToken());
-                var intoId = this.ParseIdentifierToken();
-                joinInto = _syntaxFactory.JoinIntoClause(@into, intoId);
-            }
-
-            return _syntaxFactory.JoinClause(@join, type, name, @in, inExpression, @on, leftExpression, @equals, rightExpression, joinInto);
+            return _syntaxFactory.JoinClause(
+                this.EatContextualToken(SyntaxKind.JoinKeyword),
+                this.PeekToken(1).Kind != SyntaxKind.InKeyword
+                    ? this.ParseType()
+                    : null,
+                this.ParseIdentifierToken(),
+                this.EatToken(SyntaxKind.InKeyword),
+                this.ParseExpressionCore(),
+                this.EatContextualToken(SyntaxKind.OnKeyword, ErrorCode.ERR_ExpectedContextualKeywordOn),
+                this.ParseExpressionCore(),
+                this.EatContextualToken(SyntaxKind.EqualsKeyword, ErrorCode.ERR_ExpectedContextualKeywordEquals),
+                this.ParseExpressionCore(),
+                this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword
+                    ? _syntaxFactory.JoinIntoClause(ConvertToKeyword(this.EatToken()), this.ParseIdentifierToken())
+                    : null);
         }
 
         private LetClauseSyntax ParseLetClause()
