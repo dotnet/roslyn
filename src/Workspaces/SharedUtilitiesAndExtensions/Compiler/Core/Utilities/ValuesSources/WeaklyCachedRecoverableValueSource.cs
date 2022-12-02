@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Host
             return weakReference != null && weakReference.TryGetTarget(out value) && value != null;
         }
 
-        private bool TryGetWeakOrStrongValue([NotNullWhen(true)] out T? value)
+        private bool TryGetStrongOrWeakValue([NotNullWhen(true)] out T? value)
         {
             // See if we still have the constant value stored.  If so, we can trivially return that.
             value = _initialValue;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public override bool TryGetValue([MaybeNullWhen(false)] out T value)
-            => TryGetWeakOrStrongValue(out value);
+            => TryGetStrongOrWeakValue(out value);
 
         public override T GetValue(CancellationToken cancellationToken)
         {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Host
             // Otherwise, we're either holding the value strongly, or we need to recovery it from secondary storage.
             using (Gate.DisposableWait(cancellationToken))
             {
-                if (!TryGetWeakOrStrongValue(out instance))
+                if (!TryGetStrongOrWeakValue(out instance))
                     instance = Recover(cancellationToken);
 
                 // If the value was strongly held, kick off the work to write it to secondary storage and release the
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (!TryGetWeakOrStrongValue(out instance))
+                if (!TryGetStrongOrWeakValue(out instance))
                     instance = await RecoverAsync(cancellationToken).ConfigureAwait(false);
 
                 // If the value was strongly held, kick off the work to write it to secondary storage and release the
