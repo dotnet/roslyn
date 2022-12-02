@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             telemetry.SetBreakState(inBreakState);
 
             BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState
-                ? new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true)
+                ? AsyncLazy.Create(GetBaseActiveStatementsAsync)
                 : new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
 
-            Capabilities = new AsyncLazy<EditAndContinueCapabilities>(GetCapabilitiesAsync, cacheResult: true);
+            Capabilities = AsyncLazy.Create(GetCapabilitiesAsync);
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
         }
 

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Note, this test may pass even if GetValueAsync posted a task to the threadpool, since the 
             // current thread may context switch out and allow the threadpool to complete the task before
             // we check the state.  However, a failure here definitely indicates a bug in AsyncLazy.
-            var lazy = new AsyncLazy<int>(c => Task.FromResult(5), cacheResult: true);
+            var lazy = new AsyncLazy<int>(c => Task.FromResult(5));
             var t = lazy.GetValueAsync(CancellationToken.None);
             Assert.Equal(TaskStatus.RanToCompletion, t.Status);
             Assert.Equal(5, t.Result);
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     c.ThrowIfCancellationRequested();
                 }
-            }), c), cacheResult: true);
+            }), c));
 
             var task = lazy.GetValueAsync(cancellationTokenSource.Token);
 
