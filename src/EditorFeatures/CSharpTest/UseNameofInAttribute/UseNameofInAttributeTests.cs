@@ -372,5 +372,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestCallerArgumentExpression1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System.Runtime.CompilerServices;
+                    class C
+                    {
+                        void M(string s1, [CallerArgumentExpression([|"s1"|])] string? s2 = null) { }
+                    }
+                    """,
+                FixedCode = """
+                    using System.Runtime.CompilerServices;
+                    class C
+                    {
+                        void M(string s1, [CallerArgumentExpression(nameof("s1"))] string? s2 = null) { }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestCallerArgumentExpression2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System.Runtime.CompilerServices;
+                    class C
+                    {
+                        void M(string s1, [CallerArgumentExpressionAttribute([|"s1"|])] string? s2 = null) { }
+                    }
+                    """,
+                FixedCode = """
+                    using System.Runtime.CompilerServices;
+                    class C
+                    {
+                        void M(string s1, [CallerArgumentExpressionAttribute(nameof("s1"))] string? s2 = null) { }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
     }
 }
