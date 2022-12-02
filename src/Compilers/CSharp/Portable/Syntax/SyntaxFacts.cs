@@ -220,8 +220,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case DeclarationExpression:
                         return ((DeclarationExpressionSyntax)parent).Type == node;
 
+#pragma warning disable CS0618 // Type or member is obsolete - PROTOTYPE: TODO: check if we have field declaration with missing type?
                     case IncompleteMember:
                         return ((IncompleteMemberSyntax)parent).Type == node;
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
             }
 

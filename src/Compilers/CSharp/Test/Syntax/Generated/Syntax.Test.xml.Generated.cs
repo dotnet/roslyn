@@ -589,6 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.FunctionPointerParameterSyntax GenerateFunctionPointerParameter()
             => InternalSyntaxFactory.FunctionPointerParameter(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName());
 
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         private static Syntax.InternalSyntax.IncompleteMemberSyntax GenerateIncompleteMember()
             => InternalSyntaxFactory.IncompleteMember(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), null);
 
@@ -10561,6 +10562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static FunctionPointerParameterSyntax GenerateFunctionPointerParameter()
             => SyntaxFactory.FunctionPointerParameter(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName());
 
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         private static IncompleteMemberSyntax GenerateIncompleteMember()
             => SyntaxFactory.IncompleteMember(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), default(TypeSyntax));
 

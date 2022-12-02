@@ -28213,7 +28213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-      [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
+    [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
     internal sealed partial class IncompleteMemberSyntax : MemberDeclarationSyntax
     {
         internal readonly GreenNode? attributeLists;
@@ -34542,6 +34542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitFunctionPointerParameter(FunctionPointerParameterSyntax node) => this.DefaultVisit(node);
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public virtual TResult VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
@@ -34784,6 +34785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
         public virtual void VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
         public virtual void VisitFunctionPointerParameter(FunctionPointerParameterSyntax node) => this.DefaultVisit(node);
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public virtual void VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
         public virtual void VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
         public virtual void VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
@@ -35412,6 +35414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override CSharpSyntaxNode VisitFunctionPointerParameter(FunctionPointerParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type));
 
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public override CSharpSyntaxNode VisitIncompleteMember(IncompleteMemberSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type));
 
@@ -39740,6 +39743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public IncompleteMemberSyntax IncompleteMember(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type)
         {
 #if DEBUG
@@ -44811,6 +44815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public static IncompleteMemberSyntax IncompleteMember(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type)
         {
 #if DEBUG
@@ -45890,7 +45895,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(BracketedParameterListSyntax),
                 typeof(ParameterSyntax),
                 typeof(FunctionPointerParameterSyntax),
+#pragma warning disable CS0618 // Type or member is obsolete - Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.
                 typeof(IncompleteMemberSyntax),
+#pragma warning restore CS0618 // Type or member is obsolete
                 typeof(SkippedTokensTriviaSyntax),
                 typeof(DocumentationCommentTriviaSyntax),
                 typeof(TypeCrefSyntax),

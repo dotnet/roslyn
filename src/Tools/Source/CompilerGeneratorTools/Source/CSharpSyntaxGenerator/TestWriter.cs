@@ -103,6 +103,11 @@ namespace CSharpSyntaxGenerator
 
             var strippedName = StripPost(node.Name, "Syntax");
 
+            if (node.ObsoleteReason is not null)
+            {
+                WriteLine($"[Obsolete(\"{node.ObsoleteReason}\")]");
+            }
+
             WriteLine($"private static {csharpNamespace}{node.Name} Generate{strippedName}()");
 
             Write($"    => {syntaxFactory}.{strippedName}(");

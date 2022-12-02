@@ -595,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual TResult? VisitFunctionPointerParameter(FunctionPointerParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public virtual TResult? VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SkippedTokensTriviaSyntax node.</summary>
@@ -1312,6 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual void VisitFunctionPointerParameter(FunctionPointerParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public virtual void VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SkippedTokensTriviaSyntax node.</summary>
@@ -2028,6 +2030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitFunctionPointerParameter(FunctionPointerParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public override SyntaxNode? VisitIncompleteMember(IncompleteMemberSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type));
 
@@ -5617,6 +5620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.FunctionPointerParameter(default, default(SyntaxTokenList), type);
 
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public static IncompleteMemberSyntax IncompleteMember(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type)
         {
             return (IncompleteMemberSyntax)Syntax.InternalSyntax.SyntaxFactory.IncompleteMember(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
@@ -5624,6 +5628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #pragma warning disable RS0027
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         public static IncompleteMemberSyntax IncompleteMember(TypeSyntax? type = default)
             => SyntaxFactory.IncompleteMember(default, default(SyntaxTokenList), type);
 #pragma warning restore RS0027

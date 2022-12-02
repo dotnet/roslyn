@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -164,11 +165,7 @@ namespace CSharpSyntaxGenerator
             else if (node is Node)
             {
                 var nd = (Node)node;
-                if (nd.ObsoleteReason is not null)
-                {
-                    WriteLine($"  [Obsolete(\"{nd.ObsoleteReason}\")]");
-                }
-
+                WriteObsoleteAttributeIfNeeded(nd);
                 WriteLine($"internal sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
@@ -465,6 +462,7 @@ namespace CSharpSyntaxGenerator
             OpenBlock();
             foreach (var node in nodes.OfType<Node>())
             {
+                WriteObsoleteAttributeIfNeeded(node);
                 WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
@@ -539,6 +537,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
+                WriteObsoleteAttributeIfNeeded(node);
                 WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
                 Indent();
 
@@ -615,7 +614,17 @@ namespace CSharpSyntaxGenerator
             var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             foreach (var node in nodes)
             {
-                WriteLine($"typeof({node.Name}),");
+                var nd = (Node)node;
+                if (nd.ObsoleteReason is not null)
+                {
+                    WriteLineWithoutIndent($"#pragma warning disable CS0618 // Type or member is obsolete - {nd.ObsoleteReason}");
+                    WriteLine($"typeof({node.Name}),");
+                    WriteLineWithoutIndent("#pragma warning restore CS0618 // Type or member is obsolete");
+                }
+                else
+                {
+                    WriteLine($"typeof({node.Name}),");
+                }
             }
 
             CloseBlock(";");
@@ -627,6 +636,7 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
             var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
 
+            WriteObsoleteAttributeIfNeeded(nd);
             Write($"public {(withSyntaxFactoryContext ? "" : "static ")}{nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteGreenFactoryParameters(nd);
             WriteLine(")");
@@ -931,10 +941,7 @@ namespace CSharpSyntaxGenerator
 
                 WriteComment($"</list>");
                 WriteComment($"</remarks>");
-                if (nd.ObsoleteReason is not null)
-                {
-                    WriteLine($"  [Obsolete(\"{nd.ObsoleteReason}\")]");
-                }
+                WriteObsoleteAttributeIfNeeded(nd);
                 WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
@@ -1187,6 +1194,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 nWritten++;
                 WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
+                WriteObsoleteAttributeIfNeeded(node);
                 WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
@@ -1412,6 +1420,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
+                WriteObsoleteAttributeIfNeeded(node);
                 WriteLine($"public override SyntaxNode? Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
 
                 if (node.Fields.Count == 0)
@@ -1537,7 +1546,7 @@ namespace CSharpSyntaxGenerator
             var nodeFields = nd.Fields.Where(n => !IsValueField(n)).ToList();
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-
+            WriteObsoleteAttributeIfNeeded(nd);
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteRedFactoryParameters(nd);
 
@@ -1723,6 +1732,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
+            WriteObsoleteAttributeIfNeeded(nd);
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
@@ -1812,6 +1822,7 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
+            WriteObsoleteAttributeIfNeeded(nd);
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
@@ -1934,6 +1945,14 @@ namespace CSharpSyntaxGenerator
                         WriteLine($"{indent}/// {line.TrimStart()}");
                     }
                 }
+            }
+        }
+
+        private void WriteObsoleteAttributeIfNeeded(Node node)
+        {
+            if (node.ObsoleteReason is not null)
+            {
+                WriteLine($"[Obsolete(\"{node.ObsoleteReason}\")]");
             }
         }
     }
