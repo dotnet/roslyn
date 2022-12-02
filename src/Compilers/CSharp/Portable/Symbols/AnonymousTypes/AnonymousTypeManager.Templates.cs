@@ -206,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Delegate name cannot be fully determined by its signature (e.g., it has default parameter values).
                 if (needsIndexedName)
                 {
+                    Debug.Assert(nTypeArguments != 0);
+
                     // Replace field types (where type parameters will be) by placeholders.
                     var genericFieldTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(fields.Length);
                     for (var i = 0; i < nTypeArguments; i++)
