@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Xunit;
@@ -32,12 +30,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             await TestServices.StateReset.ResetGlobalOptionsAsync(HangMitigatingCancellationToken);
             await TestServices.StateReset.ResetHostSettingsAsync(HangMitigatingCancellationToken);
-        }
-
-        protected void Wait(double seconds)
-        {
-            var timeout = TimeSpan.FromMilliseconds(seconds * 1000);
-            Thread.Sleep(timeout);
         }
     }
 }
