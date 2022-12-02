@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
             {
                 TestCode = """
                     using System.Runtime.CompilerServices;
+                    #nullable enable
                     class C
                     {
                         void M(string s1, [CallerArgumentExpression([|"s1"|])] string? s2 = null) { }
@@ -387,9 +388,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
                     """,
                 FixedCode = """
                     using System.Runtime.CompilerServices;
+                    #nullable enable
                     class C
                     {
-                        void M(string s1, [CallerArgumentExpression(nameof("s1"))] string? s2 = null) { }
+                        void M(string s1, [CallerArgumentExpression(nameof(s1))] string? s2 = null) { }
                     }
                     """,
                 LanguageVersion = LanguageVersion.CSharp11,
@@ -404,6 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
             {
                 TestCode = """
                     using System.Runtime.CompilerServices;
+                    #nullable enable
                     class C
                     {
                         void M(string s1, [CallerArgumentExpressionAttribute([|"s1"|])] string? s2 = null) { }
@@ -411,9 +414,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
                     """,
                 FixedCode = """
                     using System.Runtime.CompilerServices;
+                    #nullable enable
                     class C
                     {
-                        void M(string s1, [CallerArgumentExpressionAttribute(nameof("s1"))] string? s2 = null) { }
+                        void M(string s1, [CallerArgumentExpressionAttribute(nameof(s1))] string? s2 = null) { }
                     }
                     """,
                 LanguageVersion = LanguageVersion.CSharp11,
