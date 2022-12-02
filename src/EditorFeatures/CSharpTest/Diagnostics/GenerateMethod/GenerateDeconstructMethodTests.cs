@@ -335,6 +335,32 @@ class D
     }
 }");
         }
+        [Fact]
+        public async Task TestDeconstructionPositionalPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        if(class is Class(""[||])) { }
+    }
+}",
+@"using System;
+
+class Class
+{
+    void Method()
+    {
+        if(class is Class(""[||])) { }
+    }
+
+    private void Deconstruct(out string v)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
 
         [Fact, WorkItem(32510, "https://github.com/dotnet/roslyn/issues/32510")]
         public async Task TestDeconstructionAssignment_InvalidDeclaration()

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
             var token = root.FindToken(span.Start);
 
             var deconstruction = token.GetAncestors<SyntaxNode>()
-                .FirstOrDefault(n => n.Kind() is SyntaxKind.SimpleAssignmentExpression or SyntaxKind.ForEachVariableStatement);
+                .FirstOrDefault(n => n.Kind() is SyntaxKind.SimpleAssignmentExpression or SyntaxKind.ForEachVariableStatement or SyntaxKind.PositionalPatternClause);
 
             if (deconstruction is null)
             {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
 
             DeconstructionInfo info;
             ITypeSymbol type;
-            ExpressionSyntax target;
+            SyntaxNode target;
             switch (deconstruction)
             {
                 case ForEachVariableStatementSyntax @foreach:
@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                     info = model.GetDeconstructionInfo(assignment);
                     type = model.GetTypeInfo(assignment.Right).Type;
                     target = assignment.Left;
+                    break;
+                case PositionalPatternClauseSyntax positionalPattern:
+                    info = default;
+                    type = model.GetTypeInfo(deconstruction.Parent).Type;
+                    target = deconstruction;
                     break;
                 default:
                     throw ExceptionUtilities.Unreachable();

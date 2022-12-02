@@ -7,10 +7,15 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
@@ -54,6 +59,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 MethodGenerationKind = MethodGenerationKind.Member;
                 MethodKind = MethodKind.Ordinary;
 
+                var semanticFacts = document.Document.GetRequiredLanguageService<ISemanticFactsService>();
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var semanticModel = document.SemanticModel;
@@ -63,7 +70,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                var parameters = TryMakeParameters(semanticModel, targetVariables);
+                var parameters = TryMakeParameters(semanticModel, targetVariables, semanticFacts, cancellationToken);
                 if (parameters.IsDefault)
                 {
                     return false;
@@ -85,23 +92,45 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 return await TryFinishInitializingStateAsync(service, document, cancellationToken).ConfigureAwait(false);
             }
 
-            private static ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target)
+            private static ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target, ISemanticFactsService semanticFacts, CancellationToken cancellationToken)
             {
-                var targetType = semanticModel.GetTypeInfo(target).Type;
-                if (targetType?.IsTupleType != true)
+                ITypeSymbol targetType;
+                if (target is PositionalPatternClauseSyntax positionalPattern)
                 {
-                    return default;
-                }
+                    var namesBuilder = ImmutableArray.CreateBuilder<string>();
+                    using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(positionalPattern.Subpatterns.Count, out var builder);
+                    for (var i = 0; i < positionalPattern.Subpatterns.Count - 1; i++)
+                    {
+                        namesBuilder.Add(semanticFacts.GenerateNameForExpression(semanticModel, positionalPattern.Subpatterns[i], false, cancellationToken));
+                    }
+                    var names = NameGenerator.EnsureUniqueness(namesBuilder.ToImmutable());
+                    for (var i = 0; i < positionalPattern.Subpatterns.Count - 1; i++)
+                    {
+                        targetType = semanticModel.GetTypeInfo(positionalPattern.Subpatterns[i].Pattern, cancellationToken: cancellationToken).Type;
+                        builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        RefKind.Out, targetType, names[i]));
+                    }
 
-                var tupleElements = ((INamedTypeSymbol)targetType).TupleElements;
-                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(tupleElements.Length, out var builder);
-                foreach (var element in tupleElements)
+                    return builder.ToImmutableAndClear();
+                }
+                else
                 {
-                    builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default, RefKind.Out, isParams: false, element.Type, element.Name));
-                }
+                    targetType = semanticModel.GetTypeInfo(target, cancellationToken: cancellationToken).Type;
+                    if (targetType?.IsTupleType != true)
+                    {
+                        return default;
+                    }
 
-                return builder.ToImmutableAndClear();
+                    var tupleElements = ((INamedTypeSymbol)targetType).TupleElements;
+                    using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(tupleElements.Length, out var builder);
+                    foreach (var element in tupleElements)
+                    {
+                        builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                            attributes: default, RefKind.Out, isParams: false, element.Type, element.Name));
+                    }
+
+                    return builder.ToImmutableAndClear();
+                }
             }
         }
     }
