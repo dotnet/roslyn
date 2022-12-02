@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
 
                     return 42;
-                },
-                cacheResult: false);
+                });
 
             // Second, start a synchronous request. While we are in the GetValue, we will record which thread is being occupied by the request
             Thread synchronousRequestThread = null;
@@ -174,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     c.ThrowIfCancellationRequested();
                 }
-            }, synchronousComputeFunction: synchronousComputation, cacheResult: false);
+            }, synchronousComputeFunction: synchronousComputation);
 
             var cancellationTokenSource = new CancellationTokenSource();
 

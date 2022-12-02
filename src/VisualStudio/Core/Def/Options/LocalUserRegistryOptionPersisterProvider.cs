@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public LocalUserRegistryOptionPersisterProvider(
             [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider)
         {
-            _lazyPersister = new(_ => LocalUserRegistryOptionPersister.CreateAsync(serviceProvider), cacheResult: true);
+            _lazyPersister = AsyncLazy.Create(_ => LocalUserRegistryOptionPersister.CreateAsync(serviceProvider));
         }
 
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)

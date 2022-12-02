@@ -11,42 +11,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    internal static class TaskExtensions
+    internal static partial class TaskExtensions
     {
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task CompletesAsyncOperation(this Task task, IAsyncToken asyncToken)
-        {
-            if (asyncToken is AsynchronousOperationListener.DiagnosticAsyncToken diagnosticToken)
-            {
-                diagnosticToken.AssociateWithTask(task);
-            }
-
-            return task.CompletesTrackingOperation(asyncToken);
-        }
-
-        [PerformanceSensitive(
-            "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
-            AllowCaptures = false)]
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task CompletesTrackingOperation(this Task task, IDisposable token)
-        {
-            if (token == null || token == EmptyAsyncToken.Instance)
-            {
-                return task;
-            }
-
-            return CompletesTrackingOperationSlow(task, token);
-
-            static Task CompletesTrackingOperationSlow(Task task, IDisposable token)
-            {
-                return task.SafeContinueWith(
-                    t => token.Dispose(),
-                    CancellationToken.None,
-                    TaskContinuationOptions.ExecuteSynchronously,
-                    TaskScheduler.Default);
-            }
-        }
-
         // Following code is copied from Microsoft.VisualStudio.Threading.TplExtensions (renamed to avoid ambiguity)
         // https://github.com/microsoft/vs-threading/blob/main/src/Microsoft.VisualStudio.Threading/TplExtensions.cs
 
