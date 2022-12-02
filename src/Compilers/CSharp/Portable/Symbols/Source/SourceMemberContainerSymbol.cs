@@ -1954,7 +1954,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var conversion = symbol as SourceUserDefinedConversionSymbol;
                     var method = symbol as SourceMemberMethodSymbol;
-                    if (!(conversion is null))
+
+                    // We don't want to consider explicit interface implementations
+                    if (conversion is { MethodKind: MethodKind.Conversion })
                     {
                         // Does this conversion collide *as a conversion* with any previously-seen
                         // conversion?

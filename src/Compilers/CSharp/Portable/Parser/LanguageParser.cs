@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal LanguageParser(
             Lexer lexer,
-            CSharp.CSharpSyntaxNode oldTree,
-            IEnumerable<TextChangeRange> changes,
+            CSharp.CSharpSyntaxNode? oldTree,
+            IEnumerable<TextChangeRange>? changes,
             LexerMode lexerMode = LexerMode.Syntax,
             CancellationToken cancellationToken = default(CancellationToken))
             : base(lexer, lexerMode, oldTree, changes, allowModeReset: false,
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private static CSharp.CSharpSyntaxNode GetOldParent(CSharp.CSharpSyntaxNode node)
+        private static CSharp.CSharpSyntaxNode? GetOldParent(CSharp.CSharpSyntaxNode node)
         {
             return node != null ? node.Parent : null;
         }
@@ -179,8 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal CompilationUnitSyntax ParseCompilationUnitCore()
         {
-            SyntaxToken tmp = null;
-            SyntaxListBuilder initialBadNodes = null;
+            SyntaxToken? tmp = null;
+            SyntaxListBuilder? initialBadNodes = null;
             var body = new NamespaceBodyBuilder(_pool);
             try
             {
@@ -258,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var name = this.ParseQualifiedName();
 
-            SyntaxToken openBrace = null;
-            SyntaxToken semicolon = null;
+            SyntaxToken? openBrace = null;
+            SyntaxToken? semicolon = null;
 
             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
             {
@@ -288,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     Debug.Assert(semicolon != null);
 
-                    SyntaxListBuilder initialBadNodes = null;
+                    SyntaxListBuilder? initialBadNodes = null;
                     this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.FileScopedNamespaceDeclaration);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to semicolon...
 
@@ -304,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    SyntaxListBuilder initialBadNodes = null;
+                    SyntaxListBuilder? initialBadNodes = null;
                     this.ParseNamespaceBody(ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
 
@@ -353,9 +351,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private void AddSkippedNamespaceText(
-            ref SyntaxToken openBraceOrSemicolon,
+            ref SyntaxToken? openBraceOrSemicolon,
             ref NamespaceBodyBuilder body,
-            ref SyntaxListBuilder initialBadNodes,
+            ref SyntaxListBuilder? initialBadNodes,
             CSharpSyntaxNode skippedSyntax)
         {
             if (body.Members.Count > 0)
@@ -401,7 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TopLevelStatementsAfterTypesAndNamespaces = 6,
         }
 
-        private void ParseNamespaceBody(ref SyntaxToken openBraceOrSemicolon, ref NamespaceBodyBuilder body, ref SyntaxListBuilder initialBadNodes, SyntaxKind parentKind)
+        private void ParseNamespaceBody(
+            [NotNullIfNotNull(nameof(openBraceOrSemicolon))] ref SyntaxToken? openBraceOrSemicolon,
+            ref NamespaceBodyBuilder body,
+            ref SyntaxListBuilder? initialBadNodes,
+            SyntaxKind parentKind)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -528,6 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 var attribute = this.ParseAttributeDeclaration();
                                 if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
                                 {
+                                    RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
                                     attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
                                     this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
                                 }
@@ -636,7 +639,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return memberOrStatement;
             }
 
-            void parseUsingDirective(ref SyntaxToken openBrace, ref NamespaceBodyBuilder body, ref SyntaxListBuilder initialBadNodes, ref NamespaceParts seen, ref SyntaxListBuilder<MemberDeclarationSyntax> pendingIncompleteMembers)
+            void parseUsingDirective(
+                ref SyntaxToken? openBrace,
+                ref NamespaceBodyBuilder body,
+                ref SyntaxListBuilder? initialBadNodes,
+                ref NamespaceParts seen,
+                ref SyntaxListBuilder<MemberDeclarationSyntax> pendingIncompleteMembers)
             {
                 // incomplete members must be processed before we add any nodes to the body:
                 ReduceIncompleteMembers(ref pendingIncompleteMembers, ref openBrace, ref body, ref initialBadNodes);
@@ -666,14 +674,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ReduceIncompleteMembers(
             ref SyntaxListBuilder<MemberDeclarationSyntax> incompleteMembers,
-            ref SyntaxToken openBraceOrSemicolon,
+            ref SyntaxToken? openBraceOrSemicolon,
             ref NamespaceBodyBuilder body,
-            ref SyntaxListBuilder initialBadNodes)
+            ref SyntaxListBuilder? initialBadNodes)
         {
             for (int i = 0; i < incompleteMembers.Count; i++)
-            {
                 this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, incompleteMembers[i]);
-            }
+
             incompleteMembers.Clear();
         }
 
@@ -773,11 +780,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return (UsingDirectiveSyntax)this.EatNode();
             }
 
-            SyntaxToken globalToken = null;
-            if (this.CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword)
-            {
-                globalToken = ConvertToKeyword(this.EatToken());
-            }
+            var globalToken = this.CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword
+                ? ConvertToKeyword(this.EatToken())
+                : null;
 
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.UsingKeyword);
 
@@ -883,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
 
             // Check for optional location :
-            AttributeTargetSpecifierSyntax attrLocation = null;
+            AttributeTargetSpecifierSyntax? attrLocation = null;
             if (IsSomeWord(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
             {
                 var id = ConvertToKeyword(this.EatToken());
@@ -937,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private PostSkipAction SkipBadAttributeListTokens(SeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expected)
         {
             Debug.Assert(list.Count > 0);
-            SyntaxToken tmp = null;
+            SyntaxToken? tmp = null;
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
@@ -961,14 +966,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.ParseAttributeArgumentList());
         }
 
-        internal AttributeArgumentListSyntax ParseAttributeArgumentList()
+        internal AttributeArgumentListSyntax? ParseAttributeArgumentList()
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.AttributeArgumentList)
             {
                 return (AttributeArgumentListSyntax)this.EatNode();
             }
 
-            AttributeArgumentListSyntax argList = null;
+            AttributeArgumentListSyntax? argList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
@@ -1038,8 +1043,8 @@ tryAgain:
             // Need to parse both "real" named arguments and attribute-style named arguments.
             // We track attribute-style named arguments only with fShouldHaveName.
 
-            NameEqualsSyntax nameEquals = null;
-            NameColonSyntax nameColon = null;
+            NameEqualsSyntax? nameEquals = null;
+            NameColonSyntax? nameColon = null;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 SyntaxKind nextTokenKind = this.PeekToken(1).Kind;
@@ -7455,12 +7460,10 @@ done:;
                 list.Add(_syntaxFactory.TupleElement(missing, identifier: null));
             }
 
-            var result = _syntaxFactory.TupleType(
+            return _syntaxFactory.TupleType(
                 open,
                 _pool.ToListAndFree(list),
                 this.EatToken(SyntaxKind.CloseParenToken));
-
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
         }
 
         private TupleElementSyntax ParseTupleElement()
@@ -9145,7 +9148,7 @@ tryAgain:
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
-            var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
+            var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, permitTupleDesignation: true);
             var @in = this.EatToken(SyntaxKind.InKeyword, ErrorCode.ERR_InExpected);
             if (!IsValidForeachVariable(variable))
             {
@@ -9214,11 +9217,11 @@ tryAgain:
         //
         // See also ScanTypeArgumentList where these disambiguation rules are encoded.
         //
-        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation)
+        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, bool permitTupleDesignation)
         {
             bool isScoped;
             return IsPossibleDeclarationExpression(mode, permitTupleDesignation, out isScoped)
-                ? this.ParseDeclarationExpression(mode, feature, isScoped)
+                ? this.ParseDeclarationExpression(mode, isScoped)
                 : this.ParseSubExpression(Precedence.Expression);
         }
 
@@ -10773,7 +10776,7 @@ tryAgain:
             }
             else if (this.IsPossibleDeconstructionLeft(precedence))
             {
-                leftOperand = ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples, isScoped: false);
+                leftOperand = ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
             }
             else
             {
@@ -11007,29 +11010,16 @@ tryAgain:
             return leftOperand;
         }
 
-        private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature, bool isScoped)
+        private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
         {
-            SyntaxToken scopedKeyword = null;
+            var scopedKeyword = isScoped
+                ? EatContextualToken(SyntaxKind.ScopedKeyword)
+                : null;
 
-            if (isScoped)
-            {
-                scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
-            }
-
-            TypeSyntax type = this.ParseType(mode);
-
-            if (scopedKeyword != null)
-            {
-                type = _syntaxFactory.ScopedType(scopedKeyword, type);
-            }
-
-            var designation = ParseDesignation(forPattern: false);
-            if (feature != MessageID.None)
-            {
-                designation = CheckFeatureAvailability(designation, feature);
-            }
-
-            return _syntaxFactory.DeclarationExpression(type, designation);
+            var type = this.ParseType(mode);
+            return _syntaxFactory.DeclarationExpression(
+                scopedKeyword == null ? type : _syntaxFactory.ScopedType(scopedKeyword, type),
+                ParseDesignation(forPattern: false));
         }
 
         private ExpressionSyntax ParseThrowExpression()
@@ -11106,7 +11096,7 @@ tryAgain:
                         }
                         else if (this.IsPossibleDeconstructionLeft(precedence))
                         {
-                            return ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples, isScoped: false);
+                            return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
                         }
                         else
                         {
@@ -11674,7 +11664,7 @@ tryAgain:
                 // that the ref/out of the argument must match the parameter when binding the argument list.
 
                 expression = refKindKeyword?.Kind == SyntaxKind.OutKeyword
-                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: 0, permitTupleDesignation: false)
+                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, permitTupleDesignation: false)
                     : ParseSubExpression(Precedence.Expression);
             }
 
@@ -11959,11 +11949,11 @@ tryAgain:
                     {
                         // Looks like a cast, so parse it as one.
                         this.Reset(ref resetPoint);
-                        var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                        var type = this.ParseType();
-                        var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                        var expr = this.ParseSubExpression(Precedence.Cast);
-                        return _syntaxFactory.CastExpression(openParen, type, closeParen, expr);
+                        return _syntaxFactory.CastExpression(
+                            this.EatToken(SyntaxKind.OpenParenToken),
+                            this.ParseType(),
+                            this.EatToken(SyntaxKind.CloseParenToken),
+                            this.ParseSubExpression(Precedence.Cast));
                     }
                 }
 
@@ -11971,27 +11961,31 @@ tryAgain:
                 {
                     this.Reset(ref resetPoint);
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
+                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, permitTupleDesignation: true);
 
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression);
-                        return ParseTupleExpressionTail(openParen, firstArg);
+                        return ParseTupleExpressionTail(
+                            openParen,
+                            _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression));
                     }
 
                     // ( name:
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
-                        var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
-
-                        var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
-                        return ParseTupleExpressionTail(openParen, firstArg);
+                        return ParseTupleExpressionTail(
+                            openParen,
+                            _syntaxFactory.Argument(
+                                _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken()),
+                                refKindKeyword: null,
+                                this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, permitTupleDesignation: true)));
                     }
 
-                    var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                    return _syntaxFactory.ParenthesizedExpression(openParen, expression, closeParen);
+                    return _syntaxFactory.ParenthesizedExpression(
+                        openParen,
+                        expression,
+                        this.EatToken(SyntaxKind.CloseParenToken));
                 }
             }
             finally
@@ -12007,39 +12001,31 @@ tryAgain:
 
             while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                var comma = this.EatToken(SyntaxKind.CommaToken);
-                list.AddSeparator(comma);
+                list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
-                ArgumentSyntax arg;
+                var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, permitTupleDesignation: true);
+                var argument = expression.Kind != SyntaxKind.IdentifierName || this.CurrentToken.Kind != SyntaxKind.ColonToken
+                    ? _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression)
+                    : _syntaxFactory.Argument(
+                        _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken()),
+                        refKindKeyword: null,
+                        ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, permitTupleDesignation: true));
 
-                var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
-                if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                {
-                    var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                    expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
-                    arg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
-                }
-                else
-                {
-                    arg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression);
-                }
-
-                list.Add(arg);
+                list.Add(argument);
             }
 
             if (list.Count < 2)
             {
                 list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
-                var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
-                list.Add(_syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: missing));
+                list.Add(_syntaxFactory.Argument(
+                    nameColon: null, refKindKeyword: null,
+                    this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements)));
             }
 
-            var result = _syntaxFactory.TupleExpression(
+            return _syntaxFactory.TupleExpression(
                 openParen,
                 _pool.ToListAndFree(list),
                 this.EatToken(SyntaxKind.CloseParenToken));
-
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
         }
 
         private bool ScanCast(bool forPattern = false)
