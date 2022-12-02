@@ -89,13 +89,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             return TryGetSpeculativeSemanticModelWorker(previousSemanticModel, previousBodyNode, currentBodyNode);
         }
 
-        [Obsolete("", error: false)]
-        private void Foo() { }
-
         protected SyntaxNode GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
         {
-            Foo();
-
             if (currentBodyNode is TAccessorDeclarationSyntax currentAccessor)
             {
                 // in the case of an accessor, have to find the previous accessor in the previous prop/event corresponding
