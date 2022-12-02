@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ImmutableArray<ResourceDescription> manifestResources,
             IAnalyzerAssemblyLoader assemblyLoader,
-            IServiceProvider services,
+            IServiceProvider? services,
             CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotating
@@ -545,18 +545,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Executing the analyzers can realize most of the compilation, so we pay attention to execute them on the same compilation
                 // as the one we give as the input for transformations.
-                
+
                 // Map the options provider to the annotated syntax trees.
                 var mappedOptionProvider =
                     GetMappedAnalyzerConfigOptionsProvider(sourceOnlyAnalyzersOptions.AnalyzerOptions
                         .AnalyzerConfigOptionsProvider);
                 var mappedOptions = new AnalyzerOptions(sourceOnlyAnalyzersOptions.AnalyzerOptions.AdditionalFiles,
                     mappedOptionProvider);
-                
+
                 annotatedInputCompilation = ExecuteSourceOnlyAnalyzers(
                     sourceOnlyAnalyzersOptions with { AnalyzerOptions = mappedOptions}, 
                     annotatedInputCompilation,
-                    diagnostics, 
+                    diagnostics,
                     GetLogger(services),
                     cancellationToken);
             }

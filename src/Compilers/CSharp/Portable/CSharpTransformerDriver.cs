@@ -19,9 +19,13 @@ namespace Metalama.Compiler
             Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
             ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader, TransformerOptions? options = null)
         {
+            // We pass null as the IServiceProvider because the main scenario where this code is called is Metalama.Try,
+            // where services are passed to Metalama.Framework directly from Metalama.Try using the AsyncLocalConfiguration
+            // mechanism.
+
             var diagnostics = DiagnosticBag.GetInstance();
-            var serviceProviderBuilder = new ServiceProviderBuilder();
-            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, options, diagnostics, manifestResources, assemblyLoader, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
+
+            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, options, diagnostics, manifestResources, assemblyLoader, null, CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
         }
 

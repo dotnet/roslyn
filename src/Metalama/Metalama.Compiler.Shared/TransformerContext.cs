@@ -36,7 +36,7 @@ public sealed class TransformerContext
         AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
         TransformerOptions options,
         ImmutableArray<ManagedResource> manifestResources,
-        IServiceProvider services,
+        IServiceProvider? services,
         DiagnosticBag diagnostics,
         IAnalyzerAssemblyLoader assemblyLoader)
     {
@@ -152,9 +152,10 @@ public sealed class TransformerContext
     public ImmutableArray<ManagedResource> Resources { get; }
 
     /// <summary>
-    /// Gets the services initialized by the compiler.
+    /// Gets the services initialized by the compiler. This property can be <c>null</c> when the compiler API
+    /// is called from the Workspace scenario, e.g. in Metalama.Try.
     /// </summary>
-    public IServiceProvider Services { get; }
+    public IServiceProvider? Services { get; }
 
     /// <summary>
     /// Adds a <see cref="Diagnostic"/> to the user's compilation.
