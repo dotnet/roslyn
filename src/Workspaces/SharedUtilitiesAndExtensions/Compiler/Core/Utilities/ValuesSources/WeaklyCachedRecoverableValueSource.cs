@@ -152,10 +152,7 @@ namespace Microsoft.CodeAnalysis.Host
                             // we want to keep it around to service future requests.  Once we do clear out this value, then all
                             // future request will either retrieve the value from the weak reference (if anyone else is holding onto
                             // it), or will recover from the 
-                            using (Gate.DisposableWait(CancellationToken.None))
-                            {
                                 _initialValue = null;
-                            }
                         }, CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
                 }
             }
