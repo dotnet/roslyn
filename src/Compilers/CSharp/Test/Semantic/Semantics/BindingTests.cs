@@ -3778,9 +3778,6 @@ class X
                 // (3,9): error CS1031: Type expected
                 //     [My]
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 9),
-                // (4,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
-                // }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(4, 1),
                 // (8,6): error CS0246: The type or namespace name 'MyAttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //     [MyAttribute]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyAttribute").WithArguments("MyAttributeAttribute").WithLocation(8, 6),
@@ -3789,10 +3786,7 @@ class X
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyAttribute").WithArguments("MyAttribute").WithLocation(8, 6),
                 // (8,18): error CS1031: Type expected
                 //     [MyAttribute]
-                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(8, 18),
-                // (9,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
-                // }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(9, 1));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(8, 18));
         }
 
         [Fact, WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")]
@@ -3816,10 +3810,7 @@ class X
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "List").WithArguments("List").WithLocation(3, 9),
                     // (3,15): error CS1031: Type expected
                     //     [My(List)]
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 15),
-                    // (4,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
-                    // }
-                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(4, 1));
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 15));
         }
     }
 }
