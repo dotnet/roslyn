@@ -13015,27 +13015,25 @@ tryAgain:
                 ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
             }
 
-            bool hasModifier = modifiers.Count != 0;
-
-            TypeSyntax paramType = null;
             // If we have "scoped/ref/out/in/params" always try to parse out a type.
-            if (hasModifier || ShouldParseLambdaParameterType())
-            {
-                paramType = ParseType(ParseTypeMode.Parameter);
-            }
+            var paramType = modifiers.Count != 0 || ShouldParseLambdaParameterType()
+                ? ParseType(ParseTypeMode.Parameter)
+                : null;
 
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(ref identifier, out var equalsToken);
 
             // Parse default value if any
             equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
-            var equalsValueClause = equalsToken == null
-                ? null
-                : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore());
 
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: equalsValueClause);
-            _pool.Free(modifiers);
-            return parameter;
+            return _syntaxFactory.Parameter(
+                attributes,
+                _pool.ToTokenListAndFree(modifiers),
+                paramType,
+                identifier,
+                equalsToken != null
+                    ? _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore())
+                    : null);
         }
 
         private bool ShouldParseLambdaParameterType()
