@@ -229,29 +229,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For callers that just want to unwrap a <see cref="RefTypeSyntax"/> and don't care if ref/readonly was there.
         /// As these callers don't care about 'ref', they are in scenarios where 'ref' is not legal, and existing code
         /// will error out for them.  Callers that do want to know what the ref-kind is should use <see
-        /// cref="SkipRefInLocalOrReturn(TypeSyntax, BindingDiagnosticBag, out RefKind)"/> so that an appropriate version check can be
-        /// performed to make sure using ref is legal in that language version.
+        /// cref="SkipRefInLocalOrReturn"/> or <see cref="SkipRefInField"/> depending on which language feature they are
+        /// asking for.
         /// </summary>
         internal static TypeSyntax SkipRef(this TypeSyntax syntax)
             => syntax.SkipRefInLocalOrReturn(diagnostics: null, out _);
 
         internal static TypeSyntax SkipRefInField(this TypeSyntax syntax, out RefKind refKind)
         {
-            if (syntax.Kind() == SyntaxKind.RefType)
-            {
-                var refType = (RefTypeSyntax)syntax;
-                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword
-                    ? RefKind.RefReadOnly
-                    : RefKind.Ref;
-
-                return refType.Type;
-            }
-
-            refKind = RefKind.None;
-            return syntax;
+            // Intentionally pass no diagnostics here.  This is for ref-fields which handles all its diagnostics itself
+            // in the field symbol.
+            return SkipRefWorker(syntax, diagnostics: null, out refKind);
         }
 
         internal static TypeSyntax SkipRefInLocalOrReturn(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
+            => SkipRefWorker(syntax, diagnostics, out refKind);
+
+        private static TypeSyntax SkipRefWorker(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
         {
             if (syntax.Kind() == SyntaxKind.RefType)
             {
