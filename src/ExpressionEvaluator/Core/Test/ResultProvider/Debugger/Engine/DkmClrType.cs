@@ -364,7 +364,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                     uiSideVisualizerAssemblyLocation: Evaluation.DkmClrCustomVisualizerAssemblyLocation.Unknown,
                     debuggeeSideVisualizerTypeName: debuggeeSideVisualizerTypeName,
                     debuggeeSideVisualizerAssemblyName: debuggeeSideVisualizerAssemblyName,
-                    visualizerDescription: visualizerDescription));
+                    visualizerDescription: visualizerDescription,
+                    extensionPartId: System.Guid.Empty));
             }
 
             return builder.ToArrayAndFree();
