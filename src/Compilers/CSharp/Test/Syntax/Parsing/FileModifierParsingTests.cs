@@ -1437,7 +1437,7 @@ public class FileModifierParsingTests : ParsingTests
             },
             expectedBindingDiagnostics: new[]
             {
-                    // (3,10): error CS0246: The type or namespace name 'item' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,10): error CS0246: The type or namespace name 'item' could not be found (are you missing a using directive or an assembly reference?)
                 //     file item;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "item").WithArguments("item").WithLocation(3, 10),
                 // (3,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
