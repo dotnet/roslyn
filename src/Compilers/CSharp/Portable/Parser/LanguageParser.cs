@@ -13554,7 +13554,7 @@ tryAgain:
         }
 
         private DisposableResetPoint GetDisposableResetPoint(bool resetOnDispose)
-            => new(this, resetOnDispose, GetResetPoint());
+            => new DisposableResetPoint(this, resetOnDispose, GetResetPoint());
 
         private new ResetPoint GetResetPoint()
         {
