@@ -77,6 +77,11 @@ namespace CSharpSyntaxGenerator
             else if (node is Node)
             {
                 Node nd = (Node)node;
+                if (nd.ObsoleteReason is not null)
+                {
+                    _writer.WriteLine($"  [Obsolete(\"{nd.ObsoleteReason}\")]");
+                }
+
                 _writer.WriteLine("  public partial class {0} : {1}", node.Name, node.Base);
                 _writer.WriteLine("  {");
 

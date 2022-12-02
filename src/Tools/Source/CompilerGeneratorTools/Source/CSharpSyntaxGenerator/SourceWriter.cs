@@ -164,6 +164,10 @@ namespace CSharpSyntaxGenerator
             else if (node is Node)
             {
                 var nd = (Node)node;
+                if (nd.ObsoleteReason is not null)
+                {
+                    WriteLine($"  [Obsolete(\"{nd.ObsoleteReason}\")]");
+                }
 
                 WriteLine($"internal sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
@@ -927,6 +931,10 @@ namespace CSharpSyntaxGenerator
 
                 WriteComment($"</list>");
                 WriteComment($"</remarks>");
+                if (nd.ObsoleteReason is not null)
+                {
+                    WriteLine($"  [Obsolete(\"{nd.ObsoleteReason}\")]");
+                }
                 WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 

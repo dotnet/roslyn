@@ -17,6 +17,9 @@ namespace CSharpSyntaxGenerator
         [XmlAttribute]
         public string Errors;
 
+        [XmlAttribute]
+        public string ObsoleteReason;
+
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds = new List<Kind>();
 
