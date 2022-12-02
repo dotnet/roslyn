@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasExpressionBody = syntax.ExpressionBody is object;
             bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+
             return new SourcePropertyAccessorSymbol(
                 containingType,
                 property,
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasBody: false,
                 hasExpressionBody: false,
                 isIterator: false,
-                modifiers: new SyntaxTokenList(),
+                modifiers: default,
                 methodKind,
                 usesInit,
                 isAutoPropertyAccessor: true,
@@ -169,12 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
 
             this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
-
-            if (syntax != null)
-            {
-                var messageId = property.IsIndexer ? MessageID.IDS_FeatureExpressionBodiedIndexer : MessageID.IDS_FeatureExpressionBodiedProperty;
-                messageId.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
-            }
         }
 
 #nullable enable
@@ -238,6 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.CheckModifiers(location, hasBody || hasExpressionBody, isAutoPropertyAccessor, diagnostics);
             }
+
+            if (modifiers.Count > 0)
+                MessageID.IDS_FeaturePropertyAccessorMods.CheckFeatureAvailability(diagnostics, syntax, modifiers[0].GetLocation());
         }
 #nullable disable
 
@@ -507,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 defaultInterfaceImplementationModifiers = DeclarationModifiers.AccessibilityMask;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,

@@ -1083,13 +1083,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.OutKeyword or SyntaxKind.ThisKeyword or SyntaxKind.ParamsKeyword &&
-                token.Parent is ParameterSyntax parameter3 &&
-                parameter3.Parent is ParameterListSyntax parameterList3 &&
+            ParameterSyntax? parameter3 = null;
+            if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.OutKeyword or SyntaxKind.ThisKeyword or SyntaxKind.ParamsKeyword or SyntaxKind.ScopedKeyword)
+            {
+                parameter3 = token.Parent as ParameterSyntax;
+                previousModifier = token.Kind();
+            }
+            else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName)
+            {
+                parameter3 = scopedIdentifierName.Parent as ParameterSyntax;
+                previousModifier = SyntaxKind.ScopedKeyword;
+            }
+
+            if (parameter3 is { Parent: ParameterListSyntax parameterList3 } &&
                 parameterList3.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
                 parameterIndex = parameterList3.Parameters.IndexOf(parameter3);
-                previousModifier = token.Kind();
                 return true;
             }
 
@@ -1230,14 +1239,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken &&
-                token.Parent.IsKind(SyntaxKind.ParameterList) &&
-                token.Parent.IsParentKind(SyntaxKind.AnonymousMethodExpression))
+            SyntaxNode? parent;
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
             {
-                return true;
+                parent = token.Parent;
+            }
+            else if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent.IsKind(SyntaxKind.Parameter))
+            {
+                parent = token.Parent.Parent;
+            }
+            else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
+            {
+                parent = scopedIdentifierName.Parent.Parent;
+            }
+            else
+            {
+                return false;
             }
 
-            return false;
+            return parent.IsKind(SyntaxKind.ParameterList) && parent.IsParentKind(SyntaxKind.AnonymousMethodExpression);
         }
 
         public static bool IsPossibleLambdaOrAnonymousMethodParameterTypeContext(
@@ -1762,6 +1782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //  join var
             //  using var
             //  await using var
+            //  scoped var
 
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
@@ -1840,6 +1861,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // join |
             if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.JoinKeyword) &&
                 syntaxTree.IsValidContextForJoinClause(token.SpanStart, tokenOnLeftOfStart))
+            {
+                return true;
+            }
+
+            // scoped |
+            // The compiler parses this as an identifier whose parent is:
+            // - ExpressionStatementSyntax when in method declaration.
+            // - IncompleteMemberSyntax when in top-level code and there are no class declarations after it.
+            // - BaseTypeDeclarationSyntax if it comes after scoped
+            // - VariableDeclarationSyntax for `scoped X` inside method declaration
+            if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.Parent is VariableDeclarationSyntax or ExpressionStatementSyntax or IncompleteMemberSyntax)
+            {
+                return true;
+            }
+
+            // scoped v|
+            if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent is IncompleteMemberSyntax)
             {
                 return true;
             }

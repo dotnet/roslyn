@@ -1732,6 +1732,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var attribute = (AttributeSyntax)attributeNode;
             var argumentList = attribute.ArgumentList;
             var parsedArgumentList = SyntaxFactory.ParseAttributeArgumentList("(" + value + ")");
+
+            // Parsing here will always succeed since it only returns null when the text doesn't start with a ( and we
+            // enforce above that it has such a character.
+            Contract.ThrowIfNull(parsedArgumentList);
             var newArgumentList = argumentList != null
                 ? argumentList.WithArguments(parsedArgumentList.Arguments)
                 : parsedArgumentList;

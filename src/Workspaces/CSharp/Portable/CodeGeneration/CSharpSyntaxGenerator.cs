@@ -3328,11 +3328,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode BaseExpression()
             => SyntaxFactory.BaseExpression();
 
-        public override SyntaxNode LiteralExpression(object? value)
-            => ExpressionGenerator.GenerateNonEnumValueExpression(type: null, value, canUseFieldReference: true);
-
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
             => ExpressionGenerator.GenerateExpression(value);
+
+        protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
+            => ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference);
 
         public override SyntaxNode IdentifierName(string identifier)
             => identifier.ToIdentifierName();
