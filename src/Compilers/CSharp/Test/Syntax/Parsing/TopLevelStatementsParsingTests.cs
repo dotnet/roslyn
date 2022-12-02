@@ -160,12 +160,20 @@ class C
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "asas");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "asas");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -983,7 +991,6 @@ class Test : Itest
                         }
                         M(SyntaxKind.SemicolonToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1208,7 +1215,6 @@ aeu";
                         }
                         M(SyntaxKind.SemicolonToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1549,7 +1555,6 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                         }
                         M(SyntaxKind.SemicolonToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1794,7 +1799,6 @@ using VT2 = (int, int);
                         }
                         M(SyntaxKind.SemicolonToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2785,7 +2789,6 @@ e
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
                             }
                             M(SyntaxKind.VariableDeclarator);
                             {
@@ -2883,7 +2886,6 @@ ar";
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -2990,13 +2992,21 @@ Console.WriteLine();
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "alias");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3104,35 +3114,48 @@ using aliasY = X.Y;
             UsingTree(test,
                 // (2,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // System.String[]
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 15),
+                // (3,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // using aliasY = X.Y;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using aliasY = X.Y;").WithLocation(3, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.NameEquals);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.IdentifierToken, "aliasY");
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "System");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "String");
+                                }
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
                         }
-                        N(SyntaxKind.EqualsToken);
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Y");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3190,17 +3213,25 @@ scoped readonly ref struct C { }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
@@ -3209,12 +3240,20 @@ scoped readonly ref struct C { }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
@@ -3422,7 +3461,10 @@ global using Bar;
             UsingTree(test,
                 // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // p
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1),
+                // (4,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // global using Bar;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "global using Bar;").WithLocation(4, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3437,15 +3479,20 @@ global using Bar;
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.GlobalKeyword);
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "Bar");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "p");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3464,7 +3511,10 @@ using Bar;
             UsingTree(test,
                 // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // p
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1),
+                // (4,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // using Bar;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using Bar;").WithLocation(4, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3478,14 +3528,20 @@ using Bar;
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "Bar");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "p");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

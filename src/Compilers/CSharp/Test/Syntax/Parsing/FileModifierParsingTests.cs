@@ -1635,7 +1635,6 @@ public class FileModifierParsingTests : ParsingTests
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1689,7 +1688,6 @@ public class FileModifierParsingTests : ParsingTests
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1816,7 +1814,6 @@ public class FileModifierParsingTests : ParsingTests
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.FileScopedNamespaceDeclaration);
             {
@@ -1882,7 +1879,6 @@ public class FileModifierParsingTests : ParsingTests
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.FileScopedNamespaceDeclaration);
             {
@@ -1946,7 +1942,6 @@ public class FileModifierParsingTests : ParsingTests
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.NamespaceDeclaration);
             {
@@ -2010,7 +2005,6 @@ public class FileModifierParsingTests : ParsingTests
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.NamespaceDeclaration);
             {

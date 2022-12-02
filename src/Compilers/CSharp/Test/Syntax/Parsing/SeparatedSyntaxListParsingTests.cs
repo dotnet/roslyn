@@ -703,24 +703,51 @@ class M<,> { }
 ";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (4,9): error CS0308: The non-generic type 'C' cannot be used with type arguments
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("C", "type").WithLocation(4, 9),
                 // (4,12): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
                 //     new C<>();
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 12),
+                // (4,12): warning CS0109: The member 'C.' does not hide an accessible member. The new keyword is not required.
+                //     new C<>();
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "").WithArguments("C.").WithLocation(4, 12),
+                // (4,12): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(4, 12),
                 // (4,13): error CS8124: Tuple must contain at least two elements.
                 //     new C<>();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 13),
                 // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     new C<>();
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 14),
+                // (4,14): error CS0102: The type 'C' already contains a definition for ''
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(4, 14),
+                // (5,9): error CS0308: The non-generic type 'C' cannot be used with type arguments
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<, >").WithArguments("C", "type").WithLocation(5, 9),
                 // (5,14): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
                 //     new C<, >();
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(5, 14),
+                // (5,14): warning CS0109: The member 'C.' does not hide an accessible member. The new keyword is not required.
+                //     new C<, >();
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "").WithArguments("C.").WithLocation(5, 14),
+                // (5,14): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 14),
+                // (5,14): error CS0102: The type 'C' already contains a definition for ''
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 14),
                 // (5,15): error CS8124: Tuple must contain at least two elements.
                 //     new C<, >();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 15),
                 // (5,16): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     new C<, >();
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 16),
+                // (5,16): error CS0102: The type 'C' already contains a definition for ''
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 16),
                 // (6,5): error CS0308: The non-generic type 'C' cannot be used with type arguments
                 //     C<C<>> a1;
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<C<>>").WithArguments("C", "type").WithLocation(6, 5),

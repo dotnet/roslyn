@@ -28213,6 +28213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+      [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
     internal sealed partial class IncompleteMemberSyntax : MemberDeclarationSyntax
     {
         internal readonly GreenNode? attributeLists;
