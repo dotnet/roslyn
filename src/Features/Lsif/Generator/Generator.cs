@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                             // Then also link the result set for the method to the moniker that it implements
                             referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(declaredSymbol.OriginalDefinition);
-                            var implementedMemberMoniker = symbolResultsTracker.GetResultIdForSymbol<Moniker>(baseMember.OriginalDefinition, "moniker", static (_) => throw new Exception("When we produced the resultSet, we should have already created a moniker for it."));
+                            var implementedMemberMoniker = symbolResultsTracker.GetMoniker(baseMember.OriginalDefinition, semanticModel.Compilation);
                             lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), implementedMemberMoniker, documentVertex.GetId(), idFactory, property: "referenceLinks"));
                         }
                     }

@@ -72,46 +72,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             //
             // This we do outside the lock -- whichever thread was the one to create this was the one that
             // gets to write out the moniker, but others can use the ResultSet Id at this point.
-            if (symbol.OriginalDefinition.Equals(symbol))
+            if (SymbolMoniker.HasMoniker(symbol))
             {
-                var monikerVertex = TryCreateMonikerVertexForSymbol(symbol);
-
-                if (monikerVertex != null)
-                {
-                    // Attach the moniker vertex for this result set
-                    _ = GetResultIdForSymbol(symbol, "moniker", (_) => monikerVertex);
-                }
+                _ = this.GetMoniker(symbol, _sourceCompilation);
             }
 
             return trackedResultSet;
-        }
-
-        private Moniker? TryCreateMonikerVertexForSymbol(ISymbol symbol)
-        {
-            var moniker = SymbolMoniker.TryCreate(symbol);
-
-            if (moniker == null)
-            {
-                return null;
-            }
-
-            string? kind;
-
-            if (symbol.Kind == SymbolKind.Namespace)
-            {
-                kind = null;
-            }
-            else if (symbol.ContainingAssembly.Equals(_sourceCompilation.Assembly))
-            {
-                kind = "export";
-            }
-            else
-            {
-                kind = "import";
-            }
-
-            // Since we fully qualify everything, all monitors are unique within the scheme
-            return new Moniker(moniker.Scheme, moniker.Identifier, kind, unique: "scheme", _idFactory);
         }
 
         public Id<ResultSet> GetResultSetIdForSymbol(ISymbol symbol)
