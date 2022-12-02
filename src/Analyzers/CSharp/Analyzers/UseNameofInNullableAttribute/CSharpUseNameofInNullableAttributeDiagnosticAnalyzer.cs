@@ -15,8 +15,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CSharpUseNameofInNullableAttribute;
+namespace Microsoft.CodeAnalysis.CSharp.UseNameofInNullableAttribute;
 
 /// <summary>
 /// Analyzer that looks for things like `NotNullIfNotNull("param")` and offers to use `NotNullIfNotNull(nameof(param))` instead.
@@ -56,10 +58,17 @@ internal sealed class CSharpUseNameofInNullableAttributeDiagnosticAnalyzer : Abs
         if (attribute.ArgumentList is null)
             return;
 
-        if (attribute.Name.GetRightmostName()?.Identifier.ValueText
-                is not nameof(NotNullIfNotNullAttribute)
-                and not nameof(MemberNotNullAttribute)
-                and not nameof(MemberNotNullWhenAttribute))
+        var attributeName = attribute.Name.GetRightmostName()?.Identifier.ValueText;
+        if (attributeName is null)
+            return;
+
+        if (attributeName
+                is not "NotNullIfNotNullAttribute"
+                and not "MemberNotNullAttribute"
+                and not "MemberNotNullWhenAttribute"
+                and not "NotNullIfNotNull"
+                and not "MemberNotNull"
+                and not "MemberNotNullWhen")
         {
             return;
         }
@@ -86,7 +95,8 @@ internal sealed class CSharpUseNameofInNullableAttributeDiagnosticAnalyzer : Abs
             // Now, see if there are any parameters in scope with this same name.  If so, we can now suggest the user
             // just use `nameof(param)` instead of `"param"` in the attribute.
             var symbols = semanticModel.LookupSymbols(argument.Expression.SpanStart, name: stringValue);
-            if (symbols.Any(s => s.IsAccessibleWithin(containingType))
+            if (symbols.Any(s => s.IsAccessibleWithin(containingType)) ||
+                MatchesParameterOnContainer(attribute, stringValue))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     this.Descriptor,
@@ -96,5 +106,32 @@ internal sealed class CSharpUseNameofInNullableAttributeDiagnosticAnalyzer : Abs
                     ImmutableDictionary<string, string?>.Empty.Add(NameKey, stringValue)));
             }
         }
+    }
+
+    private static bool MatchesParameterOnContainer(AttributeSyntax attribute, string stringValue)
+    {
+        var attributeList = attribute.Parent as AttributeListSyntax;
+        var container = attributeList?.Parent;
+
+        if (container is ParameterSyntax)
+        {
+            var parameterList = container.Parent as BaseParameterListSyntax;
+            container = parameterList?.Parent;
+        }
+
+        if (container is null)
+            return false;
+
+        var parameters = container.GetParameterList();
+        if (parameters is null)
+            return false;
+
+        foreach (var parameter in parameters.Parameters)
+        {
+            if (parameter.Identifier.ValueText == stringValue)
+                return true;
+        }
+
+        return false;
     }
 }
