@@ -1779,55 +1779,55 @@ tryAgain:
             int curlyCount = 0;
             var tokens = _pool.Allocate();
 
-                bool done = false;
+            bool done = false;
 
-                // always consume at least one token.
-                var token = this.EatToken();
-                token = this.AddError(token, ErrorCode.ERR_InvalidMemberDecl, token.Text);
-                tokens.Add(token);
+            // always consume at least one token.
+            var token = this.EatToken();
+            token = this.AddError(token, ErrorCode.ERR_InvalidMemberDecl, token.Text);
+            tokens.Add(token);
 
-                while (!done)
+            while (!done)
+            {
+                SyntaxKind kind = this.CurrentToken.Kind;
+
+                // If this token can start a member, we're done
+                if (CanStartMember(kind) &&
+                    !(kind == SyntaxKind.DelegateKeyword && (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken || this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)))
                 {
-                    SyntaxKind kind = this.CurrentToken.Kind;
+                    done = true;
+                    continue;
+                }
 
-                    // If this token can start a member, we're done
-                    if (CanStartMember(kind) &&
-                        !(kind == SyntaxKind.DelegateKeyword && (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken || this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)))
-                    {
-                        done = true;
-                        continue;
-                    }
+                // <UNDONE>  UNDONE: Seems like this makes sense, 
+                // but if this token can start a namespace element, but not a member, then
+                // perhaps we should bail back up to parsing a namespace body somehow...</UNDONE>
 
-                    // <UNDONE>  UNDONE: Seems like this makes sense, 
-                    // but if this token can start a namespace element, but not a member, then
-                    // perhaps we should bail back up to parsing a namespace body somehow...</UNDONE>
+                // Watch curlies and look for end of file/close curly
+                switch (kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                        curlyCount++;
+                        break;
 
-                    // Watch curlies and look for end of file/close curly
-                    switch (kind)
-                    {
-                        case SyntaxKind.OpenBraceToken:
-                            curlyCount++;
-                            break;
-
-                        case SyntaxKind.CloseBraceToken:
-                            if (curlyCount-- == 0)
-                            {
-                                done = true;
-                                continue;
-                            }
-
-                            break;
-
-                        case SyntaxKind.EndOfFileToken:
+                    case SyntaxKind.CloseBraceToken:
+                        if (curlyCount-- == 0)
+                        {
                             done = true;
                             continue;
+                        }
 
-                        default:
-                            break;
-                    }
+                        break;
 
-                    tokens.Add(this.EatToken());
+                    case SyntaxKind.EndOfFileToken:
+                        done = true;
+                        continue;
+
+                    default:
+                        break;
                 }
+
+                tokens.Add(this.EatToken());
+            }
 
             previousNode = AddTrailingSkippedSyntax(
                 (CSharpSyntaxNode)previousNode,
