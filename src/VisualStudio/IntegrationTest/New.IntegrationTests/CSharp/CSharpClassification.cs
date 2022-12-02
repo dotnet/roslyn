@@ -24,9 +24,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task VerifyColorOfSomeTokens()
+        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [CombinatorialData]
+        public async Task VerifyColorOfSomeTokens([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"using System;
 using System.Collections.Generic;
 using System.Text;
@@ -72,9 +74,11 @@ namespace ConsoleApplication1
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "identifier", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task SemanticClassification()
+        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [CombinatorialData]
+        public async Task SemanticClassification([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"
 using System;
 using System.Collections.Generic;
@@ -107,9 +111,11 @@ class Program : Attribute
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "class name", HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
-        public async Task VerifyProjectConfigChange()
+        [IdeTheory]
+        [CombinatorialData]
+        public async Task VerifyProjectConfigChange([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"
 namespace ClassLibrary1
 {
