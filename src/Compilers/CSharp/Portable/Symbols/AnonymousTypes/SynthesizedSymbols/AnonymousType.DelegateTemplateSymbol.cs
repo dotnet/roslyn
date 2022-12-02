@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly ImmutableArray<Symbol> _members;
 
             /// <summary>
-            /// True if name of the delegate has to be generated during compilation (&lt;&gt;f__AnonymousDelegate0, 1, ...)
-            /// instead of being fully determined from delegate type (&lt;&gt;A, &lt;&gt;F).
+            /// True if name of the delegate is indexed by source order (&lt;&gt;f__AnonymousDelegate0, 1, ...)
+            /// instead of being fully determined by signature of the delegate (&lt;&gt;A, &lt;&gt;F).
             /// </summary>
             internal readonly bool HasIndexedName;
 

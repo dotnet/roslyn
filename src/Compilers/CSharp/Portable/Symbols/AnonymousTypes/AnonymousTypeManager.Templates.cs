@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 var typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
 
-                // Delegate type cannot be fully serialized to its name (e.g., it has default parameter values).
+                // Delegate name cannot be fully determined by its signature (e.g., it has default parameter values).
                 if (needsIndexedName)
                 {
                     // Replace field types (where type parameters will be) by placeholders.

@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.Emit
             public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
 
             /// <summary>
-            /// In C#, the set of anonymous delegates with their type fully serialized into their name;
+            /// In C#, the set of anonymous delegates with name fully determined by signature;
             /// in VB, this set is unused and empty.
             /// </summary>
             public readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> AnonymousDelegates;
 
             /// <summary>
-            /// In C#, the set of anonymous delegates with unique names generated during compilation;
+            /// In C#, the set of anonymous delegates with name indexed by source order;
             /// in VB, this set is unused and empty.
             /// </summary>
             public readonly IReadOnlyDictionary<string, AnonymousTypeValue> AnonymousDelegatesWithIndexedNames;
