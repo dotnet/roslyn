@@ -11239,9 +11239,6 @@ scoped readonly ref struct C { }
                 // (3,1): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 // scoped readonly ref struct C { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 1),
-                // (3,8): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("<invalid-global-code>", "").WithLocation(3, 8),
                 // (3,8): error CS1585: Member modifier 'readonly' must precede the member type and name
                 // scoped readonly ref struct C { }
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(3, 8)
@@ -11375,9 +11372,6 @@ ref struct R2
                 // (6,12): error CS1585: Member modifier 'private' must precede the member type and name
                 //     scoped private ref int F3;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(6, 12),
-                // (6,12): error CS0102: The type 'R2' already contains a definition for ''
-                //     scoped private ref int F3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("R2", "").WithLocation(6, 12),
                 // (6,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     scoped private ref int F3;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(6, 20));
@@ -11393,9 +11387,6 @@ ref struct R2
                 // (6,5): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     scoped private ref int F3;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 5),
-                // (6,12): error CS0102: The type 'R2' already contains a definition for ''
-                //     scoped private ref int F3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("R2", "").WithLocation(6, 12),
                 // (6,12): error CS1585: Member modifier 'private' must precede the member type and name
                 //     scoped private ref int F3;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(6, 12));
@@ -21220,9 +21211,6 @@ public ref struct R
                 // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (3,33): error CS0102: The type 'R' already contains a definition for ''
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("R", "").WithLocation(3, 33),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)

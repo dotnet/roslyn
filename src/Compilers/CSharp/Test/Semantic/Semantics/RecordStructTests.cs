@@ -9791,9 +9791,6 @@ public class C
                 // (11,32): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //         System.Console.Write(b);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(11, 32),
-                // (11,32): error CS0102: The type 'C' already contains a definition for ''
-                //         System.Console.Write(b);
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(11, 32),
                 // (13,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(13, 1)

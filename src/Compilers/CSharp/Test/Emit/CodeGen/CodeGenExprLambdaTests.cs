@@ -3762,16 +3762,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 79),
                 // (2,68): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 68),
-                // (2,76): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 76),
-                // (2,81): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 81),
-                // (2,95): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 95)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 68)
     );
         }
 
@@ -3845,16 +3836,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithArguments("tuples", "7.0").WithLocation(2, 20),
                 // (2,68): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 68),
-                // (2,76): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 76),
-                // (2,81): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 81),
-                // (2,95): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 95));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 68));
         }
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]

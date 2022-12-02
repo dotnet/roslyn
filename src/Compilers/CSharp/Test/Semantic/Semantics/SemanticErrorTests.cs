@@ -2792,9 +2792,6 @@ namespace ns1
                 // (6,9): error CS1022: Type or namespace definition, or end-of-file expected
                 //     Lab1:
                 Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(6, 9),
-                // (6,9): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                //     Lab1:
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("ns1.<invalid-global-code>", "").WithLocation(6, 9),
                 // (7,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 //     const int y = 2;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "y").WithLocation(7, 15));

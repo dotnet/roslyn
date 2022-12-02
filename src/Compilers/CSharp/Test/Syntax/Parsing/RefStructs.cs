@@ -118,16 +118,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(4, 9),
                 // (4,9): error CS9059: A ref field can only be declared in a ref struct.
                 //     ref class S1{}
-                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(4, 9),
-                // (6,16): error CS0102: The type 'Program' already contains a definition for ''
-                //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Program", "").WithLocation(6, 16),
-                // (8,9): error CS0102: The type 'Program' already contains a definition for ''
-                //     ref interface I1{};
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Program", "").WithLocation(8, 9),
-                // (10,16): error CS0102: The type 'Program' already contains a definition for ''
-                //     public ref delegate ref int D1();
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Program", "").WithLocation(10, 16)
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(4, 9)
             );
         }
 
@@ -211,10 +202,7 @@ class C
                 Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(5, 17),
                 // (5,17): error CS0102: The type 'C' already contains a definition for ''
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 17),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 17));
         }
 
         [Fact]
@@ -242,18 +230,12 @@ class C
                 // (4,26): error CS9059: A ref field can only be declared in a ref struct.
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(4, 26),
-                // (4,26): error CS0102: The type 'C' already contains a definition for ''
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(4, 26),
                 // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,13): error CS0102: The type 'C' already contains a definition for ''
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 13),
                 // (5,26): error CS1031: Type expected
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(5, 26),
@@ -263,9 +245,6 @@ class C
                 // (5,26): error CS9059: A ref field can only be declared in a ref struct.
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(5, 26),
-                // (5,26): error CS0102: The type 'C' already contains a definition for ''
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 26),
                 // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
@@ -292,13 +271,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 14),
                 // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),
-                // (5,22): error CS0102: The type 'C' already contains a definition for ''
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 22),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22));
         }
 
         [Fact]

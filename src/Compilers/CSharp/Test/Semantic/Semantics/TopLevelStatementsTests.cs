@@ -652,10 +652,7 @@ class Test
             {
                 // (4,20): error CS0426: The type name 'WriteLine' does not exist in the type 'Console'
                 //     System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(4, 20),
-                // (4,30): error CS0102: The type 'Test' already contains a definition for ''
-                //     System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Test", "").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(4, 20)
             }).ToArray());
         }
 
@@ -694,10 +691,7 @@ namespace Test
             {
                 // (4,20): error CS0426: The type name 'WriteLine' does not exist in the type 'Console'
                 //     System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(4, 20),
-                // (4,30): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                //     System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Test.<invalid-global-code>", "").WithLocation(4, 30)
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(4, 20)
             }).ToArray());
         }
 
@@ -9636,10 +9630,7 @@ System.Console.Write(42);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "42").WithLocation(3, 22),
                 // (3,22): error CS1022: Type or namespace definition, or end-of-file expected
                 // System.Console.Write(42);
-                Diagnostic(ErrorCode.ERR_EOFExpected, "42").WithLocation(3, 22),
-                // (3,22): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // System.Console.Write(42);
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("NS.<invalid-global-code>", "").WithLocation(3, 22)
+                Diagnostic(ErrorCode.ERR_EOFExpected, "42").WithLocation(3, 22)
                 );
         }
 

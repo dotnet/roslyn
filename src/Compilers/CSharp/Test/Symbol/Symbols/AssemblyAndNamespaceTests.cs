@@ -634,10 +634,7 @@ System.Console.WriteLine();";
                     Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 26),
                     // (3,27): error CS1022: Type or namespace definition, or end-of-file expected
                     // System.Console.WriteLine();
-                    Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 27),
-                    // (3,27): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                    // System.Console.WriteLine();
-                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("B.<invalid-global-code>", "").WithLocation(3, 27));
+                    Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 27));
         }
 
         [Fact]

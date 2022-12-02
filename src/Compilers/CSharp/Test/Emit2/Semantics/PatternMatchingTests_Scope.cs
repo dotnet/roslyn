@@ -3124,9 +3124,6 @@ public class X
                 // (11,33): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //     void Test2(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(11, 33),
-                // (9,39): error CS0102: The type 'X' already contains a definition for ''
-                //     void Test1(object o) => let x1 = o;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("X", "").WithLocation(9, 39),
                 // (11,42): error CS0103: The name 'o' does not exist in the current context
                 //     void Test2(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(11, 42),
