@@ -441,8 +441,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!licenseManager.CanConsume(LicenseRequirement.Free))
                 {
-                    diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                        (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
+                    // We only emit the generic invalid license error when no specific error message
+                    // comes from the license manager to avoid confusion of users.
+                    if (!licenseManager.Messages.Any(m => m.IsError))
+                    {
+                        diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
+                            (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
+                    }
+                    else
+                    {
+                       // Errors are emitted by the CommonCompiler.DisposeServices() method.
+                    }
+
                     return TransformersResult.Failure(inputCompilation);
                 }
 
