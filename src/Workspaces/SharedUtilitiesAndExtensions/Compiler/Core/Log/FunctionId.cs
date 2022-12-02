@@ -585,5 +585,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         CodeFixes_GetChanges = 652,
         CodeFixes_GetAndApplyChanges = 653,
+        CodeFixes_GetOptionsFromUser = 654
     }
 }

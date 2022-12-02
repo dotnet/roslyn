@@ -141,11 +141,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Todo: do we want to measure the amount of time it takes get the options from the user?
             object options = null;
             if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
-                options = actionWithOptions.GetOptions(cancellationToken);
+                using (Logger.LogBlock(FunctionId.CodeFixes_GetOptionsFromUser, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                {
+                    options = actionWithOptions.GetOptions(cancellationToken);
+                }
             }
 
             using (Logger.LogBlock(
