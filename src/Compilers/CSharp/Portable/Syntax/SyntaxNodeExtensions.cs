@@ -225,12 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return refKind;
         }
 
-        internal static RefKind GetRefKindFor(this TypeSyntax syntax, BindingDiagnosticBag diagnostics)
-        {
-            syntax.SkipRefInLocalOrReturn(diagnostics, out var refKind);
-            return refKind;
-        }
-
         /// <summary>
         /// For callers that just want to unwrap a <see cref="RefTypeSyntax"/> and don't care if ref/readonly was there.
         /// As these callers don't care about 'ref', they are in scenarios where 'ref' is not legal, and existing code
