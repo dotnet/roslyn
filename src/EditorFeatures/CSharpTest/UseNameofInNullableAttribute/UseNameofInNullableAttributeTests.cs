@@ -52,6 +52,90 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInNullableAttr
         }
 
         [Fact]
+        public async Task TestTrivia()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System.Diagnostics.CodeAnalysis;
+                    #nullable enable
+                    class C
+                    {
+                        [return: NotNullIfNotNull(/*before*/[|"input"|])/*after*/]
+                        string? M(string? input) => input;
+                    }
+                    """,
+                FixedCode = """
+                    using System.Diagnostics.CodeAnalysis;
+                    #nullable enable
+                    class C
+                    {
+                        [return: NotNullIfNotNull(/*before*/nameof(input)/*after*/)]
+                        string? M(string? input) => input;
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFullAttributeName()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System.Diagnostics.CodeAnalysis;
+                    #nullable enable
+                    class C
+                    {
+                        [return: NotNullIfNotNullAttribute([|"input"|])]
+                        string? M(string? input) => input;
+                    }
+                    """,
+                FixedCode = """
+                    using System.Diagnostics.CodeAnalysis;
+                    #nullable enable
+                    class C
+                    {
+                        [return: NotNullIfNotNullAttribute(nameof(input))]
+                        string? M(string? input) => input;
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNamedArg()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System.Diagnostics.CodeAnalysis;
+                    #nullable enable
+                    class C
+                    {
+                        [return: NotNullIfNotNullAttribute(parameterName: [|"input"|])]
+                        string? M(string? input) => input;
+                    }
+                    """,
+                FixedCode = """
+                    using System.Diagnostics.CodeAnalysis;
+                    #nullable enable
+                    class C
+                    {
+                        [return: NotNullIfNotNullAttribute(parameterName: nameof(input))]
+                        string? M(string? input) => input;
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task NotBeforeCSharp11()
         {
             var code = """
