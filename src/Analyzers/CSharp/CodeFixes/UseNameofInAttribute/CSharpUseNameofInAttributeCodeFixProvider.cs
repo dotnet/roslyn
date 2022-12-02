@@ -9,25 +9,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.UseNameofInNullableAttribute;
+using Microsoft.CodeAnalysis.CSharp.UseNameofInAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseNameofInNullableAttribute
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseNameofInAttribute
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal sealed class CSharpUseNameofInNullableAttributeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class CSharpUseNameofInAttributeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpUseNameofInNullableAttributeCodeFixProvider()
+        public CSharpUseNameofInAttributeCodeFixProvider()
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseNameofInNullableAttributeDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseNameofInAttributeDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseNameofInNullableAttribute
             foreach (var diagnostic in diagnostics)
             {
                 var expression = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                var name = diagnostic.Properties[CSharpUseNameofInNullableAttributeDiagnosticAnalyzer.NameKey];
+                var name = diagnostic.Properties[CSharpUseNameofInAttributeDiagnosticAnalyzer.NameKey];
                 Contract.ThrowIfNull(name);
 
                 editor.ReplaceNode(

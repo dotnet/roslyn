@@ -9,19 +9,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseNameofInNullableAttribute;
-using Microsoft.CodeAnalysis.CSharp.UseNameofInNullableAttribute;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseNameofInAttribute;
+using Microsoft.CodeAnalysis.CSharp.UseNameofInAttribute;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInNullableAttribute
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInAttribute
 {
     using VerifyCS = CSharpCodeFixVerifier<
-        CSharpUseNameofInNullableAttributeDiagnosticAnalyzer,
-        CSharpUseNameofInNullableAttributeCodeFixProvider>;
+        CSharpUseNameofInAttributeDiagnosticAnalyzer,
+        CSharpUseNameofInAttributeCodeFixProvider>;
 
-    public class UseNameofInNullableAttributeTests
+    public class UseNameofInAttributeTests
     {
         [Fact]
         public async Task TestOnMethod()

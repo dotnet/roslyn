@@ -18,19 +18,19 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseNameofInNullableAttribute;
+namespace Microsoft.CodeAnalysis.CSharp.UseNameofInAttribute;
 
 /// <summary>
 /// Analyzer that looks for things like `NotNullIfNotNull("param")` and offers to use `NotNullIfNotNull(nameof(param))` instead.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpUseNameofInNullableAttributeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseNameofInAttributeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public const string NameKey = nameof(NameKey);
 
-    public CSharpUseNameofInNullableAttributeDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseNameofInNullableAttributeDiagnosticId,
-               EnforceOnBuildValues.UseNameofInNullableAttribute,
+    public CSharpUseNameofInAttributeDiagnosticAnalyzer()
+        : base(IDEDiagnosticIds.UseNameofInAttributeDiagnosticId,
+               EnforceOnBuildValues.UseNameofInAttribute,
                option: null,
                new LocalizableResourceString(
                    nameof(CSharpAnalyzersResources.Use_nameof), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -63,12 +63,14 @@ internal sealed class CSharpUseNameofInNullableAttributeDiagnosticAnalyzer : Abs
             return;
 
         if (attributeName
-                is not "NotNullIfNotNullAttribute"
-                and not "MemberNotNullAttribute"
-                and not "MemberNotNullWhenAttribute"
-                and not "NotNullIfNotNull"
+                is not "NotNullIfNotNull"
+                and not "NotNullIfNotNullAttribute"
                 and not "MemberNotNull"
-                and not "MemberNotNullWhen")
+                and not "MemberNotNullAttribute"
+                and not "MemberNotNullWhen"
+                and not "MemberNotNullWhenAttribute"
+                and not "CallerArgumentExpression"
+                and not "CallerArgumentExpressionAttribute")
         {
             return;
         }
