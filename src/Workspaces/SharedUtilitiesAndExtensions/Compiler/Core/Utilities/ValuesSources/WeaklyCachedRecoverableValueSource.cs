@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Lazily created. Access via the <see cref="Gate"/> property.
         /// </summary>
-        private SemaphoreSlim? _lazyGate; 
+        private SemaphoreSlim? _lazyGate;
 
         /// <summary>
         /// Whether or not we've saved our value to secondary storage.  Used so we only do that once.
