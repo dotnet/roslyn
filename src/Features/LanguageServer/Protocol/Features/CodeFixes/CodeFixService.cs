@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var type = fixer.GetType();
             var telemetryId = type.GetTelemetryId();
-            map["TelemetryId"] = telemetryId.ToString();
+            map["TelemetryId"] = telemetryId;
         }
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)

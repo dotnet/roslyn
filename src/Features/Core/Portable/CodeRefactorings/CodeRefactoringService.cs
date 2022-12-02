@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             var type = refactoringProvider.GetType();
             var telemetryId = type.GetTelemetryId();
-            map["TelemetryId"] = telemetryId.ToString();
+            map["TelemetryId"] = telemetryId;
         }
 
         private class ProjectCodeRefactoringProvider
