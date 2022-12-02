@@ -5796,7 +5796,7 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
                 ScanTypeArgumentListKind kind;
-                using (var _ = this.GetDisposableResetPoint(resetOnDispose: true))
+                using (this.GetDisposableResetPoint(resetOnDispose: true))
                 {
                     kind = this.ScanTypeArgumentList(options);
                 }
