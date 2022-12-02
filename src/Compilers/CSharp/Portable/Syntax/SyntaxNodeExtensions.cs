@@ -225,6 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return refKind;
         }
 
+        internal static RefKind GetRefKindFor(this TypeSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            syntax.SkipRefInLocalOrReturn(diagnostics, out var refKind);
+            return refKind;
+        }
+
         /// <summary>
         /// For callers that just want to unwrap a <see cref="RefTypeSyntax"/> and don't care if ref/readonly was there.
         /// As these callers don't care about 'ref', they are in scenarios where 'ref' is not legal, and existing code
@@ -234,6 +240,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeSyntax SkipRef(this TypeSyntax syntax)
             => syntax.SkipRefInLocalOrReturn(diagnostics: null, out _);
+
+        internal static TypeSyntax SkipRefInField(this TypeSyntax syntax, out RefKind refKind)
+        {
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                var refType = (RefTypeSyntax)syntax;
+                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword
+                    ? RefKind.RefReadOnly
+                    : RefKind.Ref;
+
+                return refType.Type;
+            }
+
+            refKind = RefKind.None;
+            return syntax;
+        }
 
         internal static TypeSyntax SkipRefInLocalOrReturn(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
         {
@@ -246,15 +268,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (diagnostics != null)
                 {
+#if DEBUG
+                    SyntaxNode current = syntax;
+                    while (current.Parent is RefTypeSyntax or ScopedTypeSyntax)
+                        current = current.Parent;
+
                     // Should only be called with diagnostics from a location where we're a return-type or local-type.
                     Debug.Assert(
-                        (syntax.Parent is ParenthesizedLambdaExpressionSyntax lambda && lambda.ReturnType == syntax) ||
-                        (syntax.Parent is LocalFunctionStatementSyntax localFunction && localFunction.ReturnType == syntax) ||
-                        (syntax.Parent is MethodDeclarationSyntax method && method.ReturnType == syntax) ||
-                        (syntax.Parent is BasePropertyDeclarationSyntax property && property.Type == syntax) ||
-                        (syntax.Parent is DelegateDeclarationSyntax delegateDeclaration && delegateDeclaration.ReturnType == syntax) ||
-                        (syntax.Parent is VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax } variableDeclaration && variableDeclaration.Type == syntax));
-
+                        (current.Parent is ParenthesizedLambdaExpressionSyntax lambda && lambda.ReturnType == current) ||
+                        (current.Parent is LocalFunctionStatementSyntax localFunction && localFunction.ReturnType == current) ||
+                        (current.Parent is MethodDeclarationSyntax method && method.ReturnType == current) ||
+                        (current.Parent is BasePropertyDeclarationSyntax property && property.Type == current) ||
+                        (current.Parent is DelegateDeclarationSyntax delegateDeclaration && delegateDeclaration.ReturnType == current) ||
+                        (current.Parent is VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax } variableDeclaration && variableDeclaration.Type == current));
+#endif
 
                     MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics, refType, refType.RefKeyword.GetLocation());
 
