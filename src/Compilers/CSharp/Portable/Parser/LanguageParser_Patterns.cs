@@ -209,33 +209,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         this.ParseSubExpression(Precedence.Relational));
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            TypeSyntax? type = null;
+            if (LooksLikeTypeOfPattern())
             {
-                TypeSyntax? type = null;
-                if (LooksLikeTypeOfPattern())
+                type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
+                if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
                 {
-                    type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
-                    if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
-                    {
-                        // either it is not shaped like a type, or it is a constant expression.
-                        this.Reset(ref resetPoint);
-                        type = null;
-                    }
+                    // either it is not shaped like a type, or it is a constant expression.
+                    resetPoint.Reset();
+                    type = null;
                 }
-
-                var pattern = ParsePatternContinued(type, precedence, whenIsKeyword);
-                if (pattern != null)
-                    return pattern;
-
-                this.Reset(ref resetPoint);
-                var value = this.ParseSubExpression(precedence);
-                return _syntaxFactory.ConstantPattern(value);
             }
-            finally
-            {
-                this.Release(ref resetPoint);
-            }
+
+            var pattern = ParsePatternContinued(type, precedence, whenIsKeyword);
+            if (pattern != null)
+                return pattern;
+
+            resetPoint.Reset();
+            var value = this.ParseSubExpression(precedence);
+            return _syntaxFactory.ConstantPattern(value);
         }
 
         /// <summary>
@@ -373,11 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool looksLikeCast()
             {
-                var resetPoint = this.GetResetPoint();
-                bool result = this.ScanCast(forPattern: true);
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-                return result;
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                return this.ScanCast(forPattern: true);
             }
         }
 
@@ -425,15 +416,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // these all can start a pattern
                                 return false;
                             default:
-                                if (SyntaxFacts.IsBinaryExpression(tk)) return true; // `e is int and && true` is valid C# 7.0 code with `and` being a designator
+                                {
+                                    if (SyntaxFacts.IsBinaryExpression(tk)) return true; // `e is int and && true` is valid C# 7.0 code with `and` being a designator
 
-                                // If the following token could start an expression, it may be a constant pattern after a combinator.
-                                var resetPoint = this.GetResetPoint();
-                                _ = this.EatToken();
-                                var result = !CanStartExpression();
-                                this.Reset(ref resetPoint);
-                                this.Release(ref resetPoint);
-                                return result;
+                                    // If the following token could start an expression, it may be a constant pattern after a combinator.
+                                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                                    this.EatToken();
+                                    return !CanStartExpression();
+                                }
                         }
                     case SyntaxKind.UnderscoreToken: // discard is a valid pattern designation
                     default:
@@ -485,20 +475,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool LooksLikeTupleArrayType()
         {
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
-            {
                 return false;
-            }
 
-            ResetPoint resetPoint = GetResetPoint();
-            try
-            {
-                return ScanType(forPattern: true) != ScanTypeFlags.NotType;
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
+            using var _ = GetDisposableResetPoint(resetOnDispose: true);
+            return ScanType(forPattern: true) != ScanTypeFlags.NotType;
         }
 
         private PropertyPatternClauseSyntax ParsePropertyPatternClause()

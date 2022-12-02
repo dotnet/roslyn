@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
             }
         }
 
+        protected override void RemoveAdornmentFromAdornmentLayer_CallOnlyOnUIThread(SnapshotSpan span)
+        {
+            AdornmentLayer.RemoveAdornmentsByVisualSpan(span);
+        }
+
         private bool TryMapHoleSpans(
             ImmutableArray<SnapshotSpan> spans,
             out ImmutableArray<SnapshotSpan> result)
