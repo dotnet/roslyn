@@ -66,15 +66,10 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         /// Starts watching a file but doesn't wait for the file watcher to be registered with the operating system. Good if you know
         /// you'll need a file watched (eventually) but it's not worth blocking yet.
         /// </summary>
-        IFileWatchingToken EnqueueWatchingFile(string filePath);
-
-        void StopWatchingFile(IFileWatchingToken token);
+        IWatchedFile EnqueueWatchingFile(string filePath);
     }
 
-    /// <summary>
-    /// A marker interface for tokens returned from <see cref="IFileChangeContext.EnqueueWatchingFile(string)"/>.
-    /// </summary>
-    public interface IFileWatchingToken
+    public interface IWatchedFile : IDisposable
     {
     }
 }
