@@ -8259,7 +8259,6 @@ done:;
             EatToken();
             ScanTypeFlags st = this.ScanType();
 
-            // TODO(cyrusn): Why not do the `st == ScanTypeFlags.NotType` check first?
             return !IsPossibleMemberName() || st == ScanTypeFlags.NotType;
         }
 
