@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// </summary>        
         protected abstract void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection);
 
+        protected abstract void RemoveAdornmentFromAdornmentLayer_CallOnlyOnUIThread(SnapshotSpan span);
+
         internal AbstractAdornmentManager(
             IThreadingContext threadingContext,
             IWpfTextView textView,
@@ -243,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                     // is there any effect on the view?
                     if (viewLines.IntersectsBufferSpan(changedSpan))
                     {
-                        AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
+                        RemoveAdornmentFromAdornmentLayer_CallOnlyOnUIThread(changedSpan);
                     }
                 }
             }
