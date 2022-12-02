@@ -15361,9 +15361,6 @@ class AAttribute : Attribute { }
                 // (4,33): error CS1002: ; expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "[").WithLocation(4, 33),
-                // (4,36): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 36),
                 // (4,34): error CS1001: Identifier expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(4, 34),
