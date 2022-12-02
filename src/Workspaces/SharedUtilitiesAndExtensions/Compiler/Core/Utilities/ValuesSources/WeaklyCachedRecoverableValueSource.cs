@@ -101,6 +101,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         public override async Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // if the value is currently being held weakly, then we can return that immediately as we know we will have
             // kicked off the work to save the value to secondary storage.
             if (TryGetWeakValue(out var instance))
