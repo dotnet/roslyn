@@ -5162,7 +5162,6 @@ class C
             }
         }
 
-
         [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Fact]
         public void TestLookupStaticMembersLocalFunction()

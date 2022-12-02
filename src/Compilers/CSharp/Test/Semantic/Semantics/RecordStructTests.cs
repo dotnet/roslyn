@@ -9758,7 +9758,7 @@ public class C
 }";
             var expectedDiagnostics = new[]
             {
-                    // (10,35): error CS1525: Invalid expression term '{'
+                // (10,35): error CS1525: Invalid expression term '{'
                 //         var b = a with { Nested = { A = 20 } };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(10, 35),
                 // (10,35): error CS1513: } expected
