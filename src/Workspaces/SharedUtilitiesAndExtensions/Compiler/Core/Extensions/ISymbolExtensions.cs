@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => 0,
             };
 
-        [return: NotNullIfNotNull(parameterName: "symbol")]
+        [return: NotNullIfNotNull(parameterName: nameof(symbol))]
         public static ISymbol? GetOriginalUnreducedDefinition(this ISymbol? symbol)
         {
             if (symbol.IsTupleField())
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsThisParameter([NotNullWhen(true)] this ISymbol? symbol)
             => symbol is IParameterSymbol { IsThis: true };
 
-        [return: NotNullIfNotNull(parameterName: "symbol")]
+        [return: NotNullIfNotNull(parameterName: nameof(symbol))]
         public static ISymbol? ConvertThisParameterToType(this ISymbol? symbol)
         {
             if (symbol.IsThisParameter())

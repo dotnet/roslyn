@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal partial class PerLanguageOption2<T>
     {
-        [return: NotNullIfNotNull("option")]
+        [return: NotNullIfNotNull(nameof(option))]
         public static explicit operator PerLanguageOption<T>?(PerLanguageOption2<T>? option)
         {
             if (option is null)
