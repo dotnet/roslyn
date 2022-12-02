@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!ContainingType.IsScriptClass)
                 {
                     // Explicitly pass in `null` for `diagnostics` here.  If we have a ref-type, then `refkind` will not
-                    // be `None` and we'll do an explicit feature availibility check for a higher language version below.
+                    // be `None` and we'll do an explicit feature availability check for a higher language version below.
                     var typeOnly = typeSyntax.SkipScoped(out _).SkipRef(diagnostics: null, out refKind);
                     Debug.Assert(refKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
                     type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
