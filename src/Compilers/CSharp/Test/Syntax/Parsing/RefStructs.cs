@@ -146,9 +146,6 @@ class Program
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,13): error CS0102: The type 'Program' already contains a definition for ''
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Program", "").WithLocation(5, 13),
                 // (5,24): error CS0102: The type 'Program' already contains a definition for 'S'
                 //     partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("Program", "S").WithLocation(5, 24));
@@ -202,7 +199,7 @@ class C
                 Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(5, 17),
                 // (5,17): error CS0102: The type 'C' already contains a definition for ''
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 17));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
         }
 
         [Fact]
@@ -271,7 +268,10 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 14),
                 // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),
+                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
+                //     readonly partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
         }
 
         [Fact]

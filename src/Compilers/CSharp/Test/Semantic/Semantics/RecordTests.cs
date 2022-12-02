@@ -597,10 +597,7 @@ public record A(int i, // A
                 Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(4, 15),
                 // (4,15): error CS1001: Identifier expected
                 //     , /* C */ ) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 15),
-                // (4,15): error CS0102: The type 'A' already contains a definition for ''
-                //     , /* C */ ) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 15)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 15)
                 );
 
             var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
@@ -676,10 +673,7 @@ public record A(int, string ) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
                 // (2,29): error CS1001: Identifier expected
                 // public record A(int, string ) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 29),
-                // (2,29): error CS0102: The type 'A' already contains a definition for ''
-                // public record A(int, string ) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 29)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 29)
                 );
 
             var expectedMembers = new[]
@@ -710,10 +704,7 @@ public record A(int, int ) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
                 // (2,26): error CS1001: Identifier expected
                 // public record A(int, int ) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 26),
-                // (2,26): error CS0102: The type 'A' already contains a definition for ''
-                // public record A(int, int ) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 26)
                 );
 
             var expectedMembers = new[]
@@ -746,10 +737,7 @@ public record A(int // A
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 20),
                 // (4,18): error CS1001: Identifier expected
                 //     , int /* C */) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 18),
-                // (4,18): error CS0102: The type 'A' already contains a definition for ''
-                //     , int /* C */) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 18)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 18)
                 );
 
             var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];

@@ -2318,9 +2318,6 @@ class C
                 // (3,5): error CS1585: Member modifier 'public' must precede the member type and name
                 //     public
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "public").WithArguments("public").WithLocation(3, 5),
-                // (3,11): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
-                //     public
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(3, 11),
                 // (3,11): error CS1031: Type expected
                 //     public
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 11),

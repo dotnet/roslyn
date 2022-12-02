@@ -68,9 +68,6 @@ class Program
                 // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
-                // (8,13): error CS0102: The type 'Program' already contains a definition for ''
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Program", "").WithLocation(8, 13),
                 // (8,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(8, 5),

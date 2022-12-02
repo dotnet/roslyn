@@ -449,9 +449,6 @@ class C
             Assert.Equal(SyntaxKind.FieldDeclaration, file.Members[0].Kind());
 
             compilation.VerifyDiagnostics(
-                // (1,2): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // [ $
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, " ").WithLocation(1, 2),
                 // (1,3): error CS1001: Identifier expected
                 // [ $
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "$").WithLocation(1, 3),
@@ -470,17 +467,29 @@ class C
         public void TestAttributeWithGarbageAfterName()
         {
             var text = "[a $";
-            var file = this.ParseTree(text);
+            var compilation = CreateCompilation(text);
+            var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.FieldDeclaration, file.Members[0].Kind());
-            Assert.Equal(4, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_NamespaceUnexpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[3].Code);
+
+            compilation.VerifyDiagnostics(
+                // (1,2): error CS0246: The type or namespace name 'aAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [a $
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("aAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+                // [a $
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(1, 2),
+                // (1,4): error CS1056: Unexpected character '$'
+                // [a $
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 4),
+                // (1,5): error CS1003: Syntax error, ']' expected
+                // [a $
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 5),
+                // (1,5): error CS1031: Type expected
+                // [a $
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 5));
         }
 
         [Fact]

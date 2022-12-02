@@ -34,9 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ParsePrivate()
         {
             UsingDeclaration("private", options: null,
-                // (1,8): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
-                // private
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 8),
                 // (1,8): error CS1031: Type expected
                 // private
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 8)
@@ -1373,9 +1370,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,1): error CS1073: Unexpected token '{'
                 // required required { get; }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required ").WithArguments("{").WithLocation(1, 1),
-                // (1,19): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                // required required { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 19),
                 // (1,19): error CS1031: Type expected
                 // required required { get; }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 19)
@@ -1564,9 +1558,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,1): error CS1073: Unexpected token ';'
                 // required required;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments(";").WithLocation(1, 1),
-                // (1,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                // required required;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 18),
                 // (1,18): error CS1031: Type expected
                 // required required;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 18)
@@ -1993,9 +1984,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierIncompleteMember_05()
         {
             UsingDeclaration("required", options: RequiredMembersOptions,
-                // (1,9): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
-                // required
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 9),
                 // (1,9): error CS1031: Type expected
                 // required
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 9)

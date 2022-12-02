@@ -1606,10 +1606,8 @@ class A
 {
     [global:";
 
-            ParseAndRoundTripping(text, errorCount: 5);
+            ParseAndRoundTripping(text, errorCount: 4);
             SyntaxFactory.ParseCompilationUnit(text).ErrorsAndWarnings().Verify(
-                // error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                TestBase.Diagnostic(ErrorCode.ERR_NamespaceUnexpected).WithLocation(1, 1),
                 // error CS1001: Identifier expected
                 TestBase.Diagnostic(ErrorCode.ERR_IdentifierExpected).WithLocation(1, 1),
                 // error CS1003: Syntax error, ']' expected

@@ -129,9 +129,6 @@ class C
                 // (15,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // [a]fod;
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
-                // (16,2): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // [b
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(16, 2),
                 // (16,3): error CS1003: Syntax error, ']' expected
                 // [b
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3),

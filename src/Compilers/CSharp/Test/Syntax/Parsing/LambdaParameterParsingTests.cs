@@ -5401,9 +5401,6 @@ class C {
                 // (1,20): error CS1002: ; expected
                 // Action<object> a = public => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(1, 20),
-                // (1,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // Action<object> a = public => { };
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "public").WithLocation(1, 20),
                 // (1,27): error CS1031: Type expected
                 // Action<object> a = public => { };
                 Diagnostic(ErrorCode.ERR_TypeExpected, "=>").WithLocation(1, 27),

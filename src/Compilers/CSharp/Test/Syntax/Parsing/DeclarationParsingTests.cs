@@ -96,15 +96,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingStaticInWrongOrder()
         {
             var text = "static using a;";
-            var file = this.ParseFile(text);
+            var compilation = CreateCompilation(text);
+            var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.NotNull(file);
             Assert.Equal(0, file.Usings.Count);
             Assert.Equal(text, file.ToFullString());
 
-            var errors = file.Errors();
-            Assert.True(errors.Length > 0);
-            Assert.Equal((int)ErrorCode.ERR_NamespaceUnexpected, errors[0].Code);
+            compilation.VerifyDiagnostics(
+                // (1,8): error CS1031: Type expected
+                // static using a;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "using").WithLocation(1, 8),
+                // (1,8): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // static using a;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using a;").WithLocation(1, 8));
         }
 
         [Fact]
@@ -2966,17 +2970,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public int P readonly => 0;
 }
 ";
-            var file = this.ParseFile(text, TestOptions.Regular);
+            var compilation = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
 
-            Assert.Equal(4, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemicolonExpected, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[1].Code);
-            Assert.Equal(ErrorCode.ERR_TypeExpected, (ErrorCode)file.Errors()[2].Code);
-            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[3].Code);
+            compilation.VerifyDiagnostics(
+                // (3,18): error CS1002: ; expected
+                //     public int P readonly => 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(3, 18),
+                // (3,27): error CS1031: Type expected
+                //     public int P readonly => 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "=>").WithLocation(3, 27),
+                // (3,27): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
+                //     public int P readonly => 0;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 27));
         }
 
         [Fact]
@@ -5742,9 +5751,6 @@ partial class PartialPartial
                 // (6,13): error CS1002: ; expected
                 //     partial partial void PM()
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(6, 13),
-                // (6,13): error CS0102: The type 'PartialPartial' already contains a definition for ''
-                //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("PartialPartial", "").WithLocation(6, 13),
                 // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     partial partial void PM();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),

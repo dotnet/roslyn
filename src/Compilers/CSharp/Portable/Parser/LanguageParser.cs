@@ -2745,8 +2745,7 @@ parse_member_name:;
                 }
 
                 var incompleteMember = _syntaxFactory.FieldDeclaration(attributes, modifiers.ToList(), CreateVariableDeclarationWithTypeAndSingleMissingDeclarator(type), CreateMissingSemicolonToken());
-                //var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
-                if (ContainsErrorDiagnostic(incompleteMember) && !type.IsMissing)
+                if (ContainsErrorDiagnostic(incompleteMember))
                 {
                     result = incompleteMember;
                 }
