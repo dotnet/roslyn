@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal LanguageParser(
             Lexer lexer,
-            CSharp.CSharpSyntaxNode oldTree,
-            IEnumerable<TextChangeRange> changes,
+            CSharp.CSharpSyntaxNode? oldTree,
+            IEnumerable<TextChangeRange>? changes,
             LexerMode lexerMode = LexerMode.Syntax,
             CancellationToken cancellationToken = default(CancellationToken))
             : base(lexer, lexerMode, oldTree, changes, allowModeReset: false,
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private static CSharp.CSharpSyntaxNode GetOldParent(CSharp.CSharpSyntaxNode node)
+        private static CSharp.CSharpSyntaxNode? GetOldParent(CSharp.CSharpSyntaxNode node)
         {
             return node != null ? node.Parent : null;
         }
@@ -179,8 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal CompilationUnitSyntax ParseCompilationUnitCore()
         {
-            SyntaxToken tmp = null;
-            SyntaxListBuilder initialBadNodes = null;
+            SyntaxToken? tmp = null;
+            SyntaxListBuilder? initialBadNodes = null;
             var body = new NamespaceBodyBuilder(_pool);
             try
             {
@@ -258,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var name = this.ParseQualifiedName();
 
-            SyntaxToken openBrace = null;
-            SyntaxToken semicolon = null;
+            SyntaxToken? openBrace = null;
+            SyntaxToken? semicolon = null;
 
             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
             {
@@ -288,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     Debug.Assert(semicolon != null);
 
-                    SyntaxListBuilder initialBadNodes = null;
+                    SyntaxListBuilder? initialBadNodes = null;
                     this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.FileScopedNamespaceDeclaration);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to semicolon...
 
@@ -304,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    SyntaxListBuilder initialBadNodes = null;
+                    SyntaxListBuilder? initialBadNodes = null;
                     this.ParseNamespaceBody(ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
 
@@ -353,9 +351,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private void AddSkippedNamespaceText(
-            ref SyntaxToken openBraceOrSemicolon,
+            ref SyntaxToken? openBraceOrSemicolon,
             ref NamespaceBodyBuilder body,
-            ref SyntaxListBuilder initialBadNodes,
+            ref SyntaxListBuilder? initialBadNodes,
             CSharpSyntaxNode skippedSyntax)
         {
             if (body.Members.Count > 0)
@@ -401,7 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TopLevelStatementsAfterTypesAndNamespaces = 6,
         }
 
-        private void ParseNamespaceBody(ref SyntaxToken openBraceOrSemicolon, ref NamespaceBodyBuilder body, ref SyntaxListBuilder initialBadNodes, SyntaxKind parentKind)
+        private void ParseNamespaceBody(
+            [NotNullIfNotNull(nameof(openBraceOrSemicolon))] ref SyntaxToken? openBraceOrSemicolon,
+            ref NamespaceBodyBuilder body,
+            ref SyntaxListBuilder? initialBadNodes,
+            SyntaxKind parentKind)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -528,6 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 var attribute = this.ParseAttributeDeclaration();
                                 if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
                                 {
+                                    RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
                                     attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
                                     this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
                                 }
@@ -636,7 +639,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return memberOrStatement;
             }
 
-            void parseUsingDirective(ref SyntaxToken openBrace, ref NamespaceBodyBuilder body, ref SyntaxListBuilder initialBadNodes, ref NamespaceParts seen, ref SyntaxListBuilder<MemberDeclarationSyntax> pendingIncompleteMembers)
+            void parseUsingDirective(
+                ref SyntaxToken? openBrace,
+                ref NamespaceBodyBuilder body,
+                ref SyntaxListBuilder? initialBadNodes,
+                ref NamespaceParts seen,
+                ref SyntaxListBuilder<MemberDeclarationSyntax> pendingIncompleteMembers)
             {
                 // incomplete members must be processed before we add any nodes to the body:
                 ReduceIncompleteMembers(ref pendingIncompleteMembers, ref openBrace, ref body, ref initialBadNodes);
@@ -666,14 +674,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ReduceIncompleteMembers(
             ref SyntaxListBuilder<MemberDeclarationSyntax> incompleteMembers,
-            ref SyntaxToken openBraceOrSemicolon,
+            ref SyntaxToken? openBraceOrSemicolon,
             ref NamespaceBodyBuilder body,
-            ref SyntaxListBuilder initialBadNodes)
+            ref SyntaxListBuilder? initialBadNodes)
         {
             for (int i = 0; i < incompleteMembers.Count; i++)
-            {
                 this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, incompleteMembers[i]);
-            }
+
             incompleteMembers.Clear();
         }
 
@@ -773,11 +780,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return (UsingDirectiveSyntax)this.EatNode();
             }
 
-            SyntaxToken globalToken = null;
-            if (this.CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword)
-            {
-                globalToken = ConvertToKeyword(this.EatToken());
-            }
+            var globalToken = this.CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword
+                ? ConvertToKeyword(this.EatToken())
+                : null;
 
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.UsingKeyword);
 
@@ -883,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
 
             // Check for optional location :
-            AttributeTargetSpecifierSyntax attrLocation = null;
+            AttributeTargetSpecifierSyntax? attrLocation = null;
             if (IsSomeWord(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
             {
                 var id = ConvertToKeyword(this.EatToken());
@@ -937,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private PostSkipAction SkipBadAttributeListTokens(SeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expected)
         {
             Debug.Assert(list.Count > 0);
-            SyntaxToken tmp = null;
+            SyntaxToken? tmp = null;
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
@@ -961,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.ParseAttributeArgumentList());
         }
 
-        internal AttributeArgumentListSyntax ParseAttributeArgumentList()
+        internal AttributeArgumentListSyntax? ParseAttributeArgumentList()
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.AttributeArgumentList)
             {
@@ -1031,8 +1036,8 @@ tryAgain:
             // Need to parse both "real" named arguments and attribute-style named arguments.
             // We track attribute-style named arguments only with fShouldHaveName.
 
-            NameEqualsSyntax nameEquals = null;
-            NameColonSyntax nameColon = null;
+            NameEqualsSyntax? nameEquals = null;
+            NameColonSyntax? nameColon = null;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 SyntaxKind nextTokenKind = this.PeekToken(1).Kind;

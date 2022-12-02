@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
     {
         private readonly object _gate = new();
 
-        private readonly HostWorkspaceServices _workspaceServices;
+        private readonly SolutionServices _solutionServices;
 
         /// <summary>
         /// A file change context used to watch metadata references.
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
         /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
         /// </summary>
-        private readonly Dictionary<PortableExecutableReference, IFileWatchingToken> _metadataReferenceFileWatchingTokens = new();
+        private readonly Dictionary<PortableExecutableReference, IWatchedFile> _metadataReferenceFileWatchingTokens = new();
 
         /// <summary>
         /// <see cref="CancellationTokenSource"/>s for in-flight refreshing of metadata references. When we see a file change, we wait a bit before trying to actually
@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new();
 
         public FileWatchedPortableExecutableReferenceFactory(
-            HostWorkspaceServices workspaceServices,
+            SolutionServices solutionServices,
             IFileChangeWatcher fileChangeWatcher)
         {
-            _workspaceServices = workspaceServices;
+            _solutionServices = solutionServices;
 
             var watchedDirectories = new List<WatchedDirectory>();
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         {
             lock (_gate)
             {
-                var reference = _workspaceServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
+                var reference = _solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
                 var fileWatchingToken = _fileReferenceChangeContext.EnqueueWatchingFile(fullFilePath);
 
                 _metadataReferenceFileWatchingTokens.Add(reference, fileWatchingToken);
@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         {
             lock (_gate)
             {
-                if (!_metadataReferenceFileWatchingTokens.TryGetValue(reference, out var token))
+                if (!_metadataReferenceFileWatchingTokens.TryGetValue(reference, out var watchedFile))
                 {
                     throw new ArgumentException("The reference was already not being watched.");
                 }
 
-                _fileReferenceChangeContext.StopWatchingFile(token);
+                watchedFile.Dispose();
                 _metadataReferenceFileWatchingTokens.Remove(reference);
 
                 // Note we still potentially have an outstanding change that we haven't raised a notification
