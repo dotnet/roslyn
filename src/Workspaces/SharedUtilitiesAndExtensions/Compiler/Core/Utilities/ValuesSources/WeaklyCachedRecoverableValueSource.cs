@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -19,13 +20,18 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal abstract class WeaklyCachedRecoverableValueSource<T> : ValueSource<T> where T : class
     {
+        // enforce saving in a queue so save's don't overload the thread pool.
+        private static Task s_latestTask = Task.CompletedTask;
+        private static readonly NonReentrantLock s_taskGuard = new();
+
         private SemaphoreSlim? _lazyGate; // Lazily created. Access via the Gate property
         private bool _saved;
-        private WeakReference<T>? _weakReference;
-        private ValueSource<T> _recoverySource;
 
-        public WeaklyCachedRecoverableValueSource(ValueSource<T> initialValue)
-            => _recoverySource = initialValue;
+        private WeakReference<T>? _weakReference;
+        private T? _initialValue;
+
+        public WeaklyCachedRecoverableValueSource(T initialValue)
+            => _initialValue = initialValue;
 
         /// <summary>
         /// Override this to save the state of the instance so it can be recovered.
@@ -45,44 +51,34 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         protected abstract T Recover(CancellationToken cancellationToken);
 
-        // enforce saving in a queue so save's don't overload the thread pool.
-        private static Task s_latestTask = Task.CompletedTask;
-        private static readonly NonReentrantLock s_taskGuard = new();
-
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
-#pragma warning disable CS8610 // Nullability of reference types in type of parameter doesn't match overridden member. (The compiler incorrectly identifies this as a change.)
         public override bool TryGetValue([NotNullWhen(true)] out T? value)
-#pragma warning restore CS8610 // Nullability of reference types in type of parameter doesn't match overridden member.
         {
-            // It has 2 fields that can hold onto the value. if we only check weakInstance, we will
-            // return false for the initial case where weakInstance is set to s_noReference even if
-            // value can be retrieved from _recoverySource. so we check both here.
+            // See if we still have the constant value stored.  If so, we can trivially return that.
+            value = _initialValue;
+            if (_initialValue != null)
+                return true;
+
+            // If not, see if it's something someone else is holding into, and is available through the weak-ref.
+            value = null;
             var weakReference = _weakReference;
-            return weakReference != null && weakReference.TryGetTarget(out value) ||
-                   _recoverySource.TryGetValue(out value);
+            return weakReference != null && weakReference.TryGetTarget(out value) && value != null;
         }
 
         public override T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var weakReference = _weakReference;
-            if (weakReference == null || !weakReference.TryGetTarget(out var instance))
+            if (!TryGetValue(out var instance))
             {
-                Task? saveTask = null;
                 using (Gate.DisposableWait(cancellationToken))
                 {
-                    if (_weakReference == null || !_weakReference.TryGetTarget(out instance))
+                    if (!TryGetValue(out instance))
                     {
-                        instance = _recoverySource.GetValue(cancellationToken);
-                        saveTask = EnsureInstanceIsSavedAsync(instance);
+                        instance = Recover(cancellationToken);
+                        EnqueueSaveTask_NoLock(instance);
                     }
-                }
-
-                if (saveTask != null)
-                {
-                    ResetRecoverySource(saveTask, instance);
                 }
             }
 
@@ -91,72 +87,63 @@ namespace Microsoft.CodeAnalysis.Host
 
         public override async Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
-            var weakReference = _weakReference;
-            if (weakReference == null || !weakReference.TryGetTarget(out var instance))
+            if (!TryGetValue(out var instance))
             {
-                Task? saveTask = null;
                 using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (_weakReference == null || !_weakReference.TryGetTarget(out instance))
+                    if (!TryGetValue(out instance))
                     {
-                        instance = await _recoverySource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                        saveTask = EnsureInstanceIsSavedAsync(instance);
+                        instance = await RecoverAsync(cancellationToken).ConfigureAwait(false);
+                        EnqueueSaveTask_NoLock(instance);
                     }
-                }
-
-                if (saveTask != null)
-                {
-                    ResetRecoverySource(saveTask, instance);
                 }
             }
 
             return instance;
         }
 
-        private void ResetRecoverySource(Task saveTask, T instance)
+        /// <summary>
+        /// Kicks off the work to save this instance to secondary storage at some point in the future.  Once that save
+        /// occurs successfully, we will drop our cached data and return values from that storage instead.
+        /// </summary>
+        private void EnqueueSaveTask_NoLock(T instance)
         {
-            saveTask.SafeContinueWith(t =>
-            {
-                using (Gate.DisposableWait(CancellationToken.None))
-                {
-                    // Only assume the instance is saved if the saveTask completed successfully. If the save did not
-                    // complete, we can still rely on a constant value source to provide the instance.
-                    _recoverySource = saveTask.Status == TaskStatus.RanToCompletion
-                        ? new AsyncLazy<T>(RecoverAsync, Recover, cacheResult: false)
-                        : new AsyncLazy<T>(instance);
+            Contract.ThrowIfTrue(Gate.CurrentCount != 0);
 
-                    // Need to keep instance alive until recovery source is updated.
-                    GC.KeepAlive(instance);
-                }
-            }, TaskScheduler.Default);
-        }
+            _weakReference ??= new WeakReference<T>(instance);
+            _weakReference.SetTarget(instance);
 
-        private Task? EnsureInstanceIsSavedAsync(T instance)
-        {
-            if (_weakReference == null)
-            {
-                _weakReference = new WeakReference<T>(instance);
-            }
-            else
-            {
-                _weakReference.SetTarget(instance);
-            }
-
+            // Ensure we only save once.
             if (!_saved)
             {
                 _saved = true;
                 using (s_taskGuard.DisposableWait())
                 {
                     // force all save tasks to be in sequence so we don't hog all the threads
-                    s_latestTask = s_latestTask.SafeContinueWithFromAsync(t =>
-                         SaveAsync(instance, CancellationToken.None), CancellationToken.None, TaskScheduler.Default);
-                    return s_latestTask;
+                    s_latestTask = SaveAndResetInitialValue(s_latestTask);
                 }
             }
 
-#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
-            return null;
-#pragma warning restore VSTHRD114 // Avoid returning a null Task
+            return;
+
+            async Task SaveAndResetInitialValue(Task previousTask)
+            {
+                // First wait for the prior task in the chain to be done.  Ignore all errors from prior tasks.  They
+                // do not affect if we run or not.
+                await previousTask.NoThrowAwaitableInternal(captureContext: false);
+
+                // Now defer to our subclass to actually save the instance to secondary storage.
+                await SaveAsync(instance, CancellationToken.None).ConfigureAwait(false);
+
+                // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete,
+                // we want to keep it around to service future requests.  Once we do clear out this value, then all
+                // future request will either retrieve the value from the weak reference (if anyone else is holding onto
+                // it), or will recover from the 
+                using (Gate.DisposableWait(CancellationToken.None))
+                {
+                    _initialValue = null;
+                }
+            }
         }
     }
 }
