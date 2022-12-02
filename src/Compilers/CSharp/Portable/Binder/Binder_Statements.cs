@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeSyntax = scopedType.Type;
             }
 
-            // Slightly odd, but we unrwrap ref here (and report a lang-version diagnostic when appropriate).  Ideally,
+            // Slightly odd, but we unwrap ref here (and report a lang-version diagnostic when appropriate).  Ideally,
             // this would be in the constructor of SourceLocalSymbol, but it lacks a diagnostics bag passed to it to add
             // this diagnostic.
             typeSyntax = typeSyntax.SkipRef(diagnostics, out _);
