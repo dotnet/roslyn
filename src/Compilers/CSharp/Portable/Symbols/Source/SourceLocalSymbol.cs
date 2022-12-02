@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeSyntax = typeSyntax.SkipScoped(out isScoped);
             isScoped = isScoped && allowScoped;
 
-            // Diagnostics for ref-locals is reported by callers.
+            // Diagnostics for ref-locals is reported by caller in BindDeclarationStatementParts.
             if (allowRefKind)
                 typeSyntax.SkipRef(diagnostics: null, out _refKind);
 
