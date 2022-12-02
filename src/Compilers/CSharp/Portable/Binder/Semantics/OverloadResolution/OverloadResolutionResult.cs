@@ -1267,11 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isParams: false,
                             refKind: refArg);
 
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(
-                            binder.Compilation,
-                            displayArg,
-                            UnwrapIfParamsArray(parameter, isLastParameter),
-                            SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat);
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(binder.Compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
 
                         // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
                         diagnostics.Add(
