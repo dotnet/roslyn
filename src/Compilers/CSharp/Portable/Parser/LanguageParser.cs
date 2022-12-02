@@ -7197,7 +7197,6 @@ done:;
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
-
             var questionToken = this.EatToken();
             if (!canFollowNullableType())
             {
