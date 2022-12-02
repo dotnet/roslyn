@@ -219,9 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static RefKind GetRefKind(this TypeSyntax syntax, BindingDiagnosticBag diagnostics)
+        internal static RefKind GetRefKindInLocalOrReturn(this TypeSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            syntax.SkipRef(diagnostics, out var refKind);
+            syntax.SkipRefInLocalOrReturn(diagnostics, out var refKind);
             return refKind;
         }
 
@@ -229,13 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For callers that just want to unwrap a <see cref="RefTypeSyntax"/> and don't care if ref/readonly was there.
         /// As these callers don't care about 'ref', they are in scenarios where 'ref' is not legal, and existing code
         /// will error out for them.  Callers that do want to know what the ref-kind is should use <see
-        /// cref="SkipRef(TypeSyntax, BindingDiagnosticBag, out RefKind)"/> so that an appropriate version check can be
+        /// cref="SkipRefInLocalOrReturn(TypeSyntax, BindingDiagnosticBag, out RefKind)"/> so that an appropriate version check can be
         /// performed to make sure using ref is legal in that language version.
         /// </summary>
         internal static TypeSyntax SkipRef(this TypeSyntax syntax)
-            => syntax.SkipRef(diagnostics: null, out _);
+            => syntax.SkipRefInLocalOrReturn(diagnostics: null, out _);
 
-        internal static TypeSyntax SkipRef(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
+        internal static TypeSyntax SkipRefInLocalOrReturn(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
         {
             if (syntax.Kind() == SyntaxKind.RefType)
             {
@@ -246,6 +246,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (diagnostics != null)
                 {
+                    // Should only be called with diagnostics from a location where we're a return-type or local-type.
+                    Debug.Assert(
+                        (syntax.Parent is ParenthesizedLambdaExpressionSyntax lambda && lambda.ReturnType == syntax) ||
+                        (syntax.Parent is LocalFunctionStatementSyntax localFunction && localFunction.ReturnType == syntax) ||
+                        (syntax.Parent is MethodDeclarationSyntax method && method.ReturnType == syntax) ||
+                        (syntax.Parent is BasePropertyDeclarationSyntax property && property.Type == syntax) ||
+                        (syntax.Parent is DelegateDeclarationSyntax delegateDeclaration && delegateDeclaration.ReturnType == syntax) ||
+                        (syntax.Parent is VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax } variableDeclaration && variableDeclaration.Type == syntax));
+
+
                     MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics, refType, refType.RefKeyword.GetLocation());
 
                     if (refType.ReadOnlyKeyword != default)

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Diagnostics for ref-locals is reported by caller in BindDeclarationStatementParts.
             if (allowRefKind)
-                typeSyntax.SkipRef(diagnostics: null, out _refKind);
+                typeSyntax.SkipRefInLocalOrReturn(diagnostics: null, out _refKind);
 
             _scope = _refKind != RefKind.None
                 ? isScoped ? DeclarationScope.RefScoped : DeclarationScope.Unscoped

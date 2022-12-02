@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
             }
 
-            syntax.ReturnType.SkipRef(_declarationDiagnostics, out _refKind);
+            syntax.ReturnType.SkipRefInLocalOrReturn(_declarationDiagnostics, out _refKind);
             _binder = binder;
         }
 
