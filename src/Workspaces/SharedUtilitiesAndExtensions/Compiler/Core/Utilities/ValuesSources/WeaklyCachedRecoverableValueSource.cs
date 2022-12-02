@@ -23,11 +23,27 @@ namespace Microsoft.CodeAnalysis.Host
         private static Task s_latestTask = Task.CompletedTask;
         private static readonly NonReentrantLock s_taskGuard = new();
 
-        private SemaphoreSlim? _lazyGate; // Lazily created. Access via the Gate property
+        /// <summary>
+        /// Lazily created. Access via the <see cref="Gate"/> property.
+        /// </summary>
+        private SemaphoreSlim? _lazyGate; 
+
+        /// <summary>
+        /// Whether or not we've saved our value to secondary storage.  Used so we only do that once.
+        /// </summary>
         private bool _saved;
 
-        private WeakReference<T>? _weakReference;
+        /// <summary>
+        /// Initial strong value that this value source is initialized with.  Will be used to respond to the first
+        /// request to get the value, at which point it will be dumped into secondary storage.
+        /// </summary>
         private T? _initialValue;
+
+        /// <summary>
+        /// Weak reference to the value last returned from this value source.  Will thus return the same value as long
+        /// as something external is holding onto it.
+        /// </summary>
+        private WeakReference<T>? _weakReference;
 
         public WeaklyCachedRecoverableValueSource(T initialValue)
             => _initialValue = initialValue;
@@ -63,6 +79,9 @@ namespace Microsoft.CodeAnalysis.Host
             return weakReference != null && weakReference.TryGetTarget(out value) && value != null;
         }
 
+        /// <summary>
+        /// Attempts to get the value, either through our strong or weak reference.
+        /// </summary>
         private bool TryGetStrongOrWeakValue([NotNullWhen(true)] out T? value)
         {
             // See if we still have the constant value stored.  If so, we can trivially return that.
