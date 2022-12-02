@@ -2106,14 +2106,6 @@ $@"#pragma warning disable 169
             Assert.Equal(expectedRefKind, field.RefKind);
             Assert.Equal(expectedRefCustomModifiers, field.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
             Assert.Equal(expectedDisplayString, field.ToTestDisplayString());
-            VerifyFieldSymbol(field.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedRefCustomModifiers);
-        }
-
-        private static void VerifyFieldSymbol(IFieldSymbol field, string expectedDisplayString, RefKind expectedRefKind, string[] expectedRefCustomModifiers)
-        {
-            Assert.Equal(expectedRefKind, field.RefKind);
-            Assert.Equal(expectedRefCustomModifiers, field.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
-            Assert.Equal(expectedDisplayString, field.ToTestDisplayString());
         }
 
         [WorkItem(62131, "https://github.com/dotnet/roslyn/issues/62131")]
@@ -12623,8 +12615,8 @@ ref struct @scoped { } // 5
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
-                var symbols = decls.Select(d => model.GetDeclaredSymbol(d)).ToArray();
-                Assert.Equal(6, symbols.Length);
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+                Assert.Equal(6, locals.Length);
 
                 VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
                 VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
