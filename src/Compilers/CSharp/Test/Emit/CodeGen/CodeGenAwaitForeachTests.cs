@@ -348,7 +348,7 @@ class C
     {
         public System.Threading.Tasks.Task<object> MoveNextAsync() => throw null;
         public int Current => throw null;
-     }
+    }
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
@@ -356,6 +356,49 @@ class C
                 //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
+        }
+
+        [Theory, CombinatorialData, WorkItem(65363, "https://github.com/dotnet/roslyn/issues/65363")]
+        public void TestWithMoveNextAsync_ReturnsValueTaskOfObject_Extension(bool useCsharp8)
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        await foreach (var i in new C()) { }
+    }
+}
+static class Extension
+{
+    public static Enumerator GetAsyncEnumerator(this C c) => throw null;
+}
+public sealed class Enumerator
+{
+    public System.Threading.Tasks.Task<object> MoveNextAsync() => throw null;
+    public int Current => throw null;
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: useCsharp8 ? TestOptions.Regular8 : TestOptions.Regular9);
+            if (useCsharp8)
+            {
+                comp.VerifyDiagnostics(
+                    // (6,33): error CS8400: Feature 'extension GetAsyncEnumerator' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //         await foreach (var i in new C()) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new C()").WithArguments("extension GetAsyncEnumerator", "9.0").WithLocation(6, 33),
+                    // (6,33): error CS8412: Asynchronous foreach requires that the return type 'Enumerator' of 'Extension.GetAsyncEnumerator(C)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                    //         await foreach (var i in new C()) { }
+                    Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("Enumerator", "Extension.GetAsyncEnumerator(C)").WithLocation(6, 33)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (6,33): error CS8412: Asynchronous foreach requires that the return type 'Enumerator' of 'Extension.GetAsyncEnumerator(C)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                    //         await foreach (var i in new C()) { }
+                    Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("Enumerator", "Extension.GetAsyncEnumerator(C)").WithLocation(6, 33)
+                    );
+            }
         }
 
         [Fact]
@@ -6947,7 +6990,7 @@ public static class Extensions
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
                  .VerifyDiagnostics(
-                    // (8,33): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'Extensions.GetAsyncEnumerator(C, __arglist)'
+                    // (8,33): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'Extensions.GetAsyncEnumerator(C, __arglist)'
                     //         await foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "Extensions.GetAsyncEnumerator(C, __arglist)").WithLocation(8, 33),
                     // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'

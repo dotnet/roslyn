@@ -251,7 +251,6 @@ namespace NA
             Assert.True(table.TypeNames.IsEmpty());
         }
 
-
         [Fact]
         public void Bug2038()
         {

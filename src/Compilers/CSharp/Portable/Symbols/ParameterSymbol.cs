@@ -3,16 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -416,15 +411,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
         /// <summary>
-        /// The declared scope. From source, this is from the <c>scope</c> keyword only.
-        /// </summary>
-        internal abstract DeclarationScope DeclaredScope { get; }
-
-        /// <summary>
         /// The effective scope. This is from the declared scope, implicit scope and any
         /// <c>UnscopedRefAttribute</c>.
         /// </summary>
         internal abstract DeclarationScope EffectiveScope { get; }
+
+        internal abstract bool HasUnscopedRefAttribute { get; }
+
+        internal abstract bool UseUpdatedEscapeRules { get; }
 
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 

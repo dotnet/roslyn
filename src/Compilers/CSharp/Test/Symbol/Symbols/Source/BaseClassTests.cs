@@ -399,7 +399,6 @@ public partial class C1
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
         }
 
-
         [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
         public void BadVisInterfacePartial()
         {
@@ -609,7 +608,6 @@ class U : U.I
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("U.I", ifaces[0].ToTestDisplayString());
         }
-
 
         [Fact]
         public void EricLiCase10()
@@ -1003,7 +1001,6 @@ interface I4 : I1 {}
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-
         [Fact]
         public void CyclicRetargeted4()
         {
@@ -1056,7 +1053,6 @@ public class ClassC : ClassB {}
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
-
 
         [Fact]
         public void CyclicRetargeted5()
@@ -1119,7 +1115,6 @@ public class ClassC : ClassB {}
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-
         [Fact]
         public void CyclicRetargeted6()
         {
@@ -1174,7 +1169,6 @@ public class ClassC : ClassB {}
             Assert.Same(C.BaseType(), B2);
             Assert.Same(B2.BaseType(), A2);
         }
-
 
         [Fact]
         public void CyclicRetargeted7()
@@ -2293,15 +2287,15 @@ class Derived : Base
                 // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
-                // (13,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
+                // (13,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.D')
                 //     class F : A<D*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
                 // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
                 //     class E : A<C*>.B { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11),
-                // (12,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
+                // (12,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.C')
                 //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
         }
 
         [Fact]

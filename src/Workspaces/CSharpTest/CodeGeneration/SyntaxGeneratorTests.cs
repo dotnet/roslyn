@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     public class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-                references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
+            references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;
@@ -213,7 +213,7 @@ public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
 @"using System; 
 public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 @"[MyAttribute(new [] {1, 2, 3})]")),
-@"[global::MyAttribute(new[]{1, 2, 3})]");
+@"[global::MyAttribute(new[] { 1, 2, 3 })]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
 @"using System; 
@@ -382,7 +382,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<ArrayCreationExpressionSyntax>(
                 Generator.ArrayCreationExpression(Generator.IdentifierName("x"), new SyntaxNode[] { Generator.IdentifierName("y"), Generator.IdentifierName("z") }),
-                "new x[]{y, z}");
+                """
+                new x[]
+                {
+                    y,
+                    z
+                }
+                """);
         }
 
         [Fact]
@@ -1196,8 +1202,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "t i2.m2()\r\n{\r\n}");
         }
 
-        [WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
-        [Fact]
+        [Fact, WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
         public void TestAsPrivateInterfaceImplementationRemovesConstraints()
         {
             var code = @"
@@ -1628,8 +1633,7 @@ public interface IFace
                 "[a]\r\n() =>");
         }
 
-        [Fact]
-        [WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        [Fact, WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
         public void TestAddAttributesToAccessors()
         {
             var prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"));
@@ -1837,8 +1841,7 @@ public class C { } // end").Members[0];
 }");
         }
 
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
-        [Fact]
+        [Fact, WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
         public void TestUnsafeFieldDeclarationFromSymbol()
         {
             VerifySyntax<MethodDeclarationSyntax>(
@@ -1861,6 +1864,50 @@ public class C { } // end").Members[0];
     Utc = 1,
     Local = 2
 }");
+        }
+
+        [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
+        public void TestMethodDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    void M(int i = int.MaxValue) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers("M").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                private void M(global::System.Int32 i = global::System.Int32.MaxValue)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
+        public void TestConstructorDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public C(int i = int.MaxValue) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Single();
+
+            VerifySyntax<ConstructorDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                public C(global::System.Int32 i = global::System.Int32.MaxValue)
+                {
+                }
+                """);
         }
 
         [Fact]
@@ -3639,8 +3686,7 @@ public void M()
 }");
         }
 
-        [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
-        [Fact]
+        [Fact, WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IntroduceBaseList()
         {

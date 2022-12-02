@@ -1729,7 +1729,6 @@ public class CF1
                     Assert.Equal(0, m.ContainingAssembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
                 }).VerifyDiagnostics();
 
-
             appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
             var appModule = ModuleMetadata.CreateFromImage(appCompilation.EmitToArray()).Module;
 

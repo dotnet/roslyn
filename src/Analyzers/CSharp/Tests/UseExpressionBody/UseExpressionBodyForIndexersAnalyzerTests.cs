@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         UseExpressionBodyDiagnosticAnalyzer,
         UseExpressionBodyCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
     public class UseExpressionBodyForIndexersAnalyzerTests
     {
         private static async Task TestWithUseExpressionBody(string code, string fixedCode)
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseExpressionBody1()
         {
             var code = @"
@@ -73,7 +74,7 @@ class C
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestMissingWithSetter()
         {
             var code = @"
@@ -96,7 +97,7 @@ class C
             await TestWithUseExpressionBody(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestMissingOnSetter1()
         {
             var code = @"
@@ -115,7 +116,7 @@ class C
             await TestWithUseExpressionBody(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseExpressionBody3()
         {
             var code = @"
@@ -141,7 +142,7 @@ class C
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseExpressionBody4()
         {
             var code = @"
@@ -167,7 +168,7 @@ class C
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseBlockBody1()
         {
             var code = @"
@@ -193,8 +194,7 @@ class C
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [WorkItem(20363, "https://github.com/dotnet/roslyn/issues/20363")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact, WorkItem(20363, "https://github.com/dotnet/roslyn/issues/20363")]
         public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
         {
             var code = @"
@@ -228,7 +228,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseBlockBody3()
         {
             var code = @"
@@ -254,7 +254,7 @@ class C
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseBlockBody4()
         {
             var code = @"

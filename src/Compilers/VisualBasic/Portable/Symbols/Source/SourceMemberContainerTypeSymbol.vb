@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
@@ -2333,7 +2334,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-
         ''' <summary>
         ''' Returns true if at least one of the elements of this list needs to be injected into a 
         ''' constructor because it's not a const or it is a const and it's type is either decimal 
@@ -2787,7 +2787,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-
             ' Add a new instance|shared constructor.
             Dim syntaxRef = SyntaxReferences.First() ' use arbitrary part
             ' TODO: does it need to be deterministic?
@@ -2920,7 +2919,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 AddMember(eventSymbol.AssociatedField, binder, members, omitDiagnostics:=False)
             End If
         End Sub
-
 
         Private Sub CheckMemberDiagnostics(
                              members As MembersAndInitializersBuilder,
@@ -3495,7 +3493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me.IsDefinition) ' Don't do this on constructed types
 
             ' Enums and Delegates have nothing to do.
-            Dim myTypeKind As TYPEKIND = Me.TypeKind
+            Dim myTypeKind As TypeKind = Me.TypeKind
             Dim operatorsKnownToHavePair As HashSet(Of MethodSymbol) = Nothing
 
             If myTypeKind = TypeKind.Class OrElse myTypeKind = TypeKind.Interface OrElse myTypeKind = TypeKind.Structure OrElse myTypeKind = TypeKind.Module Then
@@ -4033,8 +4031,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If EmitExtensionAttribute Then
                 AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeExtensionAttribute())

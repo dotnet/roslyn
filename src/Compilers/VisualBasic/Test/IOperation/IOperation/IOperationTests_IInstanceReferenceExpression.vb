@@ -62,7 +62,5 @@ BC30456: 'M1' is not a member of 'Object'.
             VerifyOperationTreeAndDiagnosticsForTest(Of MyBaseExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
-
     End Class
 End Namespace

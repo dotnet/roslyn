@@ -18,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                         New VisualBasicAddImportCodeFixProvider())
         End Function
 
-        <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Fact>
+        <Fact, WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
         Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget() As Task
             Await TestAsync(
 "Class Class1
@@ -32,8 +31,7 @@ Class Class1
 End Class", TestHost.InProcess)
         End Function
 
-        <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Fact>
+        <Fact, WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
         Public Async Function TestUnknownIdentifierGenericName() As Task
             Await TestAsync(
 "Class C
@@ -52,8 +50,7 @@ Class C
 End Class", TestHost.InProcess)
         End Function
 
-        <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Fact>
+        <Fact, WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
         Public Async Function TestUnknownIdentifierAddNamespaceImport() As Task
             Await TestAsync(
 "Class Class1
@@ -66,8 +63,7 @@ Class Class1
 End Class", TestHost.InProcess)
         End Function
 
-        <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Fact>
+        <Fact, WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
         Public Async Function TestUnknownAttributeInModule() As Task
             Await TestAsync(
 "Module Goo
@@ -90,8 +86,7 @@ Module Goo
 End Module", TestHost.InProcess)
         End Function
 
-        <WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")>
-        <Fact>
+        <Fact, WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")>
         Public Async Function TestNullParentInNode() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -105,8 +100,7 @@ Class MultiDictionary(Of K, V)
 End Class")
         End Function
 
-        <WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")>
-        <Fact>
+        <Fact, WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")>
         Public Async Function TestMissingDiagnosticForNameOf() As Task
             Await TestDiagnosticMissingAsync(
 "Imports System

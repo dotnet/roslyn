@@ -175,7 +175,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken)
             newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
 
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
+            Dim changes = newDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+            args.SubjectBuffer.ApplyChanges(changes)
 
             ' Place the cursor back to where it logically was after this
             token = newDocument.GetSyntaxRootSynchronously(cancellationToken).

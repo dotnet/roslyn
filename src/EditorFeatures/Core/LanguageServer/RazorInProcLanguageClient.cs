@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
@@ -49,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public RazorInProcLanguageClient(
             CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
             ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
             IThreadingContext threadingContext,
-            ILspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
+            ExportProvider exportProvider,
             [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext, middleLayer)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider, middleLayer)
         {
             _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
         }

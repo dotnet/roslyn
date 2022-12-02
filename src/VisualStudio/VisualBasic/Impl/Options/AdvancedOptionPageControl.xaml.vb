@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 Imports Microsoft.CodeAnalysis.Editor.InlineHints
+Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -49,6 +50,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Analysis
             BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, label:=Run_background_code_analysis_for_label)
+            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
+                         Function()
+                             ' If the option has not been set by the user, check if the option is enabled from experimentation.
+                             Return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag)
+                         End Function)
+
             BindToOption(Show_compiler_errors_and_warnings_for, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic)
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
@@ -58,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences,
                          Function()
-                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
+                             ' If the option has not been set by the user, check if the option is enabled from experimentation.
                              Return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag)
                          End Function)
 
@@ -67,6 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Rename
             BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously)
+            BindToOption(Rename_UI_setting, InlineRenameUIOptions.UseInlineAdornment, label:=Rename_UI_setting_label)
 
             ' Import directives
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)

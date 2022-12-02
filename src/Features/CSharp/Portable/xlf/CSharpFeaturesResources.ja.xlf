@@ -102,6 +102,11 @@
         <target state="translated">範囲の基本設定を適用する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_readonly_struct_preferences">
+        <source>Apply 'readonly struct' preferences</source>
+        <target state="translated">'読み取り専用の構造体' 基本設定を適用する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
         <target state="translated">静的なローカル関数の基本設定を適用する</target>
@@ -147,10 +152,20 @@
         <target state="translated">キャストに変更</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">'{0}' を record に変換</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">メソッドに変換</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">位置指定 record に変換</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
@@ -187,11 +202,6 @@
         <target state="translated">グローバル 'using' ディレクティブ</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">インラインの一時変数</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">競合が検出されました。</target>
@@ -221,6 +231,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">'for' ステートメントの反転</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="new">Selection cannot be in constructor initializer</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>

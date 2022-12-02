@@ -48,53 +48,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get { return false; } }
 
-        internal override DeclarationScope DeclaredScope
+        internal override DeclarationScope EffectiveScope
             => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
-        internal override DeclarationScope EffectiveScope => DeclaredScope;
+
+        internal override bool HasUnscopedRefAttribute => false;
+
+        internal override bool UseUpdatedEscapeRules => false;
 
         #region Not used by MethodSignatureComparer
 
-        internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsMetadataOut { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsMetadataOut { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation { get { throw ExceptionUtilities.Unreachable; } }
+        internal override MarshalPseudoCustomAttributeData MarshallingInformation { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override int Ordinal { get { throw ExceptionUtilities.Unreachable; } }
+        public override int Ordinal { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsMetadataOptional { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsMetadataOptional { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ConstantValue ExplicitDefaultConstantValue { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ConstantValue ExplicitDefaultConstantValue { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsIDispatchConstant { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsIDispatchConstant { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsIUnknownConstant { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsIUnknownConstant { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsCallerFilePath { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsCallerFilePath { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsCallerLineNumber { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsCallerLineNumber { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override int CallerArgumentExpressionParameterIndex { get { throw ExceptionUtilities.Unreachable; } }
+        internal override int CallerArgumentExpressionParameterIndex { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable; } }
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
+        public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable; } }
+        public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable; } }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
+        public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
-        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
 
         #endregion Not used by MethodSignatureComparer
 

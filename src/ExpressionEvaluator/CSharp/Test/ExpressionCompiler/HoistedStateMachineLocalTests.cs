@@ -260,8 +260,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureNothing()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "1");
@@ -301,8 +300,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureLocal()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "x");
@@ -356,8 +354,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureParameter()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "u.GetHashCode()");
@@ -411,8 +408,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureLambdaParameter()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "ch.GetHashCode()");
@@ -452,8 +448,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureThis()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "t.GetHashCode()");
@@ -507,8 +502,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureThisAndLocal()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "x + t.GetHashCode()");
@@ -577,8 +571,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Static_CaptureNothing()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "1");
@@ -618,8 +611,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Static_CaptureLocal()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "x");
@@ -673,8 +665,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Static_CaptureParameter()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "u.GetHashCode()");
@@ -728,8 +719,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Static_CaptureLambdaParameter()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "ch.GetHashCode()");
@@ -769,8 +759,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureNothing()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "1");
@@ -816,8 +805,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureLocal()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "x");
@@ -877,8 +865,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureParameter()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "u.GetHashCode()");
@@ -938,8 +925,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureLambdaParameter()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "ch.GetHashCode()");
@@ -985,8 +971,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureThis()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "t.GetHashCode()");
@@ -1046,8 +1031,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureThisAndLocal()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "x + t.GetHashCode()");
@@ -1122,8 +1106,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Static_CaptureNothing()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "1");
@@ -1169,8 +1152,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Static_CaptureLocal()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "x");
@@ -1230,8 +1212,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Static_CaptureParameter()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "u.GetHashCode()");
@@ -1291,8 +1272,7 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Static_CaptureLambdaParameter()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "ch.GetHashCode()");
@@ -1338,8 +1318,7 @@ class C
             });
         }
 
-        [WorkItem(1134746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134746")]
-        [Fact]
+        [Fact, WorkItem(1134746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134746")]
         public void CacheInvalidation()
         {
             var source = @"

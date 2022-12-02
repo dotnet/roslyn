@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseConditionalExpression
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
     Partial Public Class UseConditionalExpressionForReturnTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseConditionalExpr
                 New VisualBasicUseConditionalExpressionForReturnCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnSimpleReturn() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -37,8 +38,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")>
         Public Async Function TestNotWithThrow1() As Task
             Await TestMissingAsync(
 "
@@ -53,7 +53,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestNotWithThrow2() As Task
             Await TestMissingAsync(
 "
@@ -68,7 +68,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnSimpleReturnNoBlocks() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -89,7 +89,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnSimpleReturnNoBlocks_NotInBlock() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -114,7 +114,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMissingReturnValue1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -129,7 +129,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMissingReturnValue2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -144,7 +144,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMissingReturnValue3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -159,7 +159,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestWithNoElseBlockButFollowingReturn() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -180,7 +180,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMissingWithoutElse() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -193,7 +193,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestConversion1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -214,7 +214,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestConversion2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -235,7 +235,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestConversion3() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -256,7 +256,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestKeepTriviaAroundIf() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -279,7 +279,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestFixAll1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -308,7 +308,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMultiLine1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -333,7 +333,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMultiLine2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -358,7 +358,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMultiLine3() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -385,8 +385,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
         Public Async Function TestOnYield() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -407,8 +406,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
         Public Async Function TestOnYield_IEnumerableReturnType() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -433,8 +431,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
         Public Async Function TestMissingWhenCrossingPreprocessorDirective1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -450,8 +447,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
         Public Async Function TestMissingWhenCrossingPreprocessorDirective2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

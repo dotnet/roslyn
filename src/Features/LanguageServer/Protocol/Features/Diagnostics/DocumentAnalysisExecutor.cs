@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (analyzer == FileContentLoadAnalyzer.Instance)
             {
-                return loadDiagnostic != null ?
-                    SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, textDocument)) :
-                    SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+                return loadDiagnostic != null
+                    ? SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, textDocument))
+                    : SpecializedCollections.EmptyEnumerable<DiagnosticData>();
             }
 
             if (loadDiagnostic != null)
@@ -156,9 +156,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Remap diagnostic locations, if required.
             diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
 
-            if (span.HasValue)
+            if (span.HasValue && document != null)
             {
-                diagnostics = diagnostics.WhereAsArray(d => !d.HasTextSpan || span.Value.IntersectsWith(d.GetTextSpan()));
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
+                // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
+                diagnostics = diagnostics.WhereAsArray(
+                    d => d.DocumentId is null || span.Value.IntersectsWith(d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(sourceText)));
             }
 
 #if DEBUG
@@ -232,9 +237,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Interlocked.CompareExchange(ref _lazySyntaxDiagnostics, syntaxDiagnostics, null);
             }
 
-            return _lazySyntaxDiagnostics.TryGetValue(analyzer, out var diagnosticAnalysisResult) ?
-                diagnosticAnalysisResult.GetDocumentDiagnostics(AnalysisScope.TextDocument.Id, AnalysisScope.Kind) :
-                ImmutableArray<DiagnosticData>.Empty;
+            return _lazySyntaxDiagnostics.TryGetValue(analyzer, out var diagnosticAnalysisResult)
+                ? diagnosticAnalysisResult.GetDocumentDiagnostics(AnalysisScope.TextDocument.Id, AnalysisScope.Kind)
+                : ImmutableArray<DiagnosticData>.Empty;
         }
 
         private async Task<ImmutableArray<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, bool isCompilerAnalyzer, CancellationToken cancellationToken)
@@ -266,9 +271,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Interlocked.CompareExchange(ref _lazySemanticDiagnostics, semanticDiagnostics, null);
             }
 
-            return _lazySemanticDiagnostics.TryGetValue(analyzer, out var diagnosticAnalysisResult) ?
-                diagnosticAnalysisResult.GetDocumentDiagnostics(AnalysisScope.TextDocument.Id, AnalysisScope.Kind) :
-                ImmutableArray<DiagnosticData>.Empty;
+            return _lazySemanticDiagnostics.TryGetValue(analyzer, out var diagnosticAnalysisResult)
+                ? diagnosticAnalysisResult.GetDocumentDiagnostics(AnalysisScope.TextDocument.Id, AnalysisScope.Kind)
+                : ImmutableArray<DiagnosticData>.Empty;
 
             async Task<TextSpan?> GetAdjustedSpanForCompilerAnalyzerAsync()
             {

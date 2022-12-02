@@ -1,6 +1,35 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 *REMOVED*static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.IDisposable! owner, bool disposeOwner) -> Microsoft.CodeAnalysis.ModuleMetadata!
+Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! leftType, Microsoft.CodeAnalysis.ITypeSymbol! rightType) -> Microsoft.CodeAnalysis.IMethodSymbol!
+Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! operandType) -> Microsoft.CodeAnalysis.IMethodSymbol!
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!> generators) -> Microsoft.CodeAnalysis.GeneratorDriver!
+Microsoft.CodeAnalysis.ILocalSymbol.IsForEach.get -> bool
+Microsoft.CodeAnalysis.ILocalSymbol.IsUsing.get -> bool
+Microsoft.CodeAnalysis.ILocalSymbol.ScopedKind.get -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.IParameterSymbol.ScopedKind.get -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.ScopedKind.None = 0 -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.ScopedKind.ScopedRef = 1 -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.ScopedKind.ScopedValue = 2 -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.SymbolDisplayLocalOptions.IncludeModifiers = 4 -> Microsoft.CodeAnalysis.SymbolDisplayLocalOptions
+Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeModifiers = 2 -> Microsoft.CodeAnalysis.SymbolDisplayParameterOptions
 override sealed Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
+static Microsoft.CodeAnalysis.Location.Create(string! filePath, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Text.LinePositionSpan lineSpan, string! mappedFilePath, Microsoft.CodeAnalysis.Text.LinePositionSpan mappedLineSpan) -> Microsoft.CodeAnalysis.Location!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool
+Microsoft.CodeAnalysis.OperationKind.Attribute = 125 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IAttributeOperation
+Microsoft.CodeAnalysis.Operations.IAttributeOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation!
+static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IAttributeOperation! attribute, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph!
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation, TArgument argument) -> TResult?

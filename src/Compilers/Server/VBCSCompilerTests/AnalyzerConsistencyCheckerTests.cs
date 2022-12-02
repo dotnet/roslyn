@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if NETFRAMEWORK
 #nullable disable
 
 using System;
@@ -14,6 +15,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -39,6 +42,39 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             Logger = new XunitCompilerServerLogger(testOutputHelper);
             TestFixture = testFixture;
+        }
+
+        private TempFile CreateNetStandardDll(TempDirectory directory, string assemblyName, string version, ImmutableArray<byte> publicKey, string? extraSource = null)
+        {
+            var source = $$"""
+                using System;
+                using System.Reflection;
+
+                [assembly: AssemblyVersion("{{version}}")]
+                [assembly: AssemblyFileVersion("{{version}}")]
+                """;
+
+            var sources = extraSource is null 
+                ? new[] { CSharpTestSource.Parse(source) }
+                : new[] { CSharpTestSource.Parse(source), CSharpTestSource.Parse(extraSource) };
+
+            var options = new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                warningLevel: Diagnostic.MaxWarningLevel,
+                cryptoPublicKey: publicKey,
+                deterministic: true,
+                publicSign: true);
+
+            var comp = CSharpCompilation.Create(
+                assemblyName,
+                sources,
+                references: NetStandard20.All,
+                options: options);
+
+            var file = directory.CreateFile($"{assemblyName}.dll");
+            var emitResult = comp.Emit(file.Path);
+            Assert.Empty(emitResult.Diagnostics.Where(x => x.Severity == DiagnosticSeverity.Error));
+            return file;
         }
 
         [Fact]
@@ -71,25 +107,66 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            // Load Beta.dll from the future Alpha.dll path to prime the assembly loader
-            var alphaDll = directory.CopyFile(TestFixture.Beta.Path, name: "Alpha.dll");
+            var key = NetStandard20.netstandard.GetAssemblyIdentity().PublicKey;
+            var mvidAlpha1 = CreateNetStandardDll(directory.CreateDirectory("mvid1"), "MvidAlpha", "1.0.0.0", key, "class C { }");
+            var mvidAlpha2 = CreateNetStandardDll(directory.CreateDirectory("mvid2"), "MvidAlpha", "1.0.0.0", key, "class D { }");
 
-            var assemblyLoader = new InMemoryAssemblyLoader();
-            var betaAssembly = assemblyLoader.LoadFromPath(alphaDll.Path);
-
-            // now overwrite the {directory}/Alpha.dll file with the content from our Alpha.dll test resource
-            alphaDll.CopyContentFrom(TestFixture.Alpha.Path);
-            directory.CopyFile(TestFixture.Gamma.Path);
-            directory.CopyFile(TestFixture.Delta1.Path);
-
+            // Can't use InMemoryAssemblyLoader because that uses the None context which fakes paths
+            // to always be the currently executing application. That makes it look like everything 
+            // is in the same directory
+            var assemblyLoader = new DefaultAnalyzerAssemblyLoader();
             var analyzerReferences = ImmutableArray.Create(
-                new CommandLineAnalyzerReference("Alpha.dll"),
-                new CommandLineAnalyzerReference("Gamma.dll"),
-                new CommandLineAnalyzerReference("Delta.dll"));
+                new CommandLineAnalyzerReference(mvidAlpha1.Path),
+                new CommandLineAnalyzerReference(mvidAlpha2.Path));
+
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, assemblyLoader, Logger);
+            Assert.False(result);
+        }
+
+        /// <summary>
+        /// A differing MVID is okay when it's loading a DLL from the compiler directory. That is 
+        /// considered an exchange type. For example if an analyzer has a reference to System.Memory
+        /// it will always load the copy the compiler used and that is not a consistency issue.
+        /// </summary>
+        [Fact]
+        [WorkItem(64826, "https://github.com/dotnet/roslyn/issues/64826")]
+        public void LoadingLibraryFromCompiler()
+        {
+            var directory = Temp.CreateDirectory();
+            var dllFile = CreateNetStandardDll(directory, "System.Memory", "2.0.0.0", NetStandard20.netstandard.GetAssemblyIdentity().PublicKey);
+
+            // This test must use the DefaultAnalyzerAssemblyLoader as we want assembly binding redirects
+            // to take affect here.
+            var assemblyLoader = new DefaultAnalyzerAssemblyLoader();
+            var analyzerReferences = ImmutableArray.Create(
+                new CommandLineAnalyzerReference("System.Memory.dll"));
 
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, assemblyLoader, Logger);
 
-            Assert.False(result);
+            Assert.True(result);
+        }
+
+        /// <summary>
+        /// A differing MVID is okay when it's loading a DLL from the GAC. There is no reason that 
+        /// falling back to csc would change the load result.
+        /// </summary>
+        [Fact]
+        [WorkItem(64826, "https://github.com/dotnet/roslyn/issues/64826")]
+        public void LoadingLibraryFromGAC()
+        {
+            var directory = Temp.CreateDirectory();
+            var dllFile = directory.CreateFile("System.Core.dll");
+            dllFile.WriteAllBytes(NetStandard20.Resources.SystemCore);
+
+            // This test must use the DefaultAnalyzerAssemblyLoader as we want assembly binding redirects
+            // to take affect here.
+            var assemblyLoader = new DefaultAnalyzerAssemblyLoader();
+            var analyzerReferences = ImmutableArray.Create(
+                new CommandLineAnalyzerReference("System.Core.dll"));
+
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, assemblyLoader, Logger);
+
+            Assert.True(result);
         }
 
         [Fact]
@@ -107,22 +184,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
-        public void NetstandardIgnored()
+        public void LoadingSimpleLibrary()
         {
             var directory = Temp.CreateDirectory();
-            const string name = "netstandardRef";
-            var comp = CSharpCompilation.Create(
-                name,
-                new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
-                references: new MetadataReference[] { NetStandard20.netstandard },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel));
-            var compFile = directory.CreateFile(name);
-            comp.Emit(compFile.Path);
+            var key = NetStandard20.netstandard.GetAssemblyIdentity().PublicKey;
+            var compFile = CreateNetStandardDll(directory, "netstandardRef", "1.0.0.0", key);
 
+            var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(compFile.Path));
 
-            var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(name));
-
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new DefaultAnalyzerAssemblyLoader(), Logger);
 
             Assert.True(result);
         }
@@ -150,3 +220,4 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
     }
 }
+#endif

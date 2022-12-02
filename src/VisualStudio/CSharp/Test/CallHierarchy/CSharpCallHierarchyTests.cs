@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,10 +14,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CallHierarchy
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.CallHierarchy)]
     public class CSharpCallHierarchyTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void InvokeOnMethod()
+        [WpfFact]
+        public async Task InvokeOnMethod()
         {
             var text = @"
 namespace N
@@ -29,12 +31,12 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Goo()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void InvokeOnProperty()
+        [WpfFact]
+        public async Task InvokeOnProperty()
         {
             var text = @"
 namespace N
@@ -45,12 +47,12 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Goo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void InvokeOnEvent()
+        [WpfFact]
+        public async Task InvokeOnEvent()
         {
             var text = @"
 using System;
@@ -62,12 +64,12 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Goo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void Method_FindCalls()
+        [WpfFact]
+        public async Task Method_FindCalls()
         {
             var text = @"
 namespace N
@@ -95,13 +97,13 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.G.Main()", "N.G.Main2()" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void Method_InterfaceImplementation()
+        [WpfFact]
+        public async Task Method_InterfaceImplementation()
         {
             var text = @"
 namespace N
@@ -134,14 +136,14 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), string.Format(EditorFeaturesResources.Calls_To_Interface_Implementation_0, "N.I.Goo()") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.G.Main2()" });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_Interface_Implementation_0, "N.I.Goo()"), new[] { "N.G.Main()" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void Method_CallToOverride()
+        [WpfFact]
+        public async Task Method_CallToOverride()
         {
             var text = @"
 namespace N
@@ -169,14 +171,14 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), EditorFeaturesResources.Calls_To_Overrides });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.D.Bar()" });
             testState.VerifyResult(root, EditorFeaturesResources.Calls_To_Overrides, new[] { "N.D.Baz()" });
         }
 
-        [WpfFact, WorkItem(829705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829705"), Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void Method_CallToBase()
+        [WpfFact, WorkItem(829705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829705")]
+        public async Task Method_CallToBase()
         {
             var text = @"
 namespace N
@@ -204,14 +206,14 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.D.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, "N.C.Goo()") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.D.Baz()" });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, "N.C.Goo()"), new[] { "N.D.Bar()" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void FieldInitializers()
+        [WpfFact]
+        public async Task FieldInitializers()
         {
             var text = @"
 namespace N
@@ -224,13 +226,13 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo") });
             testState.VerifyResultName(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { EditorFeaturesResources.Initializers });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void FieldReferences()
+        [WpfFact]
+        public async Task FieldReferences()
         {
             var text = @"
 namespace N
@@ -243,13 +245,13 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.goo", new[] { string.Format(EditorFeaturesResources.References_To_Field_0, "goo") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.References_To_Field_0, "goo"), new[] { "N.C.Goo()" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void PropertyGet()
+        [WpfFact]
+        public async Task PropertyGet()
         {
             var text = @"
 namespace N
@@ -271,13 +273,13 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.val.get", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "get_val") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "get_val"), new[] { "N.C.goo()" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void Generic()
+        [WpfFact]
+        public async Task Generic()
         {
             var text = @"
 namespace N
@@ -297,13 +299,13 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.generic<T>(this string, ref T)", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "generic") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "generic"), new[] { "N.C.goo()" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void ExtensionMethods()
+        [WpfFact]
+        public async Task ExtensionMethods()
         {
             var text = @"
 namespace ConsoleApplication10
@@ -326,13 +328,13 @@ namespace ConsoleApplication10
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "ConsoleApplication10.Extensions.BarString(this string)", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "BarString") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "BarString"), new[] { "ConsoleApplication10.Program.Main(string[])" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void GenericExtensionMethods()
+        [WpfFact]
+        public async Task GenericExtensionMethods()
         {
             var text = @"
 using System.Collections.Generic;
@@ -349,13 +351,13 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "System.Linq.Enumerable.Single<TSource>(this System.Collections.Generic.IEnumerable<TSource>)", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Single") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Single"), new[] { "N.Program.Main(string[])" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void InterfaceImplementors()
+        [WpfFact]
+        public async Task InterfaceImplementors()
         {
             var text = @"
 namespace N
@@ -388,14 +390,14 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.I.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), string.Format(EditorFeaturesResources.Implements_0, "Goo") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.G.Main()" });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Implements_0, "Goo"), new[] { "N.C.Goo()" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void NoFindOverridesOnSealedMethod()
+        [WpfFact]
+        public async Task NoFindOverridesOnSealedMethod()
         {
             var text = @"
 namespace N
@@ -408,12 +410,12 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             Assert.DoesNotContain("Overrides", root.SupportedSearchCategories.Select(s => s.DisplayName));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void FindOverrides()
+        [WpfFact]
+        public async Task FindOverrides()
         {
             var text = @"
 namespace N
@@ -433,14 +435,14 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), EditorFeaturesResources.Overrides_ });
             testState.VerifyResult(root, EditorFeaturesResources.Overrides_, new[] { "N.G.Goo()" });
         }
 
         [WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void AbstractMethodInclusionToOverrides()
+        [WpfFact]
+        public async Task AbstractMethodInclusionToOverrides()
         {
             var text = @"
 using System;
@@ -458,13 +460,13 @@ class Derived : Base
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "Base.M()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "M"), EditorFeaturesResources.Overrides_, EditorFeaturesResources.Calls_To_Overrides });
             testState.VerifyResult(root, EditorFeaturesResources.Overrides_, new[] { "Derived.M()" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void SearchAfterEditWorks()
+        [WpfFact]
+        public async Task SearchAfterEditWorks()
         {
             var text = @"
 namespace N
@@ -482,7 +484,7 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
 
             testState.Workspace.Documents.Single().GetTextBuffer().Insert(0, "/* hello */");
 
@@ -491,8 +493,8 @@ namespace N
         }
 
         [WorkItem(57856, "https://github.com/dotnet/roslyn/issues/57856")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public void PropertySet()
+        [WpfFact]
+        public async Task PropertySet()
         {
             var code = @"
 namespace N
@@ -507,7 +509,7 @@ namespace N
     }
 }";
             using var testState = CallHierarchyTestState.Create(code);
-            var root = testState.GetRoot();
+            var root = await testState.GetRootAsync();
             testState.VerifyRoot(root, "N.C.Property.set", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "set_Property") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "set_Property"), new[] { "N.C.M()" });
         }

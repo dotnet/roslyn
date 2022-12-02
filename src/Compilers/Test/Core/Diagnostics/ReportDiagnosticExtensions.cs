@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
                 ReportDiagnostic.Info => "suggestion",
                 ReportDiagnostic.Hidden => "silent",
                 ReportDiagnostic.Suppress => "none",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
         }
     }

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             void PersistAndRaiseDiagnosticsIfNeeded(DocumentAnalysisData result, StateSet stateSet)
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If we couldn't find a normal document, and all features are enabled for source generated documents,
                 // attempt to locate a matching source generated document in the project.
                 if (document is null
-                    && project.Solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
+                    && project.Solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true)
                 {
                     document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }

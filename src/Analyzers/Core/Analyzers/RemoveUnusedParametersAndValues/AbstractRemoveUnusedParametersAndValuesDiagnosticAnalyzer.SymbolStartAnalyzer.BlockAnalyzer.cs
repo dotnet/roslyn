@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
-    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         private sealed partial class SymbolStartAnalyzer
         {
@@ -66,18 +66,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 public static void Analyze(OperationBlockStartAnalysisContext context, SymbolStartAnalyzer symbolStartAnalyzer)
                 {
                     if (HasSyntaxErrors() || context.OperationBlocks.IsEmpty)
-                    {
                         return;
-                    }
 
                     // Bail out in presence of conditional directives
                     // This is a workaround for https://github.com/dotnet/roslyn/issues/31820
                     // Issue https://github.com/dotnet/roslyn/issues/31821 tracks
                     // reverting this workaround.
                     if (HasConditionalDirectives())
-                    {
                         return;
-                    }
 
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
@@ -91,7 +87,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // Ignore methods that are just a single-throw method.  These are often
                     // in-progress pieces of work and we don't want to force the user to fixup other
                     // issues before they've even gotten around to writing their code.
-                    if (IsSingleThrowNotImplementedOperation(firstBlock))
+                    if (firstBlock.IsSingleThrowNotImplementedOperation())
                         return;
 
                     var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, options);
@@ -109,9 +105,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.GetDiagnostics().ToImmutableArrayOrEmpty().HasAnyErrors())
-                            {
                                 return true;
-                            }
                         }
 
                         return false;
@@ -130,69 +124,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         return false;
                     }
-
-                    static bool IsSingleThrowNotImplementedOperation(IOperation firstBlock)
-                    {
-                        var compilation = firstBlock.SemanticModel!.Compilation;
-                        var notImplementedExceptionType = compilation.NotImplementedExceptionType();
-                        if (notImplementedExceptionType == null)
-                            return false;
-
-                        if (firstBlock is not IBlockOperation block)
-                            return false;
-
-                        if (block.Operations.Length == 0)
-                            return false;
-
-                        var firstOp = block.Operations.Length == 1
-                            ? block.Operations[0]
-                            : TryGetSingleExplicitStatement(block.Operations);
-                        if (firstOp == null)
-                            return false;
-
-                        if (firstOp is IExpressionStatementOperation expressionStatement)
-                        {
-                            // unwrap: { throw new NYI(); }
-                            firstOp = expressionStatement.Operation;
-                        }
-                        else if (firstOp is IReturnOperation returnOperation)
-                        {
-                            // unwrap: 'int M(int p) => throw new NYI();'
-                            // For this case, the throw operation is wrapped within a conversion operation to 'int',
-                            // which in turn is wrapped within a return operation.
-                            firstOp = returnOperation.ReturnedValue.WalkDownConversion();
-                        }
-
-                        // => throw new NotImplementedOperation(...)
-                        return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
-                    }
-
-                    static IOperation? TryGetSingleExplicitStatement(ImmutableArray<IOperation> operations)
-                    {
-                        IOperation? firstOp = null;
-                        foreach (var operation in operations)
-                        {
-                            if (operation.IsImplicit)
-                                continue;
-
-                            if (firstOp != null)
-                                return null;
-
-                            firstOp = operation;
-                        }
-
-                        return firstOp;
-                    }
-
-                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation? operation)
-                        => operation is IThrowOperation throwOperation &&
-                           UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
-                           notImplementedExceptionType.Equals(objectCreation.Type);
-
-                    static IOperation? UnwrapImplicitConversion(IOperation? value)
-                        => value is IConversionOperation conversion && conversion.IsImplicit
-                            ? conversion.Operand
-                            : value;
                 }
 
                 private void AnalyzeExpressionStatement(OperationAnalysisContext context)
@@ -402,9 +333,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     switch (operationBlock.Kind)
                     {
-                        case OperationKind.None:
+                        case OperationKind.Attribute:
                         case OperationKind.ParameterInitializer:
-                            // Skip blocks from attributes (which have OperationKind.None) and parameter initializers.
+                            // Skip blocks from attributes and parameter initializers.
                             // We don't have any unused values in such operation blocks.
                             return false;
 

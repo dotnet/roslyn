@@ -6,14 +6,17 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.Progression.CodeSchema.Api;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -25,6 +28,8 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Reference = VSLangProj.Reference;
 using VSProject = VSLangProj.VSProject;
+using Reference5 = VSLangProj110.Reference5;
+using Reference2 = VSLangProj2.Reference2;
 using VSProject3 = VSLangProj140.VSProject3;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
@@ -97,6 +102,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
+        public async Task SetProjectInferAsync(string projectName, bool value, CancellationToken cancellationToken)
+        {
+            var convertedValue = value ? 1 : 0;
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            project.Properties.Item("OptionInfer").Value = convertedValue;
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+        }
+
         public async Task AddProjectReferenceAsync(string projectName, string projectToReferenceName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -104,6 +117,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var project = await GetProjectAsync(projectName, cancellationToken);
             var projectToReference = await GetProjectAsync(projectToReferenceName, cancellationToken);
             ((VSProject)project.Object).References.AddProject(projectToReference);
+        }
+
+        public Task RemoveProjectReferenceAsync(string projectName, string projectReferenceName, CancellationToken cancellationToken)
+        {
+            return RemoveReference(projectName, projectReferenceName, cancellationToken);
         }
 
         public async Task AddAnalyzerReferenceAsync(string projectName, string filePath, CancellationToken cancellationToken)
@@ -119,7 +137,34 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var project = await GetProjectAsync(projectName, cancellationToken);
-            ((VSProject3)project.Object).References.Add(filePath);
+            ((VSProject)project.Object).References.Add(filePath);
+        }
+
+        public Task RemoveDllReferenceAsync(string projectName, string assemblyName, CancellationToken cancellationToken)
+        {
+            return RemoveReference(projectName, assemblyName, cancellationToken);
+        }
+
+        private async Task RemoveReference(string projectName, string referenceName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var vsProject = (VSProject)project.Object;
+            var referenceCount = vsProject.References.Count;
+            // The index for references starts at 1
+            for (var i = 1; i <= referenceCount; i++)
+            {
+                var reference = vsProject.References.Item(i);
+                var name = reference?.Name;
+                if (reference != null && name == referenceName)
+                {
+                    reference.Remove();
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException($"Could not find reference {referenceName} to remove");
         }
 
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
@@ -383,6 +428,53 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
+        public async Task RenameFileAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectDirectory = Path.GetDirectoryName(project.FullName);
+
+            VsShellUtilities.RenameDocument(
+                ServiceProvider.GlobalProvider,
+                Path.Combine(projectDirectory, oldFileName),
+                Path.Combine(projectDirectory, newFileName));
+        }
+
+        public async Task RenameFileViaDTEAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var projectItem = await GetProjectItemAsync(projectName, oldFileName, cancellationToken);
+
+            projectItem.Name = newFileName;
+        }
+
+        private async Task<EnvDTE.ProjectItem> GetProjectItemAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var solution = (await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken)).Solution;
+            var projects = solution.Projects.Cast<EnvDTE.Project>();
+            var project = projects.FirstOrDefault(x => x.Name == projectName);
+
+            if (project == null)
+            {
+                throw new InvalidOperationException($"Project '{projectName} could not be found. Available projects: {string.Join(", ", projects.Select(x => x.Name))}.");
+            }
+
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var fullFilePath = Path.Combine(projectPath, relativeFilePath);
+
+            var projectItems = project.ProjectItems.Cast<EnvDTE.ProjectItem>();
+            var document = projectItems.FirstOrDefault(d => d.get_FileNames(1).Equals(fullFilePath));
+
+            if (document == null)
+            {
+                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.get_FileNames(1)))}.");
+            }
+
+            return document;
+        }
+
         public async Task SetFileContentsAsync(string projectName, string relativeFilePath, string content, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -419,49 +511,35 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         }
 
         /// <returns>
-        /// If <paramref name="waitForBuildToFinish"/> is <see langword="true"/>, returns the build status line, which generally looks something like this:
-        ///
-        /// <code>
-        /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
-        /// </code>
-        ///
-        /// Otherwise, this method does not wait for the build to complete and returns <see langword="null"/>.
-        /// </returns>
-        public async Task<string?> BuildSolutionAsync(bool waitForBuildToFinish, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
-            buildOutputWindowPane.Clear();
-
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
-            if (waitForBuildToFinish)
-            {
-                return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
-            }
-
-            return null;
-        }
-
-        /// <inheritdoc cref="WaitForBuildToFinishAsync(IVsOutputWindowPane, CancellationToken)"/>
-        public async Task<string> WaitForBuildToFinishAsync(CancellationToken cancellationToken)
-        {
-            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
-            return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
-        }
-
-        /// <returns>
         /// The summary line for the build, which generally looks something like this:
         ///
         /// <code>
         /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
         /// </code>
         /// </returns>
-        private async Task<string> WaitForBuildToFinishAsync(IVsOutputWindowPane buildOutputWindowPane, CancellationToken cancellationToken)
+        public async Task<string> BuildSolutionAndWaitAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext;
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+            buildOutputWindowPane.Clear();
+
+            var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken);
+            using var solutionEvents = new UpdateSolutionEvents(buildManager);
+            var buildCompleteTaskCompletionSource = new TaskCompletionSource<bool>();
+
+            void HandleUpdateSolutionDone() => buildCompleteTaskCompletionSource.SetResult(true);
+            solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
+            try
+            {
+                await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
+
+                await buildCompleteTaskCompletionSource.Task;
+            }
+            finally
+            {
+                solutionEvents.OnUpdateSolutionDone -= HandleUpdateSolutionDone;
+            }
 
             // Force the error list to update
             ErrorHandler.ThrowOnFailure(buildOutputWindowPane.FlushToTaskList());
@@ -474,8 +552,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return string.Empty;
             }
 
-            // The build summary line should be second to last in the output window
-            return lines[^2].Extent.GetText();
+            // Find the build summary line
+            for (var index = lines.Count - 1; index >= 0; index--)
+            {
+                var lineText = lines[index].Extent.GetText();
+                if (lineText.StartsWith("========== Build:"))
+                {
+                    return lineText;
+                }
+            }
+
+            return string.Empty;
         }
 
         public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
@@ -588,6 +675,47 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     return string.Equals(project.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(project.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase);
                 });
+        }
+    }
+
+    internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IDisposable
+    {
+        private uint _cookie;
+        private readonly IVsSolutionBuildManager2 _solutionBuildManager;
+
+        public event Action? OnUpdateSolutionDone;
+
+        internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            _solutionBuildManager = solutionBuildManager;
+            ErrorHandler.ThrowOnFailure(solutionBuildManager.AdviseUpdateSolutionEvents(this, out _cookie));
+        }
+
+        int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate) => VSConstants.E_NOTIMPL;
+        int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate) => VSConstants.E_NOTIMPL;
+        int IVsUpdateSolutionEvents.UpdateSolution_Cancel() => VSConstants.E_NOTIMPL;
+        int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy) => VSConstants.E_NOTIMPL;
+
+        int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+        {
+            OnUpdateSolutionDone?.Invoke();
+            return 0;
+        }
+
+        void IDisposable.Dispose()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            OnUpdateSolutionDone = null;
+
+            if (_cookie != 0)
+            {
+                var tempCookie = _cookie;
+                _cookie = 0;
+                ErrorHandler.ThrowOnFailure(_solutionBuildManager.UnadviseUpdateSolutionEvents(tempCookie));
+            }
         }
     }
 }

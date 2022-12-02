@@ -118,11 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(eventAccess.IsUsableAsField);
                     if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                     {
-                        const bool isDynamic = false;
                         return RewriteWindowsRuntimeEventAssignmentOperator(eventAccess.Syntax,
                                                                             eventAccess.EventSymbol,
                                                                             EventAssignmentKind.Assignment,
-                                                                            isDynamic,
                                                                             eventAccess.ReceiverOpt,
                                                                             rewrittenRight);
                     }
@@ -131,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // - Assignment operation is not supported for custom (non-field like) events.
                     // - Access to regular field-like events is expected to be lowered to at least a field access
                     //   when we reach here.
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
 
                 default:
                     return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, type: type, used: used);
@@ -302,13 +300,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenRight);
             }
 
-            arguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? argTempsBuilder = null;
+            arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverForMultipleInvocations: false,
                 arguments,
                 property,
                 argsToParamsOpt,
                 argumentRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? argTempsBuilder);
+                storesOpt: null,
+                ref argTempsBuilder);
 
             arguments = MakeArguments(
                 syntax,

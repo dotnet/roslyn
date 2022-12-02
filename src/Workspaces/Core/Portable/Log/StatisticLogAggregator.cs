@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal sealed class StatisticLogAggregator<TKey> : AbstractLogAggregator<TKey, StatisticLogAggregator<TKey>.StatisticCounter>
+    internal sealed class StatisticLogAggregator<TKey> : AbstractLogAggregator<TKey, StatisticLogAggregator<TKey>.StatisticCounter> where TKey : notnull
     {
         protected override StatisticCounter CreateCounter()
             => new();
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
                 else
                 {
-                    return new StatisticResult(_maximum, _mininum, mean: _total / _count, range: _maximum - _mininum, mode: null, count: _count);
+                    return new StatisticResult(_maximum, _mininum, mean: (double)_total / _count, range: _maximum - _mininum, mode: null, count: _count);
                 }
             }
         }

@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // represents a span of a value between definition and use.
     // start/end positions are specified in terms of global node count as visited by 
     // StackOptimizer visitors. (i.e. recursive walk not looking into constants)
-    internal struct LocalDefUseSpan
+    internal readonly struct LocalDefUseSpan
     {
         public readonly int Start;
         public readonly int End;
@@ -407,7 +407,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // if any stack local tries to intervene and misbalance the stack, it will clash with the dummy and will be rejected.
         private readonly SmallDictionary<object, DummyLocal> _dummyVariables =
             new SmallDictionary<object, DummyLocal>(ReferenceEqualityComparer.Instance);
-
 
         // fake local that represents the eval stack.
         // when we need to ensure that eval stack is not blocked by stack Locals, we record an access to empty.
@@ -534,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private void PushEvalStack(BoundExpression result, ExprContext context)
@@ -909,7 +908,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 return rewritten;
             }
-
 
             var isIndirectAssignment = IsIndirectAssignment(node);
 
@@ -2114,7 +2112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else if (receiverOpt is not null)
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -2261,13 +2259,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Compiler should always be synthesizing locals with correct escape semantics.
         /// Checking escape scopes is not valid here.
         /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable();
 
         /// <summary>
         /// Compiler should always be synthesizing locals with correct escape semantics.
         /// Checking escape scopes is not valid here.
         /// </summary>
-        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable();
 
         internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }

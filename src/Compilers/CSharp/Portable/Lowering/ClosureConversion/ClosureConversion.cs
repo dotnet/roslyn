@@ -242,10 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loweredBody,
                 method,
                 methodOrdinal,
-                substitutedSourceMethod,
                 slotAllocatorOpt,
                 compilationState,
-                closureDebugInfoBuilder,
                 diagnostics.DiagnosticBag);
 
             CheckLocalsDefined(loweredBody);
@@ -1732,7 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             // these nodes have been handled in the context of the enclosing anonymous method conversion.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         #endregion

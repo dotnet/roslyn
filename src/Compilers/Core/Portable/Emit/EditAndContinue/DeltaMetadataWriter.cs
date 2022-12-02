@@ -11,11 +11,11 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Emit.EditAndContinue;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
 
-        private readonly Dictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>> _deletedTypeMembers;
+        private readonly Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>> _deletedTypeMembers;
 
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
         private readonly DefinitionIndex<IEventDefinition> _eventDefs;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             _changedTypeDefs = new List<ITypeDefinition>();
             _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedTypeDefinition>(ReferenceEqualityComparer.Instance);
-            _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
+            _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var synthesizedMembers = (_previousGeneration.Ordinal == 0) ? module.GetAllSynthesizedMembers() : _previousGeneration.SynthesizedMembers;
 
             Debug.Assert(module.EncSymbolChanges is not null);
-            var deletedMembers = (_previousGeneration.Ordinal == 0) ? module.EncSymbolChanges.GetAllDeletedMethods() : _previousGeneration.DeletedMembers;
+            var deletedMembers = (_previousGeneration.Ordinal == 0) ? module.EncSymbolChanges.GetAllDeletedMembers() : _previousGeneration.DeletedMembers;
 
             var currentGenerationOrdinal = _previousGeneration.Ordinal + 1;
 
@@ -539,6 +539,21 @@ namespace Microsoft.CodeAnalysis.Emit
 
             int typeRowId = _typeDefs.GetRowId(typeDef);
 
+            // First we find the deleted methods, and add them to our dictionary. This is used later when
+            // processing events, properties, methods, and references.
+            var deletedMethods = _changes.GetDeletedMethods(typeDef);
+            if (deletedMethods.Length > 0)
+            {
+                var deletedTypeMembers = ImmutableDictionary.CreateBuilder<IMethodDefinition, DeletedMethodDefinition>(ReferenceEqualityComparer.Instance);
+                foreach (var methodDef in deletedMethods)
+                {
+                    var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
+                    deletedTypeMembers.Add(oldMethodDef, new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
+                }
+
+                _deletedTypeMembers.Add(typeDef, deletedTypeMembers.ToImmutableDictionary());
+            }
+
             foreach (var eventDef in typeDef.GetEvents(this.Context))
             {
                 if (!_eventMap.Contains(typeRowId))
@@ -546,53 +561,47 @@ namespace Microsoft.CodeAnalysis.Emit
                     _eventMap.Add(typeRowId);
                 }
 
-                this.AddDefIfNecessary(_eventDefs, eventDef);
+                var eventChange = _changes.GetChangeForPossibleReAddedMember(eventDef, DefinitionExistsInAnyPreviousGeneration);
+                this.AddDefIfNecessary(_eventDefs, eventDef, eventChange);
+            }
+
+            var deletedEvents = _changes.GetDeletedEvents(typeDef);
+            foreach (var eventDel in deletedEvents)
+            {
+                var oldEventDef = (IEventDefinition)eventDel.GetCciAdapter();
+
+                // Because deleted event information comes from the associated symbol of the deleted accessors, its safe
+                // to assume that everything will be in the dictionary. We wouldn't be here it if wasn't.
+                var deletedMembers = _deletedTypeMembers[typeDef];
+                var adder = deletedMembers[(IMethodDefinition)oldEventDef.Adder];
+                var remover = deletedMembers[(IMethodDefinition)oldEventDef.Remover];
+                var caller = oldEventDef.Caller is null ? null : deletedMembers[(IMethodDefinition)oldEventDef.Caller];
+                var newEventDef = new DeletedEventDefinition(oldEventDef, adder, remover, caller, typeDef, _typesUsedByDeletedMembers);
+                _eventDefs.AddUpdated(newEventDef);
             }
 
             foreach (var fieldDef in typeDef.GetFields(this.Context))
             {
-                this.AddDefIfNecessary(_fieldDefs, fieldDef);
+                var fieldChange = _changes.GetChangeForPossibleReAddedMember(fieldDef, DefinitionExistsInAnyPreviousGeneration);
+                this.AddDefIfNecessary(_fieldDefs, fieldDef, fieldChange);
             }
 
             foreach (var methodDef in typeDef.GetMethods(this.Context))
             {
-                var methodChange = _changes.GetChange(methodDef);
-
-                // If the method was added, and not replaced, but we can find an existing row id, then treat it
-                // as an update. This supercedes the other checks for edit types etc. because a method could be
-                // deleted in a generation, and then "added" in a subsequent one, but that is an update
-                // even if the collections at hand can't track it as such
-                if (methodChange == SymbolChange.Added &&
-                    !_changes.IsReplaced(methodDef.ContainingTypeDefinition, checkEnclosingTypes: true) &&
-                    TryGetExistingMethodDefIndex(methodDef, out _))
-                {
-                    methodChange = SymbolChange.Updated;
-                }
-
+                var methodChange = _changes.GetChangeForPossibleReAddedMember(methodDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_methodDefs, methodDef, methodChange);
                 CreateIndicesForMethod(methodDef, methodChange);
             }
 
-            var deletedMethods = _changes.GetDeletedMethods(typeDef);
-            if (deletedMethods.Length > 0)
+            // Because we already processed the deleted methods above, this is a bit easier than
+            // properties and events, and we just need to make sure we add the right indices
+            if (_deletedTypeMembers.ContainsKey(typeDef))
             {
-                var deletedTypeMembers = ArrayBuilder<DeletedMethodDefinition>.GetInstance();
-                foreach (var methodDef in deletedMethods)
-                {
-                    var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
-                    deletedTypeMembers.Add(new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
-                }
-
-                // Save for later, when processing references
-                _deletedTypeMembers.Add(typeDef, deletedTypeMembers.ToImmutable());
-
-                foreach (var newMethodDef in deletedTypeMembers)
+                foreach (var (_, newMethodDef) in _deletedTypeMembers[typeDef])
                 {
                     _methodDefs.AddUpdated(newMethodDef);
                     CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
                 }
-
-                deletedTypeMembers.Free();
             }
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))
@@ -602,7 +611,22 @@ namespace Microsoft.CodeAnalysis.Emit
                     _propertyMap.Add(typeRowId);
                 }
 
-                this.AddDefIfNecessary(_propertyDefs, propertyDef);
+                var propertyChange = _changes.GetChangeForPossibleReAddedMember(propertyDef, DefinitionExistsInAnyPreviousGeneration);
+                this.AddDefIfNecessary(_propertyDefs, propertyDef, propertyChange);
+            }
+
+            var deletedProperties = _changes.GetDeletedProperties(typeDef);
+            foreach (var propertyDef in deletedProperties)
+            {
+                var oldPropertyDef = (IPropertyDefinition)propertyDef.GetCciAdapter();
+
+                // Because deleted property information comes from the associated symbol of the deleted accessors, its safe
+                // to assume that everything will be in the dictionary. We wouldn't be here it if wasn't.
+                var deletedMembers = _deletedTypeMembers[typeDef];
+                var getter = oldPropertyDef.Getter is null ? null : deletedMembers[(IMethodDefinition)oldPropertyDef.Getter];
+                var setter = oldPropertyDef.Setter is null ? null : deletedMembers[(IMethodDefinition)oldPropertyDef.Setter];
+                var newPropertyDef = new DeletedPropertyDefinition(oldPropertyDef, getter, setter, typeDef, _typesUsedByDeletedMembers);
+                _propertyDefs.AddUpdated(newPropertyDef);
             }
 
             var implementingMethods = ArrayBuilder<int>.GetInstance();
@@ -644,6 +668,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
             implementingMethods.Free();
         }
+
+        private bool DefinitionExistsInAnyPreviousGeneration(IDefinition item) => item switch
+        {
+            IMethodDefinition methodDef => TryGetExistingMethodDefIndex(methodDef, out _),
+            IPropertyDefinition propertyDef => TryGetExistingPropertyDefIndex(propertyDef, out _),
+            IFieldDefinition fieldDef => TryGetExistingFieldDefIndex(fieldDef, out _),
+            IEventDefinition eventDef => TryGetExistingEventDefIndex(eventDef, out _),
+            _ => false,
+        };
 
         private void CreateIndicesForMethod(IMethodDefinition methodDef, SymbolChange methodChange)
         {
@@ -715,10 +748,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 _parameterDefList.Add(paramDef, methodDef);
             }
         }
-
-        private bool AddDefIfNecessary<T>(DefinitionIndex<T> defIndex, T def)
-            where T : class, IDefinition
-            => AddDefIfNecessary(defIndex, def, _changes.GetChange(def));
 
         private bool AddDefIfNecessary<T>(DefinitionIndex<T> defIndex, T def, SymbolChange change)
             where T : class, IDefinition
@@ -1713,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private sealed class DeltaReferenceIndexer : ReferenceIndexer
         {
             private readonly SymbolChanges _changes;
-            private readonly Dictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>> _deletedTypeMembers;
+            private readonly Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>> _deletedTypeMembers;
 
             public DeltaReferenceIndexer(DeltaMetadataWriter writer)
                 : base(writer)
@@ -1793,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     // We need to visit deleted members to ensure attribute method references are recorded
                     if (_deletedTypeMembers.TryGetValue(typeDefinition, out var deletedMembers))
                     {
-                        this.Visit(deletedMembers);
+                        this.Visit(deletedMembers.Values);
                     }
                 }
             }

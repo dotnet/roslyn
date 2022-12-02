@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax? variableDesignation))
+            if (declarationExpression.Designation is ParenthesizedVariableDesignationSyntax variableDesignation)
             {
                 RoslynDebug.AssertNotNull(typeSyntax.Parent);
 

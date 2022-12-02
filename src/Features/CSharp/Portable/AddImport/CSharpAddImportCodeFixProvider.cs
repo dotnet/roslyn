@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         public const string CS0428 = nameof(CS0428);
 
         /// <summary>
-        ///  There is no argument given that corresponds to the required formal parameter 'X' of 'Y'
+        ///  There is no argument given that corresponds to the required parameter 'X' of 'Y'
         /// </summary>
         public const string CS7036 = nameof(CS7036);
 

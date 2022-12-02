@@ -159,9 +159,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ContainingType;
         }
 
-        public static bool IsPointerType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IPointerTypeSymbol;
-
         public static bool IsErrorType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 
@@ -205,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsReducedExtension([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IMethodSymbol method && method.MethodKind == MethodKind.ReducedExtension;
+            => symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension };
 
         public static bool IsEnumMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol?.Kind == SymbolKind.Field && symbol.ContainingType.IsEnumType();
@@ -283,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsRequired([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
 
-        public static ITypeSymbol? GetMemberType(this ISymbol symbol)
+        public static ITypeSymbol? GetMemberType(this ISymbol? symbol)
             => symbol switch
             {
                 IFieldSymbol fieldSymbol => fieldSymbol.Type,

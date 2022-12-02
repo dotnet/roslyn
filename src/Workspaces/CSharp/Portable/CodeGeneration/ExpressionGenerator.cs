@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         : GenerateNullLiteral();
 
                 case TypedConstantKind.Array:
-                    return typedConstant.IsNull ?
-                        GenerateNullLiteral() :
-                        SyntaxFactory.ImplicitArrayCreationExpression(
+                    return typedConstant.IsNull
+                        ? GenerateNullLiteral()
+                        : SyntaxFactory.ImplicitArrayCreationExpression(
                             SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
                                 SyntaxFactory.SeparatedList(typedConstant.Values.Select(GenerateExpression))));
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 float val => GenerateSingleLiteralExpression(type, val, canUseFieldReference),
                 double val => GenerateDoubleLiteralExpression(type, val, canUseFieldReference),
                 decimal val => GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, formatString: null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, integerMinValueString: null),
-                _ => type == null || type.IsReferenceType || type.IsPointerType() || type.IsNullable()
+                _ => type == null || type.IsReferenceType || type is IPointerTypeSymbol || type.IsNullable()
                     ? GenerateNullLiteral()
                     : (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(type),
             };
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var suffix = DetermineSuffix(type, nonNegativeValue);
 
             var stringValue = negative && nonNegativeValue.Equals(value)
-                ? (integerMinValueString ?? throw ExceptionUtilities.Unreachable)
+                ? (integerMinValueString ?? throw ExceptionUtilities.Unreachable())
                 : ((IFormattable)nonNegativeValue).ToString(formatString, CultureInfo.InvariantCulture) + suffix;
 
             var literal = SyntaxFactory.LiteralExpression(

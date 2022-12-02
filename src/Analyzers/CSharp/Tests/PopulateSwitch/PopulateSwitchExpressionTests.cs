@@ -1005,8 +1005,7 @@ class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
+        [Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
         public async Task TestAddMissingCasesForNullableEnum()
         {
             await TestInRegularAndScript1Async(
@@ -1055,8 +1054,7 @@ class MyClass
 ");
         }
 
-        [Fact]
-        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        [Fact, WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
         public async Task TestOrPatternIsHandled()
         {
             await TestInRegularAndScript1Async(
@@ -1112,8 +1110,7 @@ class MyClass
 ");
         }
 
-        [Fact]
-        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        [Fact, WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
         public async Task TestOrPatternIsHandled_AllEnumValuesAreHandled_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1143,8 +1140,7 @@ class MyClass
 ");
         }
 
-        [Fact]
-        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        [Fact, WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
         public async Task TestMixingOrWithAndPatterns()
         {
             await TestInRegularAndScript1Async(
@@ -1204,8 +1200,7 @@ class MyClass
 );
         }
 
-        [Fact]
-        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        [Fact, WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
         public async Task TestMixingOrWithAndPatterns2()
         {
             await TestInRegularAndScript1Async(
@@ -1516,6 +1511,103 @@ static class MyEnumExtensions
 enum MyEnum
 {
     Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean1()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean2()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+            null => ""null"",
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+        };
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean switch
+        {
+            true => ""true"",
+            _ => throw new System.NotImplementedException(),
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+        };
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean switch
+        {
+            true => ""true"",
+            false => ""false"",
+            _ => throw new System.NotImplementedException(),
+        };
+    }
 }");
         }
     }

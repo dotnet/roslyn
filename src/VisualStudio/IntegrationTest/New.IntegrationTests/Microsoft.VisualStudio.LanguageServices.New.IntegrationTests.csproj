@@ -18,6 +18,13 @@
     <Compile Include="..\TestUtilities\TestUtilities.cs" Link="TestUtilities.cs" />
     <Compile Include="..\TestUtilities\WellKnownCommandNames.cs" Link="WellKnownCommandNames.cs" />
     <Compile Include="..\TestUtilities\WellKnownProjectTemplates.cs" Link="WellKnownProjectTemplates.cs" />
+    <Compile Include="..\TestUtilities\QuickInfoToStringConverter.cs" Link="QuickInfoToStringConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\LongClass.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Resources\LongClass.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -40,7 +47,7 @@
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\TestSourceGenerator\Microsoft.CodeAnalysis.TestSourceGenerator.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\TestAnalyzerReference\Microsoft.CodeAnalysis.TestAnalyzerReference.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <ProjectReference Include="..\..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />

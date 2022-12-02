@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var mscorlibRef = TestMetadata.Net40.mscorlib;
             var compilation = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
             var sys = compilation.GlobalNamespace.ChildNamespace("System");
-            Conversions c = new BuckStopsHereBinder(compilation, associatedSyntaxTree: null).Conversions;
+            Conversions c = new BuckStopsHereBinder(compilation, associatedFileIdentifier: null).Conversions;
             var types = new TypeSymbol[]
             {
             sys.ChildType("Object"),
@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             // UNDONE: Conversions involving expressions: null, lambda, method group
         }
 
-
         [Fact]
         public void TestIsSameTypeIgnoringDynamic()
         {
@@ -311,7 +310,7 @@ class C
 
             Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
 
-            var conv = new BuckStopsHereBinder(compilation, associatedSyntaxTree: null).Conversions;
+            var conv = new BuckStopsHereBinder(compilation, associatedFileIdentifier: null).Conversions;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             // no custom modifiers to custom modifiers

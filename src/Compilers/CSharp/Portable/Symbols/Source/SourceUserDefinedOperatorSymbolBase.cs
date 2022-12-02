@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Abstract;
             }
 
-            var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+            var result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
                 isOrdinaryMethod: false, isForInterfaceMember: inInterface,
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
 
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: true,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
 
                 return this.FindExplicitlyImplementedMethod(isOperator: true, _explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifier, diagnostics);
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
 
                 _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(name), diagnostics);

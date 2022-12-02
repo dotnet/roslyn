@@ -67,11 +67,6 @@
         <target state="translated">Vložte chybějící {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Dočasná vložená proměnná</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Zjistily se konflikty.</target>

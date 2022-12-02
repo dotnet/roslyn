@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
 
                             currentState = newState;
                         }
-                        else if (directive.DirectiveNameToken.IsKind(SyntaxKind.IfKeyword, SyntaxKind.ElifKeyword, SyntaxKind.ElseKeyword, SyntaxKind.EndIfKeyword))
+                        else if (directive.DirectiveNameToken.Kind() is
+                            SyntaxKind.IfKeyword or
+                            SyntaxKind.ElifKeyword or
+                            SyntaxKind.ElseKeyword or
+                            SyntaxKind.EndIfKeyword)
                         {
                             // Reset the known nullable state when crossing a conditional compilation boundary
                             currentState = null;

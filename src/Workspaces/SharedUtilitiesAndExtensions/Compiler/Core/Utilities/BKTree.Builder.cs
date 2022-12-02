@@ -92,10 +92,10 @@ namespace Roslyn.Utilities
             private readonly Edge[] _compactEdges;
             private readonly BuilderNode[] _builderNodes;
 
-            public Builder(IEnumerable<ReadOnlyMemory<char>> values)
+            public Builder(IEnumerable<string> values)
             {
                 // TODO(cyrusn): Properly handle unicode normalization here.
-                var distinctValues = values.Where(v => v.Length > 0).Distinct(StringSliceComparer.OrdinalIgnoreCase).ToArray();
+                var distinctValues = values.Where(v => v.Length > 0).Distinct(CaseInsensitiveComparison.Comparer).ToArray();
                 var charCount = values.Sum(v => v.Length);
 
                 _concatenatedLowerCaseWords = new char[charCount];
@@ -107,7 +107,7 @@ namespace Roslyn.Utilities
                     var value = distinctValues[i];
                     _wordSpans[i] = new TextSpan(characterIndex, value.Length);
 
-                    foreach (var ch in value.Span)
+                    foreach (var ch in value)
                     {
                         _concatenatedLowerCaseWords[characterIndex] = CaseInsensitiveComparison.ToLower(ch);
                         characterIndex++;

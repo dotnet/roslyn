@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class EditorBrowsableHelpers
     {
-        public struct EditorBrowsableInfo
+        public readonly struct EditorBrowsableInfo
         {
             public Compilation Compilation { get; }
             public INamedTypeSymbol? HideModuleNameAttribute { get; }

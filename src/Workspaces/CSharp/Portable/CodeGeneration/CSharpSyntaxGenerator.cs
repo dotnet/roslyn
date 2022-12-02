@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode WithoutConstraints(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax? method))
+            if (declaration is MethodDeclarationSyntax method)
             {
                 if (method.ConstraintClauses.Count > 0)
                 {
@@ -1606,6 +1606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             accessibility = Accessibility.NotApplicable;
                         }
                     }
+
                     var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });
@@ -3202,7 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // this counts for actual reference type, or a type parameter with a 'class' constraint.
             // Also, if it's a nullable type, then we can use "null".
             if (type.IsReferenceType ||
-                type.IsPointerType() ||
+                type is IPointerTypeSymbol ||
                 type.IsNullable())
             {
                 return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
@@ -3327,11 +3328,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode BaseExpression()
             => SyntaxFactory.BaseExpression();
 
-        public override SyntaxNode LiteralExpression(object? value)
-            => ExpressionGenerator.GenerateNonEnumValueExpression(type: null, value, canUseFieldReference: true);
-
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
             => ExpressionGenerator.GenerateExpression(value);
+
+        protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
+            => ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference);
 
         public override SyntaxNode IdentifierName(string identifier)
             => identifier.ToIdentifierName();

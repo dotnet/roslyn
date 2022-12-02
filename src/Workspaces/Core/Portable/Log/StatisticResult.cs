@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal struct StatisticResult
+    internal readonly struct StatisticResult
     {
         public static StatisticResult FromList(List<int> values)
         {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 total += current;
             }
 
-            var mean = total / values.Count;
+            var mean = (double)total / values.Count;
 
             var range = max - min;
             var mode = values.GroupBy(i => i).OrderByDescending(g => g.Count()).FirstOrDefault().Key;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// average value of the total data set
         /// </summary>
-        public readonly int Mean;
+        public readonly double Mean;
 
         /// <summary>
         /// most frequent value in the total data set
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// </summary>
         public readonly int Count;
 
-        public StatisticResult(int max, int min, int mean, int range, int? mode, int count)
+        public StatisticResult(int max, int min, double mean, int range, int? mode, int count)
         {
             this.Maximum = max;
             this.Minimum = min;

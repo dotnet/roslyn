@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
     Public Class DocumentHighlightsServiceTests
 
-        <WorkItem(441151, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
         <Theory, CombinatorialData>
+        <WorkItem(441151, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
         Public Async Function TestMultipleLanguagesPassedToAPI(testHost As TestHost) As Task
             Dim workspaceElement =
                 <Workspace>

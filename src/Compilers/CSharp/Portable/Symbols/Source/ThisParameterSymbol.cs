@@ -2,14 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -172,37 +166,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal override DeclarationScope DeclaredScope
-            => _containingType.IsStructType() ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
-
         internal override DeclarationScope EffectiveScope
         {
             get
             {
-                var scope = DeclaredScope;
+                var scope = _containingType.IsStructType() ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
                 if (scope != DeclarationScope.Unscoped &&
-                    hasUnscopedRefAttribute(_containingMethod))
+                    HasUnscopedRefAttribute)
                 {
                     return DeclarationScope.Unscoped;
                 }
                 return scope;
-
-                static bool hasUnscopedRefAttribute(MethodSymbol? containingMethod)
-                {
-                    if (containingMethod is { })
-                    {
-                        if (containingMethod.HasUnscopedRefAttribute == true)
-                        {
-                            return true;
-                        }
-                        if (containingMethod.AssociatedSymbol is PropertySymbol { HasUnscopedRefAttribute: true })
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
             }
         }
+
+        internal override bool HasUnscopedRefAttribute
+        {
+            get
+            {
+                if (_containingMethod is { })
+                {
+                    if (_containingMethod.HasUnscopedRefAttribute == true)
+                    {
+                        return true;
+                    }
+                    if (_containingMethod.AssociatedSymbol is PropertySymbol { HasUnscopedRefAttribute: true })
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        internal sealed override bool UseUpdatedEscapeRules
+            => _containingMethod?.UseUpdatedEscapeRules ?? _containingType.ContainingModule.UseUpdatedEscapeRules;
     }
 }

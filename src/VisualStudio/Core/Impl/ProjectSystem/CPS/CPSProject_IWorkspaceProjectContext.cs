@@ -32,6 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly IProjectCodeModel _projectCodeModel;
         private readonly Lazy<ProjectExternalErrorReporter?> _externalErrorReporter;
 
+        private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new();
+
         public string DisplayName
         {
             get => _visualStudioProject.DisplayName;
@@ -135,42 +137,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void SetOptions(ImmutableArray<string> arguments)
             => _visualStudioProjectOptionsProcessor?.SetCommandLine(arguments);
 
-        public string? DefaultNamespace
-        {
-            get => _visualStudioProject.DefaultNamespace;
-            private set => _visualStudioProject.DefaultNamespace = value;
-        }
-
         public void SetProperty(string name, string? value)
         {
-            if (name == AdditionalPropertyNames.RootNamespace)
+            if (name == BuildPropertyNames.RootNamespace)
             {
                 // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
                 // by assigning the value of the project's root namespace to it. So various feature can choose to 
                 // use it for their own purpose.
                 // In the future, we might consider officially exposing "default namespace" for VB project 
                 // (e.g. through a <defaultnamespace> msbuild property)
-                DefaultNamespace = value;
+                _visualStudioProject.DefaultNamespace = value;
             }
-            else if (name == AdditionalPropertyNames.MaxSupportedLangVersion)
+            else if (name == BuildPropertyNames.MaxSupportedLangVersion)
             {
                 _visualStudioProject.MaxLangVersion = value;
             }
-            else if (name == AdditionalPropertyNames.RunAnalyzers)
+            else if (name == BuildPropertyNames.RunAnalyzers)
             {
                 var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
                 _visualStudioProject.RunAnalyzers = boolValue;
             }
-            else if (name == AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis)
+            else if (name == BuildPropertyNames.RunAnalyzersDuringLiveAnalysis)
             {
                 var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
                 _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
             }
-            else if (name == AdditionalPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
+            else if (name == BuildPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
             {
                 _visualStudioProject.DependencyNodeTargetIdentifier = value;
             }
-            else if (name == AdditionalPropertyNames.TargetRefPath)
+            else if (name == BuildPropertyNames.TargetRefPath)
             {
                 // If we don't have a path, always set it to null
                 if (string.IsNullOrEmpty(value))
@@ -257,22 +253,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void RemoveDynamicFile(string filePath)
             => _visualStudioProject.RemoveDynamicSourceFile(filePath);
 
-        public void SetRuleSetFile(string filePath)
-        {
-            // This is now a no-op: we also receive the rule set file through SetOptions, and we'll just use that one
-        }
-
-        private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new ConcurrentQueue<VisualStudioProject.BatchScope>();
-
         public void StartBatch()
             => _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
-
-        [Obsolete($"Use {nameof(EndBatchAsync)}.")]
-        public void EndBatch()
-        {
-            Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
-            scope.Dispose();
-        }
 
         public ValueTask EndBatchAsync()
         {

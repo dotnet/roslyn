@@ -324,18 +324,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 baseType = partBase;
                                 baseTypeLocation = decl.NameLocation;
-                                continue;
                             }
-                            else if (containsOnlyOblivious(partBase))
+                            else if (!containsOnlyOblivious(partBase))
                             {
-                                continue;
+                                reportBaseType();
                             }
                         }
+                        else
+                        {
+                            reportBaseType();
+                        }
 
-                        var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleBases, Locations[0], this);
-                        baseType = new ExtendedErrorTypeSymbol(baseType, LookupResultKind.Ambiguous, info);
-                        baseTypeLocation = decl.NameLocation;
-                        reportedPartialConflict = true;
+                        void reportBaseType()
+                        {
+                            var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleBases, Locations[0], this);
+                            baseType = new ExtendedErrorTypeSymbol(baseType, LookupResultKind.Ambiguous, info);
+                            baseTypeLocation = decl.NameLocation;
+                            reportedPartialConflict = true;
+                        }
 
                         static bool containsOnlyOblivious(TypeSymbol type)
                         {

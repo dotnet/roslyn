@@ -15,16 +15,15 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
-        : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSyntaxNode> :
+        AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+        where TSyntaxNode : SyntaxNode
     {
-        // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
-        internal const string DiagnosticFixableId = "RemoveUnnecessaryImportsFixable";
-
         // The NotConfigurable custom tag ensures that user can't turn this diagnostic into a warning / error via
         // ruleset editor or solution explorer. Setting messageFormat to empty string ensures that we won't display
         // this diagnostic in the preview pane header.
-        private static readonly DiagnosticDescriptor s_fixableIdDescriptor = CreateDescriptorWithId(DiagnosticFixableId, EnforceOnBuild.Never, "", "", isConfigurable: false);
+        private static readonly DiagnosticDescriptor s_fixableIdDescriptor = CreateDescriptorWithId(
+            RemoveUnnecessaryImportsConstants.DiagnosticFixableId, EnforceOnBuild.Never, "", "", isConfigurable: false);
 
         private readonly DiagnosticDescriptor _classificationIdDescriptor;
         private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
@@ -44,9 +43,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         protected abstract ISyntaxFacts SyntaxFacts { get; }
-        protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports);
+        protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<TSyntaxNode> unnecessaryImports);
         protected abstract bool IsRegularCommentOrDocComment(SyntaxTrivia trivia);
-        protected abstract IUnnecessaryImportsProvider UnnecessaryImportsProvider { get; }
+        protected abstract IUnnecessaryImportsProvider<TSyntaxNode> UnnecessaryImportsProvider { get; }
 
         protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
 
@@ -71,15 +70,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // from VB.  However, we want to mark the entire import statement if we are
                 // going to remove all the clause.  Defer to our subclass to stitch this up
                 // for us appropriately.
-                unnecessaryImports = MergeImports(unnecessaryImports);
+                var mergedImports = MergeImports(unnecessaryImports);
 
                 var descriptor = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
                     ? _generatedCodeClassificationIdDescriptor
                     : _classificationIdDescriptor;
-                var contiguousSpans = GetContiguousSpans(unnecessaryImports);
+                var contiguousSpans = GetContiguousSpans(mergedImports);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
-                    CreateFixableDiagnostics(unnecessaryImports, tree, cancellationToken));
+                    CreateFixableDiagnostics(mergedImports, tree, cancellationToken));
 
                 foreach (var diagnostic in diagnostics)
                 {
@@ -164,9 +163,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var spans = GetFixableDiagnosticSpans(nodes, tree, cancellationToken);
 
             foreach (var span in spans)
-            {
                 yield return Diagnostic.Create(s_fixableIdDescriptor, tree.GetLocation(span));
-            }
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

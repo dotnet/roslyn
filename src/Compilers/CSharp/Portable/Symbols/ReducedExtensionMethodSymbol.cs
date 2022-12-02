@@ -230,7 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return method.Construct(typeArgsForConstruct);
         }
 
-
         internal override MethodSymbol CallsiteReducedFromMethod
         {
             get { return _reducedFrom.ConstructIfGeneric(_typeArguments); }
@@ -323,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
@@ -570,10 +569,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
@@ -588,9 +587,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _reducedFrom.GetHashCode();
         }
 
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
 
 #nullable enable
 
@@ -632,30 +633,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool IsCallerLineNumber
             {
                 // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override bool IsCallerFilePath
             {
                 // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override bool IsCallerMemberName
             {
                 // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override int CallerArgumentExpressionParameterIndex
             {
                 // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
-            internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+            internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
-            internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+            internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
 
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

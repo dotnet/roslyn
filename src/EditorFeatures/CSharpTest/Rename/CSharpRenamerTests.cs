@@ -370,8 +370,7 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
         newDocumentName: @"C2",
         newDocumentPath: @"Test\C2.cs");
 
-        [Fact]
-        [WorkItem(46580, "https://github.com/dotnet/roslyn/issues/46580")]
+        [Fact, WorkItem(46580, "https://github.com/dotnet/roslyn/issues/46580")]
         public Task CSharp_RenameDocument_MappedDocumentHasNoResults()
         {
             var documentName = "Component1.razor";

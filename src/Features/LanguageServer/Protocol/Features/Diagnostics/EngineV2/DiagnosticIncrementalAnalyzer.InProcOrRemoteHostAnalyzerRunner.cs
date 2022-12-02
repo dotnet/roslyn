@@ -137,11 +137,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // +1 for project itself
                 var count = documentAnalysisScope != null ? 1 : project.DocumentIds.Count + 1;
+                var forSpanAnalysis = documentAnalysisScope?.Span.HasValue ?? false;
 
                 var performanceInfo = analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache).ToImmutableArray();
 
                 _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
-                    (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
+                    (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, forSpanAnalysis, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))

@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared
         bool SupportsRefactorings(Document document);
         bool SupportsRename(Document document);
         bool SupportsNavigationToAnyPosition(Document document);
+        bool SupportsSemanticSnippets(Document document);
     }
 
     [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Default), Shared]
@@ -38,6 +39,9 @@ namespace Microsoft.CodeAnalysis.Shared
             => true;
 
         public bool SupportsRename(Document document)
+            => true;
+
+        public bool SupportsSemanticSnippets(Document document)
             => true;
     }
 }

@@ -1132,7 +1132,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 GoTo ResolutionComplete
             End If
 
-
             '3.	Next, eliminate all members from the set that require narrowing conversions 
             '   to be applicable to the argument list, except for the case where the argument 
             '   expression type is Object.
@@ -1180,7 +1179,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
 ResolutionComplete:
-
             If Not resolutionIsLateBound AndAlso applicableCandidates = 0 Then
                 Return ReportOverloadResolutionFailedOrLateBound(candidates, applicableCandidates, lateBindingIsAllowed AndAlso binder.OptionStrict <> OptionStrict.On, asyncLambdaSubToFunctionMismatch)
             End If
@@ -1610,8 +1608,6 @@ ResolutionComplete:
             Return True
         End Function
 
-
-
         ''' <summary>
         ''' Implements shadowing based on
         ''' §11.8.1 Overloaded Method Resolution.
@@ -1910,7 +1906,6 @@ ResolutionComplete:
                 Return CInt(_candidates(indexX).InferenceLevel).CompareTo(_candidates(indexY).InferenceLevel)
             End Function
         End Class
-
 
         ''' <summary>
         ''' §11.8.1.1 Applicability
@@ -2829,7 +2824,6 @@ Done:
             End If
 
 Bailout:
-
             If argsToParams IsNot Nothing Then
                 argsToParams.Free()
                 argsToParams = Nothing
@@ -3198,7 +3192,6 @@ Bailout:
 
         End Sub
 
-
         ''' <summary>
         ''' Should be in sync with Binder.ReportByRefConversionErrors.
         ''' </summary>
@@ -3277,7 +3270,6 @@ Bailout:
             End If
 
         End Sub
-
 
         ''' <summary>
         ''' Should be in sync with Binder.ReportByValConversionErrors.
@@ -3878,7 +3870,6 @@ Bailout:
             End Select
         End Sub
 
-
         Private Shared Sub InferTypeArgumentsIfNeedToAndCombineWithExistingCandidates(
             results As ArrayBuilder(Of CandidateAnalysisResult),
             newCandidate As CandidateAnalysisResult,
@@ -4434,7 +4425,6 @@ ContinueCandidatesLoop:
             '                f(x)            ' Calls the first overload
             '            End Sub
             '        End Module
-
 
             Dim leftParamIndex As Integer = 0
             Dim rightParamIndex As Integer = 0

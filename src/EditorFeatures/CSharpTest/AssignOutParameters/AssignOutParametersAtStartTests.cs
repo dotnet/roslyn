@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     /// for many of them, that fix is offered by the <see cref="AssignOutParametersAboveReturnCodeFixProvider"/>
     /// instead. These tests have been marked as such.
     /// </summary>
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
     public class AssignOutParametersAtStartTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestForSimpleReturn()
         {
             // Handled by other fixer
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestForSwitchSectionReturn()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestMissingWhenVariableAssigned()
         {
             var code = @"class C
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestWhenNotAssignedThroughAllPaths1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestWhenNotAssignedThroughAllPaths2()
         {
             // Handled by other fixer
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestMissingWhenAssignedThroughAllPaths()
         {
             var code = @"class C
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestMultiple()
         {
             // Handled by other fixer
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestMultiple_AssignedInReturn1()
         {
             // Handled by other fixer
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestMultiple_AssignedInReturn2()
         {
             // Handled by other fixer
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestNestedReturn()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestNestedReturnNoBlock()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestNestedReturnEvenWhenWrittenAfter()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestForExpressionBodyMember()
         {
             // Handled by other fixer
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestForLambdaExpressionBody()
         {
             // Handled by other fixer
@@ -303,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestMissingForLocalFunctionExpressionBody()
         {
             // Handled by other fixer
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestForLambdaBlockBody()
         {
             // Handled by other fixer
@@ -338,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestForLocalFunctionBlockBody()
         {
             // Handled by other fixer
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestForOutParamInSinglePath()
         {
             var code = @"class C
@@ -379,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -415,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestFixAll1_MultipleMethods()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -476,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -504,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestFixAll2_MultipleMethods()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -549,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -589,7 +590,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        [Fact]
         public async Task TestFixAll3_MultipleMethods()
         {
             await VerifyCS.VerifyCodeFixAsync(

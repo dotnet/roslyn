@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return rule;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return rule;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return rule;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

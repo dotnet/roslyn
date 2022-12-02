@@ -412,7 +412,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo = inLambdaUseSiteInfo;
             }
 
-
             return MostEncompassingType(u, conv => conv.FromType, ref useSiteInfo);
         }
 

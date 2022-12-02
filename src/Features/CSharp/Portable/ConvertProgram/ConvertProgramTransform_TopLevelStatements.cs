@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 else if (member is not FieldDeclarationSyntax)
                 {
                     // checked by analyzer
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

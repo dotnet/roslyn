@@ -16,12 +16,13 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveStaticMembers
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
     public class CSharpMoveStaticMembersTests
     {
         private static readonly TestComposition s_testServices = FeaturesTestCompositions.Features.AddParts(typeof(TestMoveStaticMembersService));
 
         #region Perform New Type Action From Options
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveField()
         {
             var initialMarkup = @"
@@ -53,7 +54,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveProperty()
         {
             var initialMarkup = @"
@@ -84,7 +85,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveEvent()
         {
             var initialMarkup = @"
@@ -121,7 +122,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethod()
         {
             var initialMarkup = @"
@@ -158,7 +159,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveExtensionMethod()
         {
             var initialMarkup = @"
@@ -213,7 +214,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveConstField()
         {
             // const is static so we should work here
@@ -245,7 +246,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveNothing()
         {
             var initialMarkup = @"
@@ -282,7 +283,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodWithTrivia()
         {
             var initialMarkup = @"
@@ -323,7 +324,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMultipleMethods()
         {
             var initialMarkup = @"
@@ -370,7 +371,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveSingleMethodFromMultiple()
         {
             // move the method that this was not triggered on
@@ -418,7 +419,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveOneOfEach()
         {
             var initialMarkup = @"
@@ -477,7 +478,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestInNestedClass()
         {
             var initialMarkup = @"
@@ -514,7 +515,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestInNestedNamespace()
         {
             // collapse the namespaces in the new file
@@ -552,7 +553,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveFieldNoNamespace()
         {
             var initialMarkup = @"
@@ -574,7 +575,7 @@ public class Class1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveFieldNewNamespace()
         {
             var initialMarkup = @"
@@ -599,7 +600,7 @@ public class Class1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodWithNamespacedSelectedDestination()
         {
             // in the case that we have an extra namespace in the destination name
@@ -638,7 +639,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodFileScopedNamespace()
         {
             // We still keep normal namespacing rules in the new file
@@ -686,7 +687,7 @@ public class Class1
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveGenericMethod()
         {
             var initialMarkup = @"
@@ -723,7 +724,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodWithGenericClass()
         {
             var initialMarkup = @"
@@ -760,7 +761,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorUsage()
         {
             var initialMarkup = @"
@@ -813,7 +814,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorUsageWithTrivia()
         {
             var initialMarkup = @"
@@ -868,7 +869,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorSourceUsage()
         {
             var initialMarkup = @"
@@ -914,7 +915,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveFieldAndRefactorSourceUsage()
         {
             var initialMarkup = @"
@@ -954,7 +955,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMovePropertyAndRefactorSourceUsage()
         {
             var initialMarkup = @"
@@ -1012,7 +1013,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveGenericMethodAndRefactorImpliedUsage()
         {
             var initialMarkup = @"
@@ -1065,7 +1066,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveGenericMethodAndRefactorUsage()
         {
             var initialMarkup = @"
@@ -1124,7 +1125,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodFromGenericClassAndRefactorUsage()
         {
             var initialMarkup = @"
@@ -1181,7 +1182,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodFromGenericClassAndRefactorPartialTypeArgUsage()
         {
             var initialMarkup = @"
@@ -1243,7 +1244,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorUsageDifferentNamespace()
         {
             var initialMarkup = @"
@@ -1306,7 +1307,7 @@ namespace TestNs2
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorUsageNewNamespace()
         {
             var initialMarkup = @"
@@ -1361,7 +1362,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorUsageSeparateFile()
         {
             var initialMarkup1 = @"
@@ -1437,7 +1438,7 @@ public class Class2
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorClassAlias()
         {
             var initialMarkup = @"
@@ -1501,7 +1502,7 @@ namespace TestNs2
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorNamespaceAlias()
         {
             var initialMarkup = @"
@@ -1565,7 +1566,7 @@ namespace TestNs2
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorConflictingName()
         {
             var initialMarkup = @"
@@ -1658,7 +1659,7 @@ namespace TestNs2
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorQualifiedName()
         {
             var initialMarkup = @"
@@ -1719,7 +1720,7 @@ namespace TestNs2
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorStaticUsing()
         {
             var initialMarkup = @"
@@ -1783,7 +1784,7 @@ namespace TestNs2
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodAndRefactorNamespaceAliasWithExtraNamespace()
         {
             var initialMarkup = @"
@@ -1847,7 +1848,7 @@ namespace TestNs2
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveExtensionMethodDontRefactor()
         {
             var initialMarkup = @"
@@ -1920,7 +1921,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveExtensionMethodRefactorImports()
         {
             var initialMarkup = @"
@@ -2010,7 +2011,7 @@ namespace TestNs1.ExtraNs
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveExtensionMethodRefactorMultipleImports()
         {
             var initialMarkup = @"
@@ -2112,7 +2113,7 @@ namespace TestNs1.ExtraNs
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodFromStaticClass()
         {
             var initialMarkup = @"
@@ -2149,7 +2150,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodRetainFileBanner()
         {
             var initialMarkup = @"// Here is an example of a license or something
@@ -2195,7 +2196,7 @@ namespace TestNs1
         #endregion
 
         #region Perform Existing Type Action From Options
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveFieldToExistingType()
         {
             var initialSourceMarkup = @"
@@ -2228,7 +2229,7 @@ public class Class1Helpers
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMovePropertyToExistingType()
         {
             var initialSourceMarkup = @"
@@ -2261,7 +2262,7 @@ public class Class1Helpers
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveEventToExistingType()
         {
             var initialSourceMarkup = @"
@@ -2300,7 +2301,7 @@ public class Class1Helpers
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodToExistingType()
         {
             var initialSourceMarkup = @"
@@ -2339,7 +2340,7 @@ public class Class1Helpers
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveExtensionMethodToExistingType()
         {
             var initialSourceMarkup = @"
@@ -2396,7 +2397,7 @@ public static class Class1Helpers
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveConstFieldToExistingType()
         {
             var initialSourceMarkup = @"
@@ -2429,7 +2430,7 @@ public class Class1Helpers
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodToExistingTypeWithNamespace()
         {
             var initialSourceMarkup = @"
@@ -2480,7 +2481,7 @@ namespace TestNs
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodToExistingTypeWithNewNamespace()
         {
             var initialSourceMarkup = @"
@@ -2525,7 +2526,7 @@ namespace TestNs
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodToExistingTypeRefactorSourceUsage()
         {
             var initialSourceMarkup = @"
@@ -2573,7 +2574,7 @@ public class Class1Helpers
                 selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestMoveMethodToExistingTypeRefactorDestinationUsage()
         {
             var initialSourceMarkup = @"
@@ -2623,7 +2624,7 @@ public class Class1Helpers
 
         #region Selections and caret position
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectInMethodParens()
         {
             var initialMarkup = @"
@@ -2660,7 +2661,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectWholeFieldDeclaration()
         {
             var initialMarkup = @"
@@ -2691,7 +2692,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectBeforeKeywordOfDeclaration()
         {
             var initialMarkup = @"
@@ -2722,7 +2723,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectInKeyWordOfDeclaration1()
         {
             var initialMarkup = @"
@@ -2753,7 +2754,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectInKeyWordOfDeclaration2()
         {
             var initialMarkup = @"
@@ -2784,7 +2785,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectInTypeIdentifierMethodDeclaration()
         {
             var initialMarkup = @"
@@ -2821,7 +2822,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectInFieldInitializerAfterSemicolon()
         {
             // However, a semicolon after the initializer is still considered a declaration
@@ -2854,7 +2855,7 @@ namespace TestNs1
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectInMultipleFieldIdentifiers()
         {
             var initialMarkup = @"
@@ -2887,7 +2888,7 @@ namespace TestNs1
             await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMultipleMembers1()
         {
             var initialMarkup = @"
@@ -2930,7 +2931,7 @@ namespace TestNs1
             await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMultipleMembers2()
         {
             var initialMarkup = @"
@@ -2973,7 +2974,7 @@ namespace TestNs1
             await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMultipleMembers3()
         {
             var initialMarkup = @"
@@ -3016,7 +3017,7 @@ namespace TestNs1
             await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMultipleMembers4()
         {
             var initialMarkup = @"
@@ -3059,7 +3060,7 @@ namespace TestNs1
             await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectOneOfMultipleFieldIdentifiers()
         {
             // However, a semicolon after the initializer is still considered a declaration
@@ -3093,7 +3094,7 @@ namespace TestNs1
             await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectInTypeIdentifierOfFieldDeclaration_NoAction()
         {
             var initialMarkup = @"
@@ -3107,7 +3108,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectInFieldInitializerEquals_NoAction()
         {
             // The initializer isn't a member declaration
@@ -3122,7 +3123,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMethodBody_NoAction()
         {
             var initialMarkup = @"
@@ -3139,7 +3140,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMethodBracket_NoAction()
         {
             var initialMarkup = @"
@@ -3156,7 +3157,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMalformedMethod_NoAction()
         {
             var initialMarkup = @"
@@ -3177,7 +3178,7 @@ namespace TestNs1
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMalformedField_NoAction1()
         {
             var initialMarkup = @"
@@ -3195,7 +3196,7 @@ namespace TestNs1
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMalformedField_NoAction2()
         {
             var initialMarkup = @"
@@ -3213,7 +3214,7 @@ namespace TestNs1
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMalformedField_NoAction3()
         {
             var initialMarkup = @"
@@ -3231,7 +3232,7 @@ namespace TestNs1
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectMalformedField_NoAction4()
         {
             var initialMarkup = @"
@@ -3249,7 +3250,7 @@ namespace TestNs1
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectPropertyBody_NoAction()
         {
             var initialMarkup = @"
@@ -3263,7 +3264,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectNonStaticProperty_NoAction()
         {
             var initialMarkup = @"
@@ -3277,7 +3278,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectStaticConstructor1_NoAction()
         {
             var initialMarkup = @"
@@ -3293,7 +3294,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectStaticConstructor2_NoAction()
         {
             var initialMarkup = @"
@@ -3309,7 +3310,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectOperator_NoAction()
         {
             var initialMarkup = @"
@@ -3326,7 +3327,7 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectTopLevelStatement_NoAction1()
         {
             var initialMarkup = @"
@@ -3347,7 +3348,7 @@ using System;
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectTopLevelStatement_NoAction2()
         {
             var initialMarkup = @"
@@ -3368,7 +3369,7 @@ using System;
             }.RunAsync().ConfigureAwait(false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [Fact]
         public async Task TestSelectTopLevelLocalFunction_NoAction()
         {
             var initialMarkup = @"

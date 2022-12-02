@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class AnonymousTypePropertySetAccessorPublicSymbol
             Inherits AnonymousTypePropertyAccessorPublicSymbol
 
-            Private _parameters As ImmutableArray(Of ParameterSymbol)
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
             Public Sub New([property] As PropertySymbol, voidTypeSymbol As TypeSymbol)
                 MyBase.New([property], voidTypeSymbol)

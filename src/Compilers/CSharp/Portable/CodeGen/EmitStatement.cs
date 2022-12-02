@@ -789,7 +789,7 @@ oneMoreTime:
                     {
                         // Ensure the return type has been translated. (Necessary
                         // for cases of untranslated anonymous types.)
-                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics);
+                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics.DiagnosticBag);
                     }
                     _builder.EmitRet(expressionOpt == null);
                 }
@@ -915,7 +915,6 @@ oneMoreTime:
         {
             object typeCheckFailedLabel = null;
 
-
             _builder.AdjustStack(1); // Account for exception on the stack.
 
             // Open appropriate exception handler scope. (Catch or Filter)
@@ -924,8 +923,8 @@ oneMoreTime:
             if (catchBlock.ExceptionFilterOpt == null)
             {
                 var exceptionType = ((object)catchBlock.ExceptionTypeOpt != null) ?
-                    _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics) :
-                    _module.GetSpecialType(SpecialType.System_Object, catchBlock.Syntax, _diagnostics);
+                    _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics.DiagnosticBag) :
+                    _module.GetSpecialType(SpecialType.System_Object, catchBlock.Syntax, _diagnostics.DiagnosticBag);
 
                 _builder.OpenLocalScope(ScopeType.Catch, exceptionType);
 
@@ -971,10 +970,10 @@ oneMoreTime:
 
                 if ((object)catchBlock.ExceptionTypeOpt != null)
                 {
-                    var exceptionType = _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics);
+                    var exceptionType = _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics.DiagnosticBag);
 
                     _builder.EmitOpCode(ILOpCode.Isinst);
-                    _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics);
+                    _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics.DiagnosticBag);
                     _builder.EmitOpCode(ILOpCode.Dup);
                     _builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel);
                     _builder.EmitOpCode(ILOpCode.Pop);
@@ -1221,7 +1220,7 @@ oneMoreTime:
             {
                 Debug.Assert(_module.SupportsPrivateImplClass);
 
-                var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics);
+                var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics.DiagnosticBag);
                 Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(
                     isSpanOrReadOnlySpan
                         ? isReadOnlySpan
@@ -1242,9 +1241,9 @@ oneMoreTime:
 
                     _builder.EmitLoad(key);
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-                    _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics);
+                    _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics.DiagnosticBag);
 
-                    var UInt32Type = _module.Compilation.GetSpecialType(SpecialType.System_UInt32);
+                    var UInt32Type = Binder.GetSpecialType(_module.Compilation, SpecialType.System_UInt32, syntaxNode, _diagnostics);
                     keyHash = AllocateTemp(UInt32Type, syntaxNode);
 
                     _builder.EmitLocalStore(keyHash);
@@ -1260,34 +1259,38 @@ oneMoreTime:
             if (isSpanOrReadOnlySpan)
             {
                 // Binder.ConvertPatternExpression() has checked for these well-known members.
-                var sequenceEqualsTMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
+                var sequenceEqualsTMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_module.Compilation,
+                    (isReadOnlySpan
                     ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
-                    : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T);
+                    : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T),
+                    _diagnostics, syntax: syntaxNode);
                 Debug.Assert(sequenceEqualsTMethod != null && !sequenceEqualsTMethod.HasUseSiteError);
-                var sequenceEqualsCharMethod = sequenceEqualsTMethod.Construct(_module.Compilation.GetSpecialType(SpecialType.System_Char));
-                sequenceEqualsMethodRef = _module.Translate(sequenceEqualsCharMethod, null, _diagnostics);
+                var sequenceEqualsCharMethod = sequenceEqualsTMethod.Construct(Binder.GetSpecialType(_module.Compilation, SpecialType.System_Char, syntaxNode, _diagnostics));
+                sequenceEqualsMethodRef = _module.Translate(sequenceEqualsCharMethod, null, _diagnostics.DiagnosticBag);
 
-                var asSpanMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpan_String);
+                var asSpanMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_MemoryExtensions__AsSpan_String, _diagnostics, syntax: syntaxNode);
                 Debug.Assert(asSpanMethod != null && !asSpanMethod.HasUseSiteError);
-                asSpanMethodRef = _module.Translate(asSpanMethod, null, _diagnostics);
+                asSpanMethodRef = _module.Translate(asSpanMethod, null, _diagnostics.DiagnosticBag);
 
-                var spanTLengthMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
+                var spanTLengthMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_module.Compilation,
+                    (isReadOnlySpan
                     ? WellKnownMember.System_ReadOnlySpan_T__get_Length
-                    : WellKnownMember.System_Span_T__get_Length);
+                    : WellKnownMember.System_Span_T__get_Length),
+                    _diagnostics, syntax: syntaxNode);
                 Debug.Assert(spanTLengthMethod != null && !spanTLengthMethod.HasUseSiteError);
                 var spanCharLengthMethod = spanTLengthMethod.AsMember((NamedTypeSymbol)keyType);
-                lengthMethodRef = _module.Translate(spanCharLengthMethod, null, _diagnostics);
+                lengthMethodRef = _module.Translate(spanCharLengthMethod, null, _diagnostics.DiagnosticBag);
             }
             else
             {
                 var stringEqualityMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Equality) as MethodSymbol;
                 Debug.Assert(stringEqualityMethod != null && !stringEqualityMethod.HasUseSiteError);
-                stringEqualityMethodRef = _module.Translate(stringEqualityMethod, syntaxNode, _diagnostics);
+                stringEqualityMethodRef = _module.Translate(stringEqualityMethod, syntaxNode, _diagnostics.DiagnosticBag);
 
                 var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
                 if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
                 {
-                    lengthMethodRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics);
+                    lengthMethodRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics.DiagnosticBag);
                 }
             }
 
@@ -1398,7 +1401,7 @@ oneMoreTime:
             _builder.EmitLoad(key);
             _builder.EmitConstantValue(stringConstant);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
-            _builder.EmitToken(stringEqualityMethodRef, syntaxNode, _diagnostics);
+            _builder.EmitToken(stringEqualityMethodRef, syntaxNode, _diagnostics.DiagnosticBag);
 
             // Branch to targetLabel if String.Equals returned true.
             _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
@@ -1425,9 +1428,9 @@ oneMoreTime:
             _builder.EmitLoad(key);
             _builder.EmitConstantValue(stringConstant);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-            _builder.EmitToken(asSpanRef, syntaxNode, _diagnostics);
+            _builder.EmitToken(asSpanRef, syntaxNode, _diagnostics.DiagnosticBag);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
-            _builder.EmitToken(sequenceEqualsRef, syntaxNode, _diagnostics);
+            _builder.EmitToken(sequenceEqualsRef, syntaxNode, _diagnostics.DiagnosticBag);
 
             // Branch to targetLabel if SequenceEquals returned true.
             _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
@@ -1459,7 +1462,7 @@ oneMoreTime:
             if (local.IsConst)
             {
                 Debug.Assert(local.HasConstantValue);
-                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics);
+                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics.DiagnosticBag);
                 LocalConstantDefinition localConstantDef = new LocalConstantDefinition(
                     local.Name,
                     local.Locations.FirstOrDefault() ?? Location.None,
@@ -1490,19 +1493,19 @@ oneMoreTime:
                 // We can't declare a reference to void, so if the pointed-at type is void, use native int
                 // (represented here by IntPtr) instead.
                 translatedType = pointedAtType.IsVoidType()
-                    ? _module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, _diagnostics)
-                    : _module.Translate(pointedAtType, syntaxNode, _diagnostics);
+                    ? _module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, _diagnostics.DiagnosticBag)
+                    : _module.Translate(pointedAtType, syntaxNode, _diagnostics.DiagnosticBag);
             }
             else
             {
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
-                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics);
+                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics.DiagnosticBag);
             }
 
             // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
             // Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
-            _module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics);
+            _module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics.DiagnosticBag);
 
             LocalDebugId localId;
             var name = GetLocalDebugName(local, out localId);
@@ -1594,7 +1597,7 @@ oneMoreTime:
         private LocalDefinition AllocateTemp(TypeSymbol type, SyntaxNode syntaxNode, LocalSlotConstraints slotConstraints = LocalSlotConstraints.None)
         {
             return _builder.LocalSlotManager.AllocateSlot(
-                _module.Translate(type, syntaxNode, _diagnostics),
+                _module.Translate(type, syntaxNode, _diagnostics.DiagnosticBag),
                 slotConstraints);
         }
 

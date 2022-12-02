@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct AttributeUsageInfo : IEquatable<AttributeUsageInfo>
+    internal readonly struct AttributeUsageInfo : IEquatable<AttributeUsageInfo>
     {
         [Flags()]
         private enum PackedAttributeUsage
@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis
                 return (_flags & PackedAttributeUsage.Initialized) == 0;
             }
         }
-
 
         internal AttributeTargets ValidTargets
         {
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis
             return new ValidTargetsStringLocalizableErrorArgument(builder.ToArrayAndFree());
         }
 
-        private struct ValidTargetsStringLocalizableErrorArgument : IFormattable
+        private readonly struct ValidTargetsStringLocalizableErrorArgument : IFormattable
         {
             private readonly string[]? _targetResourceIds;
 

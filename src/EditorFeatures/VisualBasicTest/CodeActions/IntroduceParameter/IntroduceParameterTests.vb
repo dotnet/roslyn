@@ -10,8 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceParameterCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.IntroduceParameter
+    <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
     Public Class IntroduceParameterTests
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithNoMethodCallsCase() As Task
             Dim source =
 "Class Program
@@ -32,7 +33,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithLocal() As Task
             Dim source =
 "Class Program
@@ -48,7 +49,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestBasicComplexExpressionCase() As Task
             Dim source =
 "Class Program
@@ -77,7 +78,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithSingleMethodCall() As Task
             Dim source =
 "Class Program
@@ -106,7 +107,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithSingleMethodCallMultipleDeclarators() As Task
             Dim source =
 "Class Program
@@ -121,7 +122,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestHighlightIncompleteExpressionCaseWithSingleMethodCall() As Task
             Dim source =
 "Class Program
@@ -136,7 +137,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithMultipleMethodCall() As Task
             Dim source =
 "Class Program
@@ -167,7 +168,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionAllOccurrences() As Task
             Dim source =
 "Class Program
@@ -198,7 +199,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithNoMethodCallsTrampoline() As Task
             Dim source =
 "Class Program
@@ -223,7 +224,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithSingleMethodCallTrampoline() As Task
             Dim source =
 "Class Program
@@ -256,7 +257,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithSingleMethodCallTrampolineAllOccurrences() As Task
             Dim source =
 "Class Program
@@ -292,7 +293,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithSingleMethodCallAndAccessorsTrampoline() As Task
             Dim source =
 "Class Program
@@ -325,7 +326,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithSingleMethodCallAndAccessorsConditionalTrampoline() As Task
             Dim source =
 "Class Program
@@ -358,7 +359,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithSingleMethodCallMultipleAccessorsTrampoline() As Task
             Dim source =
 "Class TestClass
@@ -407,7 +408,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithSingleMethodCallMultipleAccessorsConditionalTrampoline() As Task
             Dim source =
 "Class TestClass
@@ -456,7 +457,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline() As Task
             Dim source =
 "Class TestClass
@@ -505,7 +506,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline2() As Task
             Dim source =
 "Class TestClass
@@ -554,7 +555,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionWithNoMethodCallOverload() As Task
             Dim source =
 "Class Program
@@ -588,7 +589,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithRecursiveCall() As Task
             Dim source =
 "Class Program
@@ -612,7 +613,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithNestedRecursiveCall() As Task
             Dim source =
 "Class Program
@@ -636,7 +637,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithParamsArg() As Task
             Dim source =
 "Class Program
@@ -649,7 +650,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithOptionalParameters() As Task
             Dim source =
 "Class Program
@@ -679,7 +680,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithOptionalParametersUsed() As Task
             Dim source =
 "Class Program
@@ -709,7 +710,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithOptionalParametersUsedOverload() As Task
             Dim source =
 "Class Program
@@ -745,7 +746,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithOptionalParametersUsedTrampoline() As Task
             Dim source =
 "Class Program
@@ -781,7 +782,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithOptionalParametersUnusedTrampoline() As Task
             Dim source =
 "Class Program
@@ -817,7 +818,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionCaseWithCancellationToken() As Task
             Dim source =
 "Imports System.Threading
@@ -849,7 +850,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionInConstructor() As Task
             Dim source =
 "Class Program
@@ -879,7 +880,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestFieldInitializer() As Task
             Dim source =
 "Class Program
@@ -896,7 +897,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestPropertyGetter() As Task
             Dim source =
 "Class TestClass
@@ -914,7 +915,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestPropertySetter() As Task
             Dim source =
 "Class TestClass
@@ -932,7 +933,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestDestructor() As Task
             Dim source =
 "Class Program
@@ -943,7 +944,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestExpressionInParameter() As Task
             Dim source =
 "Class Program
@@ -954,7 +955,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestMeKeywordInExpression() As Task
             Dim source =
 "Class Program
@@ -983,7 +984,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestNamedParameterNecessary() As Task
             Dim source =
 "Class Program
@@ -1015,7 +1016,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestInvocationInWithBlock() As Task
             Dim source =
 "Class Program
@@ -1059,7 +1060,7 @@ End Class"
                 }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestHighlightReturnType() As Task
             Dim source =
 "Class Program
@@ -1071,7 +1072,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(source, source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        <Fact>
         Public Async Function TestClassObject() As Task
             Dim source =
 "Class F

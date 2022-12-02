@@ -102,9 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UncheckedExpression:
                     return true;
 
-                case SyntaxKind.RecordDeclaration:
-                    return ((RecordDeclarationSyntax)syntax).ParameterList is object;
-
                 case SyntaxKind.RecordStructDeclaration:
                     return false;
 
@@ -243,21 +240,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
+        internal static TypeSyntax SkipScoped(this TypeSyntax syntax, out bool isScoped)
+        {
+            if (syntax is ScopedTypeSyntax scopedType)
+            {
+                isScoped = true;
+                return scopedType.Type;
+            }
+
+            isScoped = false;
+            return syntax;
+        }
+
+        internal static SyntaxNode ModifyingScopedOrRefTypeOrSelf(this SyntaxNode syntax)
+        {
+            SyntaxNode? parentNode = syntax.Parent;
+
+            if (parentNode is RefTypeSyntax refType && refType.Type == syntax)
+            {
+                syntax = refType;
+                parentNode = parentNode.Parent;
+            }
+
+            if (parentNode is ScopedTypeSyntax scopedType && scopedType.Type == syntax)
+            {
+                return scopedType;
+            }
+
+            return syntax;
+        }
+
         internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
             this ExpressionSyntax? syntax,
             BindingDiagnosticBag diagnostics,
             out RefKind refKind)
         {
-            refKind = RefKind.None;
-            if (syntax?.Kind() == SyntaxKind.RefExpression)
+            if (syntax is not RefExpressionSyntax { Expression: var expression } refExpression)
             {
-                refKind = RefKind.Ref;
-                syntax = ((RefExpressionSyntax)syntax).Expression;
-
-                syntax.CheckDeconstructionCompatibleArgument(diagnostics);
+                refKind = RefKind.None;
+                return syntax;
             }
 
-            return syntax;
+            MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(
+                diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
+
+            refKind = RefKind.Ref;
+            expression.CheckDeconstructionCompatibleArgument(diagnostics);
+            return expression;
         }
 
         internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, BindingDiagnosticBag diagnostics)

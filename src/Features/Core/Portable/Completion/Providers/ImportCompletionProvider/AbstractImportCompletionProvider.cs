@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportedNamespaces())
+            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportedNamespaces)
                 return;
 
             var cancellationToken = completionContext.CancellationToken;
@@ -215,16 +215,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected static bool IsAddingImportsSupported(Document document)
         {
-            var workspace = document.Project.Solution.Workspace;
+            var solution = document.Project.Solution;
 
             // Certain types of workspace don't support document change, e.g. DebuggerIntelliSenseWorkspace
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            if (!solution.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return false;
             }
 
             // Certain documents, e.g. Razor document, don't support adding imports
-            var documentSupportsFeatureService = workspace.Services.GetRequiredService<IDocumentSupportsFeatureService>();
+            var documentSupportsFeatureService = solution.Services.GetRequiredService<IDocumentSupportsFeatureService>();
             if (!documentSupportsFeatureService.SupportsRefactorings(document))
             {
                 return false;

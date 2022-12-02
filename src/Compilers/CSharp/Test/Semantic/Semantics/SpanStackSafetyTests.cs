@@ -264,9 +264,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'T' and 'Span<int>'
                 //         if (t is Span<int>)
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t is Span<int>").WithArguments("is", "T", "System.Span<int>").WithLocation(7, 13),
                 // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
                 //         if (t is Span<int> s)
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18));
@@ -308,9 +308,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'Span<int>' and 'T'
                 //         if (s is T) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s is T").WithArguments("is", "System.Span<int>", "T").WithLocation(7, 13),
                 // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
                 //         if (s is T t) { }
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
@@ -330,9 +330,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'Span<int>' and 'T'
                 //         if (s is T) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s is T").WithArguments("is", "System.Span<int>", "T").WithLocation(7, 13),
                 // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
                 //         if (s is T t) { }
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
@@ -482,13 +482,10 @@ class Program
             );
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void ByrefParam(LanguageVersion languageVersion)
+        [Fact]
+        public void ByrefParam()
         {
             var text = @"using System;
-using System.Diagnostics.CodeAnalysis;
 
 class Program
 {
@@ -497,7 +494,7 @@ class Program
     }
 
     // OK
-    static void M1(ref Span<string> ss)
+    static void M1(scoped ref Span<string> ss)
     {
     }
 
@@ -508,34 +505,54 @@ class Program
     }
 
     // OK
-    static void M3(in Span<string> ss)
+    static void M3(scoped in Span<string> ss)
     {
     }
 
     // OK
-    static void M3l(in SpanLike<string> ss)
+    static void M3l(scoped in SpanLike<string> ss)
     {
     }
 
     // OK
-    static ref Span<string> M4([UnscopedRef] ref Span<string> ss) { return ref ss; }
+    static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
 
     // OK
-    static ref readonly Span<string> M5([UnscopedRef] ref Span<string> ss) => ref ss;
+    static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
 
     // Not OK
     // TypedReference baseline
     static ref TypedReference M1(ref TypedReference ss) => ref ss;
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                // (10,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M1(scoped ref Span<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 20),
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
-                // (39,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12)
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12),
+                // (21,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M3(scoped in Span<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(21, 20),
+                // (26,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M3l(scoped in SpanLike<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(26, 21)
+            );
+
+            comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12)
             );
         }
 
@@ -1452,10 +1469,9 @@ class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void PassingSpansToLocals_EscapeScope(LanguageVersion languageVersion)
+        public void PassingSpansToLocals_EscapeScope_01(LanguageVersion languageVersion)
         {
             var source = @"using System;
-using System.Diagnostics.CodeAnalysis;
 class C
 {
     static void Main()
@@ -1466,18 +1482,55 @@ class C
         Console.WriteLine(M2(ref x).Length);
     }
     
-    static ref Span<int> M1([UnscopedRef] ref Span<int> x)
+    static ref Span<int> M1(ref Span<int> x)
     {
         ref Span<int> q = ref x;
         return ref q;
     }
     
-    static ref Span<int> M2([UnscopedRef] ref Span<int> x)
+    static ref Span<int> M2(ref Span<int> x)
     {
         return ref x;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+10
+10");
+        }
+
+        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope_02(LanguageVersion languageVersion)
+        {
+            var source = @"using System;
+
+class C
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+        
+        Console.WriteLine(M1(ref x).Length);
+        Console.WriteLine(M2(ref x).Length);
+    }
+    
+    static ref Span<int> M1(ref Span<int> x)
+    {
+        ref Span<int> q = ref x;
+        return ref q;
+    }
+    
+    static ref Span<int> M2(ref Span<int> x)
+    {
+        return ref x;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
@@ -1573,11 +1626,13 @@ class C
 2 - 1");
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
-        public void PassingSpansToParameters_Errors()
+        public void PassingSpansToParameters_Errors(LanguageVersion languageVersion)
         {
-            CreateCompilationWithMscorlibAndSpan(@"
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -1601,51 +1656,83 @@ class C
         M2(y: out s2, x: ref s1);   // five
         M2(y: out s1, x: ref s2);   // six
 
-        M2(ref s1, out s1);         // should be ok
-        M2(ref s2, out s2);         // should be ok
+        M2(ref s1, out s1);         // okay
+        M2(ref s2, out s2);         // okay
     }
 
-    static void M2(ref Span<int> x, out Span<int> y)
+    static void M2(scoped ref Span<int> x, out Span<int> y)
     {
         y = default;
     }
-}").VerifyDiagnostics(
-                // (16,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, out s2);         // one
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 24),
-                // (16,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(ref s1, out s2);         // one
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
-                // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s2, out s1);         // two
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
-                // (17,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(ref s2, out s1);         // two
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
-                // (19,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, out s2);         // three
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(19, 24),
-                // (19,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(ref s1, out s2);         // three
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
-                // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s2, out s1);         // four
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
-                // (20,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(ref s2, out s1);         // four
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
-                // (22,19): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(y: out s2, x: ref s1);   // five
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(22, 19),
-                // (22,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(y: out s2, x: ref s1);   // five
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
-                // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(y: out s1, x: ref s2);   // six
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30),
-                // (23,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(y: out s1, x: ref s2);   // six
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9));
+}", parseOptions: TestOptions.RegularDefault.WithLanguageVersion(languageVersion));
+
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                // In C# 7.2 the input to an `out` parameter can escape which means several 
+                // of the tests are errors due to stack copying to escape
+                comp.VerifyDiagnostics(
+                    // (16,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(ref s1, out s2);         // one
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
+                    // (16,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s1, out s2);         // one
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 24),
+                    // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                    // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
+                    // (19,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(ref s1, out s2);         // three
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
+                    // (19,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s1, out s2);         // three
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(19, 24),
+                    // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                    // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
+                    // (22,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(y: out s2, x: ref s1);   // five
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
+                    // (22,19): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s2, x: ref s1);   // five
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(22, 19),
+                    // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
+                    // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30),
+                    // (29,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static void M2(scoped ref Span<int> x, out Span<int> y)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(29, 20));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                    // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
+                    // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                    // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
+                    // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
+                    // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30));
+            }
         }
 
         [Fact]
