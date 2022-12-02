@@ -24,11 +24,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [IdeTheory, WorkItem(957250, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/957250")]
-        [CombinatorialData]
-        public async Task TypingInPartialType([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact, WorkItem(957250, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/957250")]
+        public async Task TypingInPartialType()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 public partial class Test
 {
