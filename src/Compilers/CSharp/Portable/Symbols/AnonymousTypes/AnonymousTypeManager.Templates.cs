@@ -209,18 +209,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(nTypeArguments != 0);
 
                     // Replace field types (where type parameters will be) by placeholders.
-                    var genericFieldTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(fields.Length);
-                    for (var i = 0; i < nTypeArguments; i++)
-                    {
-                        genericFieldTypeBuilder.Add(default);
-                    }
-
+                    var genericFieldTypes = IndexedTypeParameterSymbol.Take(nTypeArguments);
                     if (returnsVoid)
                     {
+                        var genericFieldTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(fields.Length);
+                        genericFieldTypeBuilder.AddRange(genericFieldTypes);
                         genericFieldTypeBuilder.Add(fields[^1].TypeWithAnnotations);
+                        genericFieldTypes = genericFieldTypeBuilder.ToImmutableAndFree();
                     }
-
-                    var genericFieldTypes = genericFieldTypeBuilder.ToImmutableAndFree();
                     var genericTypeDescr = typeDescr.WithNewFieldsTypes(genericFieldTypes);
 
                     var key = new SynthesizedDelegateKey(genericTypeDescr);

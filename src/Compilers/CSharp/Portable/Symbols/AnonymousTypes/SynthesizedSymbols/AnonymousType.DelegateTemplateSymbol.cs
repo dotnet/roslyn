@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeParameters = CreateTypeParameters(
                     this,
                     parameterCount: typeDescr.Fields.Length - 1,
-                    returnsVoid: typeDescr.Fields[^1].Type is { } t && t.IsVoidType());
+                    returnsVoid: typeDescr.Fields[^1].Type.IsVoidType());
 
                 var constructor = new SynthesizedDelegateConstructor(this, manager.System_Object, manager.System_IntPtr);
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var typeParams = containingType.TypeParameters;
                     var returnParameter = fields[^1];
-                    var returnsVoid = returnParameter.Type is { } t && t.IsVoidType();
+                    var returnsVoid = returnParameter.Type.IsVoidType();
 
                     var parameterCount = fields.Length - 1;
                     var parameters = ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, DeclarationScope Scope, ConstantValue? DefaultValue, bool IsParams)>.GetInstance(parameterCount);
