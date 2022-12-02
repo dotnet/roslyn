@@ -7874,7 +7874,8 @@ done:;
 
         private bool IsPossibleYieldStatement()
         {
-            return this.CurrentToken.ContextualKind == SyntaxKind.YieldKeyword && (this.PeekToken(1).Kind == SyntaxKind.ReturnKeyword || this.PeekToken(1).Kind == SyntaxKind.BreakKeyword);
+            return this.CurrentToken.ContextualKind == SyntaxKind.YieldKeyword &&
+                   this.PeekToken(1).Kind is SyntaxKind.ReturnKeyword or SyntaxKind.BreakKeyword;
         }
 
         private bool IsPossibleLocalDeclarationStatement(bool isGlobalScriptLevel)
@@ -8150,7 +8151,7 @@ done:;
                 _termState = saveTerm;
             }
 
-            return this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
+            return this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.SemicolonToken;
         }
 
         private bool IsPossibleMethodDeclarationFollowingNullableType()
@@ -9058,7 +9059,7 @@ tryAgain:
                     int lastTokenPosition = -1;
                     while (IsMakingProgress(ref lastTokenPosition))
                     {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        if (this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.SemicolonToken)
                         {
                             break;
                         }
@@ -9260,7 +9261,7 @@ tryAgain:
                     case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                         return this.CurrentToken.Kind == SyntaxKind.CommaToken;
                     case ParseTypeMode.AfterTupleComma:
-                        return this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseParenToken;
+                        return this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
                     default:
                         // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
                         // There we err on the side of accepting a declaration.
@@ -9326,7 +9327,7 @@ tryAgain:
             ExpressionSyntax arg = null;
             SyntaxKind kind;
 
-            if (this.CurrentToken.Kind == SyntaxKind.CaseKeyword || this.CurrentToken.Kind == SyntaxKind.DefaultKeyword)
+            if (this.CurrentToken.Kind is SyntaxKind.CaseKeyword or SyntaxKind.DefaultKeyword)
             {
                 caseOrDefault = this.EatToken();
                 if (caseOrDefault.Kind == SyntaxKind.CaseKeyword)
@@ -9508,7 +9509,7 @@ tryAgain:
 
         private bool IsPossibleSwitchSection()
         {
-            return (this.CurrentToken.Kind == SyntaxKind.CaseKeyword) ||
+            return this.CurrentToken.Kind == SyntaxKind.CaseKeyword ||
                    (this.CurrentToken.Kind == SyntaxKind.DefaultKeyword && this.PeekToken(1).Kind != SyntaxKind.OpenParenToken);
         }
 
@@ -9575,9 +9576,9 @@ tryAgain:
             while (IsPossibleSwitchSection());
 
             // Next, parse statement list stopping for new sections
-            CSharpSyntaxNode tmp = labels[labels.Count - 1];
+            CSharpSyntaxNode tmp = labels[^1];
             this.ParseStatements(ref tmp, statements, true);
-            labels[labels.Count - 1] = (SwitchLabelSyntax)tmp;
+            labels[^1] = (SwitchLabelSyntax)tmp;
 
             return _syntaxFactory.SwitchSection(
                 _pool.ToListAndFree(labels),
@@ -9871,9 +9872,9 @@ tryAgain:
                         try
                         {
                             if (ScanType() == ScanTypeFlags.NotType ||
-                                (isFunctionPointerParameter ?
-                                     this.CurrentToken.Kind is not (SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken) :
-                                     this.CurrentToken.Kind != SyntaxKind.IdentifierToken))
+                                (isFunctionPointerParameter
+                                    ? this.CurrentToken.Kind is not (SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken)
+                                    : this.CurrentToken.Kind != SyntaxKind.IdentifierToken))
                             {
                                 this.Reset(ref beforeScopedResetPoint);
                                 return null;
@@ -9955,16 +9956,9 @@ tryAgain:
         /// <returns></returns>
         private VariableDesignationSyntax ParseSimpleDesignation()
         {
-            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken)
-            {
-                var underscore = this.EatContextualToken(SyntaxKind.UnderscoreToken);
-                return _syntaxFactory.DiscardDesignation(underscore);
-            }
-            else
-            {
-                var identifier = this.EatToken(SyntaxKind.IdentifierToken);
-                return _syntaxFactory.SingleVariableDesignation(identifier);
-            }
+            return CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken
+                ? _syntaxFactory.DiscardDesignation(this.EatContextualToken(SyntaxKind.UnderscoreToken))
+                : _syntaxFactory.SingleVariableDesignation(this.EatToken(SyntaxKind.IdentifierToken));
         }
 
         private WhenClauseSyntax ParseWhenClause(Precedence precedence)
@@ -10024,7 +10018,7 @@ tryAgain:
                 localFunction: out localFunction);
             _termState = saveTerm;
 
-            if (allowLocalFunctions && localFunction == null && (type as PredefinedTypeSyntax)?.Keyword.Kind == SyntaxKind.VoidKeyword)
+            if (allowLocalFunctions && localFunction == null && type is PredefinedTypeSyntax { Keyword.Kind: SyntaxKind.VoidKeyword })
             {
                 type = this.AddError(type, ErrorCode.ERR_NoVoidHere);
             }
@@ -10064,7 +10058,7 @@ tryAgain:
                     mod = this.EatToken();
                 }
 
-                if (k == SyntaxKind.ReadOnlyKeyword || k == SyntaxKind.VolatileKeyword)
+                if (k is SyntaxKind.ReadOnlyKeyword or SyntaxKind.VolatileKeyword)
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
@@ -10363,7 +10357,7 @@ tryAgain:
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
-                    return this.IsTrueIdentifier() || (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword);
+                    return this.IsTrueIdentifier() || this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword;
                 default:
                     return IsPredefinedType(tk)
                         || SyntaxFacts.IsAnyUnaryExpression(tk)
@@ -10796,12 +10790,12 @@ tryAgain:
                 // check for >>, >>=, >>> or >>>=
                 int tokensToCombine = 1;
                 if (tk == SyntaxKind.GreaterThanToken
-                    && (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken || this.PeekToken(1).Kind == SyntaxKind.GreaterThanEqualsToken)
+                    && this.PeekToken(1).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
                     && NoTriviaBetween(this.CurrentToken, this.PeekToken(1))) // check to see if they really are adjacent
                 {
                     if (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
                     {
-                        if ((this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken || this.PeekToken(2).Kind == SyntaxKind.GreaterThanEqualsToken)
+                        if (this.PeekToken(2).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken)
                             && NoTriviaBetween(this.PeekToken(1), this.PeekToken(2))) // check to see if they really are adjacent
                         {
                             if (this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
