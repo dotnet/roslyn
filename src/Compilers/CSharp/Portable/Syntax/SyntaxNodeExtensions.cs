@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// asking for.
         /// </summary>
         internal static TypeSyntax SkipRef(this TypeSyntax syntax)
-            => syntax.SkipRefInLocalOrReturn(diagnostics: null, out _);
+            => SkipRefWorker(syntax, diagnostics: null, out _);
 
         internal static TypeSyntax SkipRefInField(this TypeSyntax syntax, out RefKind refKind)
         {
