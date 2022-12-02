@@ -1876,15 +1876,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">The optional parse options to use. If no options are specified default options are
         /// used.</param>
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
-        public static AttributeArgumentListSyntax ParseAttributeArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
+        public static AttributeArgumentListSyntax? ParseAttributeArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
-            using (var parser = MakeParser(lexer))
-            {
-                var node = parser.ParseAttributeArgumentList();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (AttributeArgumentListSyntax)node.CreateRed();
-            }
+            using var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options);
+            using var parser = MakeParser(lexer);
+
+            var node = parser.ParseAttributeArgumentList() ?? new InternalSyntax.AttributeArgumentListSyntax(
+                SyntaxKind.AttributeArgumentList,
+                InternalSyntax.SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken),
+                arguments: null,
+                InternalSyntax.SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken),
+                diagnostics: null,
+                annotations: null);
+            if (consumeFullText)
+                node = parser.ConsumeUnexpectedTokens(node);
+            return (AttributeArgumentListSyntax)node.CreateRed();
         }
 
         /// <summary>

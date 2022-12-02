@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
-            FileWatchedReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(this.Services, FileChangeWatcher);
+            FileWatchedReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(this.Services.SolutionServices, FileChangeWatcher);
 
             FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
