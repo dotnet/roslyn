@@ -22,9 +22,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [IdeFact]
-        public async Task QuickInfo1()
+        [IdeTheory]
+        [CombinatorialData]
+        public async Task QuickInfo1([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await SetUpEditorAsync(@"
 ''' <summary>Hello!</summary>
 Class Program
@@ -36,9 +38,11 @@ End Class", HangMitigatingCancellationToken);
             Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", quickInfo);
         }
 
-        [IdeFact]
-        public async Task International()
+        [IdeTheory]
+        [CombinatorialData]
+        public async Task International([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await SetUpEditorAsync(@"
 ''' <summary>
 ''' This is an XML doc comment defined in code.

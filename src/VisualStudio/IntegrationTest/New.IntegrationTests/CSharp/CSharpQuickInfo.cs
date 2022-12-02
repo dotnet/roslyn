@@ -22,9 +22,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [IdeFact]
-        public async Task QuickInfo_MetadataDocumentation()
+        [IdeTheory]
+        [CombinatorialData]
+        public async Task QuickInfo_MetadataDocumentation([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await SetUpEditorAsync(@"
 ///<summary>Hello!</summary>
 class Program
@@ -40,9 +42,11 @@ class Program
                 quickInfo);
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task QuickInfo_Documentation()
+        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [CombinatorialData]
+        public async Task QuickInfo_Documentation([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await SetUpEditorAsync(@"
 ///<summary>Hello!</summary>
 class Program$$
@@ -56,9 +60,11 @@ class Program$$
             Assert.Equal("class Program\r\nHello!", quickInfo);
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task International()
+        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [CombinatorialData]
+        public async Task International([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await SetUpEditorAsync(@"
 /// <summary>
 /// This is an XML doc comment defined in code.
@@ -76,9 +82,11 @@ class العربية123
 This is an XML doc comment defined in code.", quickInfo);
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task SectionOrdering()
+        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [CombinatorialData]
+        public async Task SectionOrdering([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await SetUpEditorAsync(@"
 using System;
 using System.Threading.Tasks;
