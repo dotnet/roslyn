@@ -10795,7 +10795,7 @@ tryAgain:
                 {
                     if (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
                     {
-                        if (this.PeekToken(2).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken)
+                        if (this.PeekToken(2).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
                             && NoTriviaBetween(this.PeekToken(1), this.PeekToken(2))) // check to see if they really are adjacent
                         {
                             if (this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
@@ -11047,28 +11047,30 @@ tryAgain:
                         return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                     }
                 case SyntaxKind.IdentifierToken:
-                    if (this.IsTrueIdentifier())
                     {
-                        if (this.IsPossibleAnonymousMethodExpression())
+                        if (this.IsTrueIdentifier())
                         {
-                            return this.ParseAnonymousMethodExpression();
-                        }
-                        else if (this.IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda)
-                        {
-                            return lambda;
-                        }
-                        else if (this.IsPossibleDeconstructionLeft(precedence))
-                        {
-                            return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
+                            if (this.IsPossibleAnonymousMethodExpression())
+                            {
+                                return this.ParseAnonymousMethodExpression();
+                            }
+                            else if (this.IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda)
+                            {
+                                return lambda;
+                            }
+                            else if (this.IsPossibleDeconstructionLeft(precedence))
+                            {
+                                return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
+                            }
+                            else
+                            {
+                                return this.ParseAliasQualifiedName(NameOptions.InExpression);
+                            }
                         }
                         else
                         {
-                            return this.ParseAliasQualifiedName(NameOptions.InExpression);
+                            return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                         }
-                    }
-                    else
-                    {
-                        return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                     }
                 case SyntaxKind.OpenBracketToken:
                     if (!this.IsPossibleLambdaExpression(precedence))
@@ -11102,25 +11104,20 @@ tryAgain:
                 case SyntaxKind.InterpolatedStringToken:
                     return this.ParseInterpolatedStringToken();
                 case SyntaxKind.OpenParenToken:
-                    if (IsPossibleLambdaExpression(precedence))
                     {
-                        if (this.TryParseLambdaExpression() is { } lambda)
-                        {
-                            return lambda;
-                        }
+                        return IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda
+                            ? lambda
+                            : this.ParseCastOrParenExpressionOrTuple();
                     }
-                    return this.ParseCastOrParenExpressionOrTuple();
                 case SyntaxKind.NewKeyword:
                     return this.ParseNewExpression();
                 case SyntaxKind.StackAllocKeyword:
                     return this.ParseStackAllocExpression();
                 case SyntaxKind.DelegateKeyword:
                     // check for lambda expression with explicit function pointer return type
-                    if (this.IsPossibleLambdaExpression(precedence))
-                    {
-                        return this.ParseLambdaExpression();
-                    }
-                    return this.ParseAnonymousMethodExpression();
+                    return this.IsPossibleLambdaExpression(precedence)
+                        ? this.ParseLambdaExpression()
+                        : this.ParseAnonymousMethodExpression();
                 case SyntaxKind.RefKeyword:
                     // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                     if (this.IsPossibleLambdaExpression(precedence))
@@ -11459,26 +11456,20 @@ tryAgain:
             SyntaxKind openKind,
             SyntaxKind closeKind)
         {
-            Debug.Assert(openKind == SyntaxKind.OpenParenToken || openKind == SyntaxKind.OpenBracketToken);
-            Debug.Assert(closeKind == SyntaxKind.CloseParenToken || closeKind == SyntaxKind.CloseBracketToken);
+            Debug.Assert(openKind is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken);
+            Debug.Assert(closeKind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken);
             Debug.Assert((openKind == SyntaxKind.OpenParenToken) == (closeKind == SyntaxKind.CloseParenToken));
             bool isIndexer = openKind == SyntaxKind.OpenBracketToken;
 
-            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||
-                this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-            {
-                // convert `[` into `(` or vice versa for error recovery
-                openToken = this.EatTokenAsKind(openKind);
-            }
-            else
-            {
-                openToken = this.EatToken(openKind);
-            }
+            // convert `[` into `(` or vice versa for error recovery
+            openToken = this.CurrentToken.Kind is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken
+                ? this.EatTokenAsKind(openKind)
+                : this.EatToken(openKind);
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfArgumentList;
 
-            SeparatedSyntaxListBuilder<ArgumentSyntax> list = default(SeparatedSyntaxListBuilder<ArgumentSyntax>);
+            SeparatedSyntaxListBuilder<ArgumentSyntax> list = default;
             try
             {
                 if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
@@ -11536,16 +11527,10 @@ tryAgain:
 
                 _termState = saveTerm;
 
-                if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
-                    this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
-                {
-                    // convert `]` into `)` or vice versa for error recovery
-                    closeToken = this.EatTokenAsKind(closeKind);
-                }
-                else
-                {
-                    closeToken = this.EatToken(closeKind);
-                }
+                // convert `]` into `)` or vice versa for error recovery
+                closeToken = this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken
+                    ? this.EatTokenAsKind(closeKind)
+                    : this.EatToken(closeKind);
 
                 arguments = list.ToList();
             }
@@ -11610,7 +11595,7 @@ tryAgain:
 
             ExpressionSyntax expression;
 
-            if (isIndexer && (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseBracketToken))
+            if (isIndexer && this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBracketToken)
             {
                 expression = this.ParseIdentifierName(ErrorCode.ERR_ValueExpected);
             }
@@ -11690,8 +11675,8 @@ tryAgain:
         private CheckedExpressionSyntax ParseCheckedOrUncheckedExpression()
         {
             var checkedOrUnchecked = this.EatToken();
-            Debug.Assert(checkedOrUnchecked.Kind == SyntaxKind.CheckedKeyword || checkedOrUnchecked.Kind == SyntaxKind.UncheckedKeyword);
-            var kind = (checkedOrUnchecked.Kind == SyntaxKind.CheckedKeyword) ? SyntaxKind.CheckedExpression : SyntaxKind.UncheckedExpression;
+            Debug.Assert(checkedOrUnchecked.Kind is SyntaxKind.CheckedKeyword or SyntaxKind.UncheckedKeyword);
+            var kind = checkedOrUnchecked.Kind == SyntaxKind.CheckedKeyword ? SyntaxKind.CheckedExpression : SyntaxKind.UncheckedExpression;
 
             return _syntaxFactory.CheckedExpression(
                 kind,
@@ -12880,14 +12865,9 @@ tryAgain:
 
         private ExpressionSyntax ParseStackAllocExpression()
         {
-            if (this.IsImplicitlyTypedArray())
-            {
-                return ParseImplicitlyTypedStackAllocExpression();
-            }
-            else
-            {
-                return ParseRegularStackAllocExpression();
-            }
+            return this.IsImplicitlyTypedArray()
+                ? ParseImplicitlyTypedStackAllocExpression()
+                : ParseRegularStackAllocExpression();
         }
 
         private ExpressionSyntax ParseImplicitlyTypedStackAllocExpression()
@@ -13371,9 +13351,9 @@ tryAgain:
 
                 if (mayBeVariableDeclaration)
                 {
-                    if (pk2 == SyntaxKind.SemicolonToken ||    // from x;
-                        pk2 == SyntaxKind.CommaToken ||        // from x, y;
-                        pk2 == SyntaxKind.EqualsToken)         // from x = null;
+                    if (pk2 is SyntaxKind.SemicolonToken or    // from x;
+                               SyntaxKind.CommaToken or        // from x, y;
+                               SyntaxKind.EqualsToken)         // from x = null;
                     {
                         return false;
                     }
@@ -13383,8 +13363,7 @@ tryAgain:
                 {
                     // from idf { ...   property decl
                     // from idf(...     method decl
-                    if (pk2 == SyntaxKind.OpenParenToken ||
-                        pk2 == SyntaxKind.OpenBraceToken)
+                    if (pk2 is SyntaxKind.OpenParenToken or SyntaxKind.OpenBraceToken)
                     {
                         return false;
                     }
@@ -13404,7 +13383,7 @@ tryAgain:
                 this.EatToken();
 
                 ScanTypeFlags isType = this.ScanType();
-                if (isType != ScanTypeFlags.NotType && (this.CurrentToken.Kind == SyntaxKind.IdentifierToken || this.CurrentToken.Kind == SyntaxKind.InKeyword))
+                if (isType != ScanTypeFlags.NotType && this.CurrentToken.Kind is SyntaxKind.IdentifierToken or SyntaxKind.InKeyword)
                 {
                     return true;
                 }
@@ -13531,11 +13510,9 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.JoinKeyword);
             var @join = this.EatContextualToken(SyntaxKind.JoinKeyword);
-            TypeSyntax type = null;
-            if (this.PeekToken(1).Kind != SyntaxKind.InKeyword)
-            {
-                type = this.ParseType();
-            }
+            var type = this.PeekToken(1).Kind != SyntaxKind.InKeyword
+                ? this.ParseType()
+                : null;
 
             var name = this.ParseIdentifierToken();
             var @in = this.EatToken(SyntaxKind.InKeyword);
@@ -13585,7 +13562,7 @@ tryAgain:
             // additional arguments
             while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                if (this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.SemicolonToken)
                 {
                     break;
                 }
@@ -13625,8 +13602,7 @@ tryAgain:
             SyntaxToken direction = null;
             SyntaxKind kind = SyntaxKind.AscendingOrdering;
 
-            if (this.CurrentToken.ContextualKind == SyntaxKind.AscendingKeyword ||
-                this.CurrentToken.ContextualKind == SyntaxKind.DescendingKeyword)
+            if (this.CurrentToken.ContextualKind is SyntaxKind.AscendingKeyword or SyntaxKind.DescendingKeyword)
             {
                 direction = ConvertToKeyword(this.EatToken());
                 if (direction.Kind == SyntaxKind.DescendingKeyword)
