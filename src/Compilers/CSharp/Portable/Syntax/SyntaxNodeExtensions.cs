@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// For callers that just want to unwrap a <see cref="RefTypeSyntax"/> and don't care if ref/readonly was there.
-        /// As these callers don't are about 'ref', they are in scenarios where 'ref' is not legal, and existing code
+        /// As these callers don't care about 'ref', they are in scenarios where 'ref' is not legal, and existing code
         /// will error out for them.  Callers that do want to know what the ref-kind is should use <see
         /// cref="SkipRef(TypeSyntax, BindingDiagnosticBag, out RefKind)"/> so that an appropriate version check can be
         /// performed to make sure using ref is legal in that language version.
