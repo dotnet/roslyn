@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
         /// <summary>
         /// Returns the ID of the <see cref="ReferenceResult"/> for a <see cref="ResultSet"/>.
         /// </summary>
-        public static Id<ReferenceResult> GetResultSetReferenceResultId(this IResultSetTracker tracker, ISymbol symbol, IdFactory idFactory)
-            => tracker.GetResultIdForSymbol(symbol, Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
+        public static Id<ReferenceResult> GetResultSetReferenceResultId(this IResultSetTracker tracker, ISymbol symbol)
+            => tracker.GetResultIdForSymbol(symbol, Methods.TextDocumentReferencesName, static idFactory => new ReferenceResult(idFactory));
     }
 }

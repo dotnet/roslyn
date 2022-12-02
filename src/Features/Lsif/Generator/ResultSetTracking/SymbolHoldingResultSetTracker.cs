@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 if (monikerVertex != null)
                 {
                     // Attach the moniker vertex for this result set
-                    _ = GetResultIdForSymbol(symbol, "moniker", () => monikerVertex);
+                    _ = GetResultIdForSymbol(symbol, "moniker", (_) => monikerVertex);
                 }
             }
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             return GetTrackedResultSet(symbol).Id;
         }
 
-        public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<T> vertexCreator) where T : Vertex
+        public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<IdFactory, T> vertexCreator) where T : Vertex
         {
             return GetTrackedResultSet(symbol).GetResultId(edgeKind, vertexCreator, _lsifJsonWriter, _idFactory);
         }
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 Id = id;
             }
 
-            public Id<T> GetResultId<T>(string edgeLabel, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
+            public Id<T> GetResultId<T>(string edgeLabel, Func<IdFactory, T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
             {
                 lock (_edgeKindToVertexId)
                 {
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                         return new Id<T>(existingId.Value.NumericId);
                     }
 
-                    var vertex = vertexCreator();
+                    var vertex = vertexCreator(idFactory);
                     _edgeKindToVertexId.Add(edgeLabel, vertex.GetId().As<T, Vertex>());
 
                     lsifJsonWriter.Write(vertex);
