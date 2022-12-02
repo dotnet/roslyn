@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseNameofInAttribute
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseNameofInAttribute), Shared]
     internal sealed class CSharpUseNameofInAttributeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
