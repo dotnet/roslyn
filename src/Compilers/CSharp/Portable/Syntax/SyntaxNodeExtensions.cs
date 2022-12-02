@@ -269,9 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (diagnostics != null)
                 {
 #if DEBUG
-                    SyntaxNode current = syntax;
-                    while (current.Parent is RefTypeSyntax or ScopedTypeSyntax)
-                        current = current.Parent;
+                    var current = syntax;
+                    if (current.Parent is ScopedTypeSyntax scopedType)
+                        current = scopedType;
 
                     // Should only be called with diagnostics from a location where we're a return-type or local-type.
                     Debug.Assert(
