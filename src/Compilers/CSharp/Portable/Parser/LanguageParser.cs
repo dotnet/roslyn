@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (openBrace == null)
                 {
-                    RoslynDebug.AssertNotNull(semicolon);
+                    Debug.Assert(semicolon != null);
 
                     SyntaxListBuilder? initialBadNodes = null;
                     this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.FileScopedNamespaceDeclaration);
@@ -679,11 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ref SyntaxListBuilder? initialBadNodes)
         {
             for (int i = 0; i < incompleteMembers.Count; i++)
-            {
-                var member = incompleteMembers[i];
-                RoslynDebug.AssertNotNull(member);
-                this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, member);
-            }
+                this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, incompleteMembers[i]);
+
             incompleteMembers.Clear();
         }
 
