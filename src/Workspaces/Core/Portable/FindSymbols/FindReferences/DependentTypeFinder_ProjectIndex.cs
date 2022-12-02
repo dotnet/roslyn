@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (!s_projectToIndex.TryGetValue(project, out var lazyIndex))
                 {
                     lazyIndex = s_projectToIndex.GetValue(
-                        project, p => new AsyncLazy<ProjectIndex>(
-                            c => ProjectIndex.CreateIndexAsync(p, c), cacheResult: true));
+                        project, static p => AsyncLazy.Create(c => CreateIndexAsync(p, c)));
                 }
 
                 return lazyIndex.GetValueAsync(cancellationToken);

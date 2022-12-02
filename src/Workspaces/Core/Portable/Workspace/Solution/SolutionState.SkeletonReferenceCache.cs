@@ -188,9 +188,8 @@ internal partial class SolutionState
             // concurrent requests asynchronously wait for that work to be done.
 
             var lazy = s_compilationToSkeletonSet.GetValue(compilation,
-                compilation => new AsyncLazy<SkeletonReferenceSet?>(
-                    cancellationToken => Task.FromResult(CreateSkeletonSet(workspace, compilation, cancellationToken)),
-                    cacheResult: true));
+                compilation => AsyncLazy.Create(
+                    cancellationToken => Task.FromResult(CreateSkeletonSet(workspace, compilation, cancellationToken))));
 
             return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }

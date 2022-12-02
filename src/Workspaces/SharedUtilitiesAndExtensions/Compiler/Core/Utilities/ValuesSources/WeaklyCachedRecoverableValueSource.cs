@@ -57,11 +57,10 @@ namespace Microsoft.CodeAnalysis.Host
         {
             // See if we still have the constant value stored.  If so, we can trivially return that.
             value = _initialValue;
-            if (_initialValue != null)
+            if (value != null)
                 return true;
 
             // If not, see if it's something someone else is holding into, and is available through the weak-ref.
-            value = null;
             var weakReference = _weakReference;
             return weakReference != null && weakReference.TryGetTarget(out value) && value != null;
         }

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             // a new AsyncLazy to compute the checksum though, and that's because there's no practical way for
             // the newly created TextDocumentState to have the same checksum as a previous TextDocumentState:
             // if we're creating a new state, it's because something changed, and we'll have to create a new checksum.
-            _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
+            _lazyChecksums = AsyncLazy.Create(ComputeChecksumsAsync);
         }
 
         public TextDocumentState(DocumentInfo info, LoadTextOptions loadTextOptions, HostWorkspaceServices services)

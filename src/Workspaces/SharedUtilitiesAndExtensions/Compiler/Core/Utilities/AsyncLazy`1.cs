@@ -13,8 +13,8 @@ namespace Roslyn.Utilities
 {
     internal static class AsyncLazy
     {
-        public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
-            => new(asynchronousComputeFunction, cacheResult);
+        public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
+            => new(asynchronousComputeFunction);
 
         public static AsyncLazy<T> Create<T>(T value)
             => new(value);
@@ -46,11 +46,6 @@ namespace Roslyn.Utilities
         /// didn't get any synchronous function given to us in the first place.
         /// </summary>
         private Func<CancellationToken, T>? _synchronousComputeFunction;
-
-        /// <summary>
-        /// Whether or not we should keep the value around once we've computed it.
-        /// </summary>
-        private readonly bool _cacheResult;
 
         /// <summary>
         /// The Task that holds the cached result.
@@ -88,12 +83,11 @@ namespace Roslyn.Utilities
         /// </summary>
         public AsyncLazy(T value)
         {
-            _cacheResult = true;
             _cachedResult = Task.FromResult(value);
         }
 
-        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
-            : this(asynchronousComputeFunction, synchronousComputeFunction: null, cacheResult: cacheResult)
+        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
+            : this(asynchronousComputeFunction, synchronousComputeFunction: null)
         {
         }
 
@@ -107,14 +101,11 @@ namespace Roslyn.Utilities
         /// is allowed to block. This function should not be implemented by a simple Wait on the
         /// asynchronous value. If that's all you are doing, just don't pass a synchronous function
         /// in the first place.</param>
-        /// <param name="cacheResult">Whether the result should be cached once the computation is
-        /// complete.</param>
-        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T>? synchronousComputeFunction, bool cacheResult)
+        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T>? synchronousComputeFunction)
         {
             Contract.ThrowIfNull(asynchronousComputeFunction);
             _asynchronousComputeFunction = asynchronousComputeFunction;
             _synchronousComputeFunction = synchronousComputeFunction;
-            _cacheResult = cacheResult;
         }
 
         #region Lock Wrapper for Invariant Checking
@@ -477,7 +468,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                if (_cacheResult && task.Status == TaskStatus.RanToCompletion)
+                if (task.Status == TaskStatus.RanToCompletion)
                 {
                     // Hold onto the completed task. We can get rid of the computation functions for good
                     _cachedResult = task;
