@@ -2073,9 +2073,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected static ILogger GetLogger(IServiceProvider serviceProvider)
+        private protected static ILogger GetLogger(IServiceProvider? serviceProvider)
         {
-            return serviceProvider.GetLoggerFactory().GetLogger("Compiler");
+            if (serviceProvider == null)
+            {
+                return NullLogger.Instance;
+            }
+            else
+            {
+                return serviceProvider.GetLoggerFactory().GetLogger("Compiler");
+            }
         }
 
         // <Metalama>
