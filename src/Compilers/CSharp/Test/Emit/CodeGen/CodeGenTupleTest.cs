@@ -10964,9 +10964,9 @@ CS0151ERR_IntegralTypeValueExpected}
                 // CS0151ERR_IntegralTypeValueExpected}
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36));
 
-            Assert.Equal("7.0", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[1]));
             Assert.Equal("7.0", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[2]));
-            Assert.Null(Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[3]));
+            Assert.Equal("7.0", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[3]));
+            Assert.Null(Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[4]));
             Assert.Throws<ArgumentNullException>(() => Compilation.GetRequiredLanguageVersion(null));
         }
 

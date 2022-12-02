@@ -70,8 +70,12 @@ public class A : Attribute { }
 ";
 
             CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
-                // (5,1): error CS1519: Unexpected token '}', member declaration expected.
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}"));
+                // (5,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 1),
+                // (4,7): error CS1031: Type expected
+                //    [A]
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 7));
         }
 
         [Fact]

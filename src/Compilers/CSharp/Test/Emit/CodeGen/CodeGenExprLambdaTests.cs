@@ -3712,27 +3712,30 @@ Lambda:
 namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
-                // (2,11): error CS7000: Unexpected use of an aliased name
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
                 // (2,19): error CS1001: Identifier expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 19),
-                // (2,71): error CS8124: Tuple must contain at least two elements.
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 71),
-                // (2,76): error CS1026: ) expected
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
-                // (2,79): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
                 // (2,19): error CS1514: { expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
+                // (2,71): error CS8124: Tuple must contain at least two elements.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 71),
+                // (2,74): error CS8124: Tuple must contain at least two elements.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 74),
+                // (2,76): error CS8124: Tuple must contain at least two elements.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "=>").WithLocation(2, 76),
+                // (2,76): error CS1026: ) expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
                 // (2,76): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "=>").WithLocation(2, 76),
+                // (2,79): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
                 // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 81),
@@ -3745,12 +3748,30 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),
+                // (2,11): error CS7000: Unexpected use of an aliased name
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
                 // (2,84): error CS1520: Method must have a return type
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,84): error CS0501: '<invalid-global-code>.<invalid-global-code>()' must declare a body because it is not marked abstract, extern, or partial
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84)
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84),
+                // (2,79): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 79),
+                // (2,68): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 68),
+                // (2,76): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 76),
+                // (2,81): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 81),
+                // (2,95): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 95)
     );
         }
 
@@ -3765,21 +3786,27 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,19): error CS1001: Identifier expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 19),
-                // (2,71): error CS8124: Tuple must contain at least two elements.
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 71),
-                // (2,76): error CS1026: ) expected
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
-                // (2,79): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
                 // (2,19): error CS1514: { expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
+                // (2,71): error CS8124: Tuple must contain at least two elements.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 71),
+                // (2,74): error CS8124: Tuple must contain at least two elements.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 74),
+                // (2,76): error CS8124: Tuple must contain at least two elements.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "=>").WithLocation(2, 76),
+                // (2,76): error CS1026: ) expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
                 // (2,76): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "=>").WithLocation(2, 76),
+                // (2,79): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
                 // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 81),
@@ -3800,7 +3827,34 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,84): error CS0501: '<invalid-global-code>.<invalid-global-code>()' must declare a body because it is not marked abstract, extern, or partial
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84));
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84),
+                // (2,72): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(() ").WithArguments("tuples", "7.0").WithLocation(2, 72),
+                // (2,73): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(2, 73),
+                // (2,79): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 79),
+                // (2,93): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(2, 93),
+                // (2,20): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithArguments("tuples", "7.0").WithLocation(2, 20),
+                // (2,68): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 68),
+                // (2,76): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 76),
+                // (2,81): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 81),
+                // (2,95): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments(".<invalid-global-code>", "").WithLocation(2, 95));
         }
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]

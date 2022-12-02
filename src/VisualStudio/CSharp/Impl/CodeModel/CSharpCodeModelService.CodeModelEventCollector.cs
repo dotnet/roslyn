@@ -34,7 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 return CSharpCodeModelService
                     .GetChildMemberNodes(node)
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                     .Where(n => !n.IsKind(SyntaxKind.IncompleteMember))
+#pragma warning restore CS0618
                     .ToArray();
             }
 
@@ -852,7 +854,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return;
                 }
 
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                 if (node is IncompleteMemberSyntax)
+#pragma warning restore CS0618
                 {
                     return;
                 }
@@ -888,7 +892,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return;
                 }
 
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                 if (node is IncompleteMemberSyntax)
+#pragma warning restore CS0618
                 {
                     return;
                 }
@@ -939,7 +945,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return;
                 }
 
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                 if (node is IncompleteMemberSyntax)
+#pragma warning restore CS0618
                 {
                     return;
                 }
