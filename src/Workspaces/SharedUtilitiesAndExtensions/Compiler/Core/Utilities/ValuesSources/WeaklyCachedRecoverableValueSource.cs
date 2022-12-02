@@ -12,11 +12,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// This class is a <see cref="ValueSource{T}"/> that holds onto a value weakly, 
-    /// but can save its value and recover it on demand if needed.
-    /// 
-    /// The initial value comes from the <see cref="ValueSource{T}"/> specified in the constructor.
-    /// Derived types implement SaveAsync and RecoverAsync.
+    /// This class is a <see cref="ValueSource{T}"/> that holds onto a value weakly, but can save its value and recover
+    /// it on demand if needed.  The value is initially strongly held, until the first time that <see cref="GetValue"/>
+    /// or <see cref="GetValueAsync"/> is called.  At that point, it will be dumped to secondary storage, and retrieved
+    /// and weakly held from that point on in the future.
     /// </summary>
     internal abstract class WeaklyCachedRecoverableValueSource<T> : ValueSource<T> where T : class
     {
@@ -53,7 +52,18 @@ namespace Microsoft.CodeAnalysis.Host
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
-        public override bool TryGetValue([NotNullWhen(true)] out T? value)
+        /// <summary>
+        /// Attempts to get the value, but only through the weak reference.  This will only succeed *after* the value
+        /// has been retrieved at least once, and has thus then been save to secondary storage.
+        /// </summary>
+        private bool TryGetWeakValue([NotNullWhen(true)] out T? value)
+        {
+            value = null;
+            var weakReference = _weakReference;
+            return weakReference != null && weakReference.TryGetTarget(out value) && value != null;
+        }
+
+        private bool TryGetWeakOrStrongValue([NotNullWhen(true)] out T? value)
         {
             // See if we still have the constant value stored.  If so, we can trivially return that.
             value = _initialValue;
@@ -61,51 +71,58 @@ namespace Microsoft.CodeAnalysis.Host
                 return true;
 
             // If not, see if it's something someone else is holding into, and is available through the weak-ref.
-            var weakReference = _weakReference;
-            return weakReference != null && weakReference.TryGetTarget(out value) && value != null;
+            return TryGetWeakValue(out value);
         }
+
+        public override bool TryGetValue([MaybeNullWhen(false)] out T value)
+            => TryGetWeakOrStrongValue(out value);
 
         public override T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!TryGetValue(out var instance))
-            {
-                using (Gate.DisposableWait(cancellationToken))
-                {
-                    if (!TryGetValue(out instance))
-                    {
-                        instance = Recover(cancellationToken);
-                        EnqueueSaveTask_NoLock(instance);
-                    }
-                }
-            }
+            // if the value is currently being held weakly, then we can return that immediately as we know we will have
+            // kicked off the work to save the value to secondary storage.
+            if (TryGetWeakValue(out var instance))
+                return instance;
 
-            return instance;
+            // Otherwise, we're either holding the value strongly, or we need to recovery it from secondary storage.
+            using (Gate.DisposableWait(cancellationToken))
+            {
+                if (!TryGetWeakOrStrongValue(out instance))
+                    instance = Recover(cancellationToken);
+
+                // If the value was strongly held, kick off the work to write it to secondary storage and release the
+                // strong reference to it.
+                UpdateWeakReferenceAndEnqueueSaveTask_NoLock(instance);
+                return instance;
+            }
         }
 
         public override async Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
-            if (!TryGetValue(out var instance))
-            {
-                using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    if (!TryGetValue(out instance))
-                    {
-                        instance = await RecoverAsync(cancellationToken).ConfigureAwait(false);
-                        EnqueueSaveTask_NoLock(instance);
-                    }
-                }
-            }
+            // if the value is currently being held weakly, then we can return that immediately as we know we will have
+            // kicked off the work to save the value to secondary storage.
+            if (TryGetWeakValue(out var instance))
+                return instance;
 
-            return instance;
+            using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!TryGetWeakOrStrongValue(out instance))
+                    instance = await RecoverAsync(cancellationToken).ConfigureAwait(false);
+
+                // If the value was strongly held, kick off the work to write it to secondary storage and release the
+                // strong reference to it.
+                UpdateWeakReferenceAndEnqueueSaveTask_NoLock(instance);
+                return instance;
+            }
         }
 
         /// <summary>
         /// Kicks off the work to save this instance to secondary storage at some point in the future.  Once that save
         /// occurs successfully, we will drop our cached data and return values from that storage instead.
         /// </summary>
-        private void EnqueueSaveTask_NoLock(T instance)
+        private void UpdateWeakReferenceAndEnqueueSaveTask_NoLock(T instance)
         {
             Contract.ThrowIfTrue(Gate.CurrentCount != 0);
 
@@ -119,30 +136,45 @@ namespace Microsoft.CodeAnalysis.Host
                 using (s_taskGuard.DisposableWait())
                 {
                     // force all save tasks to be in sequence so we don't hog all the threads
-                    s_latestTask = SaveAndResetInitialValue(s_latestTask);
+                    s_latestTask = s_latestTask
+                        .SafeContinueWithFromAsync(async task =>
+                        {
+                            // Ignore all errors from prior tasks.  They do not affect if we save or not.
+                            await SaveAsync(instance, CancellationToken.None).ConfigureAwait(false);
+
+                            // Now that we've saved the instance, explicitly 'null out' 'instance' here so that it's not
+                            // held alive in this capture.
+                            instance = null!;
+                        }, CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default)
+                        .SafeContinueWith(task =>
+                        {
+                            if (task.Status != TaskStatus.RanToCompletion)
+                                return;
+
+                            // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete,
+                            // we want to keep it around to service future requests.  Once we do clear out this value, then all
+                            // future request will either retrieve the value from the weak reference (if anyone else is holding onto
+                            // it), or will recover from the 
+                            using (Gate.DisposableWait(CancellationToken.None))
+                            {
+                                _initialValue = null;
+                            }
+                        }, CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
                 }
             }
 
             return;
 
-            async Task SaveAndResetInitialValue(Task previousTask)
-            {
-                // First wait for the prior task in the chain to be done.  Ignore all errors from prior tasks.  They
-                // do not affect if we run or not.
-                await previousTask.NoThrowAwaitableInternal(captureContext: false);
+            //async Task SaveAndResetInitialValue(Task previousTask)
+            //{
+            //    // First wait for the prior task in the chain to be done.  Ignore all errors from prior tasks.  They
+            //    // do not affect if we run or not.
+            //    await previousTask.NoThrowAwaitableInternal(captureContext: false);
 
-                // Now defer to our subclass to actually save the instance to secondary storage.
-                await SaveAsync(instance, CancellationToken.None).ConfigureAwait(false);
+            //    // Now defer to our subclass to actually save the instance to secondary storage.
+            //    await SaveAsync(instance, CancellationToken.None).ConfigureAwait(false);
 
-                // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete,
-                // we want to keep it around to service future requests.  Once we do clear out this value, then all
-                // future request will either retrieve the value from the weak reference (if anyone else is holding onto
-                // it), or will recover from the 
-                using (Gate.DisposableWait(CancellationToken.None))
-                {
-                    _initialValue = null;
-                }
-            }
+            //}
         }
     }
 }
