@@ -10583,7 +10583,7 @@ class Program
         }
 
         [Fact]
-        public void SynthesizedDelegateTypes_SameDefaultParameterValue_DifferentType()
+        public void SynthesizedDelegateTypes_DefaultParameterValues_DefaultUnification()
         {
             var source = """
                 using System;
@@ -10592,10 +10592,82 @@ class Program
                 Report(lam1);
                 var lam2 = (string s = null) => { };
                 Report(lam2);
+                var lam3 = (int? i = default) => { };
+                Report(lam3);
+                var lam4 = (S1 s1 = default) => { };
+                Report(lam4);
+                var lam5 = (S2 s2 = default) => { };
+                Report(lam5);
+                var lam6 = (int i = default) => { };
+                Report(lam6);
+
+                struct S1 { int x; }
+                struct S2 { int y; }
                 """;
             CompileAndVerify(source, expectedOutput: $"""
                 <>f__AnonymousDelegate0`1[System.Object]
                 <>f__AnonymousDelegate0`1[System.String]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Int32]]
+                <>f__AnonymousDelegate0`1[S1]
+                <>f__AnonymousDelegate0`1[S2]
+                <>f__AnonymousDelegate1`1[System.Int32]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_IntNullableUnification()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (int a = 1) => { };
+                Report(lam1);
+                var lam2 = (int? b = 1) => { };
+                Report(lam2);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Int32]]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_StringUnification()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (string a = "") => { };
+                Report(lam1);
+                var lam2 = (string b = null) => { };
+                Report(lam2);
+                var lam3 = (string c = "abc") => { };
+                Report(lam3);
+                var lam4 = (string d = "a" + "bc") => { };
+                Report(lam4);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.String]
+                <>f__AnonymousDelegate1`1[System.String]
+                <>f__AnonymousDelegate2`1[System.String]
+                <>f__AnonymousDelegate2`1[System.String]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_DifferentElementTypes()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (params int[] xs) => { };
+                Report(lam1);
+                var lam2 = (params string[] ys) => { };
+                Report(lam2);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Int32[]]
+                <>f__AnonymousDelegate0`1[System.String[]]
                 """).VerifyDiagnostics();
         }
 
