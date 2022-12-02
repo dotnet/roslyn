@@ -214,10 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         genericFieldTypeBuilder.Add(default);
                     }
+
                     if (returnsVoid)
                     {
                         genericFieldTypeBuilder.Add(fields[^1].TypeWithAnnotations);
                     }
+
                     var genericFieldTypes = genericFieldTypeBuilder.ToImmutableAndFree();
                     var genericTypeDescr = typeDescr.WithNewFieldsTypes(genericFieldTypes);
 
