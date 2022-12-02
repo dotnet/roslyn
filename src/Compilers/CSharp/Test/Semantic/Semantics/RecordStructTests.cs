@@ -249,35 +249,7 @@ record struct Point(int x, int y);
 ";
 
             var comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (2,13): error CS1514: { expected
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1513: } expected
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS8803: Top-level statements must precede namespace and type declarations.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 13),
-                // (2,13): error CS8805: Program using top-level statements must be an executable.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 13),
-                // (2,13): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 13),
-                // (2,14): error CS8185: A declaration is not allowed in this context.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 14),
-                // (2,14): error CS0165: Use of unassigned local variable 'x'
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 14),
-                // (2,21): error CS8185: A declaration is not allowed in this context.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 21),
-                // (2,21): error CS0165: Use of unassigned local variable 'y'
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 21)
-                );
+            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of struct. 
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
@@ -292,35 +264,7 @@ record struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8));
 
             comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (2,13): error CS1514: { expected
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1513: } expected
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS8803: Top-level statements must precede namespace and type declarations.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 13),
-                // (2,13): error CS8805: Program using top-level statements must be an executable.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 13),
-                // (2,13): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 13),
-                // (2,14): error CS8185: A declaration is not allowed in this context.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 14),
-                // (2,14): error CS0165: Use of unassigned local variable 'x'
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 14),
-                // (2,21): error CS8185: A declaration is not allowed in this context.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 21),
-                // (2,21): error CS0165: Use of unassigned local variable 'y'
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 21)
-                );
+            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of struct. 
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
@@ -357,20 +301,7 @@ namespace NS
 }
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (4,17): error CS1514: { expected
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(4, 17),
-                // (4,17): error CS1513: } expected
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(4, 17),
-                // (4,31): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31),
-                // (4,31): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31)
-                );
+            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of struct. 
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
@@ -391,20 +322,7 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(src1);
-            comp.VerifyDiagnostics(
-                // (4,17): error CS1514: { expected
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(4, 17),
-                // (4,17): error CS1513: } expected
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(4, 17),
-                // (4,31): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31),
-                // (4,31): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31)
-                );
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src2);
             comp.VerifyDiagnostics();
