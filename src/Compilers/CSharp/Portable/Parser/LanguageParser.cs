@@ -13200,8 +13200,6 @@ tryAgain:
         private QueryBodySyntax ParseQueryBody()
         {
             var clauses = _pool.Allocate<QueryClauseSyntax>();
-            SelectOrGroupClauseSyntax selectOrGroupBy = null;
-            QueryContinuationSyntax continuation = null;
 
             // from, join, let, where and orderby
             while (true)
@@ -13230,31 +13228,21 @@ tryAgain:
             }
 
             // select or group clause
-            switch (this.CurrentToken.ContextualKind)
+            SelectOrGroupClauseSyntax selectOrGroupBy = this.CurrentToken.ContextualKind switch
             {
-                case SyntaxKind.SelectKeyword:
-                    selectOrGroupBy = this.ParseSelectClause();
-                    break;
-                case SyntaxKind.GroupKeyword:
-                    selectOrGroupBy = this.ParseGroupClause();
-                    break;
-                default:
-                    selectOrGroupBy = _syntaxFactory.SelectClause(
-                        this.EatToken(SyntaxKind.SelectKeyword, ErrorCode.ERR_ExpectedSelectOrGroup),
-                        this.CreateMissingIdentifierName());
-                    break;
-            }
-
-            // optional query continuation clause
-            if (this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword)
-            {
-                continuation = this.ParseQueryContinuation();
-            }
+                SyntaxKind.SelectKeyword => this.ParseSelectClause(),
+                SyntaxKind.GroupKeyword => this.ParseGroupClause(),
+                _ => _syntaxFactory.SelectClause(
+                    this.EatToken(SyntaxKind.SelectKeyword, ErrorCode.ERR_ExpectedSelectOrGroup),
+                    this.CreateMissingIdentifierName()),
+            };
 
             return _syntaxFactory.QueryBody(
                 _pool.ToListAndFree(clauses),
                 selectOrGroupBy,
-                continuation);
+                this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword
+                    ? this.ParseQueryContinuation()
+                    : null);
         }
 
         private FromClauseSyntax ParseFromClause()
@@ -13262,11 +13250,9 @@ tryAgain:
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword);
             var @from = this.EatContextualToken(SyntaxKind.FromKeyword);
 
-            TypeSyntax type = null;
-            if (this.PeekToken(1).Kind != SyntaxKind.InKeyword)
-            {
-                type = this.ParseType();
-            }
+            var type = this.PeekToken(1).Kind != SyntaxKind.InKeyword
+                ? this.ParseType()
+                : null;
 
             SyntaxToken name;
             if (this.PeekToken(1).ContextualKind == SyntaxKind.InKeyword &&
