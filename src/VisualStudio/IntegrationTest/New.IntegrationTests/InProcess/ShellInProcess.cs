@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
 using IAsyncDisposable = System.IAsyncDisposable;
 
@@ -140,6 +141,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
                 await Task.WhenAll(tasks);
             }
+        }
+
+        public async Task ExecuteCommandAsync(string commandName, string argument, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            dte.ExecuteCommand(commandName, argument);
         }
 
         public readonly struct PauseFileChangesRestorer : IAsyncDisposable

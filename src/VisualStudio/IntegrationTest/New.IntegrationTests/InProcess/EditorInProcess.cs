@@ -201,6 +201,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false, cancellationToken);
         }
 
+        public async Task DeleteTextAsync(string text, CancellationToken cancellationToken)
+        {
+            await SelectTextInCurrentDocumentAsync(text, cancellationToken);
+            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE, cancellationToken);
+        }
+
         public async Task<ClassificationSpan[]> GetLightBulbPreviewClassificationsAsync(string menuText, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
