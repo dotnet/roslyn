@@ -4,15 +4,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
+    [Export(typeof(IOptionPersisterProvider))]
+    [Shared]
     internal class LspOptionPersisterProvider : IOptionPersisterProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LspOptionPersisterProvider()
+        {
+        }
+
         public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

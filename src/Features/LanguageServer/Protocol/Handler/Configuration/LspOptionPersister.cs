@@ -11,14 +11,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     internal class LspOptionPersister : IOptionPersister
     {
+        private readonly IClientLanguageServerManager _clientLanguageServerManager;
+
+        public LspOptionPersister(IClientLanguageServerManager clientLanguageServerManager)
+        {
+            _clientLanguageServerManager = clientLanguageServerManager;
+        }
+
         public bool TryFetch(OptionKey optionKey, out object? value)
         {
+            // TODO: Send requrest to client
             throw new NotImplementedException();
         }
 
         public bool TryPersist(OptionKey optionKey, object? value)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("LSP doesn't support write option from server to client");
         }
     }
 }
