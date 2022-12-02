@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     {
                         FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
                         EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                         IncompleteMemberSyntax or GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
+#pragma warning restore CS0618
                         _ => ImmutableArray.Create<SyntaxNode>(memberDeclaration),
                     };
                 }
@@ -60,7 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 // malformed syntax nodes.
                 // Consider pub[||] static int Foo;
                 // Which has 2 member nodes (an incomplete and a field), but we'd only expect one
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                 return members.Any(m => m is GlobalStatementSyntax or IncompleteMemberSyntax)
+#pragma warning restore CS0618
                     ? ImmutableArray<SyntaxNode>.Empty
                     : members;
             }

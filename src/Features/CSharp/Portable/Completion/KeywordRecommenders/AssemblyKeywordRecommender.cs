@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     // The case where the parent of attributeList is IncompleteMemberSyntax(See test: ), like:
                     // [$$
                     // for that case is necessary check if they Parent is CompilationUnitSyntax
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                     case IncompleteMemberSyntax incompleteMember when incompleteMember.Parent is CompilationUnitSyntax:
+#pragma warning restore CS0618
                         return true;
                 }
             }

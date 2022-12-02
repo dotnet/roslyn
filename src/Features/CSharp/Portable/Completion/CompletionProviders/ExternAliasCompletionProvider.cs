@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 if (targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective)
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                     || (targetToken.Parent.IsKind(SyntaxKind.IdentifierName) && targetToken.Parent.IsParentKind(SyntaxKind.IncompleteMember)))
+#pragma warning restore CS0618
                 {
                     var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();

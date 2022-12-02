@@ -220,7 +220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
 
         private static bool IsBadNode(SyntaxNode node)
         {
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
             if (node is IncompleteMemberSyntax)
+#pragma warning restore CS0618
             {
                 return true;
             }
