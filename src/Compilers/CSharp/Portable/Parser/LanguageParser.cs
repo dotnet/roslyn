@@ -11735,35 +11735,33 @@ tryAgain:
             }
 
             // Doesn't look like a cast, so parse this as a parenthesized expression or tuple.
+            resetPoint.Reset();
+            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, permitTupleDesignation: true);
+
+            //  ( <expr>,    must be a tuple
+            if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                resetPoint.Reset();
-                var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, permitTupleDesignation: true);
-
-                //  ( <expr>,    must be a tuple
-                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    return ParseTupleExpressionTail(
-                        openParen,
-                        _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression));
-                }
-
-                // ( name:
-                if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                {
-                    return ParseTupleExpressionTail(
-                        openParen,
-                        _syntaxFactory.Argument(
-                            _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken()),
-                            refKindKeyword: null,
-                            this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, permitTupleDesignation: true)));
-                }
-
-                return _syntaxFactory.ParenthesizedExpression(
+                return ParseTupleExpressionTail(
                     openParen,
-                    expression,
-                    this.EatToken(SyntaxKind.CloseParenToken));
+                    _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression));
             }
+
+            // ( name:
+            if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
+            {
+                return ParseTupleExpressionTail(
+                    openParen,
+                    _syntaxFactory.Argument(
+                        _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken()),
+                        refKindKeyword: null,
+                        this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, permitTupleDesignation: true)));
+            }
+
+            return _syntaxFactory.ParenthesizedExpression(
+                openParen,
+                expression,
+                this.EatToken(SyntaxKind.CloseParenToken));
         }
 
         private TupleExpressionSyntax ParseTupleExpressionTail(SyntaxToken openParen, ArgumentSyntax firstArg)
