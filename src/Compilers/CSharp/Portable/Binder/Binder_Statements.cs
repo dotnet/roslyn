@@ -713,10 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeSyntax = scopedType.Type;
             }
 
-            if (typeSyntax is RefTypeSyntax refType)
-            {
-                typeSyntax = typeSyntax.SkipRef(diagnostics, out _);
-            }
+            typeSyntax = typeSyntax.SkipRef(diagnostics, out _);
 
             bool isVar;
             AliasSymbol alias;
