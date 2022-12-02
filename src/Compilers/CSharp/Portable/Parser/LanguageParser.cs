@@ -3527,7 +3527,7 @@ parse_member_name:;
                     // it should be an operator token
 
                     bool isPartOfInterfaceName;
-                    using (var _ = GetDisposableResetPoint(resetOnDispose: true))
+                    using (GetDisposableResetPoint(resetOnDispose: true))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
                         {
@@ -6283,7 +6283,7 @@ tryAgain:
                     // it's part of the explicit name we're building up.  Otherwise,
                     // it's the name of the member.
                     bool isMemberName;
-                    using (var _ = GetDisposableResetPoint(resetOnDispose: true))
+                    using (GetDisposableResetPoint(resetOnDispose: true))
                     {
                         ScanNamedTypePart();
                         isMemberName = !IsDotOrColonColonOrDotDot();
@@ -6465,7 +6465,7 @@ tryAgain:
                 // it's part of the explicit name we're building up.  Otherwise,
                 // it should be an operator token
                 bool isPartOfInterfaceName;
-                using (var _ = GetDisposableResetPoint(resetOnDispose: true))
+                using (GetDisposableResetPoint(resetOnDispose: true))
                 {
                     if (IsOperatorKeyword())
                     {
