@@ -135,7 +135,9 @@ namespace Microsoft.CodeAnalysis.Host
                 _saved = true;
                 using (s_taskGuard.DisposableWait())
                 {
-                    // force all save tasks to be in sequence so we don't hog all the threads
+                    // force all save tasks to be in sequence so we don't hog all the threads. Use
+                    // RunContinuationsAsynchronously so that the continuation work doesn't run in the thread of the
+                    // caller (which is holding 'Gate').  
                     s_latestTask = s_latestTask
                         .SafeContinueWithFromAsync(async task =>
                         {
@@ -145,11 +147,6 @@ namespace Microsoft.CodeAnalysis.Host
                             // Now that we've saved the instance, explicitly 'null out' 'instance' here so that it's not
                             // held alive in this capture.
                             instance = null!;
-                        }, CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default)
-                        .SafeContinueWith(task =>
-                        {
-                            if (task.Status != TaskStatus.RanToCompletion)
-                                return;
 
                             // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete,
                             // we want to keep it around to service future requests.  Once we do clear out this value, then all
