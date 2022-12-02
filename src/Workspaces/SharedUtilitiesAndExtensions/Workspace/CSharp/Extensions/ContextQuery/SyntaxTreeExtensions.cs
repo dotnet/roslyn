@@ -597,7 +597,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 // ref $$
                 // readonly ref $$
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                 if (container is IncompleteMemberSyntax incompleteMember)
+#pragma warning restore CS0618
                     return incompleteMember.Type.IsKind(SyntaxKind.RefType);
 
                 if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
@@ -1871,13 +1873,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // - IncompleteMemberSyntax when in top-level code and there are no class declarations after it.
             // - BaseTypeDeclarationSyntax if it comes after scoped
             // - VariableDeclarationSyntax for `scoped X` inside method declaration
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
             if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.Parent is VariableDeclarationSyntax or ExpressionStatementSyntax or IncompleteMemberSyntax)
+#pragma warning restore CS0618
             {
                 return true;
             }
 
             // scoped v|
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
             if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent is IncompleteMemberSyntax)
+#pragma warning restore CS0618
             {
                 return true;
             }

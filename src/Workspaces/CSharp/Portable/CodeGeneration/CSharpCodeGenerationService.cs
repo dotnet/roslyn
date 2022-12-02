@@ -800,10 +800,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
 
                     return Cast<TDeclarationNode>(parameterSyntax.WithType(newTypeSyntax));
-
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                 case SyntaxKind.IncompleteMember:
                     // Handle incomplete members.
                     var incompleteMemberSyntax = (IncompleteMemberSyntax)syntaxNode;
+#pragma warning restore CS0618
                     newTypeSyntax = newType.GenerateTypeSyntax();
 
                     if (incompleteMemberSyntax.Type != null)

@@ -11213,7 +11213,8 @@ scoped ref struct B { }
 scoped readonly ref struct C { }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-            comp.VerifyDiagnostics(
+            var diagnostics = new[]
+            {
                 // (1,1): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 // scoped struct A { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 1),
@@ -11226,10 +11227,35 @@ scoped readonly ref struct C { }
                 // (2,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12),
+                // (2,12): error CS0106: The modifier 'scoped' is not valid for this item
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("scoped").WithLocation(2, 12),
+                // (2,12): error CS9064: Target runtime doesn't support ref fields.
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(2, 12),
+                // (2,12): error CS9059: A ref field can only be declared in a ref struct.
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(2, 12),
+                // (3,1): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // scoped readonly ref struct C { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 1),
+                // (3,8): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // scoped readonly ref struct C { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("<invalid-global-code>", "").WithLocation(3, 8),
                 // (3,8): error CS1585: Member modifier 'readonly' must precede the member type and name
                 // scoped readonly ref struct C { }
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(3, 8)
-                );
+            };
+
+            if (langVersion == LanguageVersion.CSharp10)
+            {
+                diagnostics = diagnostics.Concat(
+                    // (2,8): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // scoped ref struct B { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref ").WithArguments("ref fields", "11.0").WithLocation(2, 8)).ToArray();
+            }
+
+            comp.VerifyDiagnostics(diagnostics);
         }
 
         [Theory]
@@ -11256,6 +11282,9 @@ readonly scoped record struct C();
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
+                // (2,1): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // scoped readonly record struct B;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(2, 1),
                 // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
                 // scoped readonly record struct B;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
@@ -11334,21 +11363,39 @@ ref struct R2
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
+                // (5,5): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     scoped private R1 F1;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(5, 5),
                 // (5,12): error CS1585: Member modifier 'private' must precede the member type and name
                 //     scoped private R1 F1;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(5, 12),
+                // (6,5): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 5),
                 // (6,12): error CS1585: Member modifier 'private' must precede the member type and name
                 //     scoped private ref int F3;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(6, 12),
+                // (6,12): error CS0102: The type 'R2' already contains a definition for ''
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("R2", "").WithLocation(6, 12),
                 // (6,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     scoped private ref int F3;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(6, 20));
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
+                // (5,5): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     scoped private R1 F1;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(5, 5),
                 // (5,12): error CS1585: Member modifier 'private' must precede the member type and name
                 //     scoped private R1 F1;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(5, 12),
+                // (6,5): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 5),
+                // (6,12): error CS0102: The type 'R2' already contains a definition for ''
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("R2", "").WithLocation(6, 12),
                 // (6,12): error CS1585: Member modifier 'private' must precede the member type and name
                 //     scoped private ref int F3;
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(6, 12));
@@ -21122,6 +21169,9 @@ public ref struct R
                 // (3,18): error CS1002: ; expected
                 //     ref scoped R field;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "field").WithLocation(3, 18),
+                // (3,18): error CS0246: The type or namespace name 'field' could not be found (are you missing a using directive or an assembly reference?)
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "field").WithArguments("field").WithLocation(3, 18),
                 // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     ref scoped R field;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
@@ -21152,18 +21202,27 @@ public ref struct R
                 // (3,18): error CS1002: ; expected
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Property").WithLocation(3, 18),
+                // (3,18): error CS0246: The type or namespace name 'Property' could not be found (are you missing a using directive or an assembly reference?)
+                //     ref scoped R Property { get => throw null; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Property").WithArguments("Property").WithLocation(3, 18),
                 // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
                 // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
+                // (3,29): error CS0246: The type or namespace name 'get' could not be found (are you missing a using directive or an assembly reference?)
+                //     ref scoped R Property { get => throw null; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "get").WithArguments("get").WithLocation(3, 29),
                 // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
                 // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
+                // (3,33): error CS0102: The type 'R' already contains a definition for ''
+                //     ref scoped R Property { get => throw null; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("R", "").WithLocation(3, 33),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)

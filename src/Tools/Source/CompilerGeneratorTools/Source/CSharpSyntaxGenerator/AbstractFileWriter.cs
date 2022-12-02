@@ -388,6 +388,14 @@ namespace CSharpSyntaxGenerator
             return field.Kinds.Distinct().ToList();
         }
 
+        protected void WriteObsoleteAttributeIfNeeded(Node node)
+        {
+            if (node.ObsoleteReason is not null)
+            {
+                WriteLine($"[Obsolete(\"{node.ObsoleteReason}\")]");
+            }
+        }
+
         #endregion Node helpers
     }
 }

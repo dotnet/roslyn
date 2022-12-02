@@ -258,7 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (token.Parent.IsKind(SyntaxKind.AttributeList))
                 {
                     var container = token.Parent.Parent;
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
                     if (container is IncompleteMemberSyntax && container.Parent is CompilationUnitSyntax)
+#pragma warning restore CS0618
                         return true;
                 }
             }

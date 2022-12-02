@@ -440,18 +440,30 @@ class C
         public void TestAttributeWithGarbageAfterStart()
         {
             var text = "[ $";
-            var file = this.ParseTree(text);
+            var compilation = CreateCompilation(text);
+            var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
+
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.FieldDeclaration, file.Members[0].Kind());
-            Assert.Equal(5, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_NamespaceUnexpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[4].Code);
+
+            compilation.VerifyDiagnostics(
+                // (1,2): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // [ $
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, " ").WithLocation(1, 2),
+                // (1,3): error CS1001: Identifier expected
+                // [ $
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "$").WithLocation(1, 3),
+                // (1,3): error CS1056: Unexpected character '$'
+                // [ $
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 3),
+                // (1,4): error CS1003: Syntax error, ']' expected
+                // [ $
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 4),
+                // (1,4): error CS1031: Type expected
+                // [ $
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 4));
         }
 
         [Fact]

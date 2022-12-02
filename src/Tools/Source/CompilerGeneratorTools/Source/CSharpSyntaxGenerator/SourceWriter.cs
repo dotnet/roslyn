@@ -1947,13 +1947,5 @@ namespace CSharpSyntaxGenerator
                 }
             }
         }
-
-        private void WriteObsoleteAttributeIfNeeded(Node node)
-        {
-            if (node.ObsoleteReason is not null)
-            {
-                WriteLine($"[Obsolete(\"{node.ObsoleteReason}\")]");
-            }
-        }
     }
 }
