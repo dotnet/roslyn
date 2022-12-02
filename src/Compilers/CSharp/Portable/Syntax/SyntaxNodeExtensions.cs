@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static TypeSyntax SkipRefInLocalOrReturn(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
             => SkipRefWorker(syntax, diagnostics, out refKind);
 
-        private static TypeSyntax SkipRefWorker(this TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
+        private static TypeSyntax SkipRefWorker(TypeSyntax syntax, BindingDiagnosticBag? diagnostics, out RefKind refKind)
         {
             if (syntax.Kind() == SyntaxKind.RefType)
             {
