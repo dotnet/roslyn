@@ -2224,6 +2224,7 @@ namespace System
             public ref T this[int i] => ref arr[i];
             public override int GetHashCode() => 1;
             public int Length { get; }
+            public bool IsEmpty => Length == 0;
 
             unsafe public Span(void* pointer, int length)
             {
@@ -2295,6 +2296,7 @@ namespace System
             public ref readonly T this[int i] => ref arr[i];
             public override int GetHashCode() => 2;
             public int Length { get; }
+            public bool IsEmpty => Length == 0;
 
             unsafe public ReadOnlySpan(void* pointer, int length)
             {

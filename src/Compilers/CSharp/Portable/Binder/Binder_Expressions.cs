@@ -958,6 +958,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindTupleExpression(TupleExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureTuples.CheckFeatureAvailability(diagnostics, node);
+
             SeparatedSyntaxList<ArgumentSyntax> arguments = node.Arguments;
             int numElements = arguments.Count;
 

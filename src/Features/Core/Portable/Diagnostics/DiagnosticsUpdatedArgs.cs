@@ -36,14 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnostics = diagnostics;
         }
 
-        /// <summary>
-        /// Gets all the diagnostics for this event, regardless if this is for pull or push diagnostics.  Most clients
-        /// should not use this.  The only clients that should are ones that are aggregating the values transparently
-        /// and then forwarding on later on to other clients that will make this decision.
-        /// </summary>
-        /// <returns></returns>
-        public ImmutableArray<DiagnosticData> GetAllDiagnosticsRegardlessOfPushPullSetting()
-            => _diagnostics;
+        public ImmutableArray<DiagnosticData> Diagnostics => _diagnostics;
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
             object id,

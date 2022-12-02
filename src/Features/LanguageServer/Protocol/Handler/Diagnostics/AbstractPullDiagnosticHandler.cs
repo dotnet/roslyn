@@ -42,16 +42,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
         /// <summary>
-        /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
+        /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.LspPull"/> as there is no push support in Razor.
         /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
         /// </summary>
-        private static readonly Option2<DiagnosticMode> s_razorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "RazorDiagnosticMode", defaultValue: DiagnosticMode.Pull);
+        private static readonly Option2<DiagnosticMode> s_razorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "RazorDiagnosticMode", defaultValue: DiagnosticMode.LspPull);
 
         /// <summary>
-        /// Diagnostic mode setting for Live Share.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Live Share.
+        /// Diagnostic mode setting for Live Share.  This should always be <see cref="DiagnosticMode.LspPull"/> as there is no push support in Live Share.
         /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
         /// </summary>
-        private static readonly Option2<DiagnosticMode> s_liveShareDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "LiveShareDiagnosticMode", defaultValue: DiagnosticMode.Pull);
+        private static readonly Option2<DiagnosticMode> s_liveShareDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "LiveShareDiagnosticMode", defaultValue: DiagnosticMode.LspPull);
 
         /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var diagnosticMode = GetDiagnosticMode(context);
             // For this handler to be called, we must have already checked the diagnostic mode
             // and set the appropriate capabilities.
-            Contract.ThrowIfFalse(diagnosticMode == DiagnosticMode.Pull, $"{diagnosticMode} is not pull");
+            Contract.ThrowIfFalse(diagnosticMode == DiagnosticMode.LspPull, $"{diagnosticMode} is not pull");
 
             // The progress object we will stream reports to.
             using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);

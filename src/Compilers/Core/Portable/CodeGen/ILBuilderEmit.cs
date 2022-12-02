@@ -96,40 +96,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(initializeArray, syntaxNode, diagnostics);
         }
 
-        internal void EmitStackAllocBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, bool emitInitBlock, DiagnosticBag diagnostics)
-        {
-            if (emitInitBlock)
-            {
-                // All bytes are the same, no need for metadata blob
-
-                EmitOpCode(ILOpCode.Dup);
-                EmitIntConstant(data[0]);
-                EmitIntConstant(data.Length);
-                EmitOpCode(ILOpCode.Initblk, -3);
-            }
-            else
-            {
-                // alignment==1 as emitInitBlock is false only if the element type for the stackalloc has SizeInBytes == 1.
-                var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
-
-                EmitOpCode(ILOpCode.Dup);
-                EmitOpCode(ILOpCode.Ldsflda);
-                EmitToken(field, syntaxNode, diagnostics);
-                EmitIntConstant(data.Length);
-                EmitOpCode(ILOpCode.Cpblk, -3);
-            }
-        }
-
-        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
-        {
-            // Map a field to the block (that makes it addressable).
-            // alignment==1 as this is only ever used when the element type has a SizeInBytes == 1.
-            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
-
-            EmitOpCode(ILOpCode.Ldsflda);
-            EmitToken(field, syntaxNode, diagnostics);
-        }
-
         /// <summary>
         /// Mark current IL position with a label
         /// </summary>

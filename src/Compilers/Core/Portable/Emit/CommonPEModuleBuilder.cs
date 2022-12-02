@@ -992,14 +992,16 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateDataField(data, alignment);
         }
 
-        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SpecialType elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             Debug.Assert(SupportsPrivateImplClass);
 
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
+            var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
+
             // map a field to the block (that makes it addressable via a token)
-            return privateImpl.CreateArrayCachingField(data, arrayType, elementType);
+            return privateImpl.CreateArrayCachingField(data, arrayType, emitContext);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();

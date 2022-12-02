@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -17,6 +16,92 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenReadOnlySpanConstructionTest : CSharpTestBase
     {
+        private const string RuntimeHelpersCreateSpan = @"
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static ReadOnlySpan<T> CreateSpan<T>(RuntimeFieldHandle fldHandle) => default;
+    }
+}";
+
+        private const string CompilerFeatureRequiredAttributeIL = @"
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+     extends [mscorlib]System.Attribute
+ {
+     .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+         01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+         4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+         72 69 74 65 64 00
+     )
+     // Fields
+     .field private initonly string '<FeatureName>k__BackingField'
+     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+         01 00 00 00
+     )
+     .field private initonly bool '<IsOptional>k__BackingField'
+     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+         01 00 00 00
+     )
+
+     .field public static literal string RefStructs = ""RefStructs""
+     .field public static literal string RequiredMembers = ""RequiredMembers""
+ 
+     // Methods
+     .method public hidebysig specialname rtspecialname 
+         instance void .ctor (
+             string featureName
+         ) cil managed 
+     {
+         ldarg.0
+         call instance void [mscorlib]System.Attribute::.ctor()
+         ldarg.0
+         ldarg.1
+         stfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::.ctor
+ 
+     .method public hidebysig specialname 
+         instance string get_FeatureName () cil managed 
+     {
+         ldarg.0
+         ldfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::get_FeatureName
+ 
+     .method public hidebysig specialname 
+         instance bool get_IsOptional () cil managed 
+     {
+         ldarg.0
+         ldfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::get_IsOptional
+ 
+     .method public hidebysig specialname 
+         instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_IsOptional (
+             bool 'value'
+         ) cil managed 
+     {
+         ldarg.0
+         ldarg.1
+         stfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::set_IsOptional
+ 
+     // Properties
+     .property instance string FeatureName()
+     {
+         .get instance string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_FeatureName()
+     }
+     .property instance bool IsOptional()
+     {
+         .get instance bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_IsOptional()
+         .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::set_IsOptional(bool)
+     }
+ 
+ } // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+";
+
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullStringConv()
@@ -732,7 +817,7 @@ public class Test
         {
             // This IL applies CompilerFeatureRequiredAttribute to WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer.
             // That should prevent its usage during code gen, as if the member doesn't exist.
-            var ilSource = @"
+            var ilSource = CompilerFeatureRequiredAttributeIL + @"
 .class public sequential ansi sealed beforefieldinit System.ReadOnlySpan`1<T>
     extends [mscorlib]System.ValueType
 {
@@ -795,80 +880,7 @@ public class Test
     }
 }
 
-.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
-     extends [mscorlib]System.Attribute
- {
-     .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
-         01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
-         4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
-         72 69 74 65 64 00
-     )
-     // Fields
-     .field private initonly string '<FeatureName>k__BackingField'
-     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-         01 00 00 00
-     )
-     .field private initonly bool '<IsOptional>k__BackingField'
-     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-         01 00 00 00
-     )
 
-     .field public static literal string RefStructs = ""RefStructs""
-     .field public static literal string RequiredMembers = ""RequiredMembers""
- 
-     // Methods
-     .method public hidebysig specialname rtspecialname 
-         instance void .ctor (
-             string featureName
-         ) cil managed 
-     {
-         ldarg.0
-         call instance void [mscorlib]System.Attribute::.ctor()
-         ldarg.0
-         ldarg.1
-         stfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
-         ret
-     } // end of method CompilerFeatureRequiredAttribute::.ctor
- 
-     .method public hidebysig specialname 
-         instance string get_FeatureName () cil managed 
-     {
-         ldarg.0
-         ldfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
-         ret
-     } // end of method CompilerFeatureRequiredAttribute::get_FeatureName
- 
-     .method public hidebysig specialname 
-         instance bool get_IsOptional () cil managed 
-     {
-         ldarg.0
-         ldfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
-         ret
-     } // end of method CompilerFeatureRequiredAttribute::get_IsOptional
- 
-     .method public hidebysig specialname 
-         instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_IsOptional (
-             bool 'value'
-         ) cil managed 
-     {
-         ldarg.0
-         ldarg.1
-         stfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
-         ret
-     } // end of method CompilerFeatureRequiredAttribute::set_IsOptional
- 
-     // Properties
-     .property instance string FeatureName()
-     {
-         .get instance string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_FeatureName()
-     }
-     .property instance bool IsOptional()
-     {
-         .get instance bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_IsOptional()
-         .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::set_IsOptional(bool)
-     }
- 
- } // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
 ";
 
             var csharp = @"
@@ -1035,7 +1047,6 @@ public class Test
         return span[7];
     }}
 }}";
-
             var compilation = CreateCompilationWithMscorlibAndSpan(csharp, options: TestOptions.UnsafeReleaseDll);
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
             verifier.VerifyIL("Test.M", @$"
@@ -1079,7 +1090,6 @@ public class Test
         return result;
     }}
 }}";
-
             var compilation = CreateCompilationWithMscorlibAndSpan(csharp, options: TestOptions.UnsafeReleaseDll);
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
             verifier.VerifyIL("Test.M", @$"
@@ -1159,7 +1169,6 @@ public class Test
         return result;
     }}
 }}";
-
             var compilation = CreateCompilationWithMscorlibAndSpan(csharp, options: TestOptions.UnsafeReleaseDll);
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
             verifier.VerifyIL("Test.M", @$"
@@ -1257,32 +1266,32 @@ public class Test
 
         public static IEnumerable<object[]> NonSize1Types_NoCreateSpan_UsesCachedArray_MemberData()
         {
-            yield return new object[] { "ushort", "1", 1, "ldind.u2", "short", "<PrivateImplementationDetails>.47DC540C94CEB704A23875C11273E16BB0B8A87AED84DE911F2133568115F254", "2", "_A12" };
-            yield return new object[] { "ushort", "1, 2", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.7B11C1133330CD161071BF23A0C9B6CE5320A8F3A0F83620035A72BE46DF4104", "2", "_A12" };
-            yield return new object[] { "ushort", "1, 2, 3, 4", 4, "ldind.u2", "long", "<PrivateImplementationDetails>.EA99F710D9D0B8BA192295C969A63ED7CE8FC5743DA20D2057FA2B6D2C404BFB", "2", "_A12" };
-            yield return new object[] { "uint", "1", 1, "ldind.u4", "int", "<PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450", "4", "_A14" };
-            yield return new object[] { "uint", "1, 2", 2, "ldind.u4", "long", "<PrivateImplementationDetails>.34FB5C825DE7CA4AEA6E712F19D439C1DA0C92C37B423936C5F618545CA4FA1F", "4", "_A14" };
-            yield return new object[] { "ulong", "1", 1, "ldind.i8", "long", "<PrivateImplementationDetails>.7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8", "8", "_A16" };
-            yield return new object[] { "char", "'a', 'b', 'c'", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF", "2", "_A8" };
-            yield return new object[] { "int", "1, 2, 3", 3, "ldind.i4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D", "4", "_A13" };
-            yield return new object[] { "uint", "1, 2, 3", 3, "ldind.u4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D", "4", "_A14" };
-            yield return new object[] { "short", "1, 2, 3", 3, "ldind.i2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF7", "2", "_A11" };
-            yield return new object[] { "ushort", "1, 2, 3", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF7", "2", "_A12" };
-            yield return new object[] { "long", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF", "8", "_A15" };
-            yield return new object[] { "ulong", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF", "8", "_A16" };
-            yield return new object[] { "float", "1.0f, 2.0f, 3.0f", 3, "ldind.r4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.8E628779E6A74EE0B36991C10158F63CAFEC7D340AD4E075592502C8708524DD", "4", "_A18" };
-            yield return new object[] { "double", "1.0, 2.0, 3.0", 3, "ldind.r8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.A68DE4B5E96A60C8CEB3C7B7EF93461725BDBBFF3516B136585A743B5C0EC664", "8", "_A19" };
-            yield return new object[] { "MyColor_Int16", "MyColor_Int16.Red, MyColor_Int16.Blue", 2, "ldind.i2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C60", "2", "_A11" };
-            yield return new object[] { "MyColor_UInt16", "MyColor_UInt16.Red, MyColor_UInt16.Blue", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C60", "2", "_A12" };
-            yield return new object[] { "MyColor_Int32", "MyColor_Int32.Red, MyColor_Int32.Blue", 2, "ldind.i4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B1", "4", "_A13" };
-            yield return new object[] { "MyColor_UInt32", "MyColor_UInt32.Red, MyColor_UInt32.Blue", 2, "ldind.u4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B1", "4", "_A14" };
-            yield return new object[] { "MyColor_Int64", "MyColor_Int64.Red, MyColor_Int64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E", "8", "_A15" };
-            yield return new object[] { "MyColor_UInt64", "MyColor_UInt64.Red, MyColor_UInt64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E", "8", "_A16" };
+            yield return new object[] { "ushort", "ushort","1", 1, "ldind.u2", "short", "<PrivateImplementationDetails>.47DC540C94CEB704A23875C11273E16BB0B8A87AED84DE911F2133568115F254", "2", "_A12" };
+            yield return new object[] { "ushort", "ushort", "1, 2", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.7B11C1133330CD161071BF23A0C9B6CE5320A8F3A0F83620035A72BE46DF4104", "2", "_A12" };
+            yield return new object[] { "ushort", "ushort", "1, 2, 3, 4", 4, "ldind.u2", "long", "<PrivateImplementationDetails>.EA99F710D9D0B8BA192295C969A63ED7CE8FC5743DA20D2057FA2B6D2C404BFB", "2", "_A12" };
+            yield return new object[] { "uint", "uint","1", 1, "ldind.u4", "int", "<PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450", "4", "_A14" };
+            yield return new object[] { "uint", "uint", "1, 2", 2, "ldind.u4", "long", "<PrivateImplementationDetails>.34FB5C825DE7CA4AEA6E712F19D439C1DA0C92C37B423936C5F618545CA4FA1F", "4", "_A14" };
+            yield return new object[] { "ulong", "ulong", "1", 1, "ldind.i8", "long", "<PrivateImplementationDetails>.7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8", "8", "_A16" };
+            yield return new object[] { "char", "char", "'a', 'b', 'c'", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF", "2", "_A8" };
+            yield return new object[] { "int", "int", "1, 2, 3", 3, "ldind.i4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D", "4", "_A13" };
+            yield return new object[] { "uint", "uint", "1, 2, 3", 3, "ldind.u4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D", "4", "_A14" };
+            yield return new object[] { "short", "short", "1, 2, 3", 3, "ldind.i2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF7", "2", "_A11" };
+            yield return new object[] { "ushort", "ushort", "1, 2, 3", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF7", "2", "_A12" };
+            yield return new object[] { "long", "long", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF", "8", "_A15" };
+            yield return new object[] { "ulong", "ulong", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF", "8", "_A16" };
+            yield return new object[] { "float", "float", "1.0f, 2.0f, 3.0f", 3, "ldind.r4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.8E628779E6A74EE0B36991C10158F63CAFEC7D340AD4E075592502C8708524DD", "4", "_A18" };
+            yield return new object[] { "double", "double", "1.0, 2.0, 3.0", 3, "ldind.r8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.A68DE4B5E96A60C8CEB3C7B7EF93461725BDBBFF3516B136585A743B5C0EC664", "8", "_A19" };
+            yield return new object[] { "MyColor_Int16", "short", "MyColor_Int16.Red, MyColor_Int16.Blue", 2, "ldind.i2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C60", "2", "_A11" };
+            yield return new object[] { "MyColor_UInt16", "ushort", "MyColor_UInt16.Red, MyColor_UInt16.Blue", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C60", "2", "_A12" };
+            yield return new object[] { "MyColor_Int32", "int", "MyColor_Int32.Red, MyColor_Int32.Blue", 2, "ldind.i4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B1", "4", "_A13" };
+            yield return new object[] { "MyColor_UInt32", "uint", "MyColor_UInt32.Red, MyColor_UInt32.Blue", 2, "ldind.u4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B1", "4", "_A14" };
+            yield return new object[] { "MyColor_Int64", "long", "MyColor_Int64.Red, MyColor_Int64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E", "8", "_A15" };
+            yield return new object[] { "MyColor_UInt64", "ulong", "MyColor_UInt64.Red, MyColor_UInt64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E", "8", "_A16" };
         }
 
         [Theory]
         [MemberData(nameof(NonSize1Types_NoCreateSpan_UsesCachedArray_MemberData))]
-        public void NonSize1Types_NoCreateSpan_UsesCachedArray(string type, string args, int length, string ldind, string fieldType, string fieldName, string dataSuffix, string arraySuffix)
+        public void NonSize1Types_NoCreateSpan_UsesCachedArray(string type, string underlyingType, string args, int length, string ldind, string fieldType, string fieldName, string dataSuffix, string arraySuffix)
         {
             string csharp = @$"
 public enum MyColor_Byte : byte {{ Red, Orange, Yellow, Green, Blue }}
@@ -1302,7 +1311,6 @@ public class Test
         return s[0];
     }}
 }}";
-
             var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
             compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
 
@@ -1311,17 +1319,17 @@ public class Test
   // Code size       48 (0x30)
   .maxstack  3
   .locals init (System.ReadOnlySpan<{type}> V_0) //s
-  IL_0000:  ldsfld     ""{type}[] {fieldName}{arraySuffix}""
+  IL_0000:  ldsfld     ""{underlyingType}[] {fieldName}{arraySuffix}""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_0020
   IL_0008:  pop
   IL_0009:  ldc.i4.{length}
-  IL_000a:  newarr     ""{type}""
+  IL_000a:  newarr     ""{underlyingType}""
   IL_000f:  dup
   IL_0010:  ldtoken    ""{fieldType} {fieldName}{dataSuffix}""
   IL_0015:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_001a:  dup
-  IL_001b:  stsfld     ""{type}[] {fieldName}{arraySuffix}""
+  IL_001b:  stsfld     ""{underlyingType}[] {fieldName}{arraySuffix}""
   IL_0020:  newobj     ""System.ReadOnlySpan<{type}>..ctor({type}[])""
   IL_0025:  stloc.0
   IL_0026:  ldloca.s   V_0
@@ -1330,6 +1338,323 @@ public class Test
   IL_002e:  {ldind}
   IL_002f:  ret
 }}");
+        }
+
+        [Fact]
+        public void NonSize1Type_NoCreateSpan_UsesCachedArray_EnumsAndUnderlyingTypeShareField()
+        {
+            string csharp = @$"
+enum Alpha1 {{ A, B, C, D }}
+enum Alpha2 {{ E, F, G, H }}
+
+public class Test
+{{
+    public static void Main()
+    {{
+        System.ReadOnlySpan<Alpha1> s1 = new Alpha1[] {{ Alpha1.A, Alpha1.B, Alpha1.C, Alpha1.D, (Alpha1)4, (Alpha1)5, (Alpha1)6, (Alpha1)7 }};
+        System.ReadOnlySpan<Alpha2> s2 = new Alpha2[] {{ Alpha2.E, Alpha2.F, Alpha2.G, Alpha2.H, (Alpha2)4, (Alpha2)5, (Alpha2)6, (Alpha2)7 }};
+        System.ReadOnlySpan<int> s3 = new int[] {{ 0, 1, 2, 3, 4, 5, 6, 7 }};
+        System.Console.Write(s1[0]);
+        System.Console.Write(s2[1]);
+        System.Console.Write(s3[2]);
+        System.Console.Write(s1[3]);
+        System.Console.Write(s2[4]);
+        System.Console.Write(s3[5]);
+        System.Console.Write(s1[6]);
+        System.Console.Write(s2[7]);
+    }}
+}}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "AF2D4567", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.Main", @$"{{
+  // Code size      257 (0x101)
+  .maxstack  3
+  .locals init (System.ReadOnlySpan<Alpha1> V_0, //s1
+                System.ReadOnlySpan<Alpha2> V_1, //s2
+                System.ReadOnlySpan<int> V_2) //s3
+  IL_0000:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0020
+  IL_0008:  pop
+  IL_0009:  ldc.i4.8
+  IL_000a:  newarr     ""int""
+  IL_000f:  dup
+  IL_0010:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD404""
+  IL_0015:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_0020:  newobj     ""System.ReadOnlySpan<Alpha1>..ctor(Alpha1[])""
+  IL_0025:  stloc.0
+  IL_0026:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_002b:  dup
+  IL_002c:  brtrue.s   IL_0046
+  IL_002e:  pop
+  IL_002f:  ldc.i4.8
+  IL_0030:  newarr     ""int""
+  IL_0035:  dup
+  IL_0036:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD404""
+  IL_003b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0040:  dup
+  IL_0041:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_0046:  newobj     ""System.ReadOnlySpan<Alpha2>..ctor(Alpha2[])""
+  IL_004b:  stloc.1
+  IL_004c:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_0051:  dup
+  IL_0052:  brtrue.s   IL_006c
+  IL_0054:  pop
+  IL_0055:  ldc.i4.8
+  IL_0056:  newarr     ""int""
+  IL_005b:  dup
+  IL_005c:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD404""
+  IL_0061:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0066:  dup
+  IL_0067:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_006c:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
+  IL_0071:  stloc.2
+  IL_0072:  ldloca.s   V_0
+  IL_0074:  ldc.i4.0
+  IL_0075:  call       ""ref readonly Alpha1 System.ReadOnlySpan<Alpha1>.this[int].get""
+  IL_007a:  ldind.i4
+  IL_007b:  box        ""Alpha1""
+  IL_0080:  call       ""void System.Console.Write(object)""
+  IL_0085:  ldloca.s   V_1
+  IL_0087:  ldc.i4.1
+  IL_0088:  call       ""ref readonly Alpha2 System.ReadOnlySpan<Alpha2>.this[int].get""
+  IL_008d:  ldind.i4
+  IL_008e:  box        ""Alpha2""
+  IL_0093:  call       ""void System.Console.Write(object)""
+  IL_0098:  ldloca.s   V_2
+  IL_009a:  ldc.i4.2
+  IL_009b:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
+  IL_00a0:  ldind.i4
+  IL_00a1:  call       ""void System.Console.Write(int)""
+  IL_00a6:  ldloca.s   V_0
+  IL_00a8:  ldc.i4.3
+  IL_00a9:  call       ""ref readonly Alpha1 System.ReadOnlySpan<Alpha1>.this[int].get""
+  IL_00ae:  ldind.i4
+  IL_00af:  box        ""Alpha1""
+  IL_00b4:  call       ""void System.Console.Write(object)""
+  IL_00b9:  ldloca.s   V_1
+  IL_00bb:  ldc.i4.4
+  IL_00bc:  call       ""ref readonly Alpha2 System.ReadOnlySpan<Alpha2>.this[int].get""
+  IL_00c1:  ldind.i4
+  IL_00c2:  box        ""Alpha2""
+  IL_00c7:  call       ""void System.Console.Write(object)""
+  IL_00cc:  ldloca.s   V_2
+  IL_00ce:  ldc.i4.5
+  IL_00cf:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
+  IL_00d4:  ldind.i4
+  IL_00d5:  call       ""void System.Console.Write(int)""
+  IL_00da:  ldloca.s   V_0
+  IL_00dc:  ldc.i4.6
+  IL_00dd:  call       ""ref readonly Alpha1 System.ReadOnlySpan<Alpha1>.this[int].get""
+  IL_00e2:  ldind.i4
+  IL_00e3:  box        ""Alpha1""
+  IL_00e8:  call       ""void System.Console.Write(object)""
+  IL_00ed:  ldloca.s   V_1
+  IL_00ef:  ldc.i4.7
+  IL_00f0:  call       ""ref readonly Alpha2 System.ReadOnlySpan<Alpha2>.this[int].get""
+  IL_00f5:  ldind.i4
+  IL_00f6:  box        ""Alpha2""
+  IL_00fb:  call       ""void System.Console.Write(object)""
+  IL_0100:  ret
+}}
+");
+        }
+
+        [Fact]
+        public void NonSize1Type_NoCreateSpan_NoArrayCtor_NotOptimized()
+        {
+            string csharp = @$"
+public class Test
+{{
+    public static int M()
+    {{
+        System.ReadOnlySpan<int> s = new int[] {{ 1, 2, 4, 8, 16, 32, 64, 128 }};
+        return s[0];
+    }}
+}}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
+            compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
+            compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
+
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.M", @$"{{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (System.ReadOnlySpan<int> V_0) //s
+  IL_0000:  ldc.i4.8
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.D497FE3BD2BF635F521DD4F07BD17E285EB24A413CACA19647209909A5612ED1""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldc.i4.0
+  IL_001a:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
+  IL_001f:  ldind.i4
+  IL_0020:  ret
+}}
+");
+        }
+
+        [Fact]
+        public void NonSize1Type_UnusedSpan_NothingEmitted()
+        {
+            string csharp = @$"
+public class Test
+{{
+    public static int M()
+    {{
+        System.ReadOnlySpan<int> s = new int[] {{ 1, 2, 4, 8, 16, 32, 64, 128 }};
+        return 42;
+    }}
+}}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Passes);
+            verifier.VerifyIL("Test.M", @$"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  ret
+}}
+");
+        }
+
+        [Fact]
+        public void NonSize1Type_EmptyArray_InPlace_ArrayOptimizedAway()
+        {
+            string csharp = @$"
+public class Test
+{{
+    public static void Main()
+    {{
+        var s1 = new System.ReadOnlySpan<byte>(new byte[0] {{ }});
+        var s2 = new System.ReadOnlySpan<int>(new int[0] {{ }});
+        for (int i = 0; i < 2; i++)
+        {{
+            M(s1);
+            M(s2);
+        }}
+
+        M(new System.ReadOnlySpan<char>(new char[0] {{ }}));
+        M(new System.ReadOnlySpan<long>(new long[0] {{ }}));
+    }}
+
+    private static void M<T>(System.ReadOnlySpan<T> span) => System.Console.Write(span.Length);
+}}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "000000", verify: Verification.Passes);
+            verifier.VerifyIL("Test.Main", @$"{{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<byte> V_0, //s1
+                System.ReadOnlySpan<int> V_1, //s2
+                int V_2, //i
+                System.ReadOnlySpan<char> V_3,
+                System.ReadOnlySpan<long> V_4)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.ReadOnlySpan<byte>""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  initobj    ""System.ReadOnlySpan<int>""
+  IL_0010:  ldc.i4.0
+  IL_0011:  stloc.2
+  IL_0012:  br.s       IL_0024
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""void Test.M<byte>(System.ReadOnlySpan<byte>)""
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""void Test.M<int>(System.ReadOnlySpan<int>)""
+  IL_0020:  ldloc.2
+  IL_0021:  ldc.i4.1
+  IL_0022:  add
+  IL_0023:  stloc.2
+  IL_0024:  ldloc.2
+  IL_0025:  ldc.i4.2
+  IL_0026:  blt.s      IL_0014
+  IL_0028:  ldloca.s   V_3
+  IL_002a:  initobj    ""System.ReadOnlySpan<char>""
+  IL_0030:  ldloc.3
+  IL_0031:  call       ""void Test.M<char>(System.ReadOnlySpan<char>)""
+  IL_0036:  ldloca.s   V_4
+  IL_0038:  initobj    ""System.ReadOnlySpan<long>""
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  call       ""void Test.M<long>(System.ReadOnlySpan<long>)""
+  IL_0045:  ret
+}}
+");
+        }
+
+        [Fact]
+        public void MultipleArrays_InPlaceAndUsed()
+        {
+            string csharp = @$"
+public class Test
+{{
+    public static void Main()
+    {{
+        System.ReadOnlySpan<byte> s1;
+        Print(s1 = new System.ReadOnlySpan<byte>(new byte[] {{ 1, 2, 3 }}));
+        _ = s1.IsEmpty;
+
+        System.ReadOnlySpan<int> s2;
+        Print(s2 = new System.ReadOnlySpan<int>(new int[] {{ 1, 2, 3, 4 }}));
+        _ = s2.IsEmpty;
+
+        System.ReadOnlySpan<long> s3;
+        Print(s3 = new System.ReadOnlySpan<long>(new long[0] {{ }}));
+        _ = s3.IsEmpty;
+    }}
+
+    private static void Print<T>(System.ReadOnlySpan<T> s) => System.Console.Write(s.Length);
+}}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "340", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.Main", @$"{{
+    // Code size      102 (0x66)
+    .maxstack  3
+    .locals init (System.ReadOnlySpan<byte> V_0, //s1
+                System.ReadOnlySpan<int> V_1, //s2
+                System.ReadOnlySpan<long> V_2) //s3
+    IL_0000:  ldloca.s   V_0
+    IL_0002:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
+    IL_0007:  ldc.i4.3
+    IL_0008:  call       ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+    IL_000d:  ldloc.0
+    IL_000e:  call       ""void Test.Print<byte>(System.ReadOnlySpan<byte>)""
+    IL_0013:  ldloca.s   V_0
+    IL_0015:  call       ""bool System.ReadOnlySpan<byte>.IsEmpty.get""
+    IL_001a:  pop
+    IL_001b:  ldsfld     ""int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A13""
+    IL_0020:  dup
+    IL_0021:  brtrue.s   IL_003b
+    IL_0023:  pop
+    IL_0024:  ldc.i4.4
+    IL_0025:  newarr     ""int""
+    IL_002a:  dup
+    IL_002b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B724""
+    IL_0030:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+    IL_0035:  dup
+    IL_0036:  stsfld     ""int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A13""
+    IL_003b:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
+    IL_0040:  dup
+    IL_0041:  stloc.1
+    IL_0042:  call       ""void Test.Print<int>(System.ReadOnlySpan<int>)""
+    IL_0047:  ldloca.s   V_1
+    IL_0049:  call       ""bool System.ReadOnlySpan<int>.IsEmpty.get""
+    IL_004e:  pop
+    IL_004f:  ldloca.s   V_2
+    IL_0051:  initobj    ""System.ReadOnlySpan<long>""
+    IL_0057:  ldloc.2
+    IL_0058:  call       ""void Test.Print<long>(System.ReadOnlySpan<long>)""
+    IL_005d:  ldloca.s   V_2
+    IL_005f:  call       ""bool System.ReadOnlySpan<long>.IsEmpty.get""
+    IL_0064:  pop
+    IL_0065:  ret
+}}
+");
         }
 
         [Fact]
@@ -1366,7 +1691,6 @@ class Test
         Console.Write(sum);
     }
 }
-
 ", TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
 
@@ -1755,6 +2079,120 @@ public class Test
 }}");
         }
 
+        [Fact]
+        public void NonSize1Types_NoCreateSpan_BadArrayCtor_NotOptimized()
+        {
+            // This IL applies CompilerFeatureRequiredAttribute to WellKnownMember.System_ReadOnlySpan_T__ctor_Array.
+            // That should prevent its usage during code gen, as if the member doesn't exist.
+            var ilSource = CompilerFeatureRequiredAttributeIL + @"
+.class public sequential ansi sealed beforefieldinit System.ReadOnlySpan`1<T>
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+        01 00 52 54 79 70 65 73 20 77 69 74 68 20 65 6d
+        62 65 64 64 65 64 20 72 65 66 65 72 65 6e 63 65
+        73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f 72
+        74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72 73
+        69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d 70
+        69 6c 65 72 2e 01 00 00
+    )
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .pack 0
+    .size 1
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            void* pointer,
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            !T[] arr
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 04 54 65 73 74 00 00
+        )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static 
+        valuetype System.ReadOnlySpan`1<!T> op_Implicit (
+            !T[] 'array'
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] valuetype System.ReadOnlySpan`1<!T>
+        )
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<int> StaticData => new int[] { 10, 20 };
+
+    public static void Main()
+    {
+    }
+}";
+
+            var compilation = CreateCompilationWithIL(csharp, ilSource);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+
+            var expected =
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  4
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.s   10
+  IL_000a:  stelem.i4
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.s   20
+  IL_000f:  stelem.i4
+  IL_0010:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])""
+  IL_0015:  ret
+}
+";
+            // Verify emitted IL with "bad" WellKnownMember.System_ReadOnlySpan_T__ctor_Array
+            verifier.VerifyIL("Test.StaticData.get", expected);
+
+            // We should get the same IL with regular ReadOnlySpan implementation,
+            // but with WellKnownMember.System_ReadOnlySpan_T__ctor_Array missing
+            compilation = CreateCompilationWithMscorlibAndSpan(csharp);
+            compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
+            verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", expected);
+        }
+
         [Theory]
         [InlineData("System.IntPtr")]
         [InlineData("System.UIntPtr")]
@@ -1812,14 +2250,5 @@ public class Test
                 Assert.True(rva % expectedAlignment == 0, $"Expected RVA {rva:X8} to be {expectedAlignment}-byte aligned.");
             });
         }
-
-        private const string RuntimeHelpersCreateSpan = @"
-namespace System.Runtime.CompilerServices
-{
-    public static class RuntimeHelpers
-    {
-        public static ReadOnlySpan<T> CreateSpan<T>(RuntimeFieldHandle fldHandle) => default;
-    }
-}";
     }
 }
