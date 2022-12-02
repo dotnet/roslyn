@@ -10601,8 +10601,8 @@ class Program
                 var lam6 = (int i = default) => { };
                 Report(lam6);
 
-                struct S1 { int x; }
-                struct S2 { int y; }
+                public struct S1 { public int X; }
+                public struct S2 { public int Y; }
                 """;
             CompileAndVerify(source, expectedOutput: $"""
                 <>f__AnonymousDelegate0`1[System.Object]
