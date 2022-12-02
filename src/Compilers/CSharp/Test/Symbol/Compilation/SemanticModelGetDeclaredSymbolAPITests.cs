@@ -5140,19 +5140,17 @@ class C
             // This will call the Visitor Pattern Methods via the syntaxwalker
             var collector = new IncompleteAndFieldSyntaxWalker();
             collector.Visit(root);
-            Assert.Equal(0, collector.Incompletes.Count);
             Assert.Equal(1, collector.Fields.Count);
         }
 
         private class IncompleteAndFieldSyntaxWalker : CSharpSyntaxWalker
         {
-            public readonly List<IncompleteMemberSyntax> Incompletes = new List<IncompleteMemberSyntax>();
             public readonly List<FieldDeclarationSyntax> Fields = new List<FieldDeclarationSyntax>();
 
+            [Obsolete]
             public override void VisitIncompleteMember(IncompleteMemberSyntax node)
             {
-                this.Incompletes.Add(node);
-                base.VisitIncompleteMember(node);
+                Assert.True(false, "Unexpected IncompleteMember");
             }
 
             public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
