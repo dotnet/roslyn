@@ -3506,7 +3506,7 @@ parse_member_name:;
                     // it should be an operator token
 
                     bool isPartOfInterfaceName;
-                    using (var _ = GetDisposableResetPoint(resetOnDispose: true))
+                    using (GetDisposableResetPoint(resetOnDispose: true))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
                         {
@@ -5744,7 +5744,7 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
                 ScanTypeArgumentListKind kind;
-                using (var _ = this.GetDisposableResetPoint(resetOnDispose: true))
+                using (this.GetDisposableResetPoint(resetOnDispose: true))
                 {
                     kind = this.ScanTypeArgumentList(options);
                 }
@@ -6231,7 +6231,7 @@ tryAgain:
                     // it's part of the explicit name we're building up.  Otherwise,
                     // it's the name of the member.
                     bool isMemberName;
-                    using (var _ = GetDisposableResetPoint(resetOnDispose: true))
+                    using (GetDisposableResetPoint(resetOnDispose: true))
                     {
                         ScanNamedTypePart();
                         isMemberName = !IsDotOrColonColonOrDotDot();
@@ -6413,7 +6413,7 @@ tryAgain:
                 // it's part of the explicit name we're building up.  Otherwise,
                 // it should be an operator token
                 bool isPartOfInterfaceName;
-                using (var _ = GetDisposableResetPoint(resetOnDispose: true))
+                using (GetDisposableResetPoint(resetOnDispose: true))
                 {
                     if (IsOperatorKeyword())
                     {
@@ -8207,7 +8207,6 @@ done:;
             EatToken();
             ScanTypeFlags st = this.ScanType();
 
-            // TODO(cyrusn): Why not do the `st == ScanTypeFlags.NotType` check first?
             return !IsPossibleMemberName() || st == ScanTypeFlags.NotType;
         }
 
@@ -13489,7 +13488,7 @@ tryAgain:
         }
 
         private DisposableResetPoint GetDisposableResetPoint(bool resetOnDispose)
-            => new(this, resetOnDispose, GetResetPoint());
+            => new DisposableResetPoint(this, resetOnDispose, GetResetPoint());
 
         private new ResetPoint GetResetPoint()
         {
