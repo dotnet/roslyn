@@ -20,11 +20,6 @@ public class FileModifierParsingTests : ParsingTests
         return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
     }
 
-    private void UsingNode(string text, params DiagnosticDescription[] expectedDiagnostics)
-    {
-        UsingNode(text, options: null, expectedParsingDiagnostics: expectedDiagnostics);
-    }
-
     private void UsingNode(string text, CSharpParseOptions? options = null, DiagnosticDescription[]? expectedParsingDiagnostics = null, DiagnosticDescription[]? expectedBindingDiagnostics = null)
     {
         options ??= TestOptions.RegularPreview;
