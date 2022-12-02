@@ -18,6 +18,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CSharpUseNameofInNullableAttribute;
 
+/// <summary>
+/// Analyzer that looks for things like `NotNullIfNotNull("param")` and offers to use `NotNullIfNotNull(nameof(param))` instead.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpUseNameofInNullableAttributeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
@@ -37,7 +40,11 @@ internal sealed class CSharpUseNameofInNullableAttributeDiagnosticAnalyzer : Abs
 
     protected override void InitializeWorker(AnalysisContext context)
     {
-        context.RegisterSyntaxNodeAction(AnalyzeAttribute, SyntaxKind.Attribute);
+        context.RegisterCompilationStartAction(context =>
+        {
+            if (context.Compilation.LanguageVersion() >= LanguageVersion.CSharp11)
+                context.RegisterSyntaxNodeAction(AnalyzeAttribute, SyntaxKind.Attribute);
+        });
     }
 
     private void AnalyzeAttribute(SyntaxNodeAnalysisContext context)
@@ -67,13 +74,19 @@ internal sealed class CSharpUseNameofInNullableAttributeDiagnosticAnalyzer : Abs
             if (constantValue.Value is not string stringValue)
                 continue;
 
+            if (stringValue == "")
+                continue;
+
             var position = argument.Expression.SpanStart;
+
             containingType ??= semanticModel.GetEnclosingNamedType(position, cancellationToken);
             if (containingType is null)
                 return;
 
+            // Now, see if there are any parameters in scope with this same name.  If so, we can now suggest the user
+            // just use `nameof(param)` instead of `"param"` in the attribute.
             var symbols = semanticModel.LookupSymbols(argument.Expression.SpanStart, name: stringValue);
-            if (symbols.Any(s => s.IsAccessibleWithin(containingType)))
+            if (symbols.Any(s => s.IsAccessibleWithin(containingType))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     this.Descriptor,
