@@ -581,10 +581,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SQLite_SqlException = 630,
         SQLite_StorageDisabled = 631,
 
+        // 650-660 for diagnostic/fix related ids.
         Diagnostics_AnalyzerPerformanceInfo = 651,
 
         CodeFixes_GetChanges = 652,
         CodeFixes_GetAndApplyChanges = 653,
-        CodeFixes_GetOptionsFromUser = 654
+        CodeFixes_GetOptions = 654
     }
 }

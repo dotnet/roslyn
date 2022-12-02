@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             object options = null;
             if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
-                using (Logger.LogBlock(FunctionId.CodeFixes_GetOptionsFromUser, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                using (Logger.LogBlock(FunctionId.CodeFixes_GetOptions, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
                     options = actionWithOptions.GetOptions(cancellationToken);
                 }
