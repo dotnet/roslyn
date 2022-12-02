@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,15 +14,17 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
-    internal class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidChangeConfigurationNotificationHandler)), Shared]
+    [Method(LSP.Methods.WorkspaceDidChangeConfigurationName)]
+    internal class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>
     {
-        public bool MutatesSolutionState => throw new NotImplementedException();
+        public bool MutatesSolutionState => false;
 
-        public bool RequiresLSPSolution => throw new NotImplementedException();
+        public bool RequiresLSPSolution => true;
 
-        public Task HandleNotificationAsync(RequestContext requestContext, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var settings = request.Settings;
         }
     }
 }
