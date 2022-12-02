@@ -9261,14 +9261,11 @@ tryAgain:
 
         private ElseClauseSyntax ParseElseClauseOpt()
         {
-            if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
-            {
-                return null;
-            }
-
-            return _syntaxFactory.ElseClause(
-                this.EatToken(SyntaxKind.ElseKeyword),
-                this.ParseEmbeddedStatement());
+            return this.CurrentToken.Kind != SyntaxKind.ElseKeyword
+                ? null
+                : _syntaxFactory.ElseClause(
+                    this.EatToken(SyntaxKind.ElseKeyword),
+                    this.ParseEmbeddedStatement());
         }
 
         private LockStatementSyntax ParseLockStatement(SyntaxList<AttributeListSyntax> attributes)
@@ -9286,17 +9283,10 @@ tryAgain:
         private ReturnStatementSyntax ParseReturnStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ReturnKeyword);
-            var @return = this.EatToken(SyntaxKind.ReturnKeyword);
-            ExpressionSyntax arg = null;
-            if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
-            {
-                arg = this.ParsePossibleRefExpression();
-            }
-
             return _syntaxFactory.ReturnStatement(
                 attributes,
-                @return,
-                arg,
+                this.EatToken(SyntaxKind.ReturnKeyword),
+                this.CurrentToken.Kind != SyntaxKind.SemicolonToken ? this.ParsePossibleRefExpression() : null,
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
