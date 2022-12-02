@@ -52,6 +52,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInNullableAttr
         }
 
         [Fact]
+        public async Task TestWithInterpolation()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System.Diagnostics.CodeAnalysis;
+                    #nullable enable
+                    class C
+                    {
+                        [return: NotNullIfNotNull([|$"input"|])]
+                        string? M(string? input) => input;
+                    }
+                    """,
+                FixedCode = """
+                    using System.Diagnostics.CodeAnalysis;
+                    #nullable enable
+                    class C
+                    {
+                        [return: NotNullIfNotNull(nameof(input))]
+                        string? M(string? input) => input;
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestTrivia()
         {
             await new VerifyCS.Test
@@ -61,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInNullableAttr
                     #nullable enable
                     class C
                     {
-                        [return: NotNullIfNotNull(/*before*/[|"input"|])/*after*/]
+                        [return: NotNullIfNotNull(/*before*/[|"input"|]/*after*/)]
                         string? M(string? input) => input;
                     }
                     """,
@@ -153,6 +181,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameofInNullableAttr
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task NotOnIncorrectAttributeName()
+        {
+            var code = """
+                using System.Diagnostics.CodeAnalysis;
+                #nullable enable
+                class C
+                {
+                    [return: {|CS0246:{|CS0246:NotNullIfNotNull1|}|}("input")]
+                    string? M(string? input) => input;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotWhenMissingArguments()
+        {
+            var code = """
+                using System.Diagnostics.CodeAnalysis;
+                #nullable enable
+                class C
+                {
+                    [return: {|CS7036:NotNullIfNotNull|}]
+                    string? M(string? input) => input;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task NotOnIncorrectReferencedName()
+        {
+            var code = """
+                using System.Diagnostics.CodeAnalysis;
+                #nullable enable
+                class C
+                {
+                    [return: NotNullIfNotNull("input1")]
+                    string? M(string? input) => input;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
         }
