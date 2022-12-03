@@ -12590,15 +12590,12 @@ tryAgain:
                 break;
             }
 
-            var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
-            var initializer = this.ParseArrayInitializer();
-
             return _syntaxFactory.ImplicitArrayCreationExpression(
                 @new,
                 openBracket,
                 _pool.ToTokenListAndFree(commas),
-                closeBracket,
-                initializer);
+                this.EatToken(SyntaxKind.CloseBracketToken),
+                this.ParseArrayInitializer());
         }
 
         private InitializerExpressionSyntax ParseArrayInitializer()
