@@ -5754,7 +5754,8 @@ tryAgain:
 
                     var types = _pool.AllocateSeparated<TypeSyntax>();
                     this.ParseTypeArgumentList(out var open, types, out var close);
-                    name = _syntaxFactory.GenericName(id.Identifier,
+                    name = _syntaxFactory.GenericName(
+                        id.Identifier,
                         _syntaxFactory.TypeArgumentList(
                             open,
                             _pool.ToListAndFree(types),
