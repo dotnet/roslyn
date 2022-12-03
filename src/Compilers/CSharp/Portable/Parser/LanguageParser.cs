@@ -5390,7 +5390,9 @@ tryAgain:
                 var type = this.ParseType();
                 var tmpList = _pool.AllocateSeparated<BaseTypeSyntax>();
                 tmpList.Add(_syntaxFactory.SimpleBaseType(type));
-                baseList = _syntaxFactory.BaseList(colon, _pool.ToListAndFree(tmpList));
+                baseList = _syntaxFactory.BaseList(
+                    colon,
+                    _pool.ToListAndFree(tmpList));
             }
 
             var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
