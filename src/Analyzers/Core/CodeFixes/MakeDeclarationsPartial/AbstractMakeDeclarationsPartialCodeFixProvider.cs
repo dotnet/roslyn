@@ -32,10 +32,9 @@ namespace Microsoft.CodeAnalysis.MakeDeclarationsPartial
 
             var node = syntaxRoot.FindNode(span);
 
-            if (node is null ||
-                !syntaxFacts.IsTypeDeclaration(node))
+            if (node is null)
             {
-                Debug.Fail("Cannot find node or node is not type declaration syntax");
+                Debug.Fail("Cannot find node");
                 return;
             }
 
