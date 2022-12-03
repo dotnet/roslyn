@@ -450,5 +450,12 @@ class Program
             await VerifyKeywordAsync(AddInsideMethod(
 @"(x, $$) = (0, 0);"));
         }
+
+        [Fact]
+        public async Task TestAfterScoped()
+        {
+            await VerifyKeywordAsync(AddInsideMethod("scoped $$"));
+            await VerifyKeywordAsync("scoped $$");
+        }
     }
 }
