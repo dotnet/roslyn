@@ -7093,19 +7093,10 @@ done:
         {
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
-                var refKeyword = this.EatToken();
-                refKeyword = this.CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
-
-                SyntaxToken readonlyKeyword = null;
-                if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
-                {
-                    readonlyKeyword = this.EatToken();
-                    readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
-                }
-
-                var type = ParseTypeCore(ParseTypeMode.AfterRef);
-
-                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
+                return _syntaxFactory.RefType(
+                    this.EatToken(),
+                    this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword ? this.EatToken() : null,
+                    ParseTypeCore(ParseTypeMode.AfterRef));
             }
 
             return ParseTypeCore(mode);
