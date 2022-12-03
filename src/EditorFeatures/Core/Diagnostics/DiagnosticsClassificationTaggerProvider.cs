@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(ClassificationTag))]
-    internal sealed partial class DiagnosticsClassificationTaggerProvider : AbstractAggregateDiagnosticsTaggerProvider<ClassificationTag>
+    internal sealed partial class DiagnosticsClassificationTaggerProvider : AbstractPushOrPullDiagnosticsTaggerProvider<ClassificationTag>
     {
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
@@ -63,8 +63,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
-            // We only support push diagnostics.  When pull diagnostics are on, diagnostic fading is handled by the lsp client.
-            return mode == DiagnosticMode.Push;
+            // We only support solution crawler push diagnostics.  When lsp pull diagnostics are on, diagnostic fading
+            // is handled by the lsp client.
+            return mode == DiagnosticMode.SolutionCrawlerPush;
         }
 
         protected sealed override bool IncludeDiagnostic(DiagnosticData data)
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        protected sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
+        protected sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
             => new TagSpan<ClassificationTag>(span, _classificationTag);
 
         protected sealed override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
