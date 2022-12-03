@@ -172,8 +172,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 Canvas.SetLeft(visualElement,
                     tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfCode
                         ? Math.Max(lineView.Right, lineView.LineTransform.Right)
-                        : tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfEditor ? TextView.ViewportRight - visualElement.DesiredSize.Width
-                        : throw ExceptionUtilities.UnexpectedValue(tag.Location));
+                        : tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfEditor
+                            ? TextView.ViewportRight - visualElement.DesiredSize.Width
+                            : throw ExceptionUtilities.UnexpectedValue(tag.Location));
 
                 // This is what places the diagnostic UI at the correct line in the window.
                 Canvas.SetTop(visualElement, lineView.Bottom - visualElement.DesiredSize.Height);
