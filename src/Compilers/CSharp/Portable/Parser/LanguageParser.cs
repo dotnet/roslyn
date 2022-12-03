@@ -429,8 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             var attributeLists = _pool.Allocate<AttributeListSyntax>();
                             var modifiers = _pool.Allocate();
 
-                            body.Members.Add(adjustStateAndReportStatementOutOfOrder(
-                                ref seen, this.ParseNamespaceDeclaration(attributeLists, modifiers)));
+                            body.Members.Add(adjustStateAndReportStatementOutOfOrder(ref seen, this.ParseNamespaceDeclaration(attributeLists, modifiers)));
 
                             _pool.Free(attributeLists);
                             _pool.Free(modifiers);
@@ -5391,7 +5390,9 @@ tryAgain:
                 var type = this.ParseType();
                 var tmpList = _pool.AllocateSeparated<BaseTypeSyntax>();
                 tmpList.Add(_syntaxFactory.SimpleBaseType(type));
-                baseList = _syntaxFactory.BaseList(colon, _pool.ToListAndFree(tmpList));
+                baseList = _syntaxFactory.BaseList(
+                    colon,
+                    _pool.ToListAndFree(tmpList));
             }
 
             var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
@@ -5753,7 +5754,8 @@ tryAgain:
 
                     var types = _pool.AllocateSeparated<TypeSyntax>();
                     this.ParseTypeArgumentList(out var open, types, out var close);
-                    name = _syntaxFactory.GenericName(id.Identifier,
+                    name = _syntaxFactory.GenericName(
+                        id.Identifier,
                         _syntaxFactory.TypeArgumentList(
                             open,
                             _pool.ToListAndFree(types),
