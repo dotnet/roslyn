@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
     public Goo
 }
 
-internal class Goo
+public class Goo
 {
 }",
 index: 1);
