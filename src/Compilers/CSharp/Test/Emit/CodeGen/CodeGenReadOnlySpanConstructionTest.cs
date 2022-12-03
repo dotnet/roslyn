@@ -1180,7 +1180,7 @@ public class Test
                 System.ReadOnlySpan<int> V_2, //span2
                 System.ReadOnlySpan<int> V_3, //span3
                 System.ReadOnlySpan<int> V_4) //span4
-  IL_0000:  ldsfld     ""int[] <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18_A13""
+  IL_0000:  ldsfld     ""int[] <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18_A6""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_0020
   IL_0008:  pop
@@ -1190,7 +1190,7 @@ public class Test
   IL_0010:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A184""
   IL_0015:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_001a:  dup
-  IL_001b:  stsfld     ""int[] <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18_A13""
+  IL_001b:  stsfld     ""int[] <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18_A6""
   IL_0020:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
   IL_0025:  stloc.0
   IL_0026:  ldloca.s   V_0
@@ -1198,7 +1198,7 @@ public class Test
   IL_0029:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
   IL_002e:  ldind.i4
   IL_002f:  stloc.1
-  IL_0030:  ldsfld     ""int[] <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F89_A13""
+  IL_0030:  ldsfld     ""int[] <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F89_A6""
   IL_0035:  dup
   IL_0036:  brtrue.s   IL_0050
   IL_0038:  pop
@@ -1208,7 +1208,7 @@ public class Test
   IL_0040:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F894""
   IL_0045:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_004a:  dup
-  IL_004b:  stsfld     ""int[] <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F89_A13""
+  IL_004b:  stsfld     ""int[] <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F89_A6""
   IL_0050:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
   IL_0055:  stloc.2
   IL_0056:  ldloc.1
@@ -1218,7 +1218,7 @@ public class Test
   IL_005f:  ldind.i4
   IL_0060:  add
   IL_0061:  stloc.1
-  IL_0062:  ldsfld     ""int[] <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18_A13""
+  IL_0062:  ldsfld     ""int[] <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18_A6""
   IL_0067:  dup
   IL_0068:  brtrue.s   IL_0082
   IL_006a:  pop
@@ -1228,7 +1228,7 @@ public class Test
   IL_0072:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A184""
   IL_0077:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_007c:  dup
-  IL_007d:  stsfld     ""int[] <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18_A13""
+  IL_007d:  stsfld     ""int[] <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18_A6""
   IL_0082:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
   IL_0087:  stloc.3
   IL_0088:  ldloc.1
@@ -1238,7 +1238,7 @@ public class Test
   IL_0091:  ldind.i4
   IL_0092:  add
   IL_0093:  stloc.1
-  IL_0094:  ldsfld     ""int[] <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F89_A13""
+  IL_0094:  ldsfld     ""int[] <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F89_A6""
   IL_0099:  dup
   IL_009a:  brtrue.s   IL_00b4
   IL_009c:  pop
@@ -1248,7 +1248,7 @@ public class Test
   IL_00a4:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F894""
   IL_00a9:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00ae:  dup
-  IL_00af:  stsfld     ""int[] <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F89_A13""
+  IL_00af:  stsfld     ""int[] <PrivateImplementationDetails>.71729EA83D1490C8B1B1F870F7CBA7FFBB490C71AF78C9015B49938A22E42F89_A6""
   IL_00b4:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
   IL_00b9:  stloc.s    V_4
   IL_00bb:  ldloc.1
@@ -1266,27 +1266,27 @@ public class Test
 
         public static IEnumerable<object[]> NonSize1Types_NoCreateSpan_UsesCachedArray_MemberData()
         {
-            yield return new object[] { "ushort", "ushort", "1", 1, "ldind.u2", "short", "<PrivateImplementationDetails>.47DC540C94CEB704A23875C11273E16BB0B8A87AED84DE911F2133568115F254", "2", "_A12" };
-            yield return new object[] { "ushort", "ushort", "1, 2", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.7B11C1133330CD161071BF23A0C9B6CE5320A8F3A0F83620035A72BE46DF4104", "2", "_A12" };
-            yield return new object[] { "ushort", "ushort", "1, 2, 3, 4", 4, "ldind.u2", "long", "<PrivateImplementationDetails>.EA99F710D9D0B8BA192295C969A63ED7CE8FC5743DA20D2057FA2B6D2C404BFB", "2", "_A12" };
+            yield return new object[] { "ushort", "ushort", "1", 1, "ldind.u2", "short", "<PrivateImplementationDetails>.47DC540C94CEB704A23875C11273E16BB0B8A87AED84DE911F2133568115F254", "2", "_A13" };
+            yield return new object[] { "ushort", "ushort", "1, 2", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.7B11C1133330CD161071BF23A0C9B6CE5320A8F3A0F83620035A72BE46DF4104", "2", "_A13" };
+            yield return new object[] { "ushort", "ushort", "1, 2, 3, 4", 4, "ldind.u2", "long", "<PrivateImplementationDetails>.EA99F710D9D0B8BA192295C969A63ED7CE8FC5743DA20D2057FA2B6D2C404BFB", "2", "_A13" };
             yield return new object[] { "uint", "uint", "1", 1, "ldind.u4", "int", "<PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450", "4", "_A14" };
             yield return new object[] { "uint", "uint", "1, 2", 2, "ldind.u4", "long", "<PrivateImplementationDetails>.34FB5C825DE7CA4AEA6E712F19D439C1DA0C92C37B423936C5F618545CA4FA1F", "4", "_A14" };
-            yield return new object[] { "ulong", "ulong", "1", 1, "ldind.i8", "long", "<PrivateImplementationDetails>.7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8", "8", "_A16" };
-            yield return new object[] { "char", "char", "'a', 'b', 'c'", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF", "2", "_A8" };
-            yield return new object[] { "int", "int", "1, 2, 3", 3, "ldind.i4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D", "4", "_A13" };
+            yield return new object[] { "ulong", "ulong", "1", 1, "ldind.i8", "long", "<PrivateImplementationDetails>.7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8", "8", "_A15" };
+            yield return new object[] { "char", "char", "'a', 'b', 'c'", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF", "2", "_A1" };
+            yield return new object[] { "int", "int", "1, 2, 3", 3, "ldind.i4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D", "4", "_A6" };
             yield return new object[] { "uint", "uint", "1, 2, 3", 3, "ldind.u4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D", "4", "_A14" };
-            yield return new object[] { "short", "short", "1, 2, 3", 3, "ldind.i2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF7", "2", "_A11" };
-            yield return new object[] { "ushort", "ushort", "1, 2, 3", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF7", "2", "_A12" };
-            yield return new object[] { "long", "long", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF", "8", "_A15" };
-            yield return new object[] { "ulong", "ulong", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF", "8", "_A16" };
-            yield return new object[] { "float", "float", "1.0f, 2.0f, 3.0f", 3, "ldind.r4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.8E628779E6A74EE0B36991C10158F63CAFEC7D340AD4E075592502C8708524DD", "4", "_A18" };
-            yield return new object[] { "double", "double", "1.0, 2.0, 3.0", 3, "ldind.r8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.A68DE4B5E96A60C8CEB3C7B7EF93461725BDBBFF3516B136585A743B5C0EC664", "8", "_A19" };
-            yield return new object[] { "MyColor_Int16", "short", "MyColor_Int16.Red, MyColor_Int16.Blue", 2, "ldind.i2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C60", "2", "_A11" };
-            yield return new object[] { "MyColor_UInt16", "ushort", "MyColor_UInt16.Red, MyColor_UInt16.Blue", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C60", "2", "_A12" };
-            yield return new object[] { "MyColor_Int32", "int", "MyColor_Int32.Red, MyColor_Int32.Blue", 2, "ldind.i4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B1", "4", "_A13" };
+            yield return new object[] { "short", "short", "1, 2, 3", 3, "ldind.i2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF7", "2", "_A5" };
+            yield return new object[] { "ushort", "ushort", "1, 2, 3", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF7", "2", "_A13" };
+            yield return new object[] { "long", "long", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF", "8", "_A7" };
+            yield return new object[] { "ulong", "ulong", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF", "8", "_A15" };
+            yield return new object[] { "float", "float", "1.0f, 2.0f, 3.0f", 3, "ldind.r4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.8E628779E6A74EE0B36991C10158F63CAFEC7D340AD4E075592502C8708524DD", "4", "_A3" };
+            yield return new object[] { "double", "double", "1.0, 2.0, 3.0", 3, "ldind.r8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.A68DE4B5E96A60C8CEB3C7B7EF93461725BDBBFF3516B136585A743B5C0EC664", "8", "_A4" };
+            yield return new object[] { "MyColor_Int16", "short", "MyColor_Int16.Red, MyColor_Int16.Blue", 2, "ldind.i2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C60", "2", "_A5" };
+            yield return new object[] { "MyColor_UInt16", "ushort", "MyColor_UInt16.Red, MyColor_UInt16.Blue", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C60", "2", "_A13" };
+            yield return new object[] { "MyColor_Int32", "int", "MyColor_Int32.Red, MyColor_Int32.Blue", 2, "ldind.i4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B1", "4", "_A6" };
             yield return new object[] { "MyColor_UInt32", "uint", "MyColor_UInt32.Red, MyColor_UInt32.Blue", 2, "ldind.u4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B1", "4", "_A14" };
-            yield return new object[] { "MyColor_Int64", "long", "MyColor_Int64.Red, MyColor_Int64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E", "8", "_A15" };
-            yield return new object[] { "MyColor_UInt64", "ulong", "MyColor_UInt64.Red, MyColor_UInt64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E", "8", "_A16" };
+            yield return new object[] { "MyColor_Int64", "long", "MyColor_Int64.Red, MyColor_Int64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E", "8", "_A7" };
+            yield return new object[] { "MyColor_UInt64", "ulong", "MyColor_UInt64.Red, MyColor_UInt64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E", "8", "_A15" };
         }
 
         [Theory]
@@ -1373,7 +1373,7 @@ public class Test
   .locals init (System.ReadOnlySpan<Alpha1> V_0, //s1
                 System.ReadOnlySpan<Alpha2> V_1, //s2
                 System.ReadOnlySpan<int> V_2) //s3
-  IL_0000:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_0000:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A6""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_0020
   IL_0008:  pop
@@ -1383,10 +1383,10 @@ public class Test
   IL_0010:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD404""
   IL_0015:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_001a:  dup
-  IL_001b:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_001b:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A6""
   IL_0020:  newobj     ""System.ReadOnlySpan<Alpha1>..ctor(Alpha1[])""
   IL_0025:  stloc.0
-  IL_0026:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_0026:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A6""
   IL_002b:  dup
   IL_002c:  brtrue.s   IL_0046
   IL_002e:  pop
@@ -1396,10 +1396,10 @@ public class Test
   IL_0036:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD404""
   IL_003b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0040:  dup
-  IL_0041:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_0041:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A6""
   IL_0046:  newobj     ""System.ReadOnlySpan<Alpha2>..ctor(Alpha2[])""
   IL_004b:  stloc.1
-  IL_004c:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_004c:  ldsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A6""
   IL_0051:  dup
   IL_0052:  brtrue.s   IL_006c
   IL_0054:  pop
@@ -1409,7 +1409,7 @@ public class Test
   IL_005c:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD404""
   IL_0061:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0066:  dup
-  IL_0067:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A13""
+  IL_0067:  stsfld     ""int[] <PrivateImplementationDetails>.FF1F6EE5D67458CFAC950F62E93042E21FCB867E2234DCC8721801231064AD40_A6""
   IL_006c:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
   IL_0071:  stloc.2
   IL_0072:  ldloca.s   V_0
@@ -1627,7 +1627,7 @@ public class Test
     IL_0013:  ldloca.s   V_0
     IL_0015:  call       ""bool System.ReadOnlySpan<byte>.IsEmpty.get""
     IL_001a:  pop
-    IL_001b:  ldsfld     ""int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A13""
+    IL_001b:  ldsfld     ""int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A6""
     IL_0020:  dup
     IL_0021:  brtrue.s   IL_003b
     IL_0023:  pop
@@ -1637,7 +1637,7 @@ public class Test
     IL_002b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B724""
     IL_0030:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
     IL_0035:  dup
-    IL_0036:  stsfld     ""int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A13""
+    IL_0036:  stsfld     ""int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A6""
     IL_003b:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
     IL_0040:  dup
     IL_0041:  stloc.1
@@ -1735,7 +1735,7 @@ class Test
   IL_0012:  ldc.i4.s   32
   IL_0014:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
   IL_0019:  stloc.1
-  IL_001a:  ldsfld     ""short[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A11""
+  IL_001a:  ldsfld     ""short[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A5""
   IL_001f:  dup
   IL_0020:  brtrue.s   IL_003b
   IL_0022:  pop
@@ -1745,10 +1745,10 @@ class Test
   IL_002b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
   IL_0030:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0035:  dup
-  IL_0036:  stsfld     ""short[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A11""
+  IL_0036:  stsfld     ""short[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A5""
   IL_003b:  newobj     ""System.ReadOnlySpan<short>..ctor(short[])""
   IL_0040:  stloc.2
-  IL_0041:  ldsfld     ""ushort[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A12""
+  IL_0041:  ldsfld     ""ushort[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A13""
   IL_0046:  dup
   IL_0047:  brtrue.s   IL_0062
   IL_0049:  pop
@@ -1758,10 +1758,10 @@ class Test
   IL_0052:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
   IL_0057:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_005c:  dup
-  IL_005d:  stsfld     ""ushort[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A12""
+  IL_005d:  stsfld     ""ushort[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A13""
   IL_0062:  newobj     ""System.ReadOnlySpan<ushort>..ctor(ushort[])""
   IL_0067:  stloc.3
-  IL_0068:  ldsfld     ""int[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A13""
+  IL_0068:  ldsfld     ""int[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A6""
   IL_006d:  dup
   IL_006e:  brtrue.s   IL_0088
   IL_0070:  pop
@@ -1771,7 +1771,7 @@ class Test
   IL_0078:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40514""
   IL_007d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0082:  dup
-  IL_0083:  stsfld     ""int[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A13""
+  IL_0083:  stsfld     ""int[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A6""
   IL_0088:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
   IL_008d:  stloc.s    V_4
   IL_008f:  ldsfld     ""uint[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A14""
@@ -1787,7 +1787,7 @@ class Test
   IL_00aa:  stsfld     ""uint[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A14""
   IL_00af:  newobj     ""System.ReadOnlySpan<uint>..ctor(uint[])""
   IL_00b4:  stloc.s    V_5
-  IL_00b6:  ldsfld     ""long[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A15""
+  IL_00b6:  ldsfld     ""long[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A7""
   IL_00bb:  dup
   IL_00bc:  brtrue.s   IL_00d6
   IL_00be:  pop
@@ -1797,10 +1797,10 @@ class Test
   IL_00c6:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40518""
   IL_00cb:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00d0:  dup
-  IL_00d1:  stsfld     ""long[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A15""
+  IL_00d1:  stsfld     ""long[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A7""
   IL_00d6:  newobj     ""System.ReadOnlySpan<long>..ctor(long[])""
   IL_00db:  stloc.s    V_6
-  IL_00dd:  ldsfld     ""ulong[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A16""
+  IL_00dd:  ldsfld     ""ulong[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A15""
   IL_00e2:  dup
   IL_00e3:  brtrue.s   IL_00fd
   IL_00e5:  pop
@@ -1810,10 +1810,10 @@ class Test
   IL_00ed:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40518""
   IL_00f2:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00f7:  dup
-  IL_00f8:  stsfld     ""ulong[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A16""
+  IL_00f8:  stsfld     ""ulong[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A15""
   IL_00fd:  newobj     ""System.ReadOnlySpan<ulong>..ctor(ulong[])""
   IL_0102:  stloc.s    V_7
-  IL_0104:  ldsfld     ""char[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A8""
+  IL_0104:  ldsfld     ""char[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A1""
   IL_0109:  dup
   IL_010a:  brtrue.s   IL_0125
   IL_010c:  pop
@@ -1823,7 +1823,7 @@ class Test
   IL_0115:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
   IL_011a:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_011f:  dup
-  IL_0120:  stsfld     ""char[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A8""
+  IL_0120:  stsfld     ""char[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A1""
   IL_0125:  newobj     ""System.ReadOnlySpan<char>..ctor(char[])""
   IL_012a:  stloc.s    V_8
   IL_012c:  ldc.i4.0

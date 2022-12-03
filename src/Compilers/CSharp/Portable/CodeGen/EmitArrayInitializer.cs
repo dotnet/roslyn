@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // This optimization is only supported for core primitive types that can be stored in metadata blobs.
                 // For enums, we need to use the underlying type.
-                specialElementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf().SpecialType;
+                specialElementType = elementType.EnumUnderlyingTypeOrSelf().SpecialType;
                 if (!IsTypeAllowedInBlobWrapper(specialElementType))
                 {
                     return false;
@@ -639,6 +639,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (createSpan is not null)
             {
                 // CreateSpan was available. Use it.
+                Debug.Assert(!createSpan.HasUnsupportedMetadata);
+
                 // ldtoken <PrivateImplementationDetails>...
                 // call ReadOnlySpan<elementType> RuntimeHelpers::CreateSpan<elementType>(fldHandle)
                 var field = _builder.module.GetFieldForData(data, alignment: (ushort)specialElementType.SizeInBytes(), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
@@ -668,10 +670,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //     new ReadOnlySpan<EnumType>(arrayOfUnderlyingType);
             // It's important to have a consistent type here, as otherwise the type of the caching field could
             // end up changing non-deterministically based on which type for a given blob was encountered first.
-            if (elementType.IsEnumType())
-            {
-                arrayType = arrayType.WithElementType(TypeWithAnnotations.Create(arrayType.ElementType.EnumUnderlyingTypeOrSelf()));
-            }
+            // Also, even if we're not dealing with an enum, we still create a new array type that drops any
+            // annotations that may have initially been associated with the element type; this is similarly to
+            // ensure deterministic behavior.
+            arrayType = arrayType.WithElementType(TypeWithAnnotations.Create(elementType.EnumUnderlyingTypeOrSelf()));
 
             ushort alignment = (ushort)specialElementType.SizeInBytes();
             var cachingField = _builder.module.GetArrayCachingFieldForData(data, _module.Translate(arrayType), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);

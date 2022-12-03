@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // fields mapped to metadata blocks
         private readonly ConcurrentDictionary<(ImmutableArray<byte> Data, ushort Alignment), MappedField> _mappedFields =
-            new ConcurrentDictionary<(ImmutableArray<byte> Data, ushort Alignment), MappedField>(MappedFieldEqualityComparer.Instance);
+            new ConcurrentDictionary<(ImmutableArray<byte> Data, ushort Alignment), MappedField>(DataAndUShortEqualityComparer.Instance);
 
         // fields for cached arrays
-        private readonly ConcurrentDictionary<(ImmutableArray<byte> Data, SpecialType ElementType), CachedArrayField> _cachedArrayFields =
-            new ConcurrentDictionary<(ImmutableArray<byte> Data, SpecialType ElementType), CachedArrayField>(CachedArrayFieldEqualityComparer.Instance);
+        private readonly ConcurrentDictionary<(ImmutableArray<byte> Data, ushort ElementType), CachedArrayField> _cachedArrayFields =
+            new ConcurrentDictionary<(ImmutableArray<byte> Data, ushort ElementType), CachedArrayField>(DataAndUShortEqualityComparer.Instance);
 
         private ModuleVersionIdField? _mvidField;
         // Dictionary that maps from analysis kind to instrumentation payload field.
@@ -163,21 +163,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(!IsFrozen);
 
-            // Get the SpecialType for the array's element type.
-            INamedTypeSymbol? symbol = arrayType.GetElementType(emitContext).GetInternalSymbol()?.GetISymbol() as INamedTypeSymbol;
-            Debug.Assert(symbol is not null);
-
-            SpecialType elementType = symbol.SpecialType;
-            Debug.Assert(elementType is not SpecialType.None, "Should have been a supported primitive");
+            // Get the type code for the array's element type.  It'll be used part of the
+            Cci.PrimitiveTypeCode typeCode = arrayType.GetElementType(emitContext).TypeCode;
+            Debug.Assert(typeCode is
+                Cci.PrimitiveTypeCode.Int16 or Cci.PrimitiveTypeCode.UInt16 or Cci.PrimitiveTypeCode.Char or
+                Cci.PrimitiveTypeCode.Int32 or Cci.PrimitiveTypeCode.UInt32 or Cci.PrimitiveTypeCode.Float32 or
+                Cci.PrimitiveTypeCode.Int64 or Cci.PrimitiveTypeCode.UInt64 or Cci.PrimitiveTypeCode.Float64);
 
             // Create a dedicated mapped field for the array type, separate from the data that'll be stored into that array.
             // Call sites will lazily instantiate the array to cache in this field, rather than forcibly instantiating
             // all of them when the private implementation details class is first used.
-            return _cachedArrayFields.GetOrAdd((data, elementType), key =>
+            return _cachedArrayFields.GetOrAdd((data, (ushort)typeCode), key =>
             {
                 // Hash the data to hex, but then tack on _A(ElementType). This is needed both to differentiate the array field from
                 // the data field, but also to differentiate multiple fields that may have the same raw data but different array types.
-                string name = $"{HashToHex(key.Data)}_A{(int)elementType}";
+                string name = $"{HashToHex(key.Data)}_A{key.ElementType}";
 
                 return new CachedArrayField(name, this, arrayType);
             });
@@ -227,39 +227,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 string hex = HashToHex(key.Data);
                 string name = alignment switch
                 {
-                    2 => $"{hex}2",
-                    4 => $"{hex}4",
-                    8 => $"{hex}8",
+                    2 => hex + "2",
+                    4 => hex + "4",
+                    8 => hex + "8",
                     _ => hex
                 };
 
                 return new MappedField(name, this, type, key.Data);
             });
-        }
-
-        private static string HashToHex(ImmutableArray<byte> data)
-        {
-            ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(data);
-
-#if NETCOREAPP2_1_OR_GREATER
-            return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
-#else
-            char[] c = new char[hash.Length * 2];
-            toHex(hash, c);
-            return new string(c);
-#endif
-
-            static void toHex(ImmutableArray<byte> source, Span<char> destination)
-            {
-                int i = 0;
-                foreach (var b in source.AsSpan())
-                {
-                    destination[i++] = hexchar(b >> 4);
-                    destination[i++] = hexchar(b & 0xF);
-                }
-            }
-
-            static char hexchar(int x) => (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
         }
 
         internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType)
@@ -364,6 +339,31 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public string NamespaceName => string.Empty;
 
+        private static string HashToHex(ImmutableArray<byte> data)
+        {
+            ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(data);
+
+#if NETCOREAPP2_1_OR_GREATER
+            return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
+#else
+            char[] c = new char[hash.Length * 2];
+            toHex(hash, c);
+            return new string(c);
+#endif
+
+            static void toHex(ImmutableArray<byte> source, Span<char> destination)
+            {
+                int i = 0;
+                foreach (var b in source.AsSpan())
+                {
+                    destination[i++] = hexchar(b >> 4);
+                    destination[i++] = hexchar(b & 0xF);
+                }
+            }
+
+            static char hexchar(int x) => (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
+        }
+
         private sealed class FieldComparer : IComparer<SynthesizedStaticField>
         {
             public static readonly FieldComparer Instance = new FieldComparer();
@@ -382,32 +382,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private sealed class MappedFieldEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, ushort Alignment)>
+        private sealed class DataAndUShortEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, ushort Value)>
         {
-            public static readonly MappedFieldEqualityComparer Instance = new MappedFieldEqualityComparer();
+            public static readonly DataAndUShortEqualityComparer Instance = new DataAndUShortEqualityComparer();
 
-            private MappedFieldEqualityComparer() { }
+            private DataAndUShortEqualityComparer() { }
 
-            public override bool Equals((ImmutableArray<byte> Data, ushort Alignment) x, (ImmutableArray<byte> Data, ushort Alignment) y) =>
-                x.Alignment == y.Alignment &&
+            public override bool Equals((ImmutableArray<byte> Data, ushort Value) x, (ImmutableArray<byte> Data, ushort Value) y) =>
+                x.Value == y.Value &&
                 ByteSequenceComparer.Equals(x.Data, y.Data);
 
-            public override int GetHashCode((ImmutableArray<byte> Data, ushort Alignment) obj) =>
-                ByteSequenceComparer.GetHashCode(obj.Data); // purposefully not including Alignment, as it won't add meaningfully to the hash code
-        }
-
-        private sealed class CachedArrayFieldEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, SpecialType ElementType)>
-        {
-            public static readonly CachedArrayFieldEqualityComparer Instance = new CachedArrayFieldEqualityComparer();
-
-            private CachedArrayFieldEqualityComparer() { }
-
-            public override bool Equals((ImmutableArray<byte> Data, SpecialType ElementType) x, (ImmutableArray<byte> Data, SpecialType ElementType) y) =>
-                x.ElementType == y.ElementType &&
-                ByteSequenceComparer.Equals(x.Data, y.Data);
-
-            public override int GetHashCode((ImmutableArray<byte> Data, SpecialType ElementType) obj) =>
-                ByteSequenceComparer.GetHashCode(obj.Data); // purposefully not including ElementType, as it won't add meaningfully to the hash code
+            public override int GetHashCode((ImmutableArray<byte> Data, ushort Value) obj) =>
+                ByteSequenceComparer.GetHashCode(obj.Data); // purposefully not including Value, as it won't add meaningfully to the hash code
         }
     }
 
