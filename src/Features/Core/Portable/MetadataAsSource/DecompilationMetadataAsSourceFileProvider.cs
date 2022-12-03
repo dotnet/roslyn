@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             bool signaturesOnly,
             MetadataAsSourceOptions options,
             string tempPath,
+            TelemetryMessage? telemetryMessage,
             CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo fileInfo;
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         if (decompiledSourceService != null)
                         {
                             var decompilationDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.GenerationOptions.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+                            telemetryMessage?.SetDecompiled(decompilationDocument is not null);
                             if (decompilationDocument is not null)
                             {
                                 temporaryDocument = decompilationDocument;

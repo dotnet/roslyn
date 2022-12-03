@@ -11540,7 +11540,7 @@ class Program
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -11674,7 +11674,7 @@ class Program
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -11863,7 +11863,7 @@ class RR
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -11895,7 +11895,7 @@ class RR
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -12274,7 +12274,7 @@ class Program
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -12308,7 +12308,7 @@ class Program
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -13826,7 +13826,7 @@ class Program
 
                 var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
                 Assert.Null(model.GetTypeInfo(type).Type);
-                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef()).Symbol.ToTestDisplayString());
             }
         }
 
@@ -13868,7 +13868,7 @@ class Program
 
                 var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
                 Assert.Null(model.GetTypeInfo(type).Type);
-                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef()).Symbol.ToTestDisplayString());
             }
         }
 
@@ -14074,7 +14074,7 @@ class Enumerator2
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -14229,18 +14229,9 @@ class Enumerator2
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,18): error CS8352: Cannot use variable '(scoped R r1, scoped var _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped R r1, scoped var _) in new Enumerable1()) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped R r1, scoped var _)").WithArguments("(scoped R r1, scoped var _)").WithLocation(7, 18),
                 // (7,32): error CS9061: The 'scoped' modifier cannot be used with discard.
                 //         foreach ((scoped R r1, scoped var _) in new Enumerable1()) break;
                 Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(7, 32),
-                // (7,49): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         foreach ((scoped R r1, scoped var _) in new Enumerable1()) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable1()").WithArguments("R.Deconstruct(out R, out R)", "x").WithLocation(7, 49),
-                // (8,18): error CS8352: Cannot use variable '(scoped ref R r2, scoped ref var _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped ref R r2, scoped ref var _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref R r2, scoped ref var _)").WithArguments("(scoped ref R r2, scoped ref var _)").WithLocation(8, 18),
                 // (8,26): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref R r2, scoped ref var _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(8, 26),
@@ -14250,12 +14241,6 @@ class Enumerator2
                 // (8,43): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref R r2, scoped ref var _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(8, 43),
-                // (8,57): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         foreach ((scoped ref R r2, scoped ref var _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "x").WithLocation(8, 57),
-                // (9,18): error CS8352: Cannot use variable '(scoped ref readonly R r5, scoped ref readonly var _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped ref readonly R r5, scoped ref readonly var _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref readonly R r5, scoped ref readonly var _)").WithArguments("(scoped ref readonly R r5, scoped ref readonly var _)").WithLocation(9, 18),
                 // (9,26): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref readonly R r5, scoped ref readonly var _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(9, 26),
@@ -14265,9 +14250,6 @@ class Enumerator2
                 // (9,52): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref readonly R r5, scoped ref readonly var _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(9, 52),
-                // (9,75): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         foreach ((scoped ref readonly R r5, scoped ref readonly var _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "x").WithLocation(9, 75),
                 // (11,35): error CS9061: The 'scoped' modifier cannot be used with discard.
                 //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
                 Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(11, 35),
@@ -25138,7 +25120,7 @@ ref struct R
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -25228,7 +25210,7 @@ ref struct R
 
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
-                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef()));
 
                     Assert.Null(model.GetSymbolInfo(type).Symbol);
                     Assert.Null(model.GetTypeInfo(type).Type);
@@ -25779,7 +25761,7 @@ ref struct R
 
                 var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
                 Assert.Null(model.GetTypeInfo(type).Type);
-                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef()).Symbol.ToTestDisplayString());
             }
         }
 
@@ -25827,7 +25809,7 @@ ref struct R
 
                 var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
                 Assert.Null(model.GetTypeInfo(type).Type);
-                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef()).Symbol.ToTestDisplayString());
             }
         }
 

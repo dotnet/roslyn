@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly CancellationTokenSource _disposalCancellationSource;
             private readonly CancellationToken _disposalToken;
 
-            private FileChangeWatcher.IContext _fileChangeContext;
+            private IFileChangeContext _fileChangeContext;
 
             private ReportDiagnostic _generalDiagnosticOption;
             private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
@@ -42,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _disposalToken = _disposalCancellationSource.Token;
             }
 
-            public void InitializeFileTracking(FileChangeWatcher fileChangeWatcher)
+            public void InitializeFileTracking(IFileChangeWatcher fileChangeWatcher)
             {
                 lock (_gate)
                 {

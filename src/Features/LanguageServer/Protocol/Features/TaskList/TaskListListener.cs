@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.TaskList
         public void Start()
         {
             // If we're in pull-diagnostics mode, then todo-comments will be handled by LSP.
-            var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (diagnosticMode == DiagnosticMode.Pull)
+            var diagnosticMode = _globalOptions.GetDiagnosticMode();
+            if (diagnosticMode == DiagnosticMode.LspPull)
                 return;
 
             var registrationService = _services.GetRequiredService<ISolutionCrawlerRegistrationService>();

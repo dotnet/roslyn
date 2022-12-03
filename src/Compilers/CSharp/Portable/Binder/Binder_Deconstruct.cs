@@ -761,18 +761,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
-                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type.SkipScoped(out _).SkipRef(out _), ref isConst, out isVar, out alias);
+                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type.SkipScoped(out _).SkipRef(), ref isConst, out isVar, out alias);
                         Debug.Assert(isVar == !declType.HasType);
-                        if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
+                        if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
                         {
-                            // An explicit type is not allowed with a parenthesized designation
-                            Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
+                            if (!isVar)
+                            {
+                                // An explicit type is not allowed with a parenthesized designation
+                                Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
+                            }
+                            else if (node.Parent is not ArgumentSyntax)
+                            {
+                                // check for use of `var (x, y, z)`.  Only need to report this in a non-argument
+                                // position. If it's an argument, then we have `(int x, var (y, z))` and we will have
+                                // already reported the parent tuple, so no need to report on the inner designation.
+                                MessageID.IDS_FeatureTuples.CheckFeatureAvailability(diagnostics, component.Designation);
+                            }
                         }
 
                         return BindDeconstructionVariables(declType, component.Designation, component, diagnostics);
                     }
                 case SyntaxKind.TupleExpression:
                     {
+                        MessageID.IDS_FeatureTuples.CheckFeatureAvailability(diagnostics, node);
+
                         var component = (TupleExpressionSyntax)node;
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Arguments.Count);
                         foreach (var arg in component.Arguments)
