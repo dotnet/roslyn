@@ -292,32 +292,6 @@ class C
             Assert.Equal(9, textRuns.Count());
         }
 
-        [Fact]
-        public async Task TestFindAllReferencesAsync_OnlyLocations()
-        {
-            var markup =
-@"class A
-{
-    public int {|reference:someInt|} = 1;
-    void M()
-    {
-        var i = {|reference:someInt|} + 1;
-    }
-}
-class B
-{
-    int someInt = A.{|reference:someInt|} + 1;
-    void M2()
-    {
-        var j = someInt + A.{|caret:|}{|reference:someInt|};
-    }
-}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.ClientCapabilities());
-
-            var results = await RunFindAllReferencesAsync<LSP.Location>(testLspServer, testLspServer.GetLocations("caret").First());
-            AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result));
-        }
-
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
             => new LSP.ReferenceParams()
             {
@@ -329,7 +303,7 @@ class B
 
         internal static async Task<T[]> RunFindAllReferencesAsync<T>(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
         {
-            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
+            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, T[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), CancellationToken.None);
             return results?.Cast<T>()?.ToArray();
         }

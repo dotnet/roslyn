@@ -76,6 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             .AddParts(
                 typeof(TestInteractiveWindowEditorFactoryService));
 
-        public static readonly TestComposition LanguageServerProtocol = EditorFeatures;
+        public static readonly TestComposition LanguageServerProtocol = FeaturesTestCompositions.Features
+            .AddAssemblies(typeof(LanguageServerResources).Assembly);
+
+        public static readonly TestComposition LanguageServerProtocolEditorFeatures = EditorFeatures
+            .AddAssemblies(typeof(LanguageServerResources).Assembly);
     }
 }
