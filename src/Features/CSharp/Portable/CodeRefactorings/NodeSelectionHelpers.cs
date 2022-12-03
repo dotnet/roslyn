@@ -60,9 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 // malformed syntax nodes.
                 // Consider pub[||] static int Foo;
                 // Which has 2 member nodes (an incomplete and a field), but we'd only expect one
-#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
-                return members.Any(m => m is GlobalStatementSyntax or IncompleteMemberSyntax)
-#pragma warning restore CS0618
+                return members.Any(m => m is GlobalStatementSyntax or VariableDeclaratorSyntax { Identifier.IsMissing: true })
                     ? ImmutableArray<SyntaxNode>.Empty
                     : members;
             }
