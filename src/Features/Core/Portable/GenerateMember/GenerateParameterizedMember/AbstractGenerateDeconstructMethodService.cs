@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
@@ -36,5 +37,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 return state != null ? await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false) : ImmutableArray<CodeAction>.Empty;
             }
         }
+
+        public abstract ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target, ISemanticFactsService semanticFacts, CancellationToken cancellationToken);
+
     }
 }

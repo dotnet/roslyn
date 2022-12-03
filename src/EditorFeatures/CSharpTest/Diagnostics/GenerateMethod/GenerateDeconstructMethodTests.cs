@@ -358,7 +358,7 @@ class C
 
     void Method()
     {
-        if(this is C(""[||])) { }
+        if(this is C(""""[||])) { }
     }
 }");
         }
