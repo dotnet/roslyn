@@ -99,16 +99,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     var namesBuilder = ImmutableArray.CreateBuilder<string>();
                     using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(positionalPattern.Subpatterns.Count, out var builder);
-                    for (var i = 0; i < positionalPattern.Subpatterns.Count - 1; i++)
+                    for (var i = 0; i < positionalPattern.Subpatterns.Count; i++)
                     {
-                        namesBuilder.Add(semanticFacts.GenerateNameForExpression(semanticModel, positionalPattern.Subpatterns[i], false, cancellationToken));
+                        namesBuilder.Add(semanticFacts.GenerateNameForExpression(semanticModel, ((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, false, cancellationToken));
                     }
                     var names = NameGenerator.EnsureUniqueness(namesBuilder.ToImmutable());
-                    for (var i = 0; i < positionalPattern.Subpatterns.Count - 1; i++)
+                    for (var i = 0; i < positionalPattern.Subpatterns.Count; i++)
                     {
-                        targetType = semanticModel.GetTypeInfo(positionalPattern.Subpatterns[i].Pattern, cancellationToken: cancellationToken).Type;
+                        targetType = semanticModel.GetTypeInfo(((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, cancellationToken: cancellationToken).Type;
                         builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        RefKind.Out, targetType, names[i]));
+                        attributes: default, RefKind.Out, isParams: false, targetType, names[i]));
                     }
 
                     return builder.ToImmutableAndClear();

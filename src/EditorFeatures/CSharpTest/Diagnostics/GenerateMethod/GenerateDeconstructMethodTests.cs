@@ -339,25 +339,25 @@ class D
         public async Task TestDeconstructionPositionalPattern()
         {
             await TestInRegularAndScriptAsync(
-@"class Class
+@"class C
 {
     void Method()
     {
-        if(class is Class(""[||])) { }
+        if(this is C(""[||])) { }
     }
 }",
 @"using System;
 
-class Class
+class C
 {
-    void Method()
-    {
-        if(class is Class(""[||])) { }
-    }
-
     private void Deconstruct(out string v)
     {
         throw new NotImplementedException();
+    }
+
+    void Method()
+    {
+        if(this is C(""[||])) { }
     }
 }");
         }

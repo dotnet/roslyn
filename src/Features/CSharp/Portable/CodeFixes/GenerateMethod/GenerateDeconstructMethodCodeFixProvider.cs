@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
 
             if (deconstruction is null)
             {
-                Debug.Fail("The diagnostic can only be produced in context of a deconstruction-assignment or deconstruction-foreach");
+                Debug.Fail("The diagnostic can only be produced in context of a deconstruction-assignment, deconstruction-foreach or deconstruction-positionalpattern");
                 return;
             }
 
@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
             if (info.Method != null || !info.Nested.IsEmpty)
             {
                 // There is already a Deconstruct method, or we have a nesting situation
+                return;
+            }
+
+            if (deconstruction is PositionalPatternClauseSyntax positionalPatternClause && positionalPatternClause.Subpatterns.Any(p => p.Pattern is not ConstantPatternSyntax))
+            {
                 return;
             }
 
