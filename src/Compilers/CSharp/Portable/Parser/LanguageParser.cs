@@ -429,7 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             var attributeLists = _pool.Allocate<AttributeListSyntax>();
                             var modifiers = _pool.Allocate();
 
-                            body.Members.Add(adjustStateAndReportStatementOutOfOrder(ref seen, this.ParseNamespaceDeclaration(attributeLists, modifiers)));
+                            body.Members.Add(adjustStateAndReportStatementOutOfOrder(
+                                ref seen, this.ParseNamespaceDeclaration(attributeLists, modifiers)));
 
                             _pool.Free(attributeLists);
                             _pool.Free(modifiers);
@@ -3411,7 +3412,6 @@ parse_member_name:;
 
                 SyntaxToken opKeyword;
                 TypeSyntax type;
-                ParameterListSyntax paramList;
 
                 if (!style.IsMissing && explicitInterfaceOpt is not null && this.CurrentToken.Kind != SyntaxKind.OperatorKeyword && style.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
                 {
@@ -3421,11 +3421,7 @@ parse_member_name:;
                     explicitInterfaceOpt = null;
                     opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
                     type = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
-                    SyntaxToken open = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
-                    SyntaxToken close = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
                     var parameters = _pool.AllocateSeparated<ParameterSyntax>();
-                    paramList = _syntaxFactory.ParameterList(open, parameters, close);
-                    _pool.Free(parameters);
 
                     return _syntaxFactory.ConversionOperatorDeclaration(
                         attributes,
@@ -3435,7 +3431,10 @@ parse_member_name:;
                         opKeyword,
                         checkedKeyword: null,
                         type,
-                        paramList,
+                        _syntaxFactory.ParameterList(
+                            SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken),
+                            _pool.ToListAndFree(parameters),
+                            SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken)),
                         body: null,
                         expressionBody: null,
                         semicolonToken: SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken));
@@ -3459,7 +3458,7 @@ parse_member_name:;
                     type = ParseIdentifierName();
                 }
 
-                paramList = this.ParseParenthesizedParameterList();
+                var paramList = this.ParseParenthesizedParameterList();
 
                 BlockSyntax blockBody;
                 ArrowExpressionClauseSyntax expressionBody;
@@ -12799,9 +12798,7 @@ tryAgain:
                 break;
             }
 
-            var result = modifiers.ToList();
-            _pool.Free(modifiers);
-            return result;
+            return _pool.ToListAndFree(modifiers);
         }
 
         private bool IsAnonymousFunctionAsyncModifier()
