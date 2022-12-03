@@ -1726,8 +1726,6 @@ public class QueryExpressionTest
                     DiagnosticResult.CompilerError("CS0246").WithSpan(13, 63, 13, 69).WithArguments("select"),
                     // Test0.cs(13,63): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
                     DiagnosticResult.CompilerError("CS1663").WithSpan(13, 63, 13, 69),
-                    // Test0.cs(13,70): error CS0102: The type 'QueryExpressionTest' already contains a definition for ''
-                    DiagnosticResult.CompilerError("CS0102").WithSpan(13, 70, 13, 70).WithArguments("QueryExpressionTest", ""),
                     // Test0.cs(13,70): error CS1642: Fixed size buffer fields may only be members of structs
                     DiagnosticResult.CompilerError("CS1642").WithSpan(13, 70, 13, 70),
                     // Test0.cs(13,70): error CS0836: Cannot use anonymous type in a constant expression
@@ -1752,8 +1750,6 @@ public class QueryExpressionTest
                     DiagnosticResult.CompilerError("CS1003").WithSpan(13, 79, 13, 84).WithArguments("]"),
                     // Test0.cs(13,79): error CS1513: } expected
                     DiagnosticResult.CompilerError("CS1513").WithSpan(13, 79, 13, 84),
-                    // Test0.cs(13,85): error CS0102: The type 'QueryExpressionTest' already contains a definition for ''
-                    DiagnosticResult.CompilerError("CS0102").WithSpan(13, 85, 13, 85).WithArguments("QueryExpressionTest", ""),
                     // Test0.cs(13,85): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     DiagnosticResult.CompilerError("CS0214").WithSpan(13, 85, 13, 85),
                     // Test0.cs(13,85): error CS1642: Fixed size buffer fields may only be members of structs

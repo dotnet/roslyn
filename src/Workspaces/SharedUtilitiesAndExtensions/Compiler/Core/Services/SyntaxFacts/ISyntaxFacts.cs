@@ -488,6 +488,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
+        bool IsIncompleteFieldDeclaration([NotNullWhen(true)] SyntaxNode? node);
+
         #region IsXXX members
 
         bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node);

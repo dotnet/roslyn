@@ -1528,6 +1528,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             return syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
 
+        public bool IsIncompleteFieldDeclaration([NotNullWhen(true)] SyntaxNode? node)
+        {
+            return node is FieldDeclarationSyntax { Declaration.Variables: [{ Identifier.IsMissing: true }] };
+        }
+
         #region IsXXX members
 
         public bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node)

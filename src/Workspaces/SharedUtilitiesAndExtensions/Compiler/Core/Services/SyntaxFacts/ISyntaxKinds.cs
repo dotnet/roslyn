@@ -186,8 +186,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int FieldDeclaration { get; }
         int PropertyDeclaration { get; }
 
-        [System.Obsolete("No longer produced by parser. PROTOTYPE: Remove it.")]
-        int IncompleteMember { get; }
         int TypeArgumentList { get; }
         int ParameterList { get; }
 

@@ -1718,6 +1718,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
         End Function
 
+        Public Function IsIncompleteFieldDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIncompleteFieldDeclaration
+            Return TypeOf node Is IncompleteMemberSyntax
+        End Function
+
 #Region "IsXXX members"
 
         Public Function IsAnonymousFunctionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnonymousFunctionExpression
