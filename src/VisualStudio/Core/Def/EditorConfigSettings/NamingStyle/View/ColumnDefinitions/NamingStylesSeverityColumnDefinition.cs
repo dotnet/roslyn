@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
@@ -31,6 +32,28 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
         public override bool IsFilterable => false;
         public override bool IsSortable => false;
         public override double MinWidth => 120;
+
+        public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
+        {
+            if (!entry.TryGetValue(Type, out NamingStyleSetting setting))
+            {
+                content = null;
+                return false;
+            }
+
+            content = GetSeverityString(setting.Severity);
+            return true;
+
+            static string GetSeverityString(ReportDiagnostic severity)
+                => severity switch
+                {
+                    ReportDiagnostic.Hidden => ServicesVSResources.Disabled,
+                    ReportDiagnostic.Info => ServicesVSResources.Suggestion,
+                    ReportDiagnostic.Warn => ServicesVSResources.Warning,
+                    ReportDiagnostic.Error => ServicesVSResources.Error,
+                    _ => throw new InvalidOperationException(),
+                };
+        }
 
         public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
         {
