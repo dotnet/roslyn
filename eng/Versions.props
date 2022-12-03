@@ -140,7 +140,7 @@
     <MicrosoftVisualStudioComponentModelHostVersion>17.4.248</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>16.9.20</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
-    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.5.1120201-preview</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
+    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.4.0-beta.22368.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
     <MicrosoftVisualStudioDebuggerContractsVersion>17.4.0-beta.22368.1</MicrosoftVisualStudioDebuggerContractsVersion>
     <MicrosoftVisualStudioDebuggerEngineimplementationVersion>17.5.1120201-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
     <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>17.5.1120201-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
