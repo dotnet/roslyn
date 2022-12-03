@@ -8,8 +8,9 @@ using System.Composition;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
@@ -18,6 +19,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     [Method(LSP.Methods.WorkspaceDidChangeConfigurationName)]
     internal class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>
     {
+        private readonly IGlobalOptionService _globalOptionService;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DidChangeConfigurationNotificationHandler(IGlobalOptionService globalOptionService)
+        {
+            _globalOptionService = globalOptionService;
+        }
+
         public bool MutatesSolutionState => false;
 
         public bool RequiresLSPSolution => true;
@@ -25,6 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         public Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
         {
             var settings = request.Settings;
+            return Task.CompletedTask;
         }
     }
 }

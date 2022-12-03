@@ -4,24 +4,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Text;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
+    [Export(typeof(IOptionPersister)), Shared]
     internal class LspOptionPersister : IOptionPersister
     {
-        private readonly IClientLanguageServerManager _clientLanguageServerManager;
-
-        public LspOptionPersister(IClientLanguageServerManager clientLanguageServerManager)
-        {
-            _clientLanguageServerManager = clientLanguageServerManager;
-        }
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LspOptionPersister() { }
 
         public bool TryFetch(OptionKey optionKey, out object? value)
         {
-            // TODO: Send requrest to client
-            throw new NotImplementedException();
+            // Whenever a service try to read a option, it should hit the cache.
+            throw ExceptionUtilities.Unreachable();
         }
 
         public bool TryPersist(OptionKey optionKey, object? value)
