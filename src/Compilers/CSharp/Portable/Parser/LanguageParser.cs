@@ -429,8 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             var attributeLists = _pool.Allocate<AttributeListSyntax>();
                             var modifiers = _pool.Allocate();
 
-                            body.Members.Add(adjustStateAndReportStatementOutOfOrder(
-                                ref seen, this.ParseNamespaceDeclaration(attributeLists, modifiers)));
+                            body.Members.Add(adjustStateAndReportStatementOutOfOrder(ref seen, this.ParseNamespaceDeclaration(attributeLists, modifiers)));
 
                             _pool.Free(attributeLists);
                             _pool.Free(modifiers);
