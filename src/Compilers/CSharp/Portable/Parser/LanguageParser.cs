@@ -12798,7 +12798,7 @@ tryAgain:
                 break;
             }
 
-            return _pool.ToListAndFree(modifiers);
+            return _pool.ToTokenListAndFree(modifiers);
         }
 
         private bool IsAnonymousFunctionAsyncModifier()
