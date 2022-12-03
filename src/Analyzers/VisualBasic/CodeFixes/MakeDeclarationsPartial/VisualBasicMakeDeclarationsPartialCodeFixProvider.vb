@@ -6,14 +6,14 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.MakeDeclarationPartial
+Imports Microsoft.CodeAnalysis.MakeDeclarationsPartial
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeDeclarationPartial), [Shared]>
-    Friend Class VisualBasicMakeDeclarationPartialCodeFixProvider
-        Inherits AbstractMakeDeclarationPartialCodeFixProvider
+Namespace Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationsPartial
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeDeclarationsPartial), [Shared]>
+    Friend Class VisualBasicMakeDeclarationsPartialCodeFixProvider
+        Inherits AbstractMakeDeclarationsPartialCodeFixProvider
 
-        Private Const BC40046 As String = NameOf(BC40046)
+        Private Const BC40046 As String = NameOf(BC40046) ' Type 'D' and partial type 'D' conflict in container 'C', but are being merged because one of them is declared partial
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

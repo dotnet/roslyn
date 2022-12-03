@@ -34,7 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MakeDeclarationPartial\CSharpMakeDeclarationPartialCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeDeclarationsPartial\CSharpMakeDeclarationsPartialCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\CSharpMakeMemberStaticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructReadOnly\CSharpMakeStructReadOnlyCodeFixProvider.cs" />

@@ -2,16 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Testing
-Imports Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial.VisualBasicMakeDeclarationPartialCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationsPartial.VisualBasicMakeDeclarationsPartialCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeDeclarationPartial
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeDeclarationPartial)>
-    Public Class MakeDeclarationPartialTests
+    Public Class MakeDeclarationsPartialTests
         <Fact>
         Public Async Function OutsideNamespace() As Task
             Dim document = "
@@ -31,7 +28,7 @@ End Class
 Partial Class Declaration
 End Class
 
-Class {|BC40046:Declaration|}
+Partial Class Declaration
 End Class"
 
             Dim test = New VerifyVB.Test With {
@@ -64,7 +61,7 @@ Namespace TestNamespace
     Partial Class Declaration
     End Class
 
-    Class {|BC40046:Declaration|}
+    Partial Class Declaration
     End Class
 End Namespace"
 
@@ -106,7 +103,7 @@ Namespace TestNamespace
 End Namespace
 
 Namespace TestNamespace
-    Class {|BC40046:Declaration|}
+    Partial Class Declaration
     End Class
 End Namespace"
 
@@ -137,7 +134,7 @@ End Class
 Partial Public Class Declaration
 End Class
 
-Public Class {|BC40046:Declaration|}
+Partial Public Class Declaration
 End Class"
 
             Dim test = New VerifyVB.Test With {

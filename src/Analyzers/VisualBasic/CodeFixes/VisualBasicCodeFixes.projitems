@@ -24,7 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicFormattingCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)MakeDeclarationPartial\VisualBasicMakeDeclarationPartialCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeDeclarationsPartial\VisualBasicMakeDeclarationsPartialCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\VisualBasicMakeFieldReadonlyCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\VisualBasicMakeTypeAbstractCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\VisualBasicOrderModifiersCodeFixProvider.vb" />
