@@ -40,11 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 {
                     return memberDeclaration switch
                     {
-                        FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
+                        FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Where(v => !v.Identifier.IsMissing).AsImmutable<SyntaxNode>(),
                         EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
-#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
-                        IncompleteMemberSyntax or GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
-#pragma warning restore CS0618
+                        GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
                         _ => ImmutableArray.Create<SyntaxNode>(memberDeclaration),
                     };
                 }
