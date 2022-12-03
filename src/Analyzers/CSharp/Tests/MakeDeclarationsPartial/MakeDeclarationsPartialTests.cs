@@ -305,6 +305,56 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationsPartial
 
         [Theory]
         [MemberData(nameof(AllValidDeclarationTypes))]
+        public async Task FixOne(string declarationType)
+        {
+            var testCode = $$"""
+                partial {{declarationType}} Test
+                {
+                }
+                
+                {{declarationType}} {|CS0260:Test|}
+                {
+                }
+                
+                {{declarationType}} {|CS0260:Test|}
+                {
+                }
+                """;
+            var fixedCode = $$"""
+                partial {{declarationType}} Test
+                {
+                }
+                
+                partial {{declarationType}} Test
+                {
+                }
+                
+                partial {{declarationType}} Test
+                {
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+                DiagnosticSelector = d => d[0]
+            }.RunAsync();
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+                DiagnosticSelector = d => d[1]
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task NotInDifferentNamespaces(string declarationType)
         {
             var markup = $$"""
