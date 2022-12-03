@@ -2,28 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
-using System.Threading;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Utilities;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    internal partial class DocumentOutlineControl
+    internal partial class DocumentOutlineViewModel
     {
         private readonly AsyncBatchingWorkQueue<FilterAndSortOptions, DocumentSymbolDataModel?> _filterAndSortQueue;
 
-        private void EnqueueFilterAndSortDataModelTask(string? search, SortOption sortOptions, SnapshotPoint? caretPoint)
+        public void EnqueueFilterAndSortTask(SnapshotPoint? caretPoint)
         {
-            _filterAndSortQueue.AddWork(new FilterAndSortOptions(search, sortOptions, caretPoint), cancelExistingWork: true);
+            _filterAndSortQueue.AddWork(new FilterAndSortOptions(SearchText, SortOption, caretPoint), cancelExistingWork: true);
         }
 
         private async ValueTask<DocumentSymbolDataModel?> FilterAndSortDataModelAsync(ImmutableSegmentedList<FilterAndSortOptions> settings, CancellationToken cancellationToken)
         {
-            var (searchQuery, sortOption, caretPoint) = settings.LastOrDefault();
+            var (searchQuery, sortOption, caretPoint) = settings.Last();
 
             var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
@@ -40,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             updatedDocumentSymbolData = DocumentOutlineHelper.SortDocumentSymbolData(updatedDocumentSymbolData, sortOption, cancellationToken);
 
-            EnqueueUpdateUITask(ExpansionOption.NoChange, caretPoint);
+            EnqueueUIUpdateTask(ExpansionOption.NoChange, caretPoint);
 
             return new DocumentSymbolDataModel(updatedDocumentSymbolData, model.OriginalSnapshot);
         }

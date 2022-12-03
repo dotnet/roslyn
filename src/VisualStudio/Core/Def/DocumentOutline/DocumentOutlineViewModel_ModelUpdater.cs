@@ -2,31 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
-using System.Threading;
-using Roslyn.Utilities;
-using static Microsoft.VisualStudio.LanguageServices.DocumentOutline.DocumentOutlineControl;
-using Microsoft.CodeAnalysis.Collections;
 using System.Linq;
-using EnvDTE;
-using Microsoft.VisualStudio.Text;
-using Newtonsoft.Json.Linq;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.CodeAnalysis.Internal.Log;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    internal partial class DocumentOutlineControl
+    internal partial class DocumentOutlineViewModel
     {
-        private readonly AsyncBatchingWorkQueue<DocumentOutlineSettings?, DocumentSymbolDataModel?> _documentSymbolQueue;
+        private readonly AsyncBatchingWorkQueue<VisualStudioCodeWindowInfo?, DocumentSymbolDataModel?> _documentSymbolQueue;
 
-        private void EnqueuGetDocumentSymbolTask(DocumentOutlineSettings settings)
+        private async ValueTask EnqueueModelUpdateAsync()
         {
-            _documentSymbolQueue.AddWork(settings, cancelExistingWork: true);
+            var info = await _visualStudioCodeWindowInfoService.GetVisualStudioCodeWindowInfoAsync(CancellationToken).ConfigureAwait(false);
+            if (info is not null)
+            {
+                _documentSymbolQueue.AddWork(info, cancelExistingWork: true);
+            }
         }
 
-        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<DocumentOutlineSettings?> settings, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<VisualStudioCodeWindowInfo?> settings, CancellationToken cancellationToken)
         {
             var setting = settings.Last();
             if (setting is null)
@@ -36,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (textBuffer, filePath, search, sort, caret) = setting;
+            var (textBuffer, filePath, caretPoint) = setting;
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
@@ -58,8 +57,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
-            EnqueueFilterAndSortDataModelTask(search, sort, caret);
+            EnqueueFilterAndSortTask(caretPoint);
             return model;
         }
+
+        private record DocumentOutlineSettings(ITextBuffer TextBuffer, string FilePath);
     }
 }

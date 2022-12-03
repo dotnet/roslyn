@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
             private ElementHost? _documentOutlineViewHost;
-            private DocumentOutlineControl? _documentOutlineControl;
+            private DocumentOutlineView? _documentOutlineControl;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Contract.ThrowIfFalse(_documentOutlineControl is null);
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
-                _documentOutlineControl = new DocumentOutlineControl(
+                _documentOutlineControl = DocumentOutlineViewFactory.CreateView(
                     languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
 
                 _documentOutlineViewHost = new ElementHost

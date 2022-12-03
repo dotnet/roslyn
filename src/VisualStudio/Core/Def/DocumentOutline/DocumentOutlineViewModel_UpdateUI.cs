@@ -2,25 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
-using System.Threading;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.VisualStudio.Text;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Collections.Immutable;
-using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    internal partial class DocumentOutlineControl
+    internal partial class DocumentOutlineViewModel
     {
         private readonly AsyncBatchingWorkQueue<UIData> _updateUIQueue;
 
-        private void EnqueueUpdateUITask(ExpansionOption option, SnapshotPoint? caretPoint)
+        public void EnqueueUIUpdateTask(ExpansionOption expansionOption, SnapshotPoint? caretPoint)
         {
-            _updateUIQueue.AddWork(new UIData(option, caretPoint), cancelExistingWork: true);
+            _updateUIQueue.AddWork(new UIData(expansionOption, caretPoint), cancelExistingWork: true);
         }
 
         private async ValueTask UpdateUIAsync(ImmutableSegmentedList<UIData> options, CancellationToken cancellationToken)
@@ -32,10 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return;
             }
 
-            // Switch to the UI thread to get the current caret point and latest active text view then create the UI model.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData, _threadingContext);
+            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData);
 
             DocumentSymbolUIItem? symbolToSelect = null;
             if (caretPoint.HasValue)
@@ -44,12 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             // Expand/collapse nodes based on the given Expansion Option.
-            if (expansion is not ExpansionOption.NoChange && SymbolTree.ItemsSource is not null)
+            if (expansion is not ExpansionOption.NoChange && DocumentSymbolUIItems.Any())
             {
-                DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, (IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource, expansion);
+                DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, DocumentSymbolUIItems, expansion);
             }
 
-            // Hightlight the selected node if it exists, otherwise unselect all nodes (required so that the view does not select a node by default).
+            // Highlight the selected node if it exists, otherwise unselect all nodes (required so that the view does not select a node by default).
             if (symbolToSelect is not null)
             {
                 // Expand all ancestors first to ensure the selected node will be visible.
@@ -59,11 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             else
             {
                 // On Document Outline Control initialization, SymbolTree.ItemsSource is null
-                if (SymbolTree.ItemsSource is not null)
-                    DocumentOutlineHelper.UnselectAll((IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource);
+                if (DocumentSymbolUIItems.Any())
+                    DocumentOutlineHelper.UnselectAll(DocumentSymbolUIItems);
             }
 
-            SymbolTree.ItemsSource = documentSymbolUIItems;
+            DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolUIItem>(documentSymbolUIItems);
         }
 
         private record struct UIData(ExpansionOption ExpansionOption, SnapshotPoint? CaretPoint);

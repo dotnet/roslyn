@@ -5,8 +5,6 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text;
@@ -17,7 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
     internal sealed class DocumentSymbolUIItem : INotifyPropertyChanged
     {
-        private readonly IThreadingContext _threadingContext;
         public string Name { get; }
         public ImmutableArray<DocumentSymbolUIItem> Children { get; }
         public SnapshotSpan RangeSpan { get; }
@@ -32,12 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             get
             {
-                _threadingContext.ThrowIfNotOnUIThread();
                 return _isExpanded;
             }
             set
             {
-                _threadingContext.ThrowIfNotOnUIThread();
                 if (_isExpanded != value)
                 {
                     _isExpanded = value;
@@ -49,12 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             get
             {
-                _threadingContext.ThrowIfNotOnUIThread();
                 return _isSelected;
             }
             set
             {
-                _threadingContext.ThrowIfNotOnUIThread();
                 if (_isSelected != value)
                 {
                     _isSelected = value;
@@ -63,9 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        public DocumentSymbolUIItem(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolUIItem> children, IThreadingContext threadingContext)
+        public DocumentSymbolUIItem(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolUIItem> children)
         {
-            _threadingContext = threadingContext;
             Name = documentSymbolData.Name;
             Children = children;
             SymbolKind = documentSymbolData.SymbolKind;

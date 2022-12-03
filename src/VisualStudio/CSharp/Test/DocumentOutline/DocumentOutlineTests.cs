@@ -65,7 +65,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             AssertEx.NotNull(snapshot);
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, snapshot);
-            var uiItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData, mocks.ThreadingContext);
+            var uiItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData);
             return (mocks, model, uiItems);
         }
 
@@ -181,7 +181,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         public async Task TestSetIsExpanded()
         {
             var (mocks, model, originalUIItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-            var updatedUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData, mocks.ThreadingContext);
+            var updatedUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData);
 
             // Check that all updatedUIItems nodes are collapsed (originalUIItems parameter is unused)
             DocumentOutlineHelper.SetIsExpanded(updatedUIItems, originalUIItems, ExpansionOption.Collapse);
