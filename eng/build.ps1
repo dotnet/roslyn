@@ -473,7 +473,7 @@ function TestUsingRunTests() {
       $projectFaultLogs = Join-Path $TempDir "VsProjectFault_*.failure.txt"
       if (Test-Path $projectFaultLogs) {
         Write-Host "Copying VsProjectFault logs to $LogDir"
-        Copy-Item -Path $serviceHubLogs -Destination $LogDir
+        Copy-Item -Path $projectFaultLogs -Destination $LogDir
       } else {
         Write-Host "No VsProjectFault logs found to copy"
       }
