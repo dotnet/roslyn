@@ -672,12 +672,6 @@ namespace Test
                 // (4,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(4, 20),
-                // (4,30): error CS1031: Type expected
-                //     System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_TypeExpected, @"""Hi!""").WithLocation(4, 30),
-                // (4,30): error CS8124: Tuple must contain at least two elements.
-                //     System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, @"""Hi!""").WithLocation(4, 30),
                 // (4,30): error CS1026: ) expected
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""Hi!""").WithLocation(4, 30),
@@ -9616,15 +9610,6 @@ System.Console.Write(42);
                 // (3,16): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // System.Console.Write(42);
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Write").WithLocation(3, 16),
-                // (3,16): error CS0426: The type name 'Write' does not exist in the type 'Console'
-                // System.Console.Write(42);
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Write").WithArguments("Write", "System.Console").WithLocation(3, 16),
-                // (3,22): error CS1031: Type expected
-                // System.Console.Write(42);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "42").WithLocation(3, 22),
-                // (3,22): error CS8124: Tuple must contain at least two elements.
-                // System.Console.Write(42);
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "42").WithLocation(3, 22),
                 // (3,22): error CS1026: ) expected
                 // System.Console.Write(42);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "42").WithLocation(3, 22),
