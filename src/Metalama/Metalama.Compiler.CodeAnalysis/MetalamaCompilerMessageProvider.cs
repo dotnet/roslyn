@@ -13,7 +13,7 @@ namespace Metalama.Compiler
         ERR_TransformerFailed = 601,
         ERR_TransformerNotFound = 602,
         ERR_TransformerCycleFound = 603,
-        ERR_TransformersNotOrdered = 604,
+        WRN_TransformersNotOrdered = 604,
         WRN_NoTransformedOutputPathWhenDebuggingTransformed = 605,
         ERR_InvalidIntrinsicUse = 606,
         WRN_LicensingMessage = 607,
@@ -209,12 +209,12 @@ namespace Metalama.Compiler
             ERR_TransformerFailed or
             ERR_TransformerNotFound or
             ERR_TransformerCycleFound or
-            ERR_TransformersNotOrdered or
             ERR_InvalidIntrinsicUse or
             ERR_InvalidLicenseOverall or
             ERR_InvalidLicenseForProducingTransformedOutput or
             ERR_InvalidLicenseForSdk => DiagnosticSeverity.Error,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
+            WRN_TransformersNotOrdered or
             WRN_LicensingMessage => DiagnosticSeverity.Warning,
             ERR_LicensingMessage => DiagnosticSeverity.Error,
             ERR_ErrorInGeneratedCode => DiagnosticSeverity.Error,
@@ -232,7 +232,7 @@ namespace Metalama.Compiler
                 ERR_TransformerFailed => "Transformer failed.",
                 ERR_TransformerNotFound => "Transformer was not found when resolving transformer order.",
                 ERR_TransformerCycleFound => "Dependencies between transformers form a cycle.",
-                ERR_TransformersNotOrdered => "Transformers are not strongly ordered. Their order of execution would not be deterministic.",
+                WRN_TransformersNotOrdered => "Transformers are not strongly ordered. Set the MetalamaCompilerTransformerOrder property.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "The MetalamaCompilerTransformedFilesOutputPath property is not set although MetalamaDebugTransformedCode is set to True",
                 ERR_InvalidIntrinsicUse => "Argument is not valid for Metalama intrinsic method.",
                 WRN_LicensingMessage => "Licensing warning.",
@@ -261,7 +261,7 @@ namespace Metalama.Compiler
                 ERR_TransformerFailed => "Transformer '{0}' failed: {1} For details about this exception, see '{2}'.",
                 ERR_TransformerNotFound => "Transformer '{0}' was not found when resolving transformer order.",
                 ERR_TransformerCycleFound => "Dependencies between transformers form a cycle. Members of this cycle are: {0}",
-                ERR_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Their order of execution would not be deterministic.",
+                WRN_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Set the MetalamaCompilerTransformerOrder property.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "The MetalamaCompilerTransformedFilesOutputPath property is not set also MetalamaDebugTransformedCode is set to True. This will lead to warnings and errors that point to nonsensical file locations.",
                 ERR_InvalidIntrinsicUse => "Argument '{0}' is not valid for Metalama intrinsic method '{1}'.",
                 WRN_LicensingMessage => "{0}",
