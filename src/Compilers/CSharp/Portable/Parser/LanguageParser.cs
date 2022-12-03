@@ -5391,8 +5391,7 @@ tryAgain:
                 var type = this.ParseType();
                 var tmpList = _pool.AllocateSeparated<BaseTypeSyntax>();
                 tmpList.Add(_syntaxFactory.SimpleBaseType(type));
-                baseList = _syntaxFactory.BaseList(colon, tmpList);
-                _pool.Free(tmpList);
+                baseList = _syntaxFactory.BaseList(colon, _pool.ToListAndFree(tmpList));
             }
 
             var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
@@ -5751,13 +5750,14 @@ tryAgain:
                 if (kind == ScanTypeArgumentListKind.DefiniteTypeArgumentList || (kind == ScanTypeArgumentListKind.PossibleTypeArgumentList && (options & NameOptions.InTypeList) != 0))
                 {
                     Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
-                    SyntaxToken open;
+
                     var types = _pool.AllocateSeparated<TypeSyntax>();
-                    SyntaxToken close;
-                    this.ParseTypeArgumentList(out open, types, out close);
+                    this.ParseTypeArgumentList(out var open, types, out var close);
                     name = _syntaxFactory.GenericName(id.Identifier,
-                        _syntaxFactory.TypeArgumentList(open, types, close));
-                    _pool.Free(types);
+                        _syntaxFactory.TypeArgumentList(
+                            open,
+                            _pool.ToListAndFree(types),
+                            close));
                 }
             }
 
@@ -7391,17 +7391,21 @@ done:;
             if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
             {
                 var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
+                
                 var missingTypes = _pool.AllocateSeparated<FunctionPointerParameterSyntax>();
-                var missingTypeName = CreateMissingIdentifierName();
-                var missingType = SyntaxFactory.FunctionPointerParameter(attributeLists: default, modifiers: default, missingTypeName);
+                var missingType = SyntaxFactory.FunctionPointerParameter(attributeLists: default, modifiers: default, CreateMissingIdentifierName());
                 missingTypes.Add(missingType);
+
                 // Handle the simple case of delegate*>. We don't try to deal with any variation of delegate*invalid>, as
                 // we don't know for sure that the expression isn't a relational with something else.
-                var greaterThanTokenError = TryEatToken(SyntaxKind.GreaterThanToken) ?? SyntaxFactory.MissingToken(SyntaxKind.GreaterThanToken);
-                var paramList = SyntaxFactory.FunctionPointerParameterList(lessThanTokenError, missingTypes, greaterThanTokenError);
-                var funcPtr = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, paramList);
-                _pool.Free(missingTypes);
-                return funcPtr;
+                return SyntaxFactory.FunctionPointerType(
+                    @delegate,
+                    asterisk,
+                    callingConvention,
+                    SyntaxFactory.FunctionPointerParameterList(
+                        lessThanTokenError,
+                        _pool.ToListAndFree(missingTypes),
+                        TryEatToken(SyntaxKind.GreaterThanToken) ?? SyntaxFactory.MissingToken(SyntaxKind.GreaterThanToken)));
             }
 
             var lessThanToken = EatTokenAsKind(SyntaxKind.LessThanToken);
@@ -7414,25 +7418,22 @@ done:;
                 while (true)
                 {
                     var modifiers = _pool.Allocate<SyntaxToken>();
-                    try
+
+                    ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
+
+                    var parameterType = ParseTypeOrVoid();
+                    types.Add(SyntaxFactory.FunctionPointerParameter(
+                        attributeLists: default,
+                        _pool.ToTokenListAndFree(modifiers),
+                        parameterType));
+
+                    if (skipBadFunctionPointerTokens(types) == PostSkipAction.Abort)
                     {
-                        ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
-
-                        var parameterType = ParseTypeOrVoid();
-                        types.Add(SyntaxFactory.FunctionPointerParameter(attributeLists: default, modifiers, parameterType));
-
-                        if (skipBadFunctionPointerTokens(types) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-
-                        Debug.Assert(CurrentToken.Kind == SyntaxKind.CommaToken);
-                        types.AddSeparator(EatToken(SyntaxKind.CommaToken));
+                        break;
                     }
-                    finally
-                    {
-                        _pool.Free(modifiers);
-                    }
+
+                    Debug.Assert(CurrentToken.Kind == SyntaxKind.CommaToken);
+                    types.AddSeparator(EatToken(SyntaxKind.CommaToken));
                 }
 
                 return SyntaxFactory.FunctionPointerType(
@@ -8317,14 +8318,11 @@ done:;
             var statements = _pool.Allocate<StatementSyntax>();
             this.ParseStatements(ref openBrace, statements, stopOnSwitchSections: false);
 
-            var block = _syntaxFactory.Block(
+            return _syntaxFactory.Block(
                 attributes,
                 (SyntaxToken)openBrace,
-                statements,
+                _pool.ToListAndFree(statements),
                 this.EatToken(SyntaxKind.CloseBraceToken));
-
-            _pool.Free(statements);
-            return block;
         }
 
         // Is this statement list non-empty, and large enough to make using weak children beneficial?
@@ -9778,9 +9776,10 @@ tryAgain:
                     }
                 }
 
-                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                result = _syntaxFactory.ParenthesizedVariableDesignation(openParen, listOfDesignations, closeParen);
-                _pool.Free(listOfDesignations);
+                result = _syntaxFactory.ParenthesizedVariableDesignation(
+                    openParen,
+                    _pool.ToListAndFree(listOfDesignations),
+                    this.EatToken(SyntaxKind.CloseParenToken));
             }
             else
             {
@@ -9831,9 +9830,9 @@ tryAgain:
             LocalFunctionStatementSyntax localFunction;
             ParseLocalDeclaration(variables, false, attributes: default, mods: default, out type, out localFunction);
             Debug.Assert(localFunction == null);
-            var result = _syntaxFactory.VariableDeclaration(type, variables);
-            _pool.Free(variables);
-            return result;
+            return _syntaxFactory.VariableDeclaration(
+                type,
+                _pool.ToListAndFree(variables));
         }
 
         private void ParseLocalDeclaration(
