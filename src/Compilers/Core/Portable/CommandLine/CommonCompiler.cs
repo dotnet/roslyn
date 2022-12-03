@@ -1059,7 +1059,8 @@ namespace Microsoft.CodeAnalysis
 
                 if (!string.IsNullOrWhiteSpace(transformerOrderString))
                 {
-                    transformerOrder = transformerOrderString.Split(';').ToImmutableArray<string?>();
+                     // Semicolons mark the beginning of a comment!
+                    transformerOrder = transformerOrderString.Split(',').Select(t => t.Trim()).ToImmutableArray<string?>();
                 }
                 // </Metalama>
             }
@@ -1233,7 +1234,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var rules = transformedCodeAnalyzers
-                    .Split(',', ';', '\n', '\r')
+                    .Split(',') // Semicolons mark the beginning of a comment!
                     .Select(s => s.Trim())
                     .Where(s => !string.IsNullOrEmpty(s))
                     .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);

@@ -158,9 +158,8 @@ internal static class TransformerDependencyResolver
                 // Transformers "{1}" and "{2}" are not strongly ordered. 
                 // Their order of execution is nondeterministic.
                 diagnostics.Add(new DiagnosticInfo(
-                    MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformersNotOrdered,
+                    MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_TransformersNotOrdered,
                     orderedTransformers[i - 1].GetDisplayName(), orderedTransformers[i].GetDisplayName()));
-                return false;
             }
 
             lastDistance = currentDistance;
