@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeDeclarationsPartial
@@ -20,10 +21,27 @@ namespace Microsoft.CodeAnalysis.MakeDeclarationsPartial
         {
         }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            RegisterCodeFix(context, CodeFixesResources.Make_partial, nameof(CodeFixesResources.Make_partial));
-            return Task.CompletedTask;
+            var document = context.Document;
+            var span = context.Span;
+            var cancellationToken = context.CancellationToken;
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var node = syntaxRoot.FindNode(span);
+
+            if (node is null ||
+                !syntaxFacts.IsTypeDeclaration(node))
+            {
+                Debug.Fail("Cannot find node or node is not type declaration syntax");
+                return;
+            }
+
+            var declarationName = syntaxFacts.GetIdentifierOfTypeDeclaration(node).ValueText;
+            var title = string.Format(CodeFixesResources.Make_all_suitable_declarations_of_0_partial, declarationName);
+            RegisterCodeFix(context, title, title);
         }
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
