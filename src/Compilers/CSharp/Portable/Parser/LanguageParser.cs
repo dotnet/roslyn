@@ -566,9 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                                 this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, skippedToken);
                             }
-#pragma warning disable CS0618 // Type or member is obsolete - PROTOTYPE: TODO.
-                            else if (memberOrStatement.Kind == SyntaxKind.IncompleteMember && seen < NamespaceParts.MembersAndStatements)
-#pragma warning restore CS0618 // Type or member is obsolete
+                            else if (memberOrStatement is FieldDeclarationSyntax { Declaration.Variables: [{ Identifier.IsMissing: true }] } && seen < NamespaceParts.MembersAndStatements)
                             {
                                 pendingIncompleteMembers.Add(memberOrStatement);
                                 reportUnexpectedToken = true;

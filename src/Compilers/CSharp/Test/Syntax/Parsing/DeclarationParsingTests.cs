@@ -99,16 +99,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateCompilation(text);
             var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.Equal(0, file.Usings.Count);
+            Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToFullString());
 
             compilation.VerifyDiagnostics(
                 // (1,8): error CS1031: Type expected
                 // static using a;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "using").WithLocation(1, 8),
-                // (1,8): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // (1,8): hidden CS8019: Unnecessary using directive.
                 // static using a;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using a;").WithLocation(1, 8));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using a;").WithLocation(1, 8),
+                // (1,14): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+                // static using a;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(1, 14));
         }
 
         [Fact]
