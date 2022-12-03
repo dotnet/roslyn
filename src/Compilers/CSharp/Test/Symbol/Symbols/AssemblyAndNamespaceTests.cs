@@ -623,12 +623,6 @@ System.Console.WriteLine();";
                     // (3,16): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                     // System.Console.WriteLine();
                     Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 16),
-                    // (3,16): error CS0426: The type name 'WriteLine' does not exist in the type 'Console'
-                    // System.Console.WriteLine();
-                    Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(3, 16),
-                    // (3,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                    // System.Console.WriteLine();
-                    Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(3, 25),
                     // (3,26): error CS8124: Tuple must contain at least two elements.
                     // System.Console.WriteLine();
                     Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 26),

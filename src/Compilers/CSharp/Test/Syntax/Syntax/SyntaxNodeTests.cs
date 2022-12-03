@@ -897,46 +897,33 @@ using goo.bar;
 ",
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // garbage
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1),
-                // (2,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-                // using goo.bar;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using goo.bar;").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "garbage");
+                            N(SyntaxKind.IdentifierToken, "goo");
                         }
-                        M(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "bar");
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
 
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
-            Assert.Equal(4, tokens.Count);
-
-            Assert.Equal("garbage", tokens[0].Text);
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[0].Kind());
-
-            Assert.Equal("", tokens[1].Text);
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].Kind());
-
-            Assert.Equal("", tokens[2].Text);
-            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].Kind());
-
-            Assert.Equal("", tokens[3].Text);
-            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[3].Kind());
+            Assert.Equal(6, tokens.Count);
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: false);
@@ -947,7 +934,7 @@ using goo.bar;
             }
 
             // descendant tokens includes EOF
-            Assert.Equal(1, list.Count);
+            Assert.Equal(tokens.Count - 1, list.Count);
             for (int i = 0; i < list.Count; i++)
             {
                 Assert.Equal(list[i], tokens[i]);
@@ -1039,27 +1026,26 @@ using goo.bar;
             var tree = UsingTree(text,
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // garbage
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1),
-                // (2,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-                // using goo.bar;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using goo.bar;").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "garbage");
+                            N(SyntaxKind.IdentifierToken, "goo");
                         }
-                        M(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "bar");
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1068,19 +1054,7 @@ using goo.bar;
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
 
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
-            Assert.Equal(4, tokens.Count);
-
-            Assert.Equal("garbage", tokens[0].Text);
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[0].Kind());
-
-            Assert.Equal("", tokens[1].Text);
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].Kind());
-
-            Assert.Equal("", tokens[2].Text);
-            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].Kind());
-
-            Assert.Equal("", tokens[3].Text);
-            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[3].Kind());
+            Assert.Equal(6, tokens.Count);
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetLastToken(includeSkipped: false);
@@ -1092,7 +1066,7 @@ using goo.bar;
             list.Reverse();
 
             // descendant tokens includes EOF
-            Assert.Equal(1, list.Count);
+            Assert.Equal(tokens.Count, list.Count + 1);
             for (int i = 0; i < list.Count; i++)
             {
                 Assert.Equal(tokens[i], list[i]);

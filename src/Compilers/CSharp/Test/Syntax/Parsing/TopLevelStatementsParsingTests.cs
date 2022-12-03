@@ -587,28 +587,27 @@ using goo.bar;
             UsingTree(test,
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // garbage
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1),
-                // (2,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-                // using goo.bar;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using goo.bar;").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "garbage");
+                            N(SyntaxKind.IdentifierToken, "goo");
                         }
-                        M(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "bar");
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1860,6 +1859,9 @@ e
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // abc using
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "abc").WithLocation(1, 1),
+                // (1,10): error CS1001: Identifier expected
+                // abc using
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
                 // (1,10): error CS1002: ; expected
                 // abc using
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 10)
@@ -1867,18 +1869,12 @@ e
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.UsingKeyword);
+                    M(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "abc");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        M(SyntaxKind.IdentifierToken);
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
@@ -3111,48 +3107,35 @@ using aliasY = X.Y;
             UsingTree(test,
                 // (2,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // System.String[]
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 15),
-                // (3,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-                // using aliasY = X.Y;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using aliasY = X.Y;").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 15)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
                     {
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.QualifiedName);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "System");
-                                }
-                                N(SyntaxKind.DotToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "String");
-                                }
-                            }
-                            N(SyntaxKind.ArrayRankSpecifier);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.OmittedArraySizeExpression);
-                                {
-                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
+                            N(SyntaxKind.IdentifierToken, "aliasY");
                         }
-                        M(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3458,10 +3441,7 @@ global using Bar;
             UsingTree(test,
                 // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // p
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1),
-                // (4,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-                // global using Bar;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "global using Bar;").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3476,20 +3456,15 @@ global using Bar;
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "p");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "Bar");
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3508,10 +3483,7 @@ using Bar;
             UsingTree(test,
                 // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // p
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1),
-                // (4,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-                // using Bar;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using Bar;").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3525,20 +3497,14 @@ using Bar;
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "p");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "Bar");
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

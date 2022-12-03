@@ -2774,9 +2774,6 @@ namespace ns1
                 // (4,10): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 //     goto Labl; // Invalid
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Labl").WithLocation(4, 10),
-                // (4,10): error CS0246: The type or namespace name 'Labl' could not be found (are you missing a using directive or an assembly reference?)
-                //     goto Labl; // Invalid
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Labl").WithArguments("Labl").WithLocation(4, 10),
                 // (4,14): error CS1022: Type or namespace definition, or end-of-file expected
                 //     goto Labl; // Invalid
                 Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(4, 14),

@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree1 = SyntaxFactory.ParseSyntaxTree(text);
             var tree2 = SyntaxFactory.ParseSyntaxTree(text.Replace("abc", "hello"));
 
-            VerifyNotEquivalent(tree1, tree2, topLevel: true);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
         }
 
         [Fact]
