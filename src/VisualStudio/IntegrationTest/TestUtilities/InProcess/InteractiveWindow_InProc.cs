@@ -83,12 +83,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (lastPromptIndex > 0)
             {
-                replText = replText.Substring(0, lastPromptIndex);
+                replText = replText[..lastPromptIndex];
             }
 
             // it's possible for the editor text to contain a trailing newline, remove it
             return replText.EndsWith(Environment.NewLine)
-                ? replText.Substring(0, replText.Length - Environment.NewLine.Length)
+                ? replText[..^Environment.NewLine.Length]
                 : replText;
         }
 
@@ -102,13 +102,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var replText = GetReplTextWithoutPrompt();
             var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
             if (lastPromptIndex > 0)
-                replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
+                replText = replText[lastPromptIndex..];
 
             var lastSubmissionIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
 
             if (lastSubmissionIndex > 0)
             {
-                replText = replText.Substring(lastSubmissionIndex, replText.Length - lastSubmissionIndex);
+                replText = replText[lastSubmissionIndex..];
             }
             else if (!replText.StartsWith(ReplPromptText))
             {
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             firstNewLineIndex += Environment.NewLine.Length;
-            return replText.Substring(firstNewLineIndex, replText.Length - firstNewLineIndex);
+            return replText[firstNewLineIndex..];
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             var replText = GetReplText();
             var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
-            replText = replText.Substring(lastPromptIndex + ReplPromptText.Length);
+            replText = replText[(lastPromptIndex + ReplPromptText.Length)..];
 
             var lastSubmissionTextIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
 
@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 firstNewLineIndex = replText.IndexOf(Environment.NewLine, lastSubmissionTextIndex);
             }
 
-            var lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
+            var lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText[..firstNewLineIndex];
 
             return lastReplInputWithReplSubmissionText.Replace(ReplSubmissionText, string.Empty);
         }

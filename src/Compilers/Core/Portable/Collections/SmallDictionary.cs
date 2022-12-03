@@ -448,7 +448,6 @@ hasBucket:
             return leftRight;
         }
 
-
         private void HandleInsert(AvlNode node, AvlNode? parent, K key, V value, bool add)
         {
             Node? currentNode = node;

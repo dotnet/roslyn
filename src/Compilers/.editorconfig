@@ -9,9 +9,6 @@ dotnet_naming_rule.local_functions_should_be_camel_case.style = local_function_s
 # RS0100: Statements must be placed on their own line
 dotnet_diagnostic.RS0100.severity = none
 
-# RS0101: Avoid multiple blank lines
-dotnet_diagnostic.RS0101.severity = none
-
 # RS0102: Braces must not have blank lines between them
 dotnet_diagnostic.RS0102.severity = none
 
@@ -23,6 +20,7 @@ dotnet_diagnostic.IDE0170.severity = suggestion
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = true:none
 csharp_style_var_elsewhere = false:none
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
 
 # XML files
 [*.xml]

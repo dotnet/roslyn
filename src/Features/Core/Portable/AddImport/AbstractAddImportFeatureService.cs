@@ -223,6 +223,9 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             foreach (var unreferencedProject in viableUnreferencedProjects)
             {
+                if (!unreferencedProject.SupportsCompilation)
+                    continue;
+
                 // Search in this unreferenced project.  But don't search in any of its'
                 // direct references.  i.e. we don't want to search in its metadata references
                 // or in the projects it references itself. We'll be searching those entities
@@ -487,7 +490,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // We might have multiple different diagnostics covering the same span.  Have to
             // process them all as we might produce different fixes for each diagnostic.
 
-            var fixesForDiagnosticBuilder = ArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>.GetInstance();
+            using var _ = ArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>.GetInstance(out var result);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -496,10 +499,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
-                fixesForDiagnosticBuilder.Add((diagnostic, fixes));
+                result.Add((diagnostic, fixes));
             }
 
-            return fixesForDiagnosticBuilder.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         public async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
@@ -572,21 +575,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             Document document, ImmutableArray<AddImportFixData> fixes,
             IPackageInstallerService? installerService, int maxResults)
         {
-            var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
             foreach (var fix in fixes)
             {
-                var codeAction = TryCreateCodeAction(document, fix, installerService);
-
-                codeActionsBuilder.AddIfNotNull(codeAction);
-
-                if (codeActionsBuilder.Count >= maxResults)
-                {
+                result.AddIfNotNull(TryCreateCodeAction(document, fix, installerService));
+                if (result.Count >= maxResults)
                     break;
-                }
             }
 
-            return codeActionsBuilder.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService? installerService)

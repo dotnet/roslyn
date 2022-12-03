@@ -349,14 +349,7 @@ namespace Microsoft.CodeAnalysis
                     return StructuredAnalyzerConfigOptions.Create(legacyDocumentOptionsProvider.GetOptions(_projectState.Id, filePath));
                 }
 
-                var options = GetOptionsForSourcePath(cache, filePath);
-                var legacyIndentationService = services.GetService<ILegacyIndentationManagerWorkspaceService>();
-                if (legacyIndentationService == null)
-                {
-                    return options;
-                }
-
-                return new AnalyzerConfigWithInferredIndentationOptions(documentState, options, legacyIndentationService);
+                return GetOptionsForSourcePath(cache, filePath);
             }
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
@@ -447,63 +440,6 @@ namespace Microsoft.CodeAnalysis
 
             public override NamingStylePreferences GetNamingStylePreferences()
                 => NamingStylePreferences.Empty;
-        }
-
-        /// <summary>
-        /// Provides analyzer config options with indentation options overridden by editor indentation inference for open documents.
-        /// TODO: Remove once https://github.com/dotnet/roslyn/issues/61109 is addressed.
-        /// </summary>
-        private sealed class AnalyzerConfigWithInferredIndentationOptions : StructuredAnalyzerConfigOptions
-        {
-            private readonly DocumentState _documentState;
-            private readonly ILegacyIndentationManagerWorkspaceService _service;
-            private readonly StructuredAnalyzerConfigOptions _options;
-
-            public AnalyzerConfigWithInferredIndentationOptions(DocumentState documentState, StructuredAnalyzerConfigOptions options, ILegacyIndentationManagerWorkspaceService service)
-            {
-                _documentState = documentState;
-                _service = service;
-                _options = options;
-            }
-
-            public override NamingStylePreferences GetNamingStylePreferences()
-                => _options.GetNamingStylePreferences();
-
-            public override IEnumerable<string> Keys
-                => _options.Keys;
-
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            {
-                // For open documents override indentation option values with values inferred by the editor:
-                if (key is "indent_style" or "tab_width" or "indent_size")
-                {
-                    if (_documentState.TryGetText(out var text))
-                    {
-                        try
-                        {
-                            value = key switch
-                            {
-                                "indent_style" => _service.UseSpacesForWhitespace(text) switch { true => "space", false => "tab", null => null },
-                                "tab_width" => _service.GetTabSize(text)?.ToString(),
-                                "indent_size" => _service.GetIndentSize(text)?.ToString(),
-                                _ => throw ExceptionUtilities.UnexpectedValue(key)
-                            };
-
-                            // Value is null if the document is not currently open (does not have a text buffer)
-                            if (value != null)
-                            {
-                                return true;
-                            }
-                        }
-                        catch (Exception e) when (FatalError.ReportAndCatch(e))
-                        {
-                            // fall through
-                        }
-                    }
-                }
-
-                return _options.TryGetValue(key, out value);
-            }
         }
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
@@ -1025,17 +961,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            dependentDocumentVersion = recalculateDocumentVersion ?
-                new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true) :
-                textChanged ?
-                    new AsyncLazy<VersionStamp>(newDocument.GetTextVersionAsync, cacheResult: true) :
-                    _lazyLatestDocumentVersion;
+            dependentDocumentVersion = recalculateDocumentVersion
+                ? new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true)
+                : textChanged
+                    ? new AsyncLazy<VersionStamp>(newDocument.GetTextVersionAsync, cacheResult: true)
+                    : _lazyLatestDocumentVersion;
 
-            dependentSemanticVersion = recalculateSemanticVersion ?
-                new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true) :
-                textChanged ?
-                    CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates) :
-                    _lazyLatestDocumentTopLevelChangeVersion;
+            dependentSemanticVersion = recalculateSemanticVersion
+                ? new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true)
+                : textChanged
+                    ? CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates)
+                    : _lazyLatestDocumentTopLevelChangeVersion;
         }
     }
 }

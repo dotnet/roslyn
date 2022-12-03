@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 #if DEBUG
 using System.Diagnostics;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         UnitTestingIncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
-                        IGlobalOperationNotificationService globalOperationNotificationService,
+                        IGlobalOperationNotificationService? globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
                         : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)

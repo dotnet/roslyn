@@ -369,6 +369,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected virtual string GetBodyDisplayName(SyntaxNode node, EditKind editKind = EditKind.Update)
         {
             var current = node.Parent;
+
+            if (current == null)
+            {
+                var displayName = TryGetDisplayName(node, editKind);
+                if (displayName != null)
+                {
+                    return displayName;
+                }
+            }
+
             while (true)
             {
                 if (current == null)
@@ -681,9 +691,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.
                 // In such case we report a rude edit for the document. If the host is actually running out of memory,
                 // it might throw another OOM here or later on.
-                var diagnostic = (e is OutOfMemoryException) ?
-                    new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: new[] { newDocument.FilePath }) :
-                    new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
+                var diagnostic = (e is OutOfMemoryException)
+                    ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: new[] { newDocument.FilePath })
+                    : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
 
                 // Report as "syntax error" - we can't analyze the document
                 return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(diagnostic), syntaxError: null, hasChanges);
@@ -1196,6 +1206,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newExceptionRegions[i] = ImmutableArray<SourceFileSpan>.Empty;
                 }
 
+                string bodyName;
+                try
+                {
+                    bodyName = GetBodyDisplayName(newBody);
+                }
+                catch
+                {
+                    bodyName = $"<node {newBody.RawKind} has no display name>";
+                }
+
+                var bodySpan = GetBodyDiagnosticSpan(newBody, EditKind.Update);
+
                 // We expect OOM to be thrown during the analysis if the number of statements is too large.
                 // In such case we report a rude edit for the document. If the host is actually running out of memory,
                 // it might throw another OOM here or later on.
@@ -1203,17 +1225,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.MemberBodyTooBig,
-                        GetBodyDiagnosticSpan(newBody, EditKind.Update),
+                        bodySpan,
                         newBody,
-                        arguments: new[] { GetBodyDisplayName(newBody) }));
+                        arguments: new[] { bodyName }));
                 }
                 else
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.MemberBodyInternalError,
-                        GetBodyDiagnosticSpan(newBody, EditKind.Update),
+                        bodySpan,
                         newBody,
-                        arguments: new[] { GetBodyDisplayName(newBody), e.ToString() }));
+                        arguments: new[] { bodyName, e.ToString() }));
                 }
             }
         }
@@ -2396,26 +2418,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (edit.Kind == EditKind.Reorder)
-                    {
-                        // Currently we don't do any semantic checks for reordering
-                        // and we don't need to report them to the compiler either.
-                        // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
-
-                        // Consider: Reordering of fields is not allowed since it changes the layout of the type.
-                        // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
-                        // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
-                        Debug.Assert(!IsDeclarationWithInitializer(edit.OldNode!) && !IsDeclarationWithInitializer(edit.NewNode!));
-                        continue;
-                    }
-
                     Debug.Assert(edit.OldNode is null || edit.NewNode is null || IsNamespaceDeclaration(edit.OldNode) == IsNamespaceDeclaration(edit.NewNode));
 
                     // We can ignore namespace nodes in newly added documents (old model is not available) since 
                     // all newly added types in these namespaces will have their own syntax edit.
-                    var symbolEdits = oldModel != null && IsNamespaceDeclaration(edit.OldNode ?? edit.NewNode!) ?
-                        OneOrMany.Create(GetNamespaceSymbolEdits(oldModel, newModel, cancellationToken)) :
-                        GetSymbolEdits(edit.Kind, edit.OldNode, edit.NewNode, oldModel, newModel, editMap, cancellationToken);
+                    var symbolEdits = oldModel != null && IsNamespaceDeclaration(edit.OldNode ?? edit.NewNode!)
+                        ? OneOrMany.Create(GetNamespaceSymbolEdits(oldModel, newModel, cancellationToken))
+                        : GetSymbolEdits(edit.Kind, edit.OldNode, edit.NewNode, oldModel, newModel, editMap, cancellationToken);
 
                     foreach (var symbolEdit in symbolEdits)
                     {
@@ -2570,9 +2579,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // We need to adjust the tracking span design and UpdateUneditedSpans to account for such empty spans.
                                     if (hasActiveStatement)
                                     {
-                                        var newSpan = IsDeclarationWithInitializer(oldDeclaration) ?
-                                            GetDeletedNodeActiveSpan(editScript.Match.Matches, oldDeclaration) :
-                                            GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration);
+                                        var newSpan = IsDeclarationWithInitializer(oldDeclaration)
+                                            ? GetDeletedNodeActiveSpan(editScript.Match.Matches, oldDeclaration)
+                                            : GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration);
 
                                         foreach (var index in activeStatementIndices)
                                         {
@@ -3066,10 +3075,45 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             }
 
                             // For renames where the symbol allows deletion, we don't create an update edit, we create a delete
-                            // and an add. During emit an empty body will be created for the old name. Sometimes
-                            // when members are moved between documents in partial classes, they can appear as renames, so
-                            // we also check that the old symbol can't be resolved in the new compilation
-                            if (oldSymbol.Name != newSymbol.Name &&
+                            // and an add. During emit an empty body will be created for the old name.
+                            var createDeleteAndInsertEdits = oldSymbol.Name != newSymbol.Name;
+
+                            // When a methods parameters are reordered or there is an insert or an add, we need to handle things differently
+                            if (oldSymbol is IMethodSymbol oldMethod &&
+                                newSymbol is IMethodSymbol newMethod)
+                            {
+                                // For inserts and deletes, the edits for the parameter itself will do the work
+                                if (oldMethod.Parameters.Length != newMethod.Parameters.Length)
+                                {
+                                    continue;
+                                }
+
+                                // For reordering of parameters we need to report insert and delete edits, but we also need to account for
+                                // renames if the runtime doesn't support it. We track this with a syntax node that we can use to report
+                                // the rude edit.
+                                IParameterSymbol? renamedParameter = null;
+                                for (var i = 0; i < oldMethod.Parameters.Length; i++)
+                                {
+                                    var rudeEditKind = RudeEditKind.None;
+                                    var hasParameterTypeChange = false;
+                                    var unused = false;
+                                    AnalyzeParameterType(oldMethod.Parameters[i], newMethod.Parameters[i], capabilities, ref rudeEditKind, ref unused, ref hasParameterTypeChange, cancellationToken);
+
+                                    createDeleteAndInsertEdits |= hasParameterTypeChange;
+                                    renamedParameter ??= oldMethod.Parameters[i].Name != newMethod.Parameters[i].Name ? newMethod.Parameters[i] : null;
+                                }
+
+                                if (!createDeleteAndInsertEdits && renamedParameter is not null && !capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
+                                {
+                                    processedSymbols.Add(renamedParameter);
+                                    ReportUpdateRudeEdit(diagnostics, RudeEditKind.RenamingNotSupportedByRuntime, renamedParameter, GetRudeEditDiagnosticNode(renamedParameter, cancellationToken), cancellationToken);
+                                    continue;
+                                }
+                            }
+
+                            // Sometimes when members are moved between documents in partial classes, they can appear as renames,
+                            // so we also check that the old symbol can't be resolved in the new compilation
+                            if (createDeleteAndInsertEdits &&
                                 AllowsDeletion(oldSymbol) &&
                                 CanAddNewMember(oldSymbol, capabilities, cancellationToken) &&
                                 SymbolKey.Create(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
@@ -5871,9 +5915,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var stateMachineAttributeQualifiedName = oldMethod.IsAsync ?
-                "System.Runtime.CompilerServices.AsyncStateMachineAttribute" :
-                "System.Runtime.CompilerServices.IteratorStateMachineAttribute";
+            var stateMachineAttributeQualifiedName = oldMethod.IsAsync
+                ? "System.Runtime.CompilerServices.AsyncStateMachineAttribute"
+                : "System.Runtime.CompilerServices.IteratorStateMachineAttribute";
 
             // We assume that the attributes, if exist, are well formed.
             // If not an error will be reported during EnC delta emit.

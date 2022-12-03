@@ -8281,7 +8281,6 @@ class C
             }
         }
 
-
         [Fact]
         public void TestNullCheckedOperator()
         {
@@ -8617,11 +8616,15 @@ class B<X, Y> : A<int
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void TestExtraneousColonInBaseList()
         {
-            var tree = UsingNode(@"
+            var text = @"
 class A : B : C
 {
 }
-", TestOptions.Regular7_3,
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (2,11): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 11),
                 // (2,13): error CS1514: { expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
@@ -8631,18 +8634,59 @@ class A : B : C
                 // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
-                // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class A : B : C
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
-                // (3,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
+{
+").WithLocation(2, 15),
+                // (2,15): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"C
+{
+").WithArguments("top-level statements", "9.0").WithLocation(2, 15),
+                // (2,15): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(2, 15),
+                // (2,16): error CS1001: Identifier expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
+                // (2,16): error CS1003: Syntax error, ',' expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
+                // (3,2): error CS1002: ; expected
                 // {
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"{
-}").WithArguments("top-level statements", "9.0").WithLocation(3, 1),
-                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+
+            var tree = UsingNode(text, TestOptions.Regular7_3,
+                // (2,13): error CS1514: { expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1513: } expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
+                // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
+{
+").WithLocation(2, 15),
+                // (2,16): error CS1001: Identifier expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
+                // (2,16): error CS1003: Syntax error, ',' expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
+                // (3,2): error CS1002: ; expected
                 // {
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
-}").WithLocation(3, 1)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8664,19 +8708,22 @@ class A : B : C
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "C");
-                    }
-                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.Block);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -8830,17 +8877,29 @@ b { }";
         [CombinatorialData]
         public void DefaultConstraint_01(bool useCSharp8)
         {
-            UsingNode(
-@"class C<T> where T : default { }",
-                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
-                useCSharp8 ?
-                    new[]
+            var test = @"class C<T> where T : default { }";
+
+            CreateCompilation(test, parseOptions: useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9).VerifyDiagnostics(
+                useCSharp8
+                    ? new[]
                     {
                         // (1,22): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         // class C<T> where T : default { }
-                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22)
-                    } :
-                    Array.Empty<DiagnosticDescription>());
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22),
+                        // (1,22): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                        // class C<T> where T : default { }
+                        Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(1, 22)
+                    }
+                    : new[]
+                    {
+                        // (1,22): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                        // class C<T> where T : default { }
+                        Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(1, 22)
+                    });
+
+            UsingNode(
+                test,
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8944,22 +9003,48 @@ b { }";
         [CombinatorialData]
         public void DefaultConstraint_03(bool useCSharp8)
         {
-            UsingNode(
+            var test =
 @"class C<T, U>
     where T : struct, default
-    where U : default, class { }",
-                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
-                useCSharp8 ?
-                    new[]
-                    {
-                        // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
-                        //     where T : struct, default
-                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
-                        // (3,15): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
-                        //     where U : default, class { }
-                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(3, 15)
-                    } :
-                    Array.Empty<DiagnosticDescription>());
+    where U : default, class { }";
+
+            CreateCompilation(test, parseOptions: useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9).VerifyDiagnostics(
+                useCSharp8
+                ? new[] {
+                    // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
+                    // (2,23): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(2, 23),
+                    // (2,23): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "default").WithLocation(2, 23),
+                    // (3,15): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(3, 15),
+                    // (3,15): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(3, 15),
+                    // (3,24): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 24) }
+                : new[] {
+                    // (2,23): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(2, 23),
+                    // (2,23): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                    //     where T : struct, default
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "default").WithLocation(2, 23),
+                    // (3,15): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(3, 15),
+                    // (3,24): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                    //     where U : default, class { }
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 24) });
+
+            UsingNode(test,
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {

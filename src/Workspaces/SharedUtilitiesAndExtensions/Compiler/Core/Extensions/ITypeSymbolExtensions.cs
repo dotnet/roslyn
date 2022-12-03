@@ -60,12 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
         public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            if (symbol?.IsValueType != true)
-                return false;
-
-            return !symbol.IsNullable();
-        }
+            => symbol is { IsValueType: true } && !symbol.IsNullable();
 
         public static bool IsNullable(
             [NotNullWhen(true)] this ITypeSymbol? symbol,
@@ -255,7 +250,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
-        public static bool IsUnexpressibleTypeParameterConstraint(this ITypeSymbol typeSymbol)
+        public static bool IsUnexpressibleTypeParameterConstraint(
+            this ITypeSymbol typeSymbol, bool allowDelegateAndEnumConstraints = false)
         {
             if (typeSymbol.IsSealed || typeSymbol.IsValueType)
             {
@@ -271,12 +267,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             switch (typeSymbol.SpecialType)
             {
-                case SpecialType.System_Array:
+                case SpecialType.System_Array or SpecialType.System_ValueType:
+                    return true;
+
                 case SpecialType.System_Delegate:
                 case SpecialType.System_MulticastDelegate:
                 case SpecialType.System_Enum:
-                case SpecialType.System_ValueType:
-                    return true;
+                    return !allowDelegateAndEnumConstraints;
             }
 
             return false;

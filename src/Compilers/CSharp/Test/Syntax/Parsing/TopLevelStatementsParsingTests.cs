@@ -96,21 +96,36 @@ class C
 [a]fod;
 [b";
             UsingTree(text,
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,5): error CS1001: Identifier expected
                 // asas]
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asas").WithLocation(2, 1),
-                // (2,5): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(2, 5),
+                // (2,5): error CS1003: Syntax error, ',' expected
                 // asas]
-                Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(2, 5),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(2, 5),
+                // (2,6): error CS1002: ; expected
+                // asas]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 6),
+                // (3,1): error CS0439: An extern alias declaration must precede all other elements defined in the namespace
+                // extern alias A;
+                Diagnostic(ErrorCode.ERR_ExternAfterElements, "extern").WithLocation(3, 1),
+                // (4,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // asas
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asas").WithLocation(4, 1),
-                // (6,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // using System;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using System;").WithLocation(5, 1),
+                // (6,10): error CS1001: Identifier expected
                 // sadasdasd]
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "sadasdasd").WithLocation(6, 1),
-                // (6,10): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(6, 10),
+                // (6,10): error CS1003: Syntax error, ',' expected
                 // sadasdasd]
-                Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(6, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(6, 10),
+                // (6,11): error CS1002: ; expected
+                // sadasdasd]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 11),
+                // (8,2): error CS1730: Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations
+                // [assembly: goo]
+                Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly").WithLocation(8, 2),
                 // (15,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // [a]fod;
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
@@ -121,38 +136,48 @@ class C
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.ExternAliasDirective);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.AliasKeyword);
-                    N(SyntaxKind.IdentifierToken, "A");
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "asas");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
                 }
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.UsingKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "System");
+                        N(SyntaxKind.IdentifierToken, "asas");
                     }
-                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.AttributeList);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.AttributeTargetSpecifier);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.AssemblyKeyword);
-                        N(SyntaxKind.ColonToken);
-                    }
-                    N(SyntaxKind.Attribute);
-                    {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "goo");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "sadasdasd");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.CloseBracketToken);
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
@@ -770,16 +795,20 @@ class Test : Itest
                 // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
-                // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
                 // public class S.D 
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
-                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
+{
+").WithLocation(1, 16),
+                // (1,17): error CS1001: Identifier expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 17),
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 17),
+                // (2,2): error CS1002: ; expected
                 // {
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
-").WithLocation(2, 1),
-                // (2,2): error CS1513: } expected
-                // {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
@@ -795,19 +824,22 @@ class Test : Itest
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "D");
-                    }
-                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.Block);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "D");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.PropertyDeclaration);
@@ -858,9 +890,12 @@ class Test : Itest
                 // (1,27): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
-                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,32): error CS1001: Identifier expected
                 //  > Roslyn.Utilities.dll!  Basic
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 32),
+                // (1,32): error CS1002: ; expected
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -904,11 +939,22 @@ class Test : Itest
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "Basic");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Basic");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -1107,18 +1153,32 @@ partial delegate E { }
 #endif
 aeu";
             UsingTree(test,
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,4): error CS1001: Identifier expected
                 // aeu
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "aeu").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 4),
+                // (4,4): error CS1002: ; expected
+                // aeu
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 4)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "aeu");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "aeu");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -1406,9 +1466,12 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                 // (1,19): error CS1022: Type or namespace definition, or end-of-file expected
                 // /*<bind>*/C<object, string/*</bind>*/
                 Diagnostic(ErrorCode.ERR_EOFExpected, ",").WithLocation(1, 19),
-                // (1,21): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,38): error CS1001: Identifier expected
                 // /*<bind>*/C<object, string/*</bind>*/
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "string").WithLocation(1, 21)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 38),
+                // (1,38): error CS1002: ; expected
+                // /*<bind>*/C<object, string/*</bind>*/
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 38)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1432,11 +1495,22 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.StringKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -1656,18 +1730,32 @@ using VT2 = (int, int);
             var test = "e";
 
             UsingTree(test,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,2): error CS1001: Identifier expected
                 // e
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 2),
+                // (1,2): error CS1002: ; expected
+                // e
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 2)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "e");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "e");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -1717,7 +1805,7 @@ e
         }
 
         [Fact]
-        public void TestSkippedTest()
+        public void TestSkippedText()
         {
             var test = "abc using";
 
@@ -2602,9 +2690,9 @@ e
                 // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
-                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,26): error CS1001: Identifier expected
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2626,31 +2714,934 @@ e
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.FunctionPointerType);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.FunctionPointerParameterList);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameter);
+                            N(SyntaxKind.FunctionPointerType);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.DelegateKeyword);
+                                N(SyntaxKind.AsteriskToken);
+                                N(SyntaxKind.FunctionPointerParameterList);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
                             }
-                            N(SyntaxKind.GreaterThanToken);
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_01()
+        {
+            var test = @"ar";
+
+            UsingTree(test,
+                // (1,3): error CS1001: Identifier expected
+                // ar
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 3),
+                // (1,3): error CS1002: ; expected
+                // ar
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 3)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ar");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_02()
+        {
+            var test = @"
+Console.WriteLine();
+ar";
+
+            UsingTree(test,
+                // (3,3): error CS1001: Identifier expected
+                // ar
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 3),
+                // (3,3): error CS1002: ; expected
+                // ar
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 3)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Console");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "WriteLine");
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.EmptyStatement);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ar");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_03()
+        {
+            var test = @"
+ar
+Console.WriteLine();
+";
+
+            UsingTree(test,
+                // (2,3): error CS1001: Identifier expected
+                // ar
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 3),
+                // (2,3): error CS1002: ; expected
+                // ar
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 3)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ar");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Console");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "WriteLine");
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
                         N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_04()
+        {
+            var test = @"extern alias ";
+
+            UsingTree(test,
+                // (1,8): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // extern alias 
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "alias").WithLocation(1, 8)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.ExternKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "alias");
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_05()
+        {
+            var test = @"using aliasY = X.Y;";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "aliasY");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_06()
+        {
+            var test = @"
+using X;
+using aliasY = X.Y;
+";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "aliasY");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_07()
+        {
+            var test = @"
+System.String[]
+using aliasY = X.Y;
+";
+
+            UsingTree(test,
+                // (2,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // System.String[]
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 15)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "aliasY");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_08()
+        {
+            var test = @"
+scoped struct A { }
+scoped ref struct B { }
+scoped readonly ref struct C { }
+";
+
+            UsingTree(test,
+                // (2,8): error CS1001: Identifier expected
+                // scoped struct A { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(2, 8),
+                // (2,8): error CS1002: ; expected
+                // scoped struct A { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 8),
+                // (3,12): error CS1031: Type expected
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(3, 12),
+                // (4,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // scoped readonly ref struct C { }
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 8)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "B");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_09()
+        {
+            var test = @"
+record class Point(int x, int y);
+";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Point");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_10()
+        {
+            var test = @"
+record class Point(int x, int y);
+";
+
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,8): error CS1001: Identifier expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
+                // (2,8): error CS1002: ; expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
+                // (2,19): error CS1514: { expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
+                // (2,19): error CS1513: } expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 19),
+                // (2,19): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 19),
+                // (2,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 19),
+                // (2,20): error CS8185: A declaration is not allowed in this context.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 20),
+                // (2,20): error CS0165: Use of unassigned local variable 'x'
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 20),
+                // (2,27): error CS8185: A declaration is not allowed in this context.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 27),
+                // (2,27): error CS0165: Use of unassigned local variable 'y'
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 27));
+
+            UsingTree(test, TestOptions.Regular8,
+                // (2,8): error CS1001: Identifier expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
+                // (2,8): error CS1002: ; expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
+                // (2,19): error CS1514: { expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
+                // (2,19): error CS1513: } expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 19),
+                // (2,19): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Point");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_11()
+        {
+            var test = @"
+global using Goo;
+p
+global using Bar;
+";
+
+            UsingTree(test,
+                // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // p
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Bar");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_12()
+        {
+            var test = @"
+using Goo;
+p
+using Bar;
+";
+
+            UsingTree(test,
+                // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // p
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(3, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Bar");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_13()
+        {
+            var test = @"
+using Goo;
+p
+using Bar x;
+";
+
+            UsingTree(test,
+                // (3,2): error CS1001: Identifier expected
+                // p
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 2),
+                // (3,2): error CS1002: ; expected
+                // p
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "p");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Bar");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_14()
+        {
+            var test = @"
+global using Goo;
+p
+global using Bar x;
+";
+
+            UsingTree(test,
+                // (4,8): error CS1002: ; expected
+                // global using Bar x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "using").WithLocation(4, 8)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "p");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "global");
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Bar");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ErrorRecovery_15()
+        {
+            var test = @"
+			       W   )b
+";
+
+            UsingTree(test,
+                // (2,15): error CS1001: Identifier expected
+                // 			       W   )b
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 15),
+                // (2,15): error CS1002: ; expected
+                // 			       W   )b
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 15),
+                // (2,15): error CS1022: Type or namespace definition, or end-of-file expected
+                // 			       W   )b
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 15),
+                // (2,17): error CS1001: Identifier expected
+                // 			       W   )b
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 17),
+                // (2,17): error CS1002: ; expected
+                // 			       W   )b
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 17)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "W");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);

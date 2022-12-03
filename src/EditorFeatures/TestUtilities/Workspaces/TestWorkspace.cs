@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (configurationOptions != null)
             {
                 var workspaceConfigurationService = GetService<TestWorkspaceConfigurationService>();
-                workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
+                workspaceConfigurationService.Options = configurationOptions.Value;
             }
 
             SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // Get any inert text between this and the previous span
                 if (currentPositionInInertText < spanLocation)
                 {
-                    var textToAdd = inertText.Substring(currentPositionInInertText, spanLocation - currentPositionInInertText);
+                    var textToAdd = inertText[currentPositionInInertText..spanLocation];
                     projectionBufferSpans.Add(textToAdd);
                     projectionBufferSpanStartingPositions.Add(currentPositionInProjectionBuffer);
 
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Handle any inert text after the final projected span
             if (currentPositionInInertText < inertText.Length - 1)
             {
-                projectionBufferSpans.Add(inertText.Substring(currentPositionInInertText));
+                projectionBufferSpans.Add(inertText[currentPositionInInertText..]);
                 projectionBufferSpanStartingPositions.Add(currentPositionInProjectionBuffer);
 
                 if (mappedCaretLocation == null && markupCaretLocation != null && markupCaretLocation >= currentPositionInInertText)

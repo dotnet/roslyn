@@ -6986,5 +6986,28 @@ class Program
   IL_0009:  ret
 }");
         }
+
+        [Fact, WorkItem(65165, "https://github.com/dotnet/roslyn/issues/65165")]
+        public void EEMethodSymbol_DeclaringSyntaxReferences()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+    }
+}";
+            Evaluate(source, OutputKind.ConsoleApplication, "Program.Main", """1 switch { 1 => "hello" }""").GetMethodData("<>x.<>m0").VerifyIL("""
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldstr      "hello"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}
+""");
+        }
     }
 }

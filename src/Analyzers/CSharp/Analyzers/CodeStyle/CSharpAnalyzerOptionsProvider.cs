@@ -69,6 +69,8 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferNullCheckOverTypeCheck => GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, FallbackCodeStyleOptions.PreferNullCheckOverTypeCheck);
     public CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces => GetOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, FallbackCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces);
     public CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, FallbackCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer);
+    public CodeStyleOption2<bool> AllowBlankLineAfterTokenInArrowExpressionClause => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, FallbackCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause);
+    public CodeStyleOption2<bool> AllowBlankLineAfterTokenInConditionalExpression => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, FallbackCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression);
     public CodeStyleOption2<bool> PreferConditionalDelegateCall => GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall, FallbackCodeStyleOptions.PreferConditionalDelegateCall);
     public CodeStyleOption2<bool> PreferSwitchExpression => GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, FallbackCodeStyleOptions.PreferSwitchExpression);
     public CodeStyleOption2<bool> PreferPatternMatching => GetOption(CSharpCodeStyleOptions.PreferPatternMatching, FallbackCodeStyleOptions.PreferPatternMatching);

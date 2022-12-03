@@ -109,7 +109,7 @@ internal abstract class SnippetFunctionService : ILanguageService
             return false;
         }
 
-        snippetFunctionName = xmlFunctionText.Substring(0, xmlFunctionText.IndexOf('('));
+        snippetFunctionName = xmlFunctionText[..xmlFunctionText.IndexOf('(')];
 
         var paramStart = xmlFunctionText.IndexOf('(') + 1;
         var paramLength = xmlFunctionText.LastIndexOf(')') - xmlFunctionText.IndexOf('(') - 1;

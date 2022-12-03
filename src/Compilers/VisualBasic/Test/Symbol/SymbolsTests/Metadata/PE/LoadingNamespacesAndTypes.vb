@@ -41,7 +41,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(dumpXML.ToString(), baseLine.ToString())
         End Sub
 
-
         Private Function LoadChildNamespace1(n As NamespaceSymbol) As XElement
             Dim elem As XElement = New XElement(If(n.Name.Length = 0, "Global", n.Name))
 
@@ -104,7 +103,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Return elem
         End Function
 
-
         <Fact>
         Public Sub Test3()
             Dim assembly = LoadFromBytes(ResourcesNet40.mscorlib)
@@ -148,7 +146,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(1, collectionsNS.ConstituentNamespaces.Length)
             Assert.Same(collectionsNS, collectionsNS.ConstituentNamespaces(0))
         End Sub
-
 
         <Fact()>
         Public Sub Test4()
@@ -203,7 +200,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal("SomeName3", SomeName3(1).Name)
 
         End Sub
-
 
         Private Sub TestGetMembersOfName(module0 As ModuleSymbol)
 
