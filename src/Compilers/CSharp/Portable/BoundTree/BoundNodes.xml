@@ -115,6 +115,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="VariableSymbol" Type="Symbol?"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+    <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <!--
@@ -2391,6 +2392,7 @@
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="VariableSymbol" Type="Symbol?"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+    <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
   </Node>
   
   <AbstractNode Name="BoundMethodBodyBase" Base="BoundNode">

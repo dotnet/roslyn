@@ -1606,12 +1606,22 @@ class Program
     static void F5()
     {
         Span<int> s5 = stackalloc int[10];
-        s5.Deconstruct(out s5, out var unused);
+        s5.Deconstruct(out s5, out Span<int> _);
     }
     static void F6()
     {
         Span<int> s6 = stackalloc int[10];
-        (s6, var unused) = s6;
+        (s6, Span<int> _) = s6;
+    }
+    static void F7()
+    {
+        Span<int> s7 = stackalloc int[10];
+        s7.Deconstruct(out s7, out var unused);
+    }
+    static void F8()
+    {
+        Span<int> s8 = stackalloc int[10];
+        (s8, var unused) = s8;
     }
 }
 static class Extensions
@@ -1622,33 +1632,8 @@ static class Extensions
     }
 }
 ";
-            // PROTOTYPE: Should not report errors.
             var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
-                //         s1.Deconstruct(out s1, out _);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 9),
-                // (7,9): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
-                //         s1.Deconstruct(out s1, out _);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s1.Deconstruct(out s1, out _)").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(7, 9),
-                // (12,9): error CS8352: Cannot use variable '(s2, _) = s2' in this context because it may expose referenced variables outside of their declaration scope
-                //         (s2, _) = s2;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(s2, _) = s2").WithArguments("(s2, _) = s2").WithLocation(12, 9),
-                // (12,19): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
-                //         (s2, _) = s2;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s2").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(12, 19),
-                // (17,9): error CS8352: Cannot use variable 's3' in this context because it may expose referenced variables outside of their declaration scope
-                //         s3.Deconstruct(out s3, out var _);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s3").WithArguments("s3").WithLocation(17, 9),
-                // (17,9): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
-                //         s3.Deconstruct(out s3, out var _);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s3.Deconstruct(out s3, out var _)").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(17, 9),
-                // (22,9): error CS8352: Cannot use variable '(s4, var _) = s4' in this context because it may expose referenced variables outside of their declaration scope
-                //         (s4, var _) = s4;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(s4, var _) = s4").WithArguments("(s4, var _) = s4").WithLocation(22, 9),
-                // (22,23): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
-                //         (s4, var _) = s4;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s4").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(22, 23));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact()]
@@ -4042,6 +4027,7 @@ public ref struct S<T>
 ");
         }
 
+        [WorkItem(65522, "https://github.com/dotnet/roslyn/issues/65522")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4093,13 +4079,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, _) = local").WithArguments("(global, _) = local").WithLocation(13, 9),
                 // (13,23): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
                 //         (global, _) = local; // error 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(13, 23),
-                // (14,9): error CS8352: Cannot use variable '(local, _) = local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (local, _) = local;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(local, _) = local").WithArguments("(local, _) = local").WithLocation(14, 9),
-                // (14,22): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
-                //         (local, _) = local;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(14, 22));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(13, 23));
         }
 
         [Theory]
