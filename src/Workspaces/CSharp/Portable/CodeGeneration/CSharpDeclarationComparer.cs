@@ -141,11 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.ConversionOperatorDeclaration:
                     return Compare((ConversionOperatorDeclarationSyntax)x, (ConversionOperatorDeclarationSyntax)y);
-#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
-                case SyntaxKind.IncompleteMember:
-                    // Since these are incomplete members they are considered to be equal
-                    return 0;
-#pragma warning restore CS0618
+
                 case SyntaxKind.GlobalStatement:
                     // for REPL, don't mess with order, just put new one at the end.
                     return 1;

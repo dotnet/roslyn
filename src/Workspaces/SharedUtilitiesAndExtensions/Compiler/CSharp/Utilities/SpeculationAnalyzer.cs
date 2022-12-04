@@ -96,9 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             Debug.Assert(speculativeSemanticModel != null ||
                 nodeToSpeculate is ExpressionSyntax ||
                 this.SemanticRootOfOriginalExpression.GetAncestors().Any(node => node.IsKind(SyntaxKind.UnknownAccessorDeclaration) ||
-#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
-                    node.IsKind(SyntaxKind.IncompleteMember) ||
-#pragma warning restore CS0618
                     node.IsKind(SyntaxKind.BracketedArgumentList)),
                 "SemanticModel.TryGetSpeculativeSemanticModel() API returned false.");
         }

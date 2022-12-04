@@ -700,10 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 if (useFullSpan || node.Span.Contains(position))
                 {
                     var kind = node.Kind();
-                    // PROTOTYPE: TODO for IncompleteMember
-#pragma warning disable CS0618
-                    if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is MemberDeclarationSyntax))
-#pragma warning restore CS0618
+                    if (kind != SyntaxKind.GlobalStatement && node is MemberDeclarationSyntax)
                     {
                         return node;
                     }
@@ -806,10 +803,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 case SyntaxKind.IdentifierName:
                     var identifier = ((IdentifierNameSyntax)node).Identifier;
                     return identifier.IsMissing ? missingTokenPlaceholder : identifier.Text;
-#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
-                case SyntaxKind.IncompleteMember:
-                    return missingTokenPlaceholder;
-#pragma warning restore CS0618
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                     return GetName(((BaseNamespaceDeclarationSyntax)node).Name, options);
@@ -847,9 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                     }
                     else
                     {
-#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
-                        Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);
-#pragma warning restore CS0618
+                        Debug.Fail($"Unexpected kind {memberDeclaration.Kind()}");
                         name = "?";
                     }
                 }
