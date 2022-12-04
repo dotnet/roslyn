@@ -47,11 +47,6 @@
         <target state="new">Fix name violation: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_all_suitable_declarations_of_0_partial">
-        <source>Make all suitable declarations of '{0}' partial</source>
-        <target state="new">Make all suitable declarations of '{0}' partial</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">將類別設為 'abstract'</target>
@@ -60,6 +55,11 @@
       <trans-unit id="Make_member_static">
         <source>Make static</source>
         <target state="translated">使其變成靜態</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="new">Make type partial</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
