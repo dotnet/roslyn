@@ -681,12 +681,7 @@ namespace Test
                 };
 
             comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, cancellationToken: default).Verify(expected);
-            comp.VerifyDiagnostics(expected.Concat(new[]
-            {
-                // (4,20): error CS0426: The type name 'WriteLine' does not exist in the type 'Console'
-                //     System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(4, 20)
-            }).ToArray());
+            comp.VerifyDiagnostics(expected);
         }
 
         [Fact]

@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -258,9 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (token.Parent.IsKind(SyntaxKind.AttributeList))
                 {
                     var container = token.Parent.Parent;
-#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
-                    if (container is IncompleteMemberSyntax && container.Parent is CompilationUnitSyntax)
-#pragma warning restore CS0618
+                    if (CSharpSyntaxFacts.Instance.IsIncompleteFieldDeclaration(container))
                         return true;
                 }
             }
