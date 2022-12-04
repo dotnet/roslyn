@@ -54,6 +54,59 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public ImmutableArray<string> EvaluationItemNames
             => BuildPropertyNames.InitialEvaluationItemNames;
 
+        // Kept around onyl for integration tests.
+        [Obsolete]
+        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(
+            string languageName,
+            string projectUniqueName,
+            string? projectFilePath,
+            Guid projectGuid,
+            object? hierarchy,
+            string? binOutputPath,
+            string? assemblyName,
+            CancellationToken cancellationToken)
+        {
+            var data = new IntegrationTestEvaluationData(projectFilePath ?? "", projectFilePath ?? "", assemblyName ?? "", binOutputPath ?? "", "SHA256");
+            return CreateProjectContextAsync(projectGuid, projectUniqueName, languageName, data, hierarchy, cancellationToken);
+        }
+
+        [Obsolete]
+        internal sealed class IntegrationTestEvaluationData : EvaluationData
+        {
+            public string ProjectFilePath { get; }
+            public string TargetPath { get; }
+            public string AssemblyName { get; }
+            public string OutputAssembly { get; }
+            public string ChecksumAlgorithm { get; }
+
+            public IntegrationTestEvaluationData(string projectFilePath, string targetPath, string assemblyName, string outputAssembly, string checksumAlgorithm)
+            {
+                ProjectFilePath = projectFilePath;
+                TargetPath = targetPath;
+                AssemblyName = assemblyName;
+                OutputAssembly = outputAssembly;
+                ChecksumAlgorithm = checksumAlgorithm;
+            }
+
+            public override string GetPropertyValue(string name)
+                => name switch
+                {
+                    BuildPropertyNames.MSBuildProjectFullPath => ProjectFilePath,
+                    BuildPropertyNames.TargetPath => TargetPath,
+                    BuildPropertyNames.AssemblyName => AssemblyName,
+                    BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation => "-checksumalgorithm:" + ChecksumAlgorithm,
+                    _ => throw ExceptionUtilities.UnexpectedValue(name)
+                };
+
+            public override ImmutableArray<string> GetItemValues(string name)
+                => name switch
+                {
+                    BuildPropertyNames.IntermediateAssembly => ImmutableArray.Create(OutputAssembly),
+                    _ => throw ExceptionUtilities.UnexpectedValue(name)
+                };
+        }
+
+
         public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
         {
             // Read all required properties from EvaluationData before we start updating anything.
