@@ -7,18 +7,18 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MakeDeclarationsPartial;
+using Microsoft.CodeAnalysis.MakeTypePartial;
 
-namespace Microsoft.CodeAnalysis.CSharp.MakeDeclarationsPartial
+namespace Microsoft.CodeAnalysis.CSharp.MakeTypePartial
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeDeclarationsPartial), Shared]
-    internal sealed class CSharpMakeDeclarationsPartialCodeFixProvider : AbstractMakeDeclarationsPartialCodeFixProvider
+    internal sealed class CSharpMakeTypePartialCodeFixProvider : AbstractMakeTypePartialCodeFixProvider
     {
         private const string CS0260 = nameof(CS0260); // Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpMakeDeclarationsPartialCodeFixProvider()
+        public CSharpMakeTypePartialCodeFixProvider()
         {
         }
 

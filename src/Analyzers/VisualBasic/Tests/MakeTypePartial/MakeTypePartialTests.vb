@@ -4,11 +4,11 @@
 
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationsPartial.VisualBasicMakeDeclarationsPartialCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.MakeTypePartial.VisualBasicMakeTypePartialCodeFixProvider)
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeDeclarationPartial
-    <Trait(Traits.Feature, Traits.Features.CodeActionsMakeDeclarationPartial)>
-    Public Class MakeDeclarationsPartialTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeTypePartial
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypePartial)>
+    Public Class MakeTypePartialTests
         <Fact>
         Public Async Function OutsideNamespace() As Task
             Dim document = "

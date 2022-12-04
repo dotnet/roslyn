@@ -4,20 +4,20 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.MakeDeclarationsPartial;
+using Microsoft.CodeAnalysis.CSharp.MakeTypePartial;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationsPartial
+namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeTypePartial
 {
     using VerifyCS = CSharpCodeFixVerifier<
         EmptyDiagnosticAnalyzer,
-        CSharpMakeDeclarationsPartialCodeFixProvider>;
+        CSharpMakeTypePartialCodeFixProvider>;
 
-    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeDeclarationPartial)]
-    public sealed class MakeDeclarationsPartialTests
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypePartial)]
+    public sealed class MakeTypePartialTests
     {
         public static IEnumerable<object[]> AllValidDeclarationTypes()
         {

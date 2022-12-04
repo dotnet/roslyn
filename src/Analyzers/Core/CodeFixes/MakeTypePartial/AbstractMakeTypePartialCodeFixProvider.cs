@@ -11,11 +11,11 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.MakeDeclarationsPartial
+namespace Microsoft.CodeAnalysis.MakeTypePartial
 {
-    internal abstract class AbstractMakeDeclarationsPartialCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractMakeTypePartialCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        protected AbstractMakeDeclarationsPartialCodeFixProvider()
+        protected AbstractMakeTypePartialCodeFixProvider()
             : base(supportsFixAll: false)
         {
         }

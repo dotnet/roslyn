@@ -19,8 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\IteratorTests.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)MakeDeclarationsPartial\MakeDeclarationPartialTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\MakeTypeAbstractTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\MakeTypePartialTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.vb" />

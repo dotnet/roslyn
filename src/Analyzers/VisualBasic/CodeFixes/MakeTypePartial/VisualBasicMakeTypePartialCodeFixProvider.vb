@@ -6,12 +6,12 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.MakeDeclarationsPartial
+Imports Microsoft.CodeAnalysis.MakeTypePartial
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationsPartial
+Namespace Microsoft.CodeAnalysis.VisualBasic.MakeTypePartial
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeDeclarationsPartial), [Shared]>
-    Friend Class VisualBasicMakeDeclarationsPartialCodeFixProvider
-        Inherits AbstractMakeDeclarationsPartialCodeFixProvider
+    Friend Class VisualBasicMakeTypePartialCodeFixProvider
+        Inherits AbstractMakeTypePartialCodeFixProvider
 
         Private Const BC40046 As String = NameOf(BC40046) ' Type 'D' and partial type 'D' conflict in container 'C', but are being merged because one of them is declared partial
 
