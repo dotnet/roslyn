@@ -598,10 +598,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 // ref $$
                 // readonly ref $$
-#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
-                if (container is IncompleteMemberSyntax incompleteMember)
-#pragma warning restore CS0618
-                    return incompleteMember.Type.IsKind(SyntaxKind.RefType);
+                if (container is VariableDeclarationSyntax variableDeclaration)
+                    return variableDeclaration.Type.IsKind(SyntaxKind.RefType);
 
                 if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
