@@ -106,7 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 };
         }
 
-
         public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
         {
             // Read all required properties from EvaluationData before we start updating anything.
