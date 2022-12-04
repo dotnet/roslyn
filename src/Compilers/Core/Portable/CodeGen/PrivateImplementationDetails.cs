@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(!IsFrozen);
 
-            // Get the type code for the array's element type.  It'll be used part of the
+            // Get the type code for the array's element type.
             Cci.PrimitiveTypeCode typeCode = arrayType.GetElementType(emitContext).TypeCode;
             Debug.Assert(typeCode is
                 Cci.PrimitiveTypeCode.Int16 or Cci.PrimitiveTypeCode.UInt16 or Cci.PrimitiveTypeCode.Char or
