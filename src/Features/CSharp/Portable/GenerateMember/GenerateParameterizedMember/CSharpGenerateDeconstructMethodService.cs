@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 var names = NameGenerator.EnsureUniqueness(namesBuilder.ToImmutable());
                 for (var i = 0; i < positionalPattern.Subpatterns.Count; i++)
                 {
-                    targetType = semanticModel.GetTypeInfo(((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, cancellationToken: cancellationToken).Type;
+                    targetType = semanticModel.GetTypeInfo(((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, cancellationToken).Type;
                     builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default, RefKind.Out, isParams: false, targetType, names[i]));
                 }
