@@ -81,137 +81,103 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             modifiers = new DeclarationModifiers();
             seenAccessibility = Accessibility.NotApplicable;
             var overrideToken = default(SyntaxToken);
-            var lastSeenToken = default(SyntaxToken);
             var isUnsafe = false;
             var isSealed = false;
             var isAbstract = false;
             var isRequired = false;
 
-            while (!token.IsKind(SyntaxKind.None))
+            while (token != default)
             {
-                if (overrideToken != default &&
-                    token.SpanStart < overrideToken.GetRequiredParent().SpanStart)
-                {
+                // If we've moved before the start of the containing member, we're done.
+                if (token.SpanStart < overrideToken.GetRequiredParent().SpanStart)
                     break;
+
+                if (token.Kind() == SyntaxKind.CloseBracketToken)
+                {
+                    // Ok to hit a `]` if it's the end of attributes on this member.
+                    if (token.Parent is AttributeListSyntax)
+                        break;
+
+                    return false;
                 }
+
+                // We only accept tokens that precede us on the same line.  Splitting across multiple lines is too niche
+                // to want to support, and more likely indicates a case of broken code that the user is in the middle of
+                // fixing up.
+                if (!IsOnStartLine(token.SpanStart, text, startLine))
+                    break;
 
                 switch (token.Kind())
                 {
-                    case SyntaxKind.UnsafeKeyword:
-                        isUnsafe = true;
-                        break;
-                    case SyntaxKind.OverrideKeyword:
-                        overrideToken = token;
-                        break;
-                    case SyntaxKind.SealedKeyword:
-                        isSealed = true;
-                        break;
+                    // Standard modifier cases we accept.
+
                     case SyntaxKind.AbstractKeyword:
                         isAbstract = true;
                         break;
                     case SyntaxKind.ExternKeyword:
                         break;
+                    case SyntaxKind.OverrideKeyword:
+                        overrideToken = token;
+                        break;
                     case SyntaxKind.RequiredKeyword:
                         isRequired = true;
+                        break;
+                    case SyntaxKind.SealedKeyword:
+                        isSealed = true;
+                        break;
+                    case SyntaxKind.UnsafeKeyword:
+                        isUnsafe = true;
                         break;
 
                     // Filter on the most recently typed accessibility; keep the first one we see
 
                     case SyntaxKind.PublicKeyword:
                         if (seenAccessibility == Accessibility.NotApplicable)
-                        {
                             seenAccessibility = Accessibility.Public;
-                        }
 
                         break;
                     case SyntaxKind.PrivateKeyword:
-                        if (seenAccessibility == Accessibility.NotApplicable)
-                        {
-                            seenAccessibility = Accessibility.Private;
-                        }
-
                         // If we see private AND protected, filter for private protected
+                        if (seenAccessibility == Accessibility.NotApplicable)
+                            seenAccessibility = Accessibility.Private;
                         else if (seenAccessibility == Accessibility.Protected)
-                        {
                             seenAccessibility = Accessibility.ProtectedAndInternal;
-                        }
 
                         break;
                     case SyntaxKind.InternalKeyword:
-                        if (seenAccessibility == Accessibility.NotApplicable)
-                        {
-                            seenAccessibility = Accessibility.Internal;
-                        }
-
                         // If we see internal AND protected, filter for protected internal
+                        if (seenAccessibility == Accessibility.NotApplicable)
+                            seenAccessibility = Accessibility.Internal;
                         else if (seenAccessibility == Accessibility.Protected)
-                        {
                             seenAccessibility = Accessibility.ProtectedOrInternal;
-                        }
 
                         break;
                     case SyntaxKind.ProtectedKeyword:
+                        // If we see protected AND internal, filter for protected internal.
+                        // Or if we see private AND protected, filter for private protected
                         if (seenAccessibility == Accessibility.NotApplicable)
-                        {
                             seenAccessibility = Accessibility.Protected;
-                        }
-
-                        // If we see protected AND internal, filter for protected internal
                         else if (seenAccessibility == Accessibility.Internal)
-                        {
                             seenAccessibility = Accessibility.ProtectedOrInternal;
-                        }
-
-                        // If we see private AND protected, filter for private protected
                         else if (seenAccessibility == Accessibility.Private)
-                        {
                             seenAccessibility = Accessibility.ProtectedAndInternal;
-                        }
 
                         break;
+
                     default:
-                        // If we faced modifier, that we don't accept above (e.g. `static`)
-                        // then this modifier is not valid for override completions, so we can just exit
-                        if (SyntaxFacts.IsKeywordKind(token.Kind()))
-                        {
-                            return false;
-                        }
-
-                        break;
+                        // If we hit anything else, then this token is not valid for override completions, and we can just bail here.
+                        return false;
                 }
 
-                if (SyntaxFacts.IsKeywordKind(token.Kind()) &&
-                    !IsOnStartLine(token.SpanStart, text, startLine))
-                {
-                    return false;
-                }
-
-                var previousToken = token.GetPreviousToken();
-
-                // We want only want to consume modifiers
-                if (previousToken.IsKind(SyntaxKind.None))
-                {
-                    break;
-                }
-
-                lastSeenToken = token;
-                token = previousToken;
+                token = token.GetPreviousToken();
             }
+
+            // Have to at least found the override token for us to offer override-completion.
+            if (overrideToken == default)
+                return false;
 
             modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed, isRequired: isRequired);
-
-            if (!overrideToken.IsKind(SyntaxKind.OverrideKeyword))
-            {
-                return false;
-            }
-
-            // Allow attributes to be not on the same line as modifiers
-            if (lastSeenToken.Parent is AttributeListSyntax)
-            {
-                return true;
-            }
-
-            return IsOnStartLine(lastSeenToken.SpanStart, text, startLine) && !IsOnStartLine(token.SpanStart, text, startLine);
+            return true;
         }
 
         public override SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken)
