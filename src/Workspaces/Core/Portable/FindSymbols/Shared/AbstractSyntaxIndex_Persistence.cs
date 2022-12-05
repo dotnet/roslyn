@@ -66,10 +66,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // attempt to load from persisted state
                 using var stream = await storage.ReadStreamAsync(documentKey, s_persistenceName, checksum, cancellationToken).ConfigureAwait(false);
-                using var gzipStream = new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true);
-                using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
-                if (reader != null)
-                    return read(stringTable, reader, checksum);
+                if (stream != null)
+                {
+                    using var gzipStream = new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true);
+                    using var reader = ObjectReader.TryGetReader(gzipStream, cancellationToken: cancellationToken);
+                    if (reader != null)
+                        return read(stringTable, reader, checksum);
+                }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
@@ -119,11 +122,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return (textChecksum, textAndDirectivesChecksum);
         }
 
-        private async Task<bool> SaveAsync(
+        private Task<bool> SaveAsync(
             Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var persistentStorageService = solution.Services.GetPersistentStorageService();
+            return SaveAsync(persistentStorageService, document, cancellationToken);
+        }
+
+        public async Task<bool> SaveAsync(
+            IChecksummedPersistentStorageService persistentStorageService, Document document, CancellationToken cancellationToken)
+        {
+            var solution = document.Project.Solution;
 
             try
             {

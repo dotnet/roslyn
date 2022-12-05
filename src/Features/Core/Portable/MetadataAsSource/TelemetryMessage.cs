@@ -4,15 +4,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.PdbSourceDocument
+namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal class TelemetryMessage : IDisposable
     {
         private string? _pdbSource;
         private string? _sourceFileSource;
+        private string? _referenceAssembly;
+        private string? _dll;
+        private bool? _decompiled;
 
         private readonly IDisposable _logBlock;
 
@@ -32,10 +36,37 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _sourceFileSource = source;
         }
 
+        public void SetReferenceAssembly(string referenceAssembly)
+        {
+            _referenceAssembly = referenceAssembly;
+        }
+
+        public void SetDll(string dll)
+        {
+            _dll = dll;
+        }
+
+        public void SetDecompiled(bool decompiled)
+        {
+            _decompiled = decompiled;
+        }
+
         private void SetLogProperties(Dictionary<string, object?> properties)
         {
             properties["pdb"] = _pdbSource ?? "none";
             properties["source"] = _sourceFileSource ?? "none";
+            properties["referenceassembly"] = _referenceAssembly ?? "no";
+            if (_dll is not null)
+            {
+                properties["dll"] = new PiiValue(_dll);
+            }
+
+            properties["decompiled"] = _decompiled switch
+            {
+                true => "yes",
+                false => "no",
+                _ => "n/a"
+            };
         }
 
         public void Dispose()

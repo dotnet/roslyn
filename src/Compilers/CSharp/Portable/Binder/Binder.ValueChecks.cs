@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (parameter.Type.IsRefLikeType && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
+                if (parameter.Type.IsRefLikeType && parameter.RefKind != RefKind.Out && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, valEscapeLevel, isRefEscape: false));
                 }
@@ -2427,9 +2427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : GetValEscape(fromArg, scopeOfTheContainingExpression));
                 }
 
-                foreach (var (_, fromArg, _, _) in escapeValues)
+                foreach (var argument in argsOpt)
                 {
-                    if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
+                    if (ShouldInferDeclarationExpressionValEscape(argument, out var localSymbol))
                     {
                         localSymbol.SetValEscape(inferredDestinationValEscape);
                     }

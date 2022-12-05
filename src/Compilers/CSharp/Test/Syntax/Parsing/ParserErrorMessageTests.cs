@@ -2920,7 +2920,7 @@ class A
         return null;
     }
 }";
-            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
+            CreateCompilation(test, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
@@ -2930,6 +2930,12 @@ class A
                 // (4,23): error CS1019: Overloadable unary operator expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(4, 23),
+                // (4,23): error CS0501: 'A.operator +((?, ?))' must declare a body because it is not marked abstract, extern, or partial
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "").WithArguments("A.operator +((?, ?))").WithLocation(4, 23),
+                // (4,23): error CS0562: The parameter of a unary operator must be the containing type
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "").WithLocation(4, 23),
                 // (4,32): error CS1003: Syntax error, '(' expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(4, 32),
@@ -2959,8 +2965,45 @@ class A
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(8, 31),
                 // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
-                );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1));
+
+            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
+                // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
+                // (4,23): error CS1003: Syntax error, 'operator' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(4, 23),
+                // (4,23): error CS1019: Overloadable unary operator expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(4, 23),
+                // (4,32): error CS1003: Syntax error, '(' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(4, 32),
+                // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
+                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
+                // (4,43): error CS1001: Identifier expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
+                // (4,43): error CS1003: Syntax error, ',' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 43),
+                // (6,17): error CS1026: ) expected
+                //         return 0;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
+                // (8,30): error CS1037: Overloadable operator expected
+                //     public static A operator ()
+                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
+                // (8,31): error CS1003: Syntax error, '(' expected
+                //     public static A operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(8, 31),
+                // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1));
         }
 
         // Preprocessor:
@@ -4686,8 +4729,10 @@ public class MainClass
         }
     }
 ";
-
-            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
+            CreateCompilation(test, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'goo' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class goo {
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "goo").WithArguments("goo").WithLocation(2, 7),
                 // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
@@ -4697,6 +4742,12 @@ public class MainClass
                 // (3,23): error CS1019: Overloadable unary operator expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
+                // (3,23): error CS0501: 'goo.operator +((goo f, ?))' must declare a body because it is not marked abstract, extern, or partial
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "").WithArguments("goo.operator +((goo f, ?))").WithLocation(3, 23),
+                // (3,23): error CS0562: The parameter of a unary operator must be the containing type
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "").WithLocation(3, 23),
                 // (3,32): error CS1003: Syntax error, '(' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(3, 32),
@@ -4720,8 +4771,39 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-                );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+
+            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
+                // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
+                // (3,23): error CS1003: Syntax error, 'operator' expected
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(3, 23),
+                // (3,23): error CS1019: Overloadable unary operator expected
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
+                // (3,32): error CS1003: Syntax error, '(' expected
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(3, 32),
+                // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
+                // (3,47): error CS8124: Tuple must contain at least two elements.
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
+                // (3,49): error CS1001: Identifier expected
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
+                // (3,49): error CS1003: Syntax error, ',' expected
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(3, 49),
+                // (3,59): error CS1026: ) expected
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
         }
 
         [Fact(), WorkItem(526995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526995")]
@@ -5531,10 +5613,13 @@ partial class C
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
                 // (2,1): error CS8022: Feature 'partial types' is not available in C# 1. Please use language version 2 or greater.
                 // partial class C
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "partial").WithArguments("partial types", "2"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "partial").WithArguments("partial types", "2").WithLocation(2, 1));
         }
 
         [Fact]
@@ -5550,10 +5635,37 @@ class C
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (4,17): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo()'
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
+                // (4,17): error CS0751: A partial method must be declared within a partial type
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Goo").WithLocation(4, 17),
+                // (4,17): error CS8796: Partial method 'C.Goo()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
+                // (4,17): error CS0161: 'C.Goo()': not all code paths return a value
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Goo").WithArguments("C.Goo()").WithLocation(4, 17));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
                 // (4,5): error CS8023: Feature 'partial method' is not available in C# 2. Please use language version 3 or greater.
                 //     partial int Goo() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3").WithLocation(4, 5),
+                // (4,17): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo()'
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
+                // (4,17): error CS0751: A partial method must be declared within a partial type
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Goo").WithLocation(4, 17),
+                // (4,17): error CS8796: Partial method 'C.Goo()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
+                // (4,17): error CS0161: 'C.Goo()': not all code paths return a value
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Goo").WithArguments("C.Goo()").WithLocation(4, 17));
         }
 
         [Fact]
@@ -5665,14 +5777,27 @@ class C
     }
 }
 ";
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyEmitDiagnostics(
+                // (6,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(6, 21));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(6, 21),
+                // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3").WithLocation(6, 25));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = new Goo { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6206,10 +6331,19 @@ class C : global::B
 }
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (2,19): error CS0400: The type or namespace name 'B' could not be found in the global namespace (are you missing an assembly reference?)
+                // class C : global::B
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 19));
+            CreateCompilation(text, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
                 // (2,11): error CS8022: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.
                 // class C : global::B
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "global").WithArguments("namespace alias qualifier", "2"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "global").WithArguments("namespace alias qualifier", "2").WithLocation(2, 11),
+                // (2,19): error CS0400: The type or namespace name 'B' could not be found in the global namespace (are you missing an assembly reference?)
+                // class C : global::B
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 19));
         }
 
         [Fact]
@@ -6221,10 +6355,19 @@ class C : A::B
 }
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (2,11): error CS0432: Alias 'A' not found
+                // class C : A::B
+                Diagnostic(ErrorCode.ERR_AliasNotFound, "A").WithArguments("A").WithLocation(2, 11));
+            CreateCompilation(text, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
                 // (2,11): error CS8022: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.
                 // class C : A::B
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "A").WithArguments("namespace alias qualifier", "2"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "A").WithArguments("namespace alias qualifier", "2").WithLocation(2, 11),
+                // (2,11): error CS0432: Alias 'A' not found
+                // class C : A::B
+                Diagnostic(ErrorCode.ERR_AliasNotFound, "A").WithArguments("A").WithLocation(2, 11));
         }
 
         [Fact]
@@ -6258,11 +6401,20 @@ class C
     }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyEmitDiagnostics(
+                // (6,24): error CS0117: 'C' does not contain a definition for 'Goo'
+                //         return new C { Goo = 1 }; 
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("C", "Goo").WithLocation(6, 24));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
                 // (6,22): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         return new C { Goo = 1 }; 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3").WithLocation(6, 22),
+                // (6,24): error CS0117: 'C' does not contain a definition for 'Goo'
+                //         return new C { Goo = 1 }; 
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("C", "Goo").WithLocation(6, 24));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6277,11 +6429,20 @@ class C
     }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyEmitDiagnostics(
+                // (6,22): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         return new C { 1, 2, 3 }; 
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2, 3 }").WithArguments("C").WithLocation(6, 22));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
                 // (6,22): error CS8023: Feature 'collection initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         return new C { 1, 2, 3 }; 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("collection initializer", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("collection initializer", "3").WithLocation(6, 22),
+                // (6,22): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         return new C { 1, 2, 3 }; 
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2, 3 }").WithArguments("C").WithLocation(6, 22));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6390,10 +6551,25 @@ class C
         {
             var source = @"[module:Obsolete()]";
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
-                // (1,2): warning CS1645: Feature 'module as an attribute target specifier' is not part of the standardized ISO C# language specification, and may not be accepted by other compilers
+            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (1,9): error CS0246: The type or namespace name 'ObsoleteAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [module:Obsolete()]
-                Diagnostic(ErrorCode.WRN_NonECMAFeature, "module:").WithArguments("module as an attribute target specifier"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("ObsoleteAttribute").WithLocation(1, 9),
+                // (1,9): error CS0246: The type or namespace name 'Obsolete' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("Obsolete").WithLocation(1, 9));
+            CreateCompilation(source, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
+                // (1,2): warning CS1645: Feature 'IDS_FeatureModuleAttrLoc' is not part of the standardized ISO C# language specification, and may not be accepted by other compilers
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.WRN_NonECMAFeature, "module:").WithArguments("IDS_FeatureModuleAttrLoc").WithLocation(1, 2),
+                // (1,9): error CS0246: The type or namespace name 'ObsoleteAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("ObsoleteAttribute").WithLocation(1, 9),
+                // (1,9): error CS0246: The type or namespace name 'Obsolete' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("Obsolete").WithLocation(1, 9));
         }
 
         [Fact]
@@ -6440,7 +6616,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=").WithArguments("auto property initializer", "6").WithLocation(3, 20),
                 // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
                 //     int M() => 12; // expression-bodied method
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
                 // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
                 //     int N => 12; // expression-bodied property
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied property", "6").WithLocation(7, 11),
@@ -6449,13 +6625,13 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
                 // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
                 //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
                 // (11,51): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(11, 51),
                 // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
                 //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
                 // (18,18): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
                 //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Exception").WithArguments("Exception").WithLocation(18, 18),
@@ -6471,16 +6647,7 @@ class C
 
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify();
 
-            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify(
-                // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-                //     int M() => 12; // expression-bodied method
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
-                // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
-                // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-                //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49));
+            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify();
         }
 
         [ClrOnlyFact]

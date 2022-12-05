@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 
             var syntaxReference = syntax.GetReference();
-            return (typeSyntax == null || typeSyntax.SkipScoped(out _).SkipRef(out _).IsVar)
+            return (typeSyntax == null || typeSyntax.SkipScoped(out _).SkipRef().IsVar)
                 ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
                 : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
         }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeSyntax != null)
             {
-                type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar);
+                type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(), diagnostics, out isVar);
             }
             else
             {
