@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             seenAccessibility = Accessibility.NotApplicable;
             var overrideToken = default(SyntaxToken);
             var lastSeenToken = default(SyntaxToken);
-            var multilineModifiers = false;
             var isUnsafe = false;
             var isSealed = false;
             var isAbstract = false;
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (SyntaxFacts.IsKeywordKind(token.Kind()) &&
                     !IsOnStartLine(token.SpanStart, text, startLine))
                 {
-                    multilineModifiers = true;
+                    return false;
                 }
 
                 var previousToken = token.GetPreviousToken();
@@ -201,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed, isRequired: isRequired);
 
-            if (!overrideToken.IsKind(SyntaxKind.OverrideKeyword) || multilineModifiers)
+            if (!overrideToken.IsKind(SyntaxKind.OverrideKeyword))
             {
                 return false;
             }
