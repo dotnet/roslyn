@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(
-                        generatorInfo, cancellationToken).ConfigureAwait(false);
+                        solution, generatorInfo, cancellationToken).ConfigureAwait(false);
 
                     return await FinalizeCompilationAsync(
                         solution,
