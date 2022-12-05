@@ -10644,6 +10644,7 @@ class Program
         {
             var source = """
                 using System;
+                using System.Runtime.InteropServices;
                 static void Report(Delegate d) => Console.WriteLine(d.GetType());
                 var lam1 = (string a = "") => { };
                 Report(lam1);
@@ -10653,12 +10654,15 @@ class Program
                 Report(lam3);
                 var lam4 = (string d = "a" + "bc") => { };
                 Report(lam4);
+                var lam5 = ([Optional, DefaultParameterValue("abc")] object o) => { };
+                Report(lam5);
                 """;
             CompileAndVerify(source, expectedOutput: $"""
                 <>f__AnonymousDelegate0`1[System.String]
                 <>f__AnonymousDelegate1`1[System.String]
                 <>f__AnonymousDelegate2`1[System.String]
                 <>f__AnonymousDelegate2`1[System.String]
+                <>f__AnonymousDelegate2`1[System.Object]
                 """).VerifyDiagnostics();
         }
 
