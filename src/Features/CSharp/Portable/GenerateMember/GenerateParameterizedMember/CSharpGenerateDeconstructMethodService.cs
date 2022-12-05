@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             // For `if (this is C(0, 0))`, we 'll generate `Deconstruct(out int v1, out int v2)`
             if (target is PositionalPatternClauseSyntax positionalPattern)
             {
+                // Code in GenerateDeconstructMethodCodeFixProvider has already checked that all subpatterns are ConstantPatternSyntax.
                 var namesBuilder = positionalPattern.Subpatterns.SelectAsArray(sub =>
                     semanticModel.GenerateNameForExpression(((ConstantPatternSyntax)sub.Pattern).Expression, false, cancellationToken));
 
