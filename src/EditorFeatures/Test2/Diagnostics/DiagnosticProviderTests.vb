@@ -143,6 +143,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                       Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "as") %>/>
                                   <Warning Code="1633" Id="CS1633" MappedFile="Test.cs" MappedLine="4" MappedColumn="48" OriginalFile="Test.cs" OriginalLine="4" OriginalColumn="48"
                                       Message=<%= CSharpResources.WRN_IllegalPragma %>/>
+                                  <Warning Code="78" Id="CS0078" MappedFile="Test.cs" MappedLine="3" MappedColumn="63" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="63"
+                                      Message=<%= CSharpResources.WRN_LowercaseEllSuffix %>/>
                                   <Error Code="246" Id="CS0246" MappedFile="Test.cs" MappedLine="1" MappedColumn="52" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="52"
                                       Message=<%= String.Format(CSharpResources.ERR_SingleTypeNameNotFound, "gibberish") %>/>
                               </Diagnostics>
