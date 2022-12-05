@@ -123,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property LockStatement As Integer = SyntaxKind.SyncLockStatement Implements ISyntaxKinds.LockStatement
         Public ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement Implements ISyntaxKinds.ReturnStatement
         Public ReadOnly Property ThrowStatement As Integer = SyntaxKind.ThrowStatement Implements ISyntaxKinds.ThrowStatement
+        Public ReadOnly Property TryStatement As Integer = SyntaxKind.TryStatement Implements ISyntaxKinds.TryStatement
         Public ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement Implements ISyntaxKinds.UsingStatement
         Public ReadOnly Property WhileStatement As Integer = SyntaxKind.WhileStatement Implements ISyntaxKinds.WhileStatement
         Public ReadOnly Property YieldReturnStatement As Integer = SyntaxKind.YieldStatement Implements ISyntaxKinds.YieldReturnStatement
