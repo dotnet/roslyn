@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The language name that this node is syntax of.
         /// </summary>
         public override string Language => LanguageNames.CSharp;
+
         protected override int ConditionalDirectiveKind => (int)SyntaxKind.IfDirectiveTrivia;
 
         /// <summary>
