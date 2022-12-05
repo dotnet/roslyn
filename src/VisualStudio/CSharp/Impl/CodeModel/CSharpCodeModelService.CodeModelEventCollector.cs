@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 return CSharpCodeModelService
                     .GetChildMemberNodes(node)
-                    .Where(n => !n.IsKind(SyntaxKind.IncompleteMember))
                     .ToArray();
             }
 
@@ -852,11 +851,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return;
                 }
 
-                if (node is IncompleteMemberSyntax)
-                {
-                    return;
-                }
-
                 if (node is BaseFieldDeclarationSyntax baseField)
                 {
                     foreach (var variableDeclarator in baseField.Declaration.Variables)
@@ -884,11 +878,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             protected override void EnqueueChangeEvent(SyntaxNode node, SyntaxNode parent, CodeModelEventType eventType, CodeModelEventQueue eventQueue)
             {
                 if (eventQueue == null)
-                {
-                    return;
-                }
-
-                if (node is IncompleteMemberSyntax)
                 {
                     return;
                 }
@@ -935,11 +924,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             protected override void EnqueueRemoveEvent(SyntaxNode node, SyntaxNode parent, CodeModelEventQueue eventQueue)
             {
                 if (eventQueue == null)
-                {
-                    return;
-                }
-
-                if (node is IncompleteMemberSyntax)
                 {
                     return;
                 }
