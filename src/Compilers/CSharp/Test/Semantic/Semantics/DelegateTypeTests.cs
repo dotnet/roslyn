@@ -10598,11 +10598,17 @@ class Program
                 Report(lam4);
                 var lam5 = (S2 s2 = default) => { };
                 Report(lam5);
-                var lam6 = (int i = default) => { };
+                var lam6 = (C c = default) => { };
                 Report(lam6);
+                var lam7 = (I i = default) => { };
+                Report(lam7);
+                var lam8 = (int i = default) => { };
+                Report(lam8);
 
                 public struct S1 { public int X; }
                 public struct S2 { public int Y; }
+                public class C { }
+                public interface I { }
                 """;
             CompileAndVerify(source, expectedOutput: $"""
                 <>f__AnonymousDelegate0`1[System.Object]
@@ -10610,6 +10616,8 @@ class Program
                 <>f__AnonymousDelegate0`1[System.Nullable`1[System.Int32]]
                 <>f__AnonymousDelegate0`1[S1]
                 <>f__AnonymousDelegate0`1[S2]
+                <>f__AnonymousDelegate0`1[C]
+                <>f__AnonymousDelegate0`1[I]
                 <>f__AnonymousDelegate1`1[System.Int32]
                 """).VerifyDiagnostics();
         }
