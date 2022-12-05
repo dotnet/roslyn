@@ -100,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                 return;
             }
 
+            // Checking that Subpatterns of deconstruction are ConstantPatternSyntax because for override of TryMakeParameters in CSharpGenerateDeconstructMethodService
+            // Subpatterns are cast to ConstantPatternSyntax for use of GenerateNameForExpression and GetTypeInfo
             if (deconstruction is PositionalPatternClauseSyntax positionalPatternClause && positionalPatternClause.Subpatterns.Any(p => p.Pattern is not ConstantPatternSyntax))
             {
                 return;

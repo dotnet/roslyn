@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
     {
+
+        public abstract ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target, CancellationToken cancellationToken);
+
         public async Task<ImmutableArray<CodeAction>> GenerateDeconstructMethodAsync(
             Document document,
             SyntaxNode leftSide,
@@ -37,8 +40,5 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 return state != null ? await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false) : ImmutableArray<CodeAction>.Empty;
             }
         }
-
-        public abstract ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target, ISemanticFactsService semanticFacts, CancellationToken cancellationToken);
-
     }
 }

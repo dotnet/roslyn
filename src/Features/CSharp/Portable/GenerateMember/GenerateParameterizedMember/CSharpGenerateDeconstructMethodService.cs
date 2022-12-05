@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMember;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
 {
@@ -42,45 +44,30 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
             => CSharpCommonGenerationServiceMethods.IsValidSymbol();
 
-        public override ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target, ISemanticFactsService semanticFacts, CancellationToken cancellationToken)
+        public override ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target, CancellationToken cancellationToken)
         {
-            ITypeSymbol targetType;
+            // For `if (this is C(0, 0))`, we 'll generate `Deconstruct(out int v1, out int v2)`
             if (target is PositionalPatternClauseSyntax positionalPattern)
             {
-                using var _1 = ArrayBuilder<string>.GetInstance(out var namesBuilder);
-                using var _2 = ArrayBuilder<IParameterSymbol>.GetInstance(positionalPattern.Subpatterns.Count, out var builder);
-                for (var i = 0; i < positionalPattern.Subpatterns.Count; i++)
-                {
-                    namesBuilder.Add(semanticFacts.GenerateNameForExpression(semanticModel, ((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, false, cancellationToken));
-                }
-                var names = NameGenerator.EnsureUniqueness(namesBuilder.ToImmutable());
-                for (var i = 0; i < positionalPattern.Subpatterns.Count; i++)
-                {
-                    targetType = semanticModel.GetTypeInfo(((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, cancellationToken).Type;
-                    builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default, RefKind.Out, isParams: false, targetType, names[i]));
-                }
+                var namesBuilder = positionalPattern.Subpatterns.SelectAsArray(sub =>
+                    semanticModel.GenerateNameForExpression(((ConstantPatternSyntax)sub.Pattern).Expression, false, cancellationToken));
 
-                return builder.ToImmutableAndClear();
+                var names = NameGenerator.EnsureUniqueness(namesBuilder);
+
+                var targetTypes = positionalPattern.Subpatterns.SelectAsArray(sub =>
+                    semanticModel.GetTypeInfo(((ConstantPatternSyntax)sub.Pattern).Expression, cancellationToken).Type);
+
+                return names.ZipAsArray(targetTypes, (name, targetType) =>
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(attributes: default, RefKind.Out, isParams: false, targetType, name));
             }
             else
             {
-                targetType = semanticModel.GetTypeInfo(target, cancellationToken: cancellationToken).Type;
+                var targetType = semanticModel.GetTypeInfo(target, cancellationToken: cancellationToken).Type;
                 if (targetType is not INamedTypeSymbol { IsTupleType: true, TupleElements: var tupleElements })
                     return default;
-                {
-                    return default;
-                }
 
-                var tupleElements = ((INamedTypeSymbol)targetType).TupleElements;
-                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(tupleElements.Length, out var builder);
-                foreach (var element in tupleElements)
-                {
-                    builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                return tupleElements.SelectAsArray(element => CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default, RefKind.Out, isParams: false, element.Type, element.Name));
-                }
-
-                return builder.ToImmutableAndClear();
             }
         }
     }

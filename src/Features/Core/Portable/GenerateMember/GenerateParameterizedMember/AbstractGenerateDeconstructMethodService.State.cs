@@ -58,8 +58,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 MethodGenerationKind = MethodGenerationKind.Member;
                 MethodKind = MethodKind.Ordinary;
 
-                var semanticFacts = document.Document.GetRequiredLanguageService<ISemanticFactsService>();
-
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var semanticModel = document.SemanticModel;
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                var parameters = service.TryMakeParameters(semanticModel, targetVariables, semanticFacts, cancellationToken);
+                var parameters = service.TryMakeParameters(semanticModel, targetVariables, cancellationToken);
                 if (parameters.IsDefault)
                 {
                     return false;
