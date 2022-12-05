@@ -3331,7 +3331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
             => ExpressionGenerator.GenerateExpression(value);
 
-        protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
+        private protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
             => ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference);
 
         public override SyntaxNode IdentifierName(string identifier)
