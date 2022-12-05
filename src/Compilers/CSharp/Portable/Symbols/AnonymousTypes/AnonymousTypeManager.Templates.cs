@@ -213,10 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var genericFieldTypes = IndexedTypeParameterSymbol.Take(nTypeArguments);
                     if (returnsVoid)
                     {
-                        var genericFieldTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(fields.Length);
-                        genericFieldTypeBuilder.AddRange(genericFieldTypes);
-                        genericFieldTypeBuilder.Add(fields[^1].TypeWithAnnotations);
-                        genericFieldTypes = genericFieldTypeBuilder.ToImmutableAndFree();
+                        genericFieldTypes = genericFieldTypes.Add(fields[^1].TypeWithAnnotations);
                     }
 
                     var genericTypeDescr = typeDescr.WithNewFieldsTypes(genericFieldTypes);
