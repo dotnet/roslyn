@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        [return: NotNullIfNotNull("name")]
+        [return: NotNullIfNotNull(nameof(name))]
         public static string? Intern(StringTable stringTable, string? name)
             => name == null ? null : stringTable.Add(name);
 
