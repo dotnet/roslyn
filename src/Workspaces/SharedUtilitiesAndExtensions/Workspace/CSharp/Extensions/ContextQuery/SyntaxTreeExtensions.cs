@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // ref $$
                 // readonly ref $$
                 if (container is VariableDeclarationSyntax variableDeclaration)
-                    return variableDeclaration.Type.IsKind(SyntaxKind.RefType);
+                    return variableDeclaration.Type.IsKind(SyntaxKind.RefType) && variableDeclaration.Parent is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax;
 
                 if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
