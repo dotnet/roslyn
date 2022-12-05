@@ -41,10 +41,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _documentSymbolUIItems = new ObservableCollection<DocumentSymbolUIItem>();
 
             // setup work queues
-            _documentSymbolQueue = new AsyncBatchingWorkQueue<VisualStudioCodeWindowInfo?, DocumentSymbolDataModel?>(
+            _documentSymbolQueue = new AsyncBatchingWorkQueue<VisualStudioCodeWindowInfo, DocumentSymbolDataModel?>(
                 DelayTimeSpan.Short,
                 GetDocumentSymbolAsync,
-                EqualityComparer<VisualStudioCodeWindowInfo?>.Default,
+                EqualityComparer<VisualStudioCodeWindowInfo>.Default,
                 asyncListener,
                 CancellationToken);
 

@@ -29,13 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<VisualStudioCodeWindowInfo?> settings, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<VisualStudioCodeWindowInfo> settings, CancellationToken cancellationToken)
         {
             var setting = settings.Last();
-            if (setting is null)
-            {
-                return null;
-            }
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -54,10 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             var responseBody = response.Value.response.ToObject<DocumentSymbol[]>();
-            if (responseBody is null)
-            {
-                return null;
-            }
+            // It would be a bug in the LSP server implementation if we get back a null result here.
+            RoslynDebug.AssertNotNull(responseBody);
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
