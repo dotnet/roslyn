@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 var targetTypes = positionalPattern.Subpatterns.SelectAsArray(sub =>
                     semanticModel.GetTypeInfo(((ConstantPatternSyntax)sub.Pattern).Expression, cancellationToken).Type);
 
-                return names.ZipAsArray(targetTypes, (name, targetType) =>
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(attributes: default, RefKind.Out, isParams: false, targetType, name));
+                return positionalPattern.Subpatterns.SelectAsArray((sub, i) =>
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(attributes: default, RefKind.Out, isParams: false, semanticModel.GetTypeInfo(((ConstantPatternSyntax)sub.Pattern).Expression, cancellationToken).Type), names[i]));
             }
             else
             {
