@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 IEnumerable<CodeActionOperation> operations = null;
                 using (Logger.LogBlock(
-                       FunctionId.CodeFixes_GetChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                       FunctionId.CodeFixes_GetAndApplyChanges_GetChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
                     if (options != null)
                     {
