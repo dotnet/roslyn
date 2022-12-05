@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class ExpressionSyntaxExtensions
     {
-        [return: NotNullIfNotNull("expression")]
+        [return: NotNullIfNotNull(nameof(expression))]
         public static ExpressionSyntax? WalkUpParentheses(this ExpressionSyntax? expression)
         {
             while (expression?.Parent is ParenthesizedExpressionSyntax parentExpr)
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInInContext([NotNullWhen(true)] this ExpressionSyntax? expression)
             => expression?.Parent is ArgumentSyntax { RefKindKeyword: SyntaxToken(SyntaxKind.InKeyword) };
 
-        [return: NotNullIfNotNull("expression")]
+        [return: NotNullIfNotNull(nameof(expression))]
         private static ExpressionSyntax? GetExpressionToAnalyzeForWrites(ExpressionSyntax? expression)
         {
             if (expression.IsRightSideOfDotOrArrow())
