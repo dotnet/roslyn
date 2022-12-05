@@ -853,8 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            // ValEscape is the same as for an uninitialized local
-            return new BoundDiscardExpression(syntax, Binder.CallingMethodScope, declTypeWithAnnotations.Type); // PROTOTYPE: Since ValEscape is always CallingMethodScope, can we just remove the property?
+            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.Type);
         }
 
         /// <summary>

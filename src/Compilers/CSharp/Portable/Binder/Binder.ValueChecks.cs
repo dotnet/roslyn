@@ -3357,7 +3357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Binder.CallingMethodScope;
 
                 case BoundKind.DiscardExpression:
-                    return ((BoundDiscardExpression)expr).ValEscape;
+                    return Binder.CallingMethodScope;
 
                 case BoundKind.DeconstructValuePlaceholder:
                     return ((BoundDeconstructValuePlaceholder)expr).ValEscape;
