@@ -22,6 +22,5 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> metadata);
         public abstract SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
         public abstract SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
-        public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }
 }

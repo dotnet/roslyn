@@ -71,8 +71,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             options ??= GetDefaultParseOptions();
             return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken: cancellationToken);
         }
-
-        public override SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken)
-            => CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
     }
 }
