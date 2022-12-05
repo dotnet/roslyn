@@ -179,9 +179,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            if (this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+                if (this.IsParams)
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+                }
+
+                // Synthesize DecimalConstantAttribute.
+                var defaultValue = this.ExplicitDefaultConstantValue;
+                if (defaultValue != ConstantValue.NotAvailable &&
+                    defaultValue.SpecialType == SpecialType.System_Decimal)
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue));
+                }
             }
         }
 

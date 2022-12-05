@@ -13944,6 +13944,11 @@ class Program
                 			[opt] valuetype [{{s_libPrefix}}]System.Decimal arg
                 		) runtime managed 
                 	{
+                 		.param [1]
+                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                 				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                 				00 00
+                 			)
                 	} // end of method '<>f__AnonymousDelegate0'::Invoke
                 } // end of class <>f__AnonymousDelegate0
                 """);
@@ -13992,6 +13997,11 @@ class Program
                 			[opt] valuetype [{{s_libPrefix}}]System.Decimal arg
                 		) runtime managed 
                 	{
+                 		.param [1]
+                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                 				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                 				00 00
+                 			)
                 	} // end of method '<>f__AnonymousDelegate0'::Invoke
                 } // end of class <>f__AnonymousDelegate0
                 """);
