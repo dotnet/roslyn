@@ -87,15 +87,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             seenAccessibility = Accessibility.NotApplicable;
 
             // Keep walking backwards as long as we're still within our parent member.
-            while (token != default && token.SpanStart >= parentMember.SpanStart)
+            while (token != default)
             {
+                if (token.SpanStart < parentMember.SpanStart)
+                {
+                    // moved before the start of the member we're in.  If previous member's token is on the same line,
+                    // we bail out as our replacement will delete the entire line we're on.
+                    if (IsOnStartLine(token.SpanStart, text, startLine))
+                        return false;
+
+                    break;
+                }
+
+                // Ok to hit a `]` if it's the end of attributes on this member.
                 if (token.Kind() == SyntaxKind.CloseBracketToken)
                 {
-                    // Ok to hit a `]` if it's the end of attributes on this member.
-                    if (token.Parent is AttributeListSyntax)
-                        break;
+                    if (token.Parent is not AttributeListSyntax)
+                        return false;
 
-                    return false;
+                    break;
                 }
 
                 // We only accept tokens that precede us on the same line.  Splitting across multiple lines is too niche
