@@ -619,6 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
             var placeholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
+            Debug.Assert(placeholder is { });
             AddPlaceholderScope(placeholder, GetValEscape(node.Expression, _localScopeDepth));
             base.VisitAwaitExpression(node);
             RemovePlaceholderScope(placeholder);

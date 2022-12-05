@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasBody = hasBlockBody || _isExpressionBodied;
             _hasAnyBody = hasBody;
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
-            _refKind = syntax.ReturnType.SkipScoped(out _).GetRefKind();
+            _refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var returnTypeSyntax = syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
 
-            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef(out RefKind refKind);
+            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef();
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // span-like types are returnable in general
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            return ModifierUtils.MakeAndCheckNontypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: ContainingType.IsInterface,
+            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: ContainingType.IsInterface,
                                                                     syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out _);
         }
 

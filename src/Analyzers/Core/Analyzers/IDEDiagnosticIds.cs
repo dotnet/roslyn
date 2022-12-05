@@ -184,7 +184,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
 
         public const string UsePatternMatchingAsAndMemberAccessDiagnosticId = "IDE0260";
+
         public const string UseCoalesceExpressionForIfNullCheckDiagnosticId = "IDE0270";
+
+        public const string UseNameofInAttributeDiagnosticId = "IDE0280";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

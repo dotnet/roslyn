@@ -1464,9 +1464,9 @@ class C : I
     // (10,77): error CS0100: The parameter name 'p' is a duplicate
     //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
     Diagnostic(ErrorCode.ERR_DuplicateParamName, "p").WithArguments("p").WithLocation(10, 77),
-    // (10,82): error CS0229: Ambiguity between 'object' and 'ref string'
+    // (10,82): error CS0229: Ambiguity between 'object p' and 'ref string p'
     //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
-    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object", "ref string").WithLocation(10, 82)
+    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object p", "ref string p").WithLocation(10, 82)
                 );
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...

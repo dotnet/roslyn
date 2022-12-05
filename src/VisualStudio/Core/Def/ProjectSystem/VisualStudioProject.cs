@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -105,13 +106,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
         /// may not be in the actual workspace yet.
         /// </summary>
-        private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new();
+        private readonly Dictionary<DocumentId, IWatchedFile> _documentWatchedFiles = new();
 
         /// <summary>
         /// A file change context used to watch source files, additional files, and analyzer config files for this project. It's automatically set to watch the user's project
         /// directory so we avoid file-by-file watching.
         /// </summary>
-        private readonly FileChangeWatcher.IContext _documentFileChangeContext;
+        private readonly IFileChangeContext _documentFileChangeContext;
 
         /// <summary>
         /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
@@ -208,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
                 // having to add explicit file watches everywhere.
-                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
+                var projectDirectoryToWatch = new WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
                 _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
             }
             else

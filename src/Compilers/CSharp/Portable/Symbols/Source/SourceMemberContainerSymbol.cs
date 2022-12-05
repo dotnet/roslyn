@@ -1956,7 +1956,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var conversion = symbol as SourceUserDefinedConversionSymbol;
                     var method = symbol as SourceMemberMethodSymbol;
-                    if (!(conversion is null))
+
+                    // We don't want to consider explicit interface implementations
+                    if (conversion is { MethodKind: MethodKind.Conversion })
                     {
                         // Does this conversion collide *as a conversion* with any previously-seen
                         // conversion?
@@ -4477,7 +4479,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
 
-                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRef(out RefKind refKind);
+                            // Lang version check for ref-fields is done inside SourceMemberFieldSymbol;
+                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRefInField(out var refKind);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {

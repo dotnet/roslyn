@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
         public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
+        public static readonly CSharpParseOptions Regular1 = Regular.WithLanguageVersion(LanguageVersion.CSharp1);
         public static readonly CSharpParseOptions Regular2 = Regular.WithLanguageVersion(LanguageVersion.CSharp2);
         public static readonly CSharpParseOptions Regular3 = Regular.WithLanguageVersion(LanguageVersion.CSharp3);
         public static readonly CSharpParseOptions Regular4 = Regular.WithLanguageVersion(LanguageVersion.CSharp4);
