@@ -99,9 +99,9 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
-            if (storageService == null)
-                throw new ArgumentException("Couldn't get storage service");
+            //var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
+            //if (storageService == null)
+            //    throw new ArgumentException("Couldn't get storage service");
         }
 
         [IterationCleanup]
@@ -115,7 +115,7 @@ namespace IdeCoreBenchmarks
         public async Task RunSerialParsing()
         {
             Console.WriteLine("start profiling now");
-            // Thread.Sleep(10000);
+            Thread.Sleep(10000);
             Console.WriteLine("Starting serial parsing.");
             var start = DateTime.Now;
             var roots = new List<SyntaxNode>();
