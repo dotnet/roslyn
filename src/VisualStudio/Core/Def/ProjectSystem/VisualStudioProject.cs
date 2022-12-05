@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -34,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly VisualStudioDiagnosticAnalyzerProvider _vsixAnalyzerProvider;
+        private readonly IHostDiagnosticAnalyzerProvider _hostAnalyzerProvider;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -151,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl workspace,
             ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            VisualStudioDiagnosticAnalyzerProvider vsixAnalyzerProvider,
+            IHostDiagnosticAnalyzerProvider hostAnalyzerProvider,
             ProjectId id,
             string displayName,
             string language,
@@ -163,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _workspace = workspace;
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _vsixAnalyzerProvider = vsixAnalyzerProvider;
+            _hostAnalyzerProvider = hostAnalyzerProvider;
 
             Id = id;
             Language = language;
@@ -999,7 +1000,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
                 fullPath.LastIndexOf(Path.DirectorySeparatorChar))
             {
-                var vsixRazorAnalyzers = _vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+                var vsixRazorAnalyzers = _hostAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
                     predicate: item => item.extensionId == RazorVsixExtensionId,
                     selector: item => item.reference.FullPath);
 
