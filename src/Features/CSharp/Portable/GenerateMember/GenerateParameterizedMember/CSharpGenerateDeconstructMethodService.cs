@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 {
                     targetType = semanticModel.GetTypeInfo(((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, cancellationToken).Type;
                     builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: default, RefKind.Out, isParams: false, targetType, names[i]));
+                        attributes: default, RefKind.Out, isParams: false, targetType, names[i]));
                 }
 
                 return builder.ToImmutableAndClear();
