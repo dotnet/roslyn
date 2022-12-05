@@ -713,7 +713,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeSyntax = scopedType.Type;
             }
 
-            typeSyntax = typeSyntax.SkipRef(out _);
+            // Slightly odd, but we unwrap ref here (and report a lang-version diagnostic when appropriate).  Ideally,
+            // this would be in the constructor of SourceLocalSymbol, but it lacks a diagnostics bag passed to it to add
+            // this diagnostic.
+            typeSyntax = typeSyntax.SkipRefInLocalOrReturn(diagnostics, out _);
 
             bool isVar;
             AliasSymbol alias;
@@ -795,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we want to treat the declaration as an explicitly typed declaration.
 
             Debug.Assert(typeSyntax is not ScopedTypeSyntax);
-            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar, out alias);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 
             if (isVar)
@@ -1450,23 +1453,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDeconstruction(node, diagnostics);
             }
 
-            BindValueKind lhsKind;
-            ExpressionSyntax rhsExpr;
-            bool isRef = false;
+            var rhsExpr = node.Right.CheckAndUnwrapRefExpression(diagnostics, out var refKind);
+            var isRef = refKind == RefKind.Ref;
+            var lhsKind = isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable;
 
-            if (node.Right is RefExpressionSyntax refExpression)
-            {
-                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
-
-                isRef = true;
-                lhsKind = BindValueKind.RefAssignable;
-                rhsExpr = refExpression.Expression;
-            }
-            else
-            {
-                lhsKind = BindValueKind.Assignable;
-                rhsExpr = node.Right;
-            }
+            if (isRef)
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right, node.Right.GetFirstToken().GetLocation());
 
             var op1 = BindValue(node.Left, diagnostics, lhsKind);
             ReportSuppressionIfNeeded(op1, diagnostics);
@@ -2737,7 +2729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Fixed and using variables are not allowed to be ref-like, but regular variables are
             if (localKind == LocalDeclarationKind.RegularVariable)
             {
-                typeSyntax = typeSyntax.SkipRef(out _);
+                typeSyntax = typeSyntax.SkipRef();
             }
 
             AliasSymbol alias;

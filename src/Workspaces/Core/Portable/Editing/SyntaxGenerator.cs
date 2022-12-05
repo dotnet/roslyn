@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.RefKind);
         }
 
-        protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
+        private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
 
         /// <summary>
         /// Creates a property declaration. The property will have a <c>get</c> accessor if
