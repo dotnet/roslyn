@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis
 
                 Compilation newCompilation;
 
-                var newSyntaxTree = await _replacedGeneratedDocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var newSyntaxTree = await _replacedGeneratedDocumentState.GetSyntaxTreeAsync(solution, cancellationToken).ConfigureAwait(false);
 
                 if (existingState != null)
                 {
                     // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
                     // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    var existingSyntaxTree = await existingState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var existingSyntaxTree = await existingState.GetSyntaxTreeAsync(solution, cancellationToken).ConfigureAwait(false);
                     newCompilation = underlyingCompilation.ReplaceSyntaxTree(existingSyntaxTree, newSyntaxTree);
                 }
                 else

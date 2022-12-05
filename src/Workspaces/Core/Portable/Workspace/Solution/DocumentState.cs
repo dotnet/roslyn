@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public async ValueTask<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
+        public async ValueTask<SyntaxTree> GetSyntaxTreeAsync(SolutionState solutionState, CancellationToken cancellationToken)
         {
             // operation should only be performed on documents that support syntax trees
             RoslynDebug.Assert(_treeSource != null);

@@ -18,6 +18,8 @@ namespace Roslyn.Utilities
         public abstract T GetValue(CancellationToken cancellationToken = default);
         public abstract Task<T> GetValueAsync(CancellationToken cancellationToken = default);
 
+        public abstract void TrySetValue(T value);
+
         public static ValueSource<T> Constant(T value)
             => new AsyncLazy<T>(value);
     }

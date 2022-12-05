@@ -31,6 +31,11 @@ internal sealed class ConstantTextAndVersionSource : ValueSource<TextAndVersion>
     public override Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken)
         => Task.FromResult(_value);
 
+    public override void TrySetValue(TextAndVersion value)
+    {
+        // no-op.  we don't ever succeed at setting the value since the value is baked in from the start.
+    }
+
     public override bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
     {
         value = _value;

@@ -583,6 +583,7 @@ namespace Microsoft.CodeAnalysis
                 "https://github.com/dotnet/roslyn/issues/23582",
                 Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
+                SolutionState solution,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
             {
@@ -595,7 +596,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         // Include the tree even if the content of the document failed to load.
-                        trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        trees.Add(await documentState.GetSyntaxTreeAsync(solution, cancellationToken).ConfigureAwait(false));
                     }
 
                     compilation = compilation.AddSyntaxTrees(trees);
@@ -822,7 +823,7 @@ namespace Microsoft.CodeAnalysis
                         // Just add in the trees we already have. We don't want to rerun since the consumer of this Solution
                         // snapshot has already seen the trees and thus needs to ensure identity of them.
                         compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
-                            await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                            await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(solution, cancellationToken)).ConfigureAwait(false));
                     }
                     else
                     {
@@ -880,7 +881,7 @@ namespace Microsoft.CodeAnalysis
                                 // activating the generator.
                                 if (documentState.Value.Attributes.DesignTimeOnly)
                                 {
-                                    treesToRemove.Add(await documentState.Value.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                                    treesToRemove.Add(await documentState.Value.GetSyntaxTreeAsync(solution, cancellationToken).ConfigureAwait(false));
                                 }
                             }
 
@@ -976,7 +977,7 @@ namespace Microsoft.CodeAnalysis
                             // We produced new documents, so time to create new state for it
                             var generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
                             compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
-                                await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                                await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(solution, cancellationToken)).ConfigureAwait(false));
                             generatorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorInfo.Driver, documentsAreFinal: true);
                         }
                     }

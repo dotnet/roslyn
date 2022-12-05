@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
             // do it async for real.
             // GetSyntaxTreeAsync returns a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
             // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask()!;
+            return DocumentState.GetSyntaxTreeAsync(this.Project.Solution.State, cancellationToken).AsTask()!;
         }
 
         internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)

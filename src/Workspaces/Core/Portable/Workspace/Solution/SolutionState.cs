@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false));
+            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(this, newProject, isParseOptionChange: false));
         }
 
         /// <summary>
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: true));
+                return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(this, newProject, isParseOptionChange: true));
             }
         }
 
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false));
+            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(this, newProject, isParseOptionChange: false));
         }
 
         /// <summary>
@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis
         {
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-                (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
+                (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(this, documents)));
         }
 
         /// <summary>
@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
                 (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(this, documentStates)));
         }
 
         private SolutionState RemoveDocumentsFromMultipleProjects<T>(
@@ -1370,14 +1370,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static async Task<Compilation> UpdateDocumentInCompilationAsync(
+            SolutionState solutionState,
             Compilation compilation,
             DocumentState oldDocument,
             DocumentState newDocument,
             CancellationToken cancellationToken)
         {
             return compilation.ReplaceSyntaxTree(
-                await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
-                await newDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                await oldDocument.GetSyntaxTreeAsync(solutionState, cancellationToken).ConfigureAwait(false),
+                await newDocument.GetSyntaxTreeAsync(solutionState, cancellationToken).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -1443,7 +1444,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 newProject,
-                new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument),
+                new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(this, oldDocument, newDocument),
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
         }
 

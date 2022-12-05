@@ -20,18 +20,20 @@ namespace Microsoft.CodeAnalysis
         {
             internal sealed class TouchDocumentAction : CompilationAndGeneratorDriverTranslationAction
             {
+                private readonly SolutionState _solution;
                 private readonly DocumentState _oldState;
                 private readonly DocumentState _newState;
 
-                public TouchDocumentAction(DocumentState oldState, DocumentState newState)
+                public TouchDocumentAction(SolutionState solution, DocumentState oldState, DocumentState newState)
                 {
+                    _solution = solution;
                     _oldState = oldState;
                     _newState = newState;
                 }
 
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
+                    return UpdateDocumentInCompilationAsync(_solution, oldCompilation, _oldState, _newState, cancellationToken);
                 }
 
                 public DocumentId DocumentId => _newState.Attributes.Id;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis
                     if (priorAction is TouchDocumentAction priorTouchAction &&
                         priorTouchAction._newState == _oldState)
                     {
-                        return new TouchDocumentAction(priorTouchAction._oldState, _newState);
+                        return new TouchDocumentAction(_solution, priorTouchAction._oldState, _newState);
                     }
 
                     return null;
@@ -90,10 +92,12 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class RemoveDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
+                private readonly SolutionState _solution;
                 private readonly ImmutableArray<DocumentState> _documents;
 
-                public RemoveDocumentsAction(ImmutableArray<DocumentState> documents)
+                public RemoveDocumentsAction(SolutionState solution, ImmutableArray<DocumentState> documents)
                 {
+                    _solution = solution;
                     _documents = documents;
                 }
 
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (var document in _documents)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        syntaxTrees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        syntaxTrees.Add(await document.GetSyntaxTreeAsync(_solution, cancellationToken).ConfigureAwait(false));
                     }
 
                     return oldCompilation.RemoveSyntaxTrees(syntaxTrees);
@@ -115,10 +119,12 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class AddDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
+                private readonly SolutionState _solution;
                 private readonly ImmutableArray<DocumentState> _documents;
 
-                public AddDocumentsAction(ImmutableArray<DocumentState> documents)
+                public AddDocumentsAction(SolutionState solution, ImmutableArray<DocumentState> documents)
                 {
+                    _solution = solution;
                     _documents = documents;
                 }
 
@@ -128,7 +134,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (var document in _documents)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        syntaxTrees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        syntaxTrees.Add(await document.GetSyntaxTreeAsync(_solution, cancellationToken).ConfigureAwait(false));
                     }
 
                     return oldCompilation.AddSyntaxTrees(syntaxTrees);
@@ -140,11 +146,13 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class ReplaceAllSyntaxTreesAction : CompilationAndGeneratorDriverTranslationAction
             {
+                private readonly SolutionState _solution;
                 private readonly ProjectState _state;
                 private readonly bool _isParseOptionChange;
 
-                public ReplaceAllSyntaxTreesAction(ProjectState state, bool isParseOptionChange)
+                public ReplaceAllSyntaxTreesAction(SolutionState solution, ProjectState state, bool isParseOptionChange)
                 {
+                    _solution = solution;
                     _state = state;
                     _isParseOptionChange = isParseOptionChange;
                 }
@@ -156,7 +164,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (var documentState in _state.DocumentStates.GetStatesInCompilationOrder())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        syntaxTrees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        syntaxTrees.Add(await documentState.GetSyntaxTreeAsync(_solution, cancellationToken).ConfigureAwait(false));
                     }
 
                     return oldCompilation.RemoveAllSyntaxTrees().AddSyntaxTrees(syntaxTrees);

@@ -66,6 +66,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         protected abstract T Recover(CancellationToken cancellationToken);
 
+        public override void TrySetValue(T value)
+        {
+            // no op.  we'll always get our value from the constant value we stored, or the value we retrieved if we
+            // dumped to secondary storage.
+        }
+
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
         /// <summary>

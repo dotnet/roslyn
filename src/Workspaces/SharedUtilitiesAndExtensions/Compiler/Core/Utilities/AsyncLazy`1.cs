@@ -459,6 +459,14 @@ namespace Roslyn.Utilities
             }
         }
 
+        public override void TrySetValue(T value)
+        {
+            using (TakeLock(CancellationToken.None))
+            {
+                GetCachedValueAndCacheThisValueIfNoneCached_NoLock(Task.FromResult(value));
+            }
+        }
+
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         private Task<T> GetCachedValueAndCacheThisValueIfNoneCached_NoLock(Task<T> task)
         {
