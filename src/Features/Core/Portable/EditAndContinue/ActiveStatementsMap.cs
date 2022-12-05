@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal async ValueTask<ImmutableArray<UnmappedActiveStatement>> GetOldActiveStatementsAsync(IEditAndContinueAnalyzer analyzer, Document oldDocument, CancellationToken cancellationToken)
         {
-            var oldTree = await oldDocument.DocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var oldTree = await oldDocument.DocumentState.GetSyntaxTreeAsync(oldDocument.Project.Solution.State, cancellationToken).ConfigureAwait(false);
             var oldRoot = await oldTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var oldText = await oldTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return GetOldActiveStatements(analyzer, oldTree, oldText, oldRoot, cancellationToken);

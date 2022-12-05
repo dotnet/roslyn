@@ -32,6 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _storages = storages;
             }
 
+            public override void TrySetValue(AssemblyMetadata value)
+            {
+                // no-op.  we always go back to secondary storage to find the values.
+            }
+
             public override bool TryGetValue([MaybeNullWhen(false)] out AssemblyMetadata value)
             {
                 if (_weakValue.TryGetTarget(out var target))

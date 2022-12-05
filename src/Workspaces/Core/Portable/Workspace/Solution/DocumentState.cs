@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -608,13 +609,113 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        public static int s_couldNotShareBecauseNoRelatedDocs;
+        public static int s_couldShareBecauseRelatedDocs;
+        public static int s_wasFirstToCompute;
+        public static int s_foundSiblingWithSamePPNames;
+        public static int s_foundSiblingWithNoDirectives;
+        public static int s_foundSiblingWithOtherDirectives;
+        public static int s_couldNotFindSiblingWithTreeToShare;
+
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public async ValueTask<SyntaxTree> GetSyntaxTreeAsync(SolutionState solutionState, CancellationToken cancellationToken)
         {
             // operation should only be performed on documents that support syntax trees
             RoslynDebug.Assert(_treeSource != null);
 
-            var treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (_treeSource.TryGetValue(out var treeAndVersion))
+                return treeAndVersion.Tree;
+
+            // Have to compute the actual value.  See if we're a linked file and one of our other linked versions
+            // already computed the tree.
+            if (this.FilePath != null)
+            {
+                var relatedDocumentIds = solutionState.GetDocumentIdsWithFilePath(this.FilePath);
+                Contract.ThrowIfTrue(relatedDocumentIds.Length == 0);
+
+                if (relatedDocumentIds.Length == 1)
+                {
+                    s_couldNotShareBecauseNoRelatedDocs++;
+                }
+                else
+                {
+                    s_couldShareBecauseRelatedDocs++;
+
+                    var otherSiblingHadComputed = false;
+                    var foundSibling = false;
+                    foreach (var docId in relatedDocumentIds)
+                    {
+                        if (docId == this.Id)
+                            continue;
+
+                        var otherProject = solutionState.GetProjectState(docId.ProjectId);
+                        if (otherProject == null)
+                            continue;
+
+                        var otherDocState = otherProject.DocumentStates.GetState(docId);
+                        if (otherDocState == null)
+                            continue;
+
+                        if (otherDocState._treeSource == null || !otherDocState._treeSource.TryGetValue(out var otherTreeAndVersion))
+                            continue;
+
+                        otherSiblingHadComputed = true;
+                        var otherTree = otherTreeAndVersion.Tree;
+
+                        if (otherTree.TryGetRoot(out var otherRoot))
+                        {
+                            if (otherDocState.ParseOptions.PreprocessorSymbolNames.SetEquals(this.ParseOptions.PreprocessorSymbolNames))
+                            {
+                                var factory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                                var newTree = factory.CreateSyntaxTree(
+                                    this.FilePath, otherTree.Options, otherTree.Encoding, this.LoadTextOptions.ChecksumAlgorithm, otherRoot);
+
+                                // if we share the same pp directive names, then we'd produce the same tree.  So we can just reuse this treeAndVersion for ourselves.
+                                _treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
+                                foundSibling = true;
+                                s_foundSiblingWithSamePPNames++;
+                                break;
+                            }
+                            else if (!otherRoot.ContainsDirectives)
+                            {
+                                var factory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                                var newTree = factory.CreateSyntaxTree(
+                                    this.FilePath, otherTree.Options, otherTree.Encoding, this.LoadTextOptions.ChecksumAlgorithm, otherRoot);
+
+                                // different pp directive names.  We can reuse this tree if its root doesn't have directives.
+                                _treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
+                                foundSibling = true;
+                                s_foundSiblingWithNoDirectives++;
+                                break;
+                            }
+                            else
+                            {
+                                var ifDirectives = otherRoot.DescendantTokens(n => n.ContainsDirectives).Any(t => t.LeadingTrivia.Any(t => t.RawKind is 8548 or 737));
+                                if (!ifDirectives)
+                                {
+                                    var factory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                                    var newTree = factory.CreateSyntaxTree(
+                                        this.FilePath, otherTree.Options, otherTree.Encoding, this.LoadTextOptions.ChecksumAlgorithm, otherRoot);
+
+                                    // different pp directive names.  We can reuse this tree if its root doesn't have directives.
+                                    _treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
+                                    foundSibling = true;
+                                    s_foundSiblingWithOtherDirectives++;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!otherSiblingHadComputed)
+                        s_wasFirstToCompute++;
+
+                    if (!foundSibling)
+                        s_couldNotFindSiblingWithTreeToShare++;
+                }
+            }
+
+            treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
             // make sure there is an association between this tree and this doc id before handing it out
             BindSyntaxTreeToId(treeAndVersion.Tree, this.Id);

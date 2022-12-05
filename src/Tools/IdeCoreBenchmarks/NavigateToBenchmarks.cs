@@ -128,6 +128,15 @@ namespace IdeCoreBenchmarks
                 }
             }
 
+            Console.WriteLine("Serial: " + (DateTime.Now - start));
+            Console.WriteLine($"{nameof(DocumentState.s_couldNotShareBecauseNoRelatedDocs)} - {DocumentState.s_couldNotShareBecauseNoRelatedDocs}");
+            Console.WriteLine($"{nameof(DocumentState.s_couldShareBecauseRelatedDocs)} - {DocumentState.s_couldShareBecauseRelatedDocs}");
+            Console.WriteLine($"{nameof(DocumentState.s_wasFirstToCompute)} - {DocumentState.s_wasFirstToCompute}");
+            Console.WriteLine($"{nameof(DocumentState.s_foundSiblingWithSamePPNames)} - {DocumentState.s_foundSiblingWithSamePPNames}");
+            Console.WriteLine($"{nameof(DocumentState.s_foundSiblingWithNoDirectives)} - {DocumentState.s_foundSiblingWithNoDirectives}");
+            Console.WriteLine($"{nameof(DocumentState.s_foundSiblingWithOtherDirectives)} - {DocumentState.s_foundSiblingWithOtherDirectives}");
+            Console.WriteLine($"{nameof(DocumentState.s_couldNotFindSiblingWithTreeToShare)} - {DocumentState.s_couldNotFindSiblingWithTreeToShare}");
+
             for (var i = 0; i < 10; i++)
             {
                 GC.Collect(0, GCCollectionMode.Forced, blocking: true);
@@ -135,7 +144,6 @@ namespace IdeCoreBenchmarks
                 GC.Collect(2, GCCollectionMode.Forced, blocking: true);
             }
 
-            Console.WriteLine("Serial: " + (DateTime.Now - start));
             Console.ReadLine();
             GC.KeepAlive(roots);
         }
