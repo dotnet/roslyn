@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             ITypeSymbol targetType;
             if (target is PositionalPatternClauseSyntax positionalPattern)
             {
-                var namesBuilder = ImmutableArray.CreateBuilder<string>();
-                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(positionalPattern.Subpatterns.Count, out var builder);
+                using var _1 = ArrayBuilder<string>.GetInstance(out var namesBuilder);
+                using var _2 = ArrayBuilder<IParameterSymbol>.GetInstance(positionalPattern.Subpatterns.Count, out var builder);
                 for (var i = 0; i < positionalPattern.Subpatterns.Count; i++)
                 {
                     namesBuilder.Add(semanticFacts.GenerateNameForExpression(semanticModel, ((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, false, cancellationToken));
