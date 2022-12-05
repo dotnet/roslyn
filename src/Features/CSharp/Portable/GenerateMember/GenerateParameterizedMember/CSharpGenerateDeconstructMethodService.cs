@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             else
             {
                 targetType = semanticModel.GetTypeInfo(target, cancellationToken: cancellationToken).Type;
-                if (targetType?.IsTupleType != true)
+                if (targetType is not INamedTypeSymbol { IsTupleType: true, TupleElements: var tupleElements })
+                    return default;
                 {
                     return default;
                 }
