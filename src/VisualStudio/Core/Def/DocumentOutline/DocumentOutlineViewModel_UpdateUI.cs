@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal partial class DocumentOutlineViewModel
     {
+        private readonly record struct UIData(ExpansionOption ExpansionOption, SnapshotPoint? CaretPoint);
+
         /// <summary>
         /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
         /// then update the UI.
@@ -64,7 +66,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolUIItem>(documentSymbolUIItems);
         }
-
-        private record struct UIData(ExpansionOption ExpansionOption, SnapshotPoint? CaretPoint);
     }
 }

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal partial class DocumentOutlineViewModel
     {
+        private record DocumentOutlineSettings(ITextBuffer TextBuffer, string FilePath);
+
         /// <summary>
         /// Queue that uses the language-server-protocol to get document symbol information.
         /// This queue can return null if it is called before and LSP server is registered for our document.
@@ -39,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
-            textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
+                textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
             // If there is no matching LSP server registered the client will return null here - e.g. wrong content type on the buffer, the
             // server totally failed to start, server doesn't support the right capabilities. For C# we might know it's a bug if we get a null
@@ -58,7 +60,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             EnqueueFilterAndSortTask(caretPoint);
             return model;
         }
-
-        private record DocumentOutlineSettings(ITextBuffer TextBuffer, string FilePath);
     }
 }

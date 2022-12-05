@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -13,6 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal partial class DocumentOutlineViewModel
     {
+        private readonly record struct FilterAndSortOptions(string? SearchQuery, SortOption SortOption, SnapshotPoint? CaretPoint);
+
         /// <summary>
         /// Queue to batch up work to do to filter and sort the data model. returns null if the model returned from <see cref="_documentSymbolQueue"/> is null.
         /// </summary>
@@ -46,7 +48,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             return new DocumentSymbolDataModel(updatedDocumentSymbolData, model.OriginalSnapshot);
         }
-
-        private record struct FilterAndSortOptions(string? SearchQuery, SortOption SortOptions, SnapshotPoint? CaretPoint);
     }
 }
