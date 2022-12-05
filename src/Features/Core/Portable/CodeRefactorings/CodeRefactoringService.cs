@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                             using (addOperationScope(providerName))
-                            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringFromProvider, KeyValueLogMessage.Create(LogType.Trace, m => CreateLogProperties(m, provider)), cancellationToken))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringFromProvider, providerName, cancellationToken))
                             {
                                 return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
@@ -165,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             bool isBlocking,
             CancellationToken cancellationToken)
         {
+            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringFromProvider, KeyValueLogMessage.Create(LogType.Trace, m => CreateLogProperties(m, provider)), cancellationToken));
             cancellationToken.ThrowIfCancellationRequested();
             if (extensionManager.IsDisabled(provider))
             {
