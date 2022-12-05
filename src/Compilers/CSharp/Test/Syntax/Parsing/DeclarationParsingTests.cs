@@ -9448,16 +9448,16 @@ interface C where T1 : U1 where T2 : U2
 
         [Theory]
         [CombinatorialData]
-        public void Class_NoBody(bool @struct)
+        public void Class_NoBody_01(bool @struct)
         {
             var text = @"
 " + (@struct ? "struct" : "class") + @"
 C";
             UsingTree(text,
-                // (2,2): error CS1514: { expected
+                // (3,2): error CS1514: { expected
                 // C
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 2),
-                // (2,2): error CS1513: } expected
+                // (3,2): error CS1513: } expected
                 // C
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 2)
                 );
@@ -9478,7 +9478,46 @@ C";
 
         [Theory]
         [CombinatorialData]
-        public void Class_SemicolonBody(bool @struct)
+        public void Class_NoBody_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @"
+C<T>";
+            UsingTree(text,
+                // (3,5): error CS1514: { expected
+                // C<T>
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 5),
+                // (3,5): error CS1513: } expected
+                // C<T>
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 5)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_SemicolonBody_01(bool @struct)
         {
             var text = @"
 " + (@struct ? "struct" : "class") + @" C;";
@@ -9490,6 +9529,71 @@ C";
                 {
                     N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_SemicolonBody_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C<T>;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_SemicolonBody_03(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @"
+C<>;";
+            UsingTree(text,
+                // (3,3): error CS1001: Identifier expected
+                // C<>;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(3, 3)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.TypeParameter);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -9694,6 +9798,52 @@ C";
 
         [Theory]
         [CombinatorialData]
+        public void Class_SemicolonBodyAfterConstraint_03(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C<T1> where T1 : U1 ;";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U1");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Class_SemicolonAfterBlock(bool @struct)
         {
             var text = @"
@@ -9770,6 +9920,81 @@ C";
                     }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterTypeParameters_01(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @" C<T>();";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Class_ParameterListAfterTypeParameters_02(bool @struct)
+        {
+            var text = @"
+" + (@struct ? "struct" : "class") + @"
+C<>();";
+            UsingTree(text,
+                // (3,3): error CS1001: Identifier expected
+                // C<>();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(3, 3)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                {
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.TypeParameter);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
