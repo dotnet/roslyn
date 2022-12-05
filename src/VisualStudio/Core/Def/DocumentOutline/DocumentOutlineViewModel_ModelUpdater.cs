@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,7 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal partial class DocumentOutlineViewModel
     {
-        private readonly AsyncBatchingWorkQueue<VisualStudioCodeWindowInfo?, DocumentSymbolDataModel?> _documentSymbolQueue;
+        /// <summary>
+        /// Queue that uses the language-server-protocol to get document symbol information.
+        /// This queue can return null if it is called before and LSP server is registered for our document.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue<VisualStudioCodeWindowInfo, DocumentSymbolDataModel?> _documentSymbolQueue;
 
         private async ValueTask EnqueueModelUpdateAsync()
         {
