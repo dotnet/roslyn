@@ -111,6 +111,35 @@ namespace IdeCoreBenchmarks
             _workspace = null;
         }
 
+        [Benchmark]
+        public async Task RunSerialParsing()
+        {
+            Console.WriteLine("start profiling now");
+            // Thread.Sleep(10000);
+            Console.WriteLine("Starting serial parsing.");
+            var start = DateTime.Now;
+            var roots = new List<SyntaxNode>();
+            foreach (var project in _workspace.CurrentSolution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    // await WalkTree(document);
+                    roots.Add(await document.GetSyntaxRootAsync());
+                }
+            }
+
+            for (var i = 0; i < 10; i++)
+            {
+                GC.Collect(0, GCCollectionMode.Forced, blocking: true);
+                GC.Collect(1, GCCollectionMode.Forced, blocking: true);
+                GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            }
+
+            Console.WriteLine("Serial: " + (DateTime.Now - start));
+            Console.ReadLine();
+            GC.KeepAlive(roots);
+        }
+
         // [Benchmark]
         public async Task RunSerialIndexing()
         {
@@ -151,7 +180,7 @@ namespace IdeCoreBenchmarks
             Console.ReadLine();
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task RunFullParallelIndexing()
         {
             Console.WriteLine("Attach now");
