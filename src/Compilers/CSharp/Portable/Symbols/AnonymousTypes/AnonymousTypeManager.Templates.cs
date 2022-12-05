@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     typeArgumentsBuilder.Add(fields[i].TypeWithAnnotations);
                 }
+
                 var typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
 
                 // Delegate name cannot be fully determined by its signature (e.g., it has default parameter values).
@@ -217,14 +218,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         genericFieldTypeBuilder.Add(fields[^1].TypeWithAnnotations);
                         genericFieldTypes = genericFieldTypeBuilder.ToImmutableAndFree();
                     }
+
                     var genericTypeDescr = typeDescr.WithNewFieldsTypes(genericFieldTypes);
 
                     var key = new SynthesizedDelegateKey(genericTypeDescr);
-                    var namedTemplate = this.AnonymousDelegates.GetOrAdd(key, static (key, arg) =>
-                    {
-                        var (@this, genericTypeDescr) = arg;
-                        return new AnonymousDelegateTemplateSymbol(@this, genericTypeDescr);
-                    }, (this, genericTypeDescr));
+                    var namedTemplate = this.AnonymousDelegates.GetOrAdd(
+                        key,
+                        static (key, arg) =>
+                        {
+                            var (@this, genericTypeDescr) = arg;
+                            return new AnonymousDelegateTemplateSymbol(@this, genericTypeDescr);
+                        },
+                        (this, genericTypeDescr));
+
                     return namedTemplate.Construct(typeArguments);
                 }
 
