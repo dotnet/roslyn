@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
             var textBuffer = wpfTextView.TextBuffer;
 
-            var caretPoint = ITextViewExtensions.GetCaretPoint(wpfTextView, textBuffer);
+            var caretPoint = wpfTextView.GetCaretPoint(textBuffer);
 
             if (_editorAdaptersFactoryService.GetBufferAdapter(textBuffer) is IPersistFileFormat persistFileFormat &&
                 ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out var _)))
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             var textBuffer = activeTextView.TextBuffer;
-            return ITextViewExtensions.GetCaretPoint(activeTextView, textBuffer);
+            return activeTextView.GetCaretPoint(textBuffer);
         }
 
         private SnapshotPoint? GetSnapshotPointFromCaretPosition(CaretPosition newPosition)
