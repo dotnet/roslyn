@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public bool OpenFileOnly(Workspace workspace)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             return true;
         }

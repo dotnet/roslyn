@@ -315,7 +315,6 @@ Diagnostic(ErrorCode.ERR_BadArgType, "nu").WithArguments("1", "uint?", "int?")
                 );
         }
 
-
         [Fact]
         public void ParametersExactlyMatchExpression()
         {
@@ -11074,7 +11073,6 @@ public static class Extensions
 
             var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
 
-
             var code = @"
  class D
  {
@@ -11094,7 +11092,6 @@ public static class Extensions
      ref readonly int VerifyDelegate(in int y) => throw null;
  }
 ";
-
 
             CreateCompilation(code, references: new[] { libComp.EmitToImageReference() }).VerifyDiagnostics(
                 // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable

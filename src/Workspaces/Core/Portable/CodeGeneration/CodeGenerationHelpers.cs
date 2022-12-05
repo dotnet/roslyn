@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return factory.ThrowStatement(exceptionCreationExpression);
         }
 
-        [return: NotNullIfNotNull("syntax")]
+        [return: NotNullIfNotNull(nameof(syntax))]
         public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode? syntax) where TSyntaxNode : SyntaxNode
             => symbol is CodeGenerationSymbol codeGenerationSymbol
                 ? syntax?.WithAdditionalAnnotations(codeGenerationSymbol.GetAnnotations())
@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(attribute);
 
-            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
-                attribute.ApplicationSyntaxReference.GetSyntax() as T :
-                null;
+            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null
+                ? attribute.ApplicationSyntaxReference.GetSyntax() as T
+                : null;
         }
 
         public static int GetInsertionIndex<TDeclaration>(

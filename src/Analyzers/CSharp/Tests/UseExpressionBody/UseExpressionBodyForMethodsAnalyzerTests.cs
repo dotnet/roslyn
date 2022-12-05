@@ -534,7 +534,7 @@ class Program
 using System;
 class C
 {
-    {|IDE0022:void M() {|CS8026:=> {|CS8026:throw new NotImplementedException()|}|};|}
+    {|IDE0022:void M() {|CS8026:=>|} {|CS8026:throw|} new NotImplementedException();|}
 }";
             var fixedCode = @"
 using System;
@@ -598,8 +598,8 @@ class C
 using System;
 class C
 {
-    {|IDE0022:void M() => {|CS8059:throw new NotImplementedException()|};|}
-    {|IDE0022:void M(int i) => {|CS8059:throw new NotImplementedException()|};|}
+    {|IDE0022:void M() => {|CS8059:throw|} new NotImplementedException();|}
+    {|IDE0022:void M(int i) => {|CS8059:throw|} new NotImplementedException();|}
     int M(bool b) => 0;
 }";
             var fixedCode = @"

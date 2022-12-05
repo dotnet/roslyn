@@ -60,12 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
         public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            if (symbol?.IsValueType != true)
-                return false;
-
-            return !symbol.IsNullable();
-        }
+            => symbol is { IsValueType: true } && !symbol.IsNullable();
 
         public static bool IsNullable(
             [NotNullWhen(true)] this ITypeSymbol? symbol,
@@ -724,7 +719,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ITypeSymbol WithNullableAnnotationFrom(this ITypeSymbol type, ITypeSymbol symbolForNullableAnnotation)
             => type.WithNullableAnnotation(symbolForNullableAnnotation.NullableAnnotation);
 
-        [return: NotNullIfNotNull(parameterName: "symbol")]
+        [return: NotNullIfNotNull(parameterName: nameof(symbol))]
         public static ITypeSymbol? RemoveNullableIfPresent(this ITypeSymbol? symbol)
         {
             if (symbol.IsNullable())

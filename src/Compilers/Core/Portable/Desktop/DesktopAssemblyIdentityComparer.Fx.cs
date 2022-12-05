@@ -109,7 +109,9 @@ namespace Microsoft.CodeAnalysis
                 string name,
                 ImmutableArray<byte> publicKeyToken,
                 AssemblyVersion versionLow,
+#pragma warning disable IDE0060 // Remove unused parameter
                 object versionHighNull,
+#pragma warning restore IDE0060 // Remove unused parameter
                 string newName,
                 ImmutableArray<byte> newPublicKeyToken,
                 AssemblyVersion newVersion)

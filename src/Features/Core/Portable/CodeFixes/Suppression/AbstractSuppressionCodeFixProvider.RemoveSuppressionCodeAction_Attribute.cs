@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public async Task<SyntaxNode> GetAttributeToRemoveAsync(CancellationToken cancellationToken)
                 {
                     var attributeNode = await _attribute.ApplicationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                    return Fixer.IsSingleAttributeInAttributeList(attributeNode) ?
-                        attributeNode.Parent :
-                        attributeNode;
+                    return Fixer.IsSingleAttributeInAttributeList(attributeNode)
+                        ? attributeNode.Parent
+                        : attributeNode;
                 }
 
                 protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)

@@ -102,11 +102,21 @@ class C
             EOF();
 
             // In langversion 8, this is a method
-            UsingTree(text, options: TestOptions.Regular8,
+            UsingTree(text, options: TestOptions.Regular8);
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record C(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 1)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record C(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 1),
+                // (1,8): error CS8112: Local function 'C(int, int)' must declare a body because it is not marked 'static extern'.
+                // record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "C").WithArguments("C(int, int)").WithLocation(1, 8),
+                // (1,8): warning CS8321: The local function 'C' is declared but never used
+                // record C(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "C").WithArguments("C").WithLocation(1, 8));
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -247,12 +257,20 @@ class C
         [Fact]
         public void RecordParsing05()
         {
-            var tree = ParseTree("record Point;", options: TestOptions.Regular8);
-            tree.GetDiagnostics().Verify(
+            var text = "record Point;";
+            var tree = ParseTree(text, options: TestOptions.Regular8);
+            tree.GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record Point;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point;").WithArguments("top-level statements", "9.0").WithLocation(1, 1)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point;").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record Point;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 1),
+                // (1,8): warning CS0168: The variable 'Point' is declared but never used
+                // record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Point").WithArguments("Point").WithLocation(1, 8));
 
             UsingNode((CSharpSyntaxNode)tree.GetRoot());
 
@@ -314,7 +332,8 @@ class C
         [Fact]
         public void RecordParsing07()
         {
-            var tree = ParseTree("interface P(int x, int y);", options: TestOptions.Regular8);
+            var text = "interface P(int x, int y);";
+            var tree = ParseTree(text, options: TestOptions.Regular8);
             tree.GetDiagnostics().Verify(
                 // (1,12): error CS1514: { expected
                 // interface P(int x, int y);
@@ -322,13 +341,38 @@ class C
                 // (1,12): error CS1513: } expected
                 // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
+                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12));
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,12): error CS1514: { expected
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
+                // (1,12): error CS1513: } expected
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
+                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12),
                 // (1,12): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(1, 12),
-                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+                // (1,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12)
-            );
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(1, 12),
+                // (1,13): error CS8185: A declaration is not allowed in this context.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(1, 13),
+                // (1,13): error CS0165: Use of unassigned local variable 'x'
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(1, 13),
+                // (1,20): error CS8185: A declaration is not allowed in this context.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(1, 20),
+                // (1,20): error CS0165: Use of unassigned local variable 'y'
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(1, 20));
         }
 
         [Fact]
@@ -1180,12 +1224,16 @@ class C
 {
     int x = 0 with {};
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular8);
-            tree.GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (4,13): error CS8400: Feature 'with on structs' is not available in C# 8.0. Please use language version 10.0 or greater.
+                //     int x = 0 with {};
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "0 with {}").WithArguments("with on structs", "10.0").WithLocation(4, 13),
                 // (4,15): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     int x = 0 with {};
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "with").WithArguments("records", "9.0").WithLocation(4, 15)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "with").WithArguments("records", "9.0").WithLocation(4, 15));
+
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular8);
+            tree.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -2592,21 +2640,28 @@ class C(int X, int Y)
         public void RecordStructParsing_RecordNamedStruct()
         {
             var text = "record struct(int X, int Y);";
-            UsingTree(text, options: TestOptions.Regular9,
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct(int X, int Y);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8),
                 // (1,14): error CS1001: Identifier expected
                 // record struct(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14)
-                );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14));
+            UsingTree(text, options: TestOptions.Regular9,
+                // (1,14): error CS1001: Identifier expected
+                // record struct(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14));
             verify();
 
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,14): error CS1001: Identifier expected
+                // record struct(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14));
             UsingTree(text, options: TestOptions.Regular10,
                 // (1,14): error CS1001: Identifier expected
                 // record struct(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14)
-                );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14));
             verify();
 
             void verify()
@@ -2652,43 +2707,88 @@ class C(int X, int Y)
         public void RecordStructParsing()
         {
             var text = "record struct C(int X, int Y);";
-            UsingTree(text, options: TestOptions.Regular10);
 
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+            UsingTree(text, options: TestOptions.Regular10);
             verifyParsedAsRecord();
 
-            UsingTree(text, options: TestOptions.Regular9,
-                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8)
-                 );
-
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+            UsingTree(text, options: TestOptions.Regular9);
             verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular8,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,8): error CS1001: Identifier expected
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
                 // (1,16): error CS1514: { expected
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 16),
                 // (1,16): error CS1513: } expected
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 16),
-                // (1,16): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 16),
                 // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16)
-                );
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16));
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 1),
+                // (1,8): error CS1001: Identifier expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
+                // (1,16): error CS1514: { expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 16),
+                // (1,16): error CS1513: } expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 16),
+                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16),
+                // (1,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(1, 16),
+                // (1,17): error CS8185: A declaration is not allowed in this context.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(1, 17),
+                // (1,17): error CS0165: Use of unassigned local variable 'X'
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(1, 17),
+                // (1,24): error CS8185: A declaration is not allowed in this context.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(1, 24),
+                // (1,24): error CS0165: Use of unassigned local variable 'Y'
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(1, 24));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "record");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.StructDeclaration);
@@ -2829,43 +2929,103 @@ class C(int X, int Y)
         public void RecordClassParsing()
         {
             var text = "record class C(int X, int Y);";
-            UsingTree(text, options: TestOptions.Regular10);
 
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "X").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(1, 20),
+                // (1,27): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(1, 27));
+            UsingTree(text, options: TestOptions.Regular10);
             verifyParsedAsRecord();
 
-            UsingTree(text, options: TestOptions.Regular9,
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "class").WithArguments("record structs", "10.0").WithLocation(1, 8)
-                );
-
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "class").WithArguments("record structs", "10.0").WithLocation(1, 8),
+                // (1,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "X").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(1, 20),
+                // (1,27): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(1, 27));
+            UsingTree(text, options: TestOptions.Regular9);
             verifyParsedAsRecord();
 
-            UsingTree(text, options: TestOptions.Regular8,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 1),
+                // (1,8): error CS1001: Identifier expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8),
                 // (1,15): error CS1514: { expected
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 15),
                 // (1,15): error CS1513: } expected
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 15),
-                // (1,15): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 15),
                 // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15)
-                );
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15),
+                // (1,15): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(1, 15),
+                // (1,16): error CS8185: A declaration is not allowed in this context.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(1, 16),
+                // (1,16): error CS0165: Use of unassigned local variable 'X'
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(1, 16),
+                // (1,23): error CS8185: A declaration is not allowed in this context.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(1, 23),
+                // (1,23): error CS0165: Use of unassigned local variable 'Y'
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(1, 23));
+
+            UsingTree(text, options: TestOptions.Regular8,
+                // (1,8): error CS1001: Identifier expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8),
+                // (1,15): error CS1514: { expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 15),
+                // (1,15): error CS1513: } expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 15),
+                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "record");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.ClassDeclaration);
@@ -3188,87 +3348,40 @@ class C(int X, int Y)
         {
             var text = "struct record C(int X, int Y);";
             UsingTree(text, options: TestOptions.Regular9,
-                // (1,15): error CS1514: { expected
+                // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
                 // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 15),
-                // (1,15): error CS1513: } expected
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "C").WithLocation(1, 15),
-                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "C(int X, int Y);").WithLocation(1, 15),
-                // (1,17): error CS1525: Invalid expression term 'int'
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 17),
-                // (1,21): error CS1003: Syntax error, ',' expected
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",").WithLocation(1, 21),
-                // (1,24): error CS1525: Invalid expression term 'int'
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 24),
-                // (1,28): error CS1003: Syntax error, ',' expected
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",").WithLocation(1, 28)
-                );
+                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 8));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.StructDeclaration);
+                N(SyntaxKind.RecordStructDeclaration);
                 {
-                    N(SyntaxKind.StructKeyword);
-                    N(SyntaxKind.IdentifierToken, "record");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.InvocationExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "C");
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3385,87 +3498,40 @@ class C(int X, int Y)
         {
             var text = "class record C(int X, int Y);";
             UsingTree(text, options: TestOptions.Regular9,
-                // (1,14): error CS1514: { expected
+                // (1,7): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
                 // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 14),
-                // (1,14): error CS1513: } expected
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "C").WithLocation(1, 14),
-                // (1,14): error CS8803: Top-level statements must precede namespace and type declarations.
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "C(int X, int Y);").WithLocation(1, 14),
-                // (1,16): error CS1525: Invalid expression term 'int'
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 16),
-                // (1,20): error CS1003: Syntax error, ',' expected
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",").WithLocation(1, 20),
-                // (1,23): error CS1525: Invalid expression term 'int'
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 23),
-                // (1,27): error CS1003: Syntax error, ',' expected
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",").WithLocation(1, 27)
-                );
+                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 7));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.ClassDeclaration);
+                N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "record");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.InvocationExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "C");
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3828,10 +3894,24 @@ class C(int X, int Y)
         public void RecordStructParsing_Ref()
         {
             var text = "ref record struct S;";
-            UsingTree(text, options: TestOptions.RegularPreview);
 
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("ref").WithLocation(1, 19));
+            UsingTree(text, options: TestOptions.RegularPreview);
             verifyParsedAsRecord();
 
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
+                // (1,20): error CS1514: { expected
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
+                // (1,20): error CS1513: } expected
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20));
             UsingTree(text, options: TestOptions.Regular8,
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // ref record struct S;
@@ -3841,8 +3921,7 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
                 // (1,20): error CS1513: } expected
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20)
-                );
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3869,12 +3948,14 @@ class C(int X, int Y)
             }
             EOF();
 
-            UsingTree(text, options: TestOptions.Regular9,
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (1,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 12)
-                );
-
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 12),
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("ref").WithLocation(1, 19));
+            UsingTree(text, options: TestOptions.Regular9);
             verifyParsedAsRecord();
 
             void verifyParsedAsRecord()
@@ -3903,10 +3984,21 @@ class C(int X, int Y)
 
             verifyParsedAsRecord();
 
-            UsingTree(text, options: TestOptions.Regular8,
+            UsingTree(text, options: TestOptions.Regular8);
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // ref record R;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ref record R;").WithArguments("top-level statements", "9.0").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ref record R;").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // ref record R;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 5),
+                // (1,12): error CS8174: A declaration of a by-reference variable must have an initializer
+                // ref record R;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "R").WithLocation(1, 12),
+                // (1,12): warning CS0168: The variable 'R' is declared but never used
+                // ref record R;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(1, 12));
 
             N(SyntaxKind.CompilationUnit);
             {

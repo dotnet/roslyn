@@ -80,7 +80,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 } // end of class Extensions.D
 ]]>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
@@ -191,7 +190,6 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
 } // end of class Extensions.D
 ]]>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
@@ -259,7 +257,6 @@ BC30562: 'Goo' is ambiguous between declarations in Modules 'Extensions.C, Exten
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
 } // end of class Extensions.C
 ]]>
-
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
@@ -377,7 +374,6 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
 } // end of class Extensions.D
 ]]>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
@@ -488,7 +484,6 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
 } // end of class Extensions.D
 ]]>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
@@ -556,7 +551,6 @@ BC30562: 'Goo' is ambiguous between declarations in Modules 'Extensions.C, Exten
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
 } // end of class Extensions.C
 ]]>
-
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
@@ -719,7 +713,6 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
 } // end of class Container1
 ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
@@ -862,7 +855,6 @@ Container1.Bar.bar1
 
 } // end of class Container1
 ]]>
-
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
@@ -1365,7 +1357,6 @@ Container1.bar.Baz
 } // end of class Container4.ContaineR5.Container6
 ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="ConsoleApplication">
     <file name="a.vb">
@@ -1398,7 +1389,6 @@ End Module
 Container4.ContaineR5.Container6
 ]]>)
         End Sub
-
 
         <Fact()>
         Public Sub NamespaceAndTypesDifferByCase_1()
@@ -5216,7 +5206,6 @@ BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function 
 } // end of class aAxyz
 ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="ConsoleApplication">
     <file name="a.vb">
@@ -5722,7 +5711,6 @@ aAxxz
 
 } // end of class Container
 ]]>
-
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="ConsoleApplication">
@@ -7104,7 +7092,6 @@ Container1.GoO
 
     ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
@@ -7197,7 +7184,6 @@ BC30521: Overload resolution failed because no accessible 'Goo' is most specific
 } // end of class Extensions.c
 ]]>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
@@ -7289,7 +7275,6 @@ BC31429: 'Goo' is ambiguous because multiple kinds of members with this name exi
 
 } // end of class Extensions.D
 ]]>
-
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
@@ -7401,7 +7386,6 @@ BC30521: Overload resolution failed because no accessible 'Goo' is most specific
 
 } // end of class Extensions.D
 ]]>
-
 
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
@@ -8285,7 +8269,6 @@ End Module
 } // end of class Container31
 ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="ConsoleApplication">
     <file name="a.vb">
@@ -8462,7 +8445,6 @@ AAyyx
 } // end of class Container32
 ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="ConsoleApplication">
     <file name="a.vb">
@@ -8559,7 +8541,6 @@ aAxxx
 
 } // end of class Container32
 ]]>
-
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="ConsoleApplication">
@@ -8712,7 +8693,6 @@ BC31429: 'ToArray' is ambiguous because multiple kinds of members with this name
                                                                  ~~~~~~~~~~~~~~
 </expected>)
 
-
             Dim compDef2 =
                 <compilation>
                     <file name="c.vb"><![CDATA[
@@ -8730,7 +8710,6 @@ End Class
                 </compilation>
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithCustomILSource(compDef2, ilSource.Value, TestOptions.ReleaseExe, appendDefaultHeader:=False)
-
 
             CompileAndVerify(compilation2, expectedOutput:="1
 1")

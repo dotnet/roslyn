@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
@@ -35,8 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IGlobalOptionService globalOptions,
             ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
             ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext)
+            IThreadingContext threadingContext,
+            ExportProvider exportProvider)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
             _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
         }
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             // When the lsp pull diagnostics feature flag is enabled we do not advertise pull diagnostics capabilities from here
             // as the AlwaysActivateInProcLanguageClient will provide pull diagnostics both locally and remote.
-            var isPullDiagnosticsEnabled = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var isPullDiagnosticsEnabled = GlobalOptions.IsLspPullDiagnostics();
             if (!isPullDiagnosticsEnabled)
             {
                 // Pull diagnostics isn't enabled, let the live share server provide pull diagnostics.

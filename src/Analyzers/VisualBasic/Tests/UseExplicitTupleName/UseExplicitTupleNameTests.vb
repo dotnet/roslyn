@@ -2,32 +2,22 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.UseExplicitTupleName
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
+    Microsoft.CodeAnalysis.UseExplicitTupleName.UseExplicitTupleNameDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.UseExplicitTupleName.UseExplicitTupleNameCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseExplicitTupleName
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
     Public Class UseExplicitTupleNameTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
-
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New UseExplicitTupleNameDiagnosticAnalyzer(),
-                    New UseExplicitTupleNameCodeFixProvider())
-        End Function
-
         <Fact>
         Public Async Function TestNamedTuple1() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Await VerifyVB.VerifyCodeFixAsync("
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
         dim v2 = v1.[|Item1|]
     end sub
-end class",
-"
+end class", "
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
@@ -38,8 +28,7 @@ end class")
 
         <Fact>
         Public Async Function TestInArgument() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Await VerifyVB.VerifyCodeFixAsync("
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
@@ -48,8 +37,7 @@ class C
 
     Sub Goo(i as integer)
     end sub
-end class",
-"
+end class", "
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
@@ -63,15 +51,13 @@ end class")
 
         <Fact>
         Public Async Function TestNamedTuple2() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Await VerifyVB.VerifyCodeFixAsync("
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
         dim v2 = v1.[|Item2|]
     end sub
-end class",
-"
+end class", "
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
@@ -82,52 +68,53 @@ end class")
 
         <Fact>
         Public Async Function TestMissingOnMatchingName1() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"
+            Dim code = "
 class C
     Sub M()
         dim v1 as (integer, s as string)
-        dim v2 = v1.[|Item1|]
+        dim v2 = v1.Item1
     end sub
-end class")
+end class"
+
+            Await VerifyVB.VerifyCodeFixAsync(code, code)
         End Function
 
         <Fact>
         Public Async Function TestMissingOnMatchingName2() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"
+            Dim code = "
 class C
     Sub M()
         dim v1 as (Item1 as integer, s as string)
-        dim v2 = v1.[|Item1|]
+        dim v2 = v1.Item1
     end sub
-end class")
+end class"
+
+            Await VerifyVB.VerifyCodeFixAsync(code, code)
         End Function
 
         <Fact>
         Public Async Function TestWrongCasing() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"
+            Dim code = "
 class C
     Sub M()
         dim v1 as (item1 as integer, s as string)
-        dim v2 = v1.[|Item1|]
+        dim v2 = v1.Item1
     end sub
-end class")
+end class"
+
+            Await VerifyVB.VerifyCodeFixAsync(code, code)
         End Function
 
         <Fact>
         Public Async Function TestFixAll1() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Await VerifyVB.VerifyCodeFixAsync("
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
-        dim v2 = v1.{|FixAllInDocument:Item1|}
-        dim v3 = v1.Item2
+        dim v2 = v1.[|Item1|]
+        dim v3 = v1.[|Item2|]
     end sub
-end class",
-"
+end class", "
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
@@ -139,15 +126,13 @@ end class")
 
         <Fact>
         Public Async Function TestFixAll2() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Await VerifyVB.VerifyCodeFixAsync("
 class C
     Sub M()
         dim v1 as (i as integer, s as integer) 
-        v1.{|FixAllInDocument:Item1|} = v1.Item2
+        v1.[|Item1|] = v1.[|Item2|]
     end sub
-end class",
-"
+end class", "
 class C
     Sub M()
         dim v1 as (i as integer, s as integer) 

@@ -265,9 +265,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < members.Count; i++)
             {
                 AddMemberToCandidateSet(
-                    members[i], results, members, typeArguments, receiver, arguments, completeResults,
-                    isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
-                    useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
+                    members[i],
+                    results,
+                    members,
+                    typeArguments,
+                    arguments,
+                    completeResults,
+                    isMethodGroupConversion,
+                    allowRefOmittedArguments,
+                    containingTypeMapOpt,
+                    inferWithDynamic: inferWithDynamic,
+                    useSiteInfo: ref useSiteInfo,
+                    allowUnexpandedForm: allowUnexpandedForm);
             }
 
             // CONSIDER: use containingTypeMapOpt for RemoveLessDerivedMembers?
@@ -335,14 +344,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 overloadResolutionResult.ResultsBuilder,
                 funcPtrBuilder,
                 typeArgumentsBuilder,
-                receiverOpt: null,
                 analyzedArguments,
                 completeResults: true,
                 isMethodGroupConversion: false,
                 allowRefOmittedArguments: false,
                 containingTypeMapOpt: null,
                 inferWithDynamic: false,
-                ref useSiteInfo,
+                useSiteInfo: ref useSiteInfo,
                 allowUnexpandedForm: true);
 
             ReportUseSiteInfo(overloadResolutionResult.ResultsBuilder, ref useSiteInfo);
@@ -809,7 +817,6 @@ outerDefault:
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeWithAnnotations> typeArguments,
-            BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,

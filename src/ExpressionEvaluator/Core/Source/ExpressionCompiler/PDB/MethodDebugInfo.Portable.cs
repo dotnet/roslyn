@@ -383,14 +383,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes,
             out string defaultNamespace)
         {
-            hoistedLocalScopes = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes, out var info) ?
-                DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value)) :
-                ImmutableArray<HoistedLocalScopeRecord>.Empty;
+            hoistedLocalScopes = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes, out var info)
+                ? DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value))
+                : ImmutableArray<HoistedLocalScopeRecord>.Empty;
 
             // TODO: consider looking this up once per module (not for every method)
-            defaultNamespace = TryGetCustomDebugInformation(reader, EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.DefaultNamespace, out info) ?
-                DecodeDefaultNamespace(reader.GetBlobReader(info.Value)) :
-                "";
+            defaultNamespace = TryGetCustomDebugInformation(reader, EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.DefaultNamespace, out info)
+                ? DecodeDefaultNamespace(reader.GetBlobReader(info.Value))
+                : "";
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>

@@ -118,7 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         Friend Overrides Function GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(
             cmd As CommonCompiler,
-            sourceFilePath As String) As String
+            sourceFilePath As String,
+            ParamArray suppressionKinds As String()) As String
 
             Dim expectedHeader = GetExpectedErrorLogHeader(cmd)
             Dim expectedIssues = String.Format("

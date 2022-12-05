@@ -62,14 +62,18 @@ namespace Microsoft.CodeAnalysis
 
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterCompilationAction(compilationContext =>
+                context.RegisterCompilationStartAction(context =>
                 {
                     // With location diagnostic.
-                    var location = compilationContext.Compilation.SyntaxTrees.First().GetRoot().GetLocation();
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, s_properties));
+                    context.RegisterSyntaxTreeAction(context =>
+                    {
+                        var location = context.Tree.GetRoot().GetLocation();
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, s_properties));
+                    });
 
                     // No location diagnostic.
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, s_properties));
+                    context.RegisterCompilationEndAction(context =>
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, s_properties)));
                 });
             }
 
@@ -295,13 +299,16 @@ namespace Microsoft.CodeAnalysis
       ]";
             }
 
-            public static string GetExpectedV2ErrorLogWithSuppressionResultsText(Compilation compilation, string justification)
+            public static string GetExpectedV2ErrorLogWithSuppressionResultsText(Compilation compilation, string justification, string suppressionType)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
                 var filePath = GetUriForPath(tree.FilePath);
-
+                var expectedSuppressionPropertyMap = @",
+              ""properties"": {
+                ""suppressionType"": """ + suppressionType + @"""
+              }";
                 return
 @"      ""results"": [
         {
@@ -314,7 +321,7 @@ namespace Microsoft.CodeAnalysis
           ""suppressions"": [
             {
               ""kind"": ""inSource""" + (justification == null ? "" : @",
-              ""justification"": """ + (justification) + @"""") + @"
+              ""justification"": """ + (justification) + @"""") + (suppressionType == null ? "" : expectedSuppressionPropertyMap) + @"
             }
           ],
           ""locations"": [
@@ -350,7 +357,21 @@ namespace Microsoft.CodeAnalysis
       ]";
             }
 
-            public static string GetExpectedV2ErrorLogRulesText()
+            public static string GetExpectedV2SuppressionTextForRulesSection(string[] suppressionKinds)
+            {
+                if (suppressionKinds?.Length > 0)
+                {
+                    return @",
+                ""isEverSuppressed"": ""true"",
+                ""suppressionKinds"": [
+                  " + string.Join("," + Environment.NewLine + "                  ", suppressionKinds.Select(s => $"\"{s}\"")) + @"
+                ]";
+                }
+
+                return string.Empty;
+            }
+
+            public static string GetExpectedV2ErrorLogRulesText(string[] suppressionKinds1 = null, string[] suppressionKinds2 = null)
             {
                 return
 @"          ""rules"": [
@@ -364,9 +385,9 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor1.Category + @""",
+                ""category"": """ + Descriptor1.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds1) + @",
                 ""tags"": [
-                  " + String.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+                  " + string.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
               }
             },
@@ -383,7 +404,7 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor2.Category + @""",
+                ""category"": """ + Descriptor2.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds2) + @",
                 ""tags"": [
                   " + String.Join("," + Environment.NewLine + "                  ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
@@ -398,6 +419,25 @@ namespace Microsoft.CodeAnalysis
                 return uri.IsAbsoluteUri
                     ? uri.AbsoluteUri
                     : WebUtility.UrlEncode(uri.ToString());
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class SuppressorForErrorLogTest : DiagnosticSuppressor
+        {
+            public static readonly SuppressionDescriptor Descriptor1 = new("SPR0001", AnalyzerForErrorLogTest.Descriptor1.Id, "SuppressorJustification1");
+            public static readonly SuppressionDescriptor Descriptor2 = new("SPR0002", AnalyzerForErrorLogTest.Descriptor2.Id, "SuppressorJustification2");
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(Descriptor1, Descriptor2);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    var descriptor = diagnostic.Id == Descriptor1.SuppressedDiagnosticId ? Descriptor1 : Descriptor2;
+                    context.ReportSuppression(Suppression.Create(descriptor, diagnostic));
+                }
             }
         }
 

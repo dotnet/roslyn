@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             var result = formatter.GetFormattingResult(root, spans, options.FormattingOptions, _rules, cancellationToken);
 
             // apply changes to an old text if it already exists
-            return document.TryGetText(out var oldText) ?
-                document.WithText(oldText.WithChanges(result.GetTextChanges(cancellationToken))) :
-                document.WithSyntaxRoot(result.GetFormattedRoot(cancellationToken));
+            return document.TryGetText(out var oldText)
+                ? document.WithText(oldText.WithChanges(result.GetTextChanges(cancellationToken)))
+                : document.WithSyntaxRoot(result.GetFormattedRoot(cancellationToken));
         }
 
         public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             var result = formatter.GetFormattingResult(root, spans, options, _rules, cancellationToken);
 
             // apply changes to an old text if it already exists
-            return (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out var oldText)) ?
-                root.SyntaxTree.WithChangedText(oldText.WithChanges(result.GetTextChanges(cancellationToken))).GetRootAsync(cancellationToken) :
-                Task.FromResult(result.GetFormattedRoot(cancellationToken));
+            return (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out var oldText))
+                ? root.SyntaxTree.WithChangedText(oldText.WithChanges(result.GetTextChanges(cancellationToken))).GetRootAsync(cancellationToken)
+                : Task.FromResult(result.GetFormattedRoot(cancellationToken));
         }
     }
 }

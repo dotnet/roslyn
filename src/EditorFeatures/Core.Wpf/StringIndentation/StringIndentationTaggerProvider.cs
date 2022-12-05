@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
     [TagType(typeof(StringIndentationTag))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class StringIndentationTaggerProvider : AsynchronousTaggerProvider<StringIndentationTag>
+    internal sealed partial class StringIndentationTaggerProvider : AsynchronousTaggerProvider<StringIndentationTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.StringIdentation);
+        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(FeatureOnOffOptions.StringIdentation);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

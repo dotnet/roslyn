@@ -1697,8 +1697,8 @@ public class TestClass
 ##}");
 
         [Fact]
-        public Task TestAwaitExpresssion4() =>
-            TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
+        public Task TestAwaitExpresssion4()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -1822,8 +1822,8 @@ public class TestClass
         }
 
         [Fact]
-        public Task TestAwaitExpresssion6() =>
-            TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
+        public Task TestAwaitExpresssion6()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
