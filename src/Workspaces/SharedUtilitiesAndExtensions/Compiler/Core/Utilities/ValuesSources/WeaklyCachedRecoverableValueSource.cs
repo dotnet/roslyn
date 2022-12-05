@@ -12,11 +12,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// This class is a <see cref="ValueSource{T}"/> that holds onto a value weakly, 
-    /// but can save its value and recover it on demand if needed.
-    /// 
-    /// The initial value comes from the <see cref="ValueSource{T}"/> specified in the constructor.
-    /// Derived types implement SaveAsync and RecoverAsync.
+    /// This class is a <see cref="ValueSource{T}"/> that holds onto a value weakly, but can save its value and recover
+    /// it on demand if needed.  The value is initially strongly held, until the first time that <see cref="GetValue"/>
+    /// or <see cref="GetValueAsync"/> is called.  At that point, it will be dumped to secondary storage, and retrieved
+    /// and weakly held from that point on in the future.
     /// </summary>
     internal abstract class WeaklyCachedRecoverableValueSource<T> : ValueSource<T> where T : class
     {
@@ -24,11 +23,27 @@ namespace Microsoft.CodeAnalysis.Host
         private static Task s_latestTask = Task.CompletedTask;
         private static readonly NonReentrantLock s_taskGuard = new();
 
-        private SemaphoreSlim? _lazyGate; // Lazily created. Access via the Gate property
+        /// <summary>
+        /// Lazily created. Access via the <see cref="Gate"/> property.
+        /// </summary>
+        private SemaphoreSlim? _lazyGate;
+
+        /// <summary>
+        /// Whether or not we've saved our value to secondary storage.  Used so we only do that once.
+        /// </summary>
         private bool _saved;
 
-        private WeakReference<T>? _weakReference;
+        /// <summary>
+        /// Initial strong value that this value source is initialized with.  Will be used to respond to the first
+        /// request to get the value, at which point it will be dumped into secondary storage.
+        /// </summary>
         private T? _initialValue;
+
+        /// <summary>
+        /// Weak reference to the value last returned from this value source.  Will thus return the same value as long
+        /// as something external is holding onto it.
+        /// </summary>
+        private WeakReference<T>? _weakReference;
 
         public WeaklyCachedRecoverableValueSource(T initialValue)
             => _initialValue = initialValue;
@@ -53,7 +68,21 @@ namespace Microsoft.CodeAnalysis.Host
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
-        public override bool TryGetValue([NotNullWhen(true)] out T? value)
+        /// <summary>
+        /// Attempts to get the value, but only through the weak reference.  This will only succeed *after* the value
+        /// has been retrieved at least once, and has thus then been save to secondary storage.
+        /// </summary>
+        private bool TryGetWeakValue([NotNullWhen(true)] out T? value)
+        {
+            value = null;
+            var weakReference = _weakReference;
+            return weakReference != null && weakReference.TryGetTarget(out value) && value != null;
+        }
+
+        /// <summary>
+        /// Attempts to get the value, either through our strong or weak reference.
+        /// </summary>
+        private bool TryGetStrongOrWeakValue([NotNullWhen(true)] out T? value)
         {
             // See if we still have the constant value stored.  If so, we can trivially return that.
             value = _initialValue;
@@ -61,51 +90,60 @@ namespace Microsoft.CodeAnalysis.Host
                 return true;
 
             // If not, see if it's something someone else is holding into, and is available through the weak-ref.
-            var weakReference = _weakReference;
-            return weakReference != null && weakReference.TryGetTarget(out value) && value != null;
+            return TryGetWeakValue(out value);
         }
+
+        public override bool TryGetValue([MaybeNullWhen(false)] out T value)
+            => TryGetStrongOrWeakValue(out value);
 
         public override T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!TryGetValue(out var instance))
-            {
-                using (Gate.DisposableWait(cancellationToken))
-                {
-                    if (!TryGetValue(out instance))
-                    {
-                        instance = Recover(cancellationToken);
-                        EnqueueSaveTask_NoLock(instance);
-                    }
-                }
-            }
+            // if the value is currently being held weakly, then we can return that immediately as we know we will have
+            // kicked off the work to save the value to secondary storage.
+            if (TryGetWeakValue(out var instance))
+                return instance;
 
-            return instance;
+            // Otherwise, we're either holding the value strongly, or we need to recovery it from secondary storage.
+            using (Gate.DisposableWait(cancellationToken))
+            {
+                if (!TryGetStrongOrWeakValue(out instance))
+                    instance = Recover(cancellationToken);
+
+                // If the value was strongly held, kick off the work to write it to secondary storage and release the
+                // strong reference to it.
+                UpdateWeakReferenceAndEnqueueSaveTask_NoLock(instance);
+                return instance;
+            }
         }
 
         public override async Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
-            if (!TryGetValue(out var instance))
-            {
-                using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    if (!TryGetValue(out instance))
-                    {
-                        instance = await RecoverAsync(cancellationToken).ConfigureAwait(false);
-                        EnqueueSaveTask_NoLock(instance);
-                    }
-                }
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
-            return instance;
+            // if the value is currently being held weakly, then we can return that immediately as we know we will have
+            // kicked off the work to save the value to secondary storage.
+            if (TryGetWeakValue(out var instance))
+                return instance;
+
+            using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!TryGetStrongOrWeakValue(out instance))
+                    instance = await RecoverAsync(cancellationToken).ConfigureAwait(false);
+
+                // If the value was strongly held, kick off the work to write it to secondary storage and release the
+                // strong reference to it.
+                UpdateWeakReferenceAndEnqueueSaveTask_NoLock(instance);
+                return instance;
+            }
         }
 
         /// <summary>
         /// Kicks off the work to save this instance to secondary storage at some point in the future.  Once that save
         /// occurs successfully, we will drop our cached data and return values from that storage instead.
         /// </summary>
-        private void EnqueueSaveTask_NoLock(T instance)
+        private void UpdateWeakReferenceAndEnqueueSaveTask_NoLock(T instance)
         {
             Contract.ThrowIfTrue(Gate.CurrentCount != 0);
 
@@ -118,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _saved = true;
                 using (s_taskGuard.DisposableWait())
                 {
-                    // force all save tasks to be in sequence so we don't hog all the threads
+                    // force all save tasks to be in sequence so we don't hog all the threads.
                     s_latestTask = SaveAndResetInitialValue(s_latestTask);
                 }
             }
@@ -137,11 +175,8 @@ namespace Microsoft.CodeAnalysis.Host
                 // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete,
                 // we want to keep it around to service future requests.  Once we do clear out this value, then all
                 // future request will either retrieve the value from the weak reference (if anyone else is holding onto
-                // it), or will recover from the 
-                using (Gate.DisposableWait(CancellationToken.None))
-                {
-                    _initialValue = null;
-                }
+                // it), or will recover from underlying storage.
+                _initialValue = null;
             }
         }
     }
