@@ -443,66 +443,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected abstract int ConditionalDirectiveKind { get; }
-
-        public bool ContainsConditionalDirectives()
-        {
-            var conditionalDirectiveKind = this.ConditionalDirectiveKind;
-
-            var stack = PooledObjects.ArrayBuilder<GreenNode?>.GetInstance();
-            stack.Push(this.Green);
-
-            try
-            {
-                while (stack.Count > 0)
-                {
-                    var current = stack.Pop();
-                    if (current is null)
-                        continue;
-
-                    if (!current.ContainsDirectives)
-                        continue;
-
-                    if (current.IsToken)
-                    {
-                        if (current.HasLeadingTrivia)
-                        {
-                            var leadingTriviaNode = current.GetLeadingTriviaCore();
-                            Debug.Assert(leadingTriviaNode != null);
-                            if (leadingTriviaNode.IsList)
-                            {
-                                for (int i = 0, n = leadingTriviaNode.SlotCount; i < n; i++)
-                                {
-                                    if (leadingTriviaNode.GetSlot(i)?.RawKind == conditionalDirectiveKind)
-                                        return true;
-                                }
-                            }
-                            else
-                            {
-                                if (leadingTriviaNode.RawKind == conditionalDirectiveKind)
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // nodes and lists.
-
-                        for (int i = current.SlotCount - 1; i >= 0; i--)
-                            stack.Push(current.GetSlot(i));
-                    }
-                }
-
-                return false;
-            }
-            finally
-            {
-                stack.Free();
-            }
-        }
-
         /// <summary>
         /// Determines whether this node has any descendant preprocessor directives.
         /// </summary>
