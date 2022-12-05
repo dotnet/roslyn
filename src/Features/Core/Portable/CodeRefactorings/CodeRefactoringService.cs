@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                             using (addOperationScope(providerName))
-                            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m, provider)), cancellationToken))
-                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
+                            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringFromProvider, KeyValueLogMessage.Create(LogType.Trace, m => CreateLogProperties(m, provider)), cancellationToken))
+                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringFromProvider, providerName, cancellationToken))
                             {
                                 return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
                                     extensionManager, options, isBlocking, cancellationToken);
