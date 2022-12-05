@@ -72,46 +72,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             //
             // This we do outside the lock -- whichever thread was the one to create this was the one that
             // gets to write out the moniker, but others can use the ResultSet Id at this point.
-            if (symbol.OriginalDefinition.Equals(symbol))
+            if (SymbolMoniker.HasMoniker(symbol))
             {
-                var monikerVertex = TryCreateMonikerVertexForSymbol(symbol);
-
-                if (monikerVertex != null)
-                {
-                    // Attach the moniker vertex for this result set
-                    _ = GetResultIdForSymbol(symbol, "moniker", () => monikerVertex);
-                }
+                _ = this.GetMoniker(symbol, _sourceCompilation);
             }
 
             return trackedResultSet;
-        }
-
-        private Moniker? TryCreateMonikerVertexForSymbol(ISymbol symbol)
-        {
-            var moniker = SymbolMoniker.TryCreate(symbol);
-
-            if (moniker == null)
-            {
-                return null;
-            }
-
-            string? kind;
-
-            if (symbol.Kind == SymbolKind.Namespace)
-            {
-                kind = null;
-            }
-            else if (symbol.ContainingAssembly.Equals(_sourceCompilation.Assembly))
-            {
-                kind = "export";
-            }
-            else
-            {
-                kind = "import";
-            }
-
-            // Since we fully qualify everything, all monitors are unique within the scheme
-            return new Moniker(moniker.Scheme, moniker.Identifier, kind, unique: "scheme", _idFactory);
         }
 
         public Id<ResultSet> GetResultSetIdForSymbol(ISymbol symbol)
@@ -119,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             return GetTrackedResultSet(symbol).Id;
         }
 
-        public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<T> vertexCreator) where T : Vertex
+        public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<IdFactory, T> vertexCreator) where T : Vertex
         {
             return GetTrackedResultSet(symbol).GetResultId(edgeKind, vertexCreator, _lsifJsonWriter, _idFactory);
         }
@@ -156,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 Id = id;
             }
 
-            public Id<T> GetResultId<T>(string edgeLabel, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
+            public Id<T> GetResultId<T>(string edgeLabel, Func<IdFactory, T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
             {
                 lock (_edgeKindToVertexId)
                 {
@@ -172,7 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                         return new Id<T>(existingId.Value.NumericId);
                     }
 
-                    var vertex = vertexCreator();
+                    var vertex = vertexCreator(idFactory);
                     _edgeKindToVertexId.Add(edgeLabel, vertex.GetId().As<T, Vertex>());
 
                     lsifJsonWriter.Write(vertex);

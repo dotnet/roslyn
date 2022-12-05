@@ -4477,7 +4477,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
 
-                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRef(out RefKind refKind);
+                            // Lang version check for ref-fields is done inside SourceMemberFieldSymbol;
+                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRefInField(out var refKind);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
