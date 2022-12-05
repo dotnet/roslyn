@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool SpansPreprocessorDirective<TSyntaxNode>(this IEnumerable<TSyntaxNode> list) where TSyntaxNode : SyntaxNode
             => CSharpSyntaxFacts.Instance.SpansPreprocessorDirective(list);
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public static TNode? ConvertToSingleLine<TNode>(this TNode? node, bool useElasticTrivia = false)
             where TNode : SyntaxNode
         {

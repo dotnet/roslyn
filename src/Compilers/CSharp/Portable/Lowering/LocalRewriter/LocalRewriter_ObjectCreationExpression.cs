@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [return: NotNullIfNotNull("initializerExpressionOpt")]
+        [return: NotNullIfNotNull(nameof(initializerExpressionOpt))]
         private BoundObjectInitializerExpressionBase? MakeObjectCreationInitializerForExpressionTree(BoundObjectInitializerExpressionBase? initializerExpressionOpt)
         {
             if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)

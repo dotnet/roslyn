@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// might be present in the arguments and creating temps for any discard parameters.
         /// </summary>
         private ImmutableArray<BoundExpression> VisitArgumentsAndCaptureReceiverIfNeeded(
-            [NotNullIfNotNull("rewrittenReceiver")] ref BoundExpression? rewrittenReceiver,
+            [NotNullIfNotNull(nameof(rewrittenReceiver))] ref BoundExpression? rewrittenReceiver,
             ReceiverCaptureMode captureReceiverMode,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,

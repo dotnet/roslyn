@@ -177,9 +177,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-                var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
-                    workspace, projectId: null, documentId: null, diagnosticMode, cancellationToken: CancellationToken.None);
+                var diagnosticMode = GlobalOptions.GetDiagnosticMode();
+
+                // If we're not in Solution-Crawler mode, then don't add any diagnostics to the table.  Instead, the LSP
+                // client will be handling everything.
+                var diagnostics = diagnosticMode != DiagnosticMode.SolutionCrawlerPush
+                    ? ImmutableArray<DiagnosticBucket>.Empty
+                    : diagnosticService.GetDiagnosticBuckets(
+                        workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None);
 
                 foreach (var bucket in diagnostics)
                 {
@@ -194,14 +199,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static arg => GetDiagnosticUpdatedMessage(arg.globalOptions, arg.e), (globalOptions: GlobalOptions, e), CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static e => GetDiagnosticUpdatedMessage(e), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
                         return;
                     }
 
-                    var diagnostics = e.GetPushDiagnostics(GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    // if we're in lsp mode we never respond to any diagnostics we hear about, lsp client is fully
+                    // responsible for populating the error list.
+                    var diagnostics = GlobalOptions.IsLspPullDiagnostics()
+                        ? ImmutableArray<DiagnosticData>.Empty
+                        : e.Diagnostics;
+
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -309,9 +319,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
-                    var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    // If we're in lsp pull mode then lsp client owns the error list.
+                    var diagnosticMode = _globalOptions.GetDiagnosticMode();
+                    if (diagnosticMode == DiagnosticMode.LspPull)
+                        return ImmutableArray<DiagnosticTableItem>.Empty;
+
                     var provider = _source._diagnosticService;
-                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, diagnosticMode, cancellationToken: CancellationToken.None)
+                    var items = provider.GetDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, CancellationToken.None)
                         .AsTask()
                         .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
                                         .Where(ShouldInclude)
@@ -526,7 +540,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 #endregion
             }
 
-            private static string GetDiagnosticUpdatedMessage(IGlobalOptionService globalOptions, DiagnosticsUpdatedArgs e)
+            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
                 if (e.Id is LiveDiagnosticUpdateArgsId live)
@@ -538,7 +552,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.Diagnostics;
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }

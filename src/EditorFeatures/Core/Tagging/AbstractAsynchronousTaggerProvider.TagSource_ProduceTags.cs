@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 => EnqueueWork(highPriority: false);
 
             private void EnqueueWork(bool highPriority)
-                => _eventChangeQueue.AddWork(highPriority);
+                => _eventChangeQueue.AddWork(highPriority, _dataSource.CancelOnNewWork);
 
             private async ValueTask ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
             {

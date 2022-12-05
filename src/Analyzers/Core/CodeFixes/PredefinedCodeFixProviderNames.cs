@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string InlineDeclaration = nameof(InlineDeclaration);
         public const string InvokeDelegateWithConditionalAccess = nameof(InvokeDelegateWithConditionalAccess);
         public const string JsonDetection = nameof(JsonDetection);
+        public const string MakeDeclarationsPartial = nameof(MakeDeclarationsPartial);
         public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
         public const string MakeLocalFunctionStatic = nameof(MakeLocalFunctionStatic);
         public const string MakeMemberStatic = nameof(MakeMemberStatic);
@@ -149,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseIsNullCheckForCastAndEqualityOperator = nameof(UseIsNullCheckForCastAndEqualityOperator);
         public const string UseIsNullCheckForReferenceEquals = nameof(UseIsNullCheckForReferenceEquals);
         public const string UseLocalFunction = nameof(UseLocalFunction);
+        public const string UseNameofInAttribute = nameof(UseNameofInAttribute);
         public const string UseNotPattern = nameof(UseNotPattern);
         public const string UseNullCheckOverTypeCheck = nameof(UseNullCheckOverTypeCheck);
         public const string UseNullPropagation = nameof(UseNullPropagation);

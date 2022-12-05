@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
         }
 
-        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // get helpers
             var initializeArray = module.GetInitArrayHelper();
 
-            // map a field to the block (that makes it addressable via a token)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+            // map a field to the block (that makes it addressable via a token).
+            var field = module.GetFieldForData(data, alignment, syntaxNode, diagnostics);
 
             // emit call to the helper
             EmitOpCode(ILOpCode.Dup);       //array
@@ -94,38 +94,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(field, syntaxNode, diagnostics);      //block
             EmitOpCode(ILOpCode.Call, -2);
             EmitToken(initializeArray, syntaxNode, diagnostics);
-        }
-
-        internal void EmitStackAllocBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, bool emitInitBlock, DiagnosticBag diagnostics)
-        {
-            if (emitInitBlock)
-            {
-                // All bytes are the same, no need for metadata blob
-
-                EmitOpCode(ILOpCode.Dup);
-                EmitIntConstant(data[0]);
-                EmitIntConstant(data.Length);
-                EmitOpCode(ILOpCode.Initblk, -3);
-            }
-            else
-            {
-                var field = module.GetFieldForData(data, syntaxNode, diagnostics);
-
-                EmitOpCode(ILOpCode.Dup);
-                EmitOpCode(ILOpCode.Ldsflda);
-                EmitToken(field, syntaxNode, diagnostics);
-                EmitIntConstant(data.Length);
-                EmitOpCode(ILOpCode.Cpblk, -3);
-            }
-        }
-
-        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
-        {
-            // map a field to the block (that makes it addressable)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
-
-            EmitOpCode(ILOpCode.Ldsflda);
-            EmitToken(field, syntaxNode, diagnostics);
         }
 
         /// <summary>

@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
         }
 
-        public ValueTask<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             return new ValueTask<ImmutableArray<DiagnosticData>>(GetDiagnostics(workspace, projectId, documentId));
         }
@@ -45,12 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return _diagnosticData == null ? ImmutableArray<DiagnosticData>.Empty : ImmutableArray.Create(_diagnosticData);
         }
 
-        public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-        {
-            return GetDiagnosticBuckets(workspace, projectId, documentId);
-        }
-
-        private ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId)
+        public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
         {
             Assert.Equal(projectId, GetProjectId(workspace));
             Assert.Equal(documentId, GetDocumentId(workspace));
@@ -60,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : ImmutableArray.Create(new DiagnosticBucket(this, workspace, GetProjectId(workspace), GetDocumentId(workspace)));
         }
 
-        internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location)
+        internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location, DiagnosticKind diagnosticKind)
         {
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             _diagnosticData = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
                 location: location),
                 document);
 
-            analyzerService.Diagnostics = ImmutableArray.Create(_diagnosticData);
+            analyzerService.AddDiagnostic(_diagnosticData, diagnosticKind);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 this, workspace, workspace.CurrentSolution,
                 GetProjectId(workspace), GetDocumentId(workspace),
