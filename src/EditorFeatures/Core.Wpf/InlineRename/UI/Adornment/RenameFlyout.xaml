@@ -18,6 +18,7 @@
              GotKeyboardFocus="Adornment_GotKeyboardFocus"
              Focusable="False"
              UseLayoutRounding="True"
+             Cursor="Arrow"
              x:Name="control">
 
     <UserControl.Resources>
