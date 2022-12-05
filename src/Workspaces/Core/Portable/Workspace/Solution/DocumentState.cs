@@ -690,8 +690,8 @@ namespace Microsoft.CodeAnalysis
                             }
                             else
                             {
-                                var ifDirectives = otherRoot.DescendantTokens(n => n.ContainsDirectives).Any(t => t.LeadingTrivia.Any(t => t.RawKind is 8548 or 737));
-                                if (!ifDirectives)
+                                // var ifDirectives = otherRoot.DescendantTokens(n => n.ContainsDirectives).Any(t => t.LeadingTrivia.Any(t => t.RawKind is 8548 or 737));
+                                if (!otherRoot.ContainsConditionalDirectives())
                                 {
                                     var factory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                                     var newTree = factory.CreateSyntaxTree(
