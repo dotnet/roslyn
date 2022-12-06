@@ -221,12 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var key = new SynthesizedDelegateKey(genericTypeDescr);
                     var namedTemplate = this.AnonymousDelegates.GetOrAdd(
                         key,
-                        static (key, arg) =>
-                        {
-                            var (@this, genericTypeDescr) = arg;
-                            return new AnonymousDelegateTemplateSymbol(@this, genericTypeDescr);
-                        },
-                        (this, genericTypeDescr));
+                        static (key, @this) => new AnonymousDelegateTemplateSymbol(@this, key.TypeDescriptor),
+                        this);
 
                     return namedTemplate.Construct(typeArguments);
                 }
