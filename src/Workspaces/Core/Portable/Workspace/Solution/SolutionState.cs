@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis
             return this.UpdateRelatedDocuments(
                 relatedDocuments,
                 static (newState, documentId) => newState.GetRequiredDocumentState(documentId),
-                static (oldDocument, arg) => false,
+                isSame: static (oldDocument, arg) => false,
                 // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
                 // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
                 static (newState, oldDocument, arg) => newState.UpdateDocumentState(oldDocument.UpdateText(arg.loader, arg.mode), textChanged: true, recalculateDependentVersions: true),
@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis
             return this.UpdateRelatedDocuments(
                 relatedDocuments,
                 static (newState, documentId) => newState.GetRequiredAdditionalDocumentState(documentId),
-                static (oldDocument, arg) => false,
+                isSame: static (oldDocument, arg) => false,
                 // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
                 // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
                 static (newState, oldDocument, arg) => newState.UpdateAdditionalDocumentState(oldDocument.UpdateText(arg.loader, arg.mode), textChanged: true, recalculateDependentVersions: true),
@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis
             return this.UpdateRelatedDocuments(
                 relatedDocuments,
                 static (newState, documentId) => newState.GetRequiredAnalyzerConfigDocumentState(documentId),
-                static (oldDocument, arg) => false,
+                isSame: static (oldDocument, arg) => false,
                 // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
                 // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
                 static (newState, oldDocument, arg) => newState.UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(arg.loader, arg.mode)),
