@@ -8591,10 +8591,11 @@ done:;
                 return this.ParseExpressionStatement(attributes);
             }
 
+            var keyword = this.EatToken();
             return _syntaxFactory.CheckedStatement(
-                SyntaxFacts.GetCheckStatement(spec.Kind),
+                SyntaxFacts.GetCheckStatement(keyword.Kind),
                 attributes,
-                this.EatToken(),
+                keyword,
                 this.ParsePossiblyAttributedBlock());
         }
 
@@ -8921,8 +8922,7 @@ tryAgain:
         //
         private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, bool permitTupleDesignation)
         {
-            bool isScoped;
-            return IsPossibleDeclarationExpression(mode, permitTupleDesignation, out isScoped)
+            return IsPossibleDeclarationExpression(mode, permitTupleDesignation, out var isScoped)
                 ? this.ParseDeclarationExpression(mode, isScoped)
                 : this.ParseSubExpression(Precedence.Expression);
         }
