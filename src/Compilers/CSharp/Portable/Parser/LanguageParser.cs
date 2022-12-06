@@ -4591,17 +4591,15 @@ tryAgain:
             if (explicitInterfaceOpt != null && this.CurrentToken.Kind is not SyntaxKind.OpenBraceToken and not SyntaxKind.SemicolonToken)
             {
                 Debug.Assert(typeParameterList == null, "Exit condition of ParseMemberName in this scenario");
-
-                // No need for a diagnostic, ParseMemberName has already added one.
-                var missingIdentifier = identifierOrThisOpt == null ? CreateMissingIdentifierToken() : identifierOrThisOpt;
-
                 return _syntaxFactory.EventDeclaration(
                     attributes,
                     modifiers.ToList(),
                     eventToken,
                     type,
-                    explicitInterfaceOpt, //already has an appropriate error attached
-                    missingIdentifier,
+                    //already has an appropriate error attached
+                    explicitInterfaceOpt,
+                    // No need for a diagnostic, ParseMemberName has already added one.
+                    identifierOrThisOpt == null ? CreateMissingIdentifierToken() : identifierOrThisOpt,
                     _syntaxFactory.AccessorList(
                         SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
                         default(SyntaxList<AccessorDeclarationSyntax>),
