@@ -4895,8 +4895,7 @@ tryAgain:
 
         private static bool WasFirstVariable(CSharp.Syntax.VariableDeclaratorSyntax variable)
         {
-            var parent = GetOldParent(variable) as CSharp.Syntax.VariableDeclarationSyntax;
-            if (parent != null)
+            if (GetOldParent(variable) is CSharp.Syntax.VariableDeclarationSyntax parent)
             {
                 return parent.Variables[0] == variable;
             }
@@ -6422,8 +6421,7 @@ tryAgain:
                     // something like Goo.Bar::Blah. We've already made an error node for the
                     // ::, so just pretend that they typed Goo.Bar.Blah and continue on.
 
-                    var identifierLeft = left as IdentifierNameSyntax;
-                    if (identifierLeft == null)
+                    if (left is not IdentifierNameSyntax identifierLeft)
                     {
                         separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                         return _syntaxFactory.QualifiedName(left, separator, right);
