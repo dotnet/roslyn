@@ -3030,8 +3030,6 @@ public class C : A {
             Assert.Equal(
                 await documentToFreezeChanged.Project.GetSemanticVersionAsync(),
                 await frozenDocument.Project.GetSemanticVersionAsync());
-
-            GC.KeepAlive(tree);
         }
 
         [Fact]
@@ -3079,8 +3077,6 @@ public class C : A {
             Assert.Equal(
                 await documentToFreezeChanged.Project.GetSemanticVersionAsync(),
                 await frozenDocument.Project.GetSemanticVersionAsync());
-
-            GC.KeepAlive(tree);
         }
 
         [Fact]
