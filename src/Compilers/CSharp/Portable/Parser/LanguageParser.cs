@@ -7185,16 +7185,12 @@ done:;
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
             {
-                var element = ParseTupleElement();
-                list.Add(element);
+                list.Add(ParseTupleElement());
 
                 while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    var comma = this.EatToken(SyntaxKind.CommaToken);
-                    list.AddSeparator(comma);
-
-                    element = ParseTupleElement();
-                    list.Add(element);
+                    list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                    list.Add(ParseTupleElement());
                 }
             }
 
