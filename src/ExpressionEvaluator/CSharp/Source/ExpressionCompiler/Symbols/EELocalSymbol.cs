@@ -126,6 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _isPinned; }
         }
 
+        internal override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return false; }
+        }
+
         internal override bool IsCompilerGenerated
         {
             get { return _isCompilerGenerated; }
