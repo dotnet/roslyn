@@ -862,10 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _termState |= TerminatorState.IsAttributeDeclarationTerminator;
 
             while (this.IsPossibleAttributeDeclaration())
-            {
-                var attribute = this.ParseAttributeDeclaration();
-                attributes.Add(attribute);
-            }
+                attributes.Add(this.ParseAttributeDeclaration());
 
             _termState = saveTerm;
 
