@@ -7303,11 +7303,10 @@ done:;
 
                     ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
 
-                    var parameterType = ParseTypeOrVoid();
                     types.Add(SyntaxFactory.FunctionPointerParameter(
                         attributeLists: default,
                         _pool.ToTokenListAndFree(modifiers),
-                        parameterType));
+                        ParseTypeOrVoid()));
 
                     if (skipBadFunctionPointerTokens(types) == PostSkipAction.Abort)
                     {
