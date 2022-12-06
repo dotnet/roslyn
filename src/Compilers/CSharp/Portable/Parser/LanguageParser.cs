@@ -9461,17 +9461,15 @@ tryAgain:
 
         private LabeledStatementSyntax ParseLabeledStatement(SyntaxList<AttributeListSyntax> attributes)
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
-
             // We have an identifier followed by a colon. But if the identifier is a contextual keyword in a query context,
             // ParseIdentifier will result in a missing name and Eat(Colon) will fail. We won't make forward progress.
-            Debug.Assert(this.IsTrueIdentifier());
+            Debug.Assert(this.IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.ColonToken);
 
-            var label = this.ParseIdentifierToken();
-            var colon = this.EatToken(SyntaxKind.ColonToken);
-            Debug.Assert(!colon.IsMissing);
-            var statement = this.ParsePossiblyAttributedStatement() ?? SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken));
-            return _syntaxFactory.LabeledStatement(attributes, label, colon, statement);
+            return _syntaxFactory.LabeledStatement(
+                attributes,
+                this.ParseIdentifierToken(),
+                this.EatToken(SyntaxKind.ColonToken),
+                this.ParsePossiblyAttributedStatement() ?? SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken)));
         }
 
         /// <summary>
