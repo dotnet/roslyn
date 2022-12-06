@@ -1033,23 +1033,18 @@ tryAgain:
             NameColonSyntax? nameColon = null;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                SyntaxKind nextTokenKind = this.PeekToken(1).Kind;
-                switch (nextTokenKind)
+                switch (this.PeekToken(1).Kind)
                 {
                     case SyntaxKind.EqualsToken:
-                        {
-                            nameEquals = _syntaxFactory.NameEquals(
-                                _syntaxFactory.IdentifierName(this.ParseIdentifierToken()),
-                                this.EatToken(SyntaxKind.EqualsToken));
-                        }
+                        nameEquals = _syntaxFactory.NameEquals(
+                            _syntaxFactory.IdentifierName(this.ParseIdentifierToken()),
+                            this.EatToken(SyntaxKind.EqualsToken));
 
                         break;
                     case SyntaxKind.ColonToken:
-                        {
-                            nameColon = _syntaxFactory.NameColon(
-                                this.ParseIdentifierName(),
-                                this.EatToken(SyntaxKind.ColonToken));
-                        }
+                        nameColon = _syntaxFactory.NameColon(
+                            this.ParseIdentifierName(),
+                            this.EatToken(SyntaxKind.ColonToken));
 
                         break;
                 }
