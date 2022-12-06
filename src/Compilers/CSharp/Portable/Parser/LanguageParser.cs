@@ -13091,18 +13091,18 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.JoinKeyword);
             return _syntaxFactory.JoinClause(
-                this.EatContextualToken(SyntaxKind.JoinKeyword),
-                this.PeekToken(1).Kind != SyntaxKind.InKeyword
+                joinKeyword: this.EatContextualToken(SyntaxKind.JoinKeyword),
+                type: this.PeekToken(1).Kind != SyntaxKind.InKeyword
                     ? this.ParseType()
                     : null,
-                this.ParseIdentifierToken(),
-                this.EatToken(SyntaxKind.InKeyword),
-                this.ParseExpressionCore(),
-                this.EatContextualToken(SyntaxKind.OnKeyword, ErrorCode.ERR_ExpectedContextualKeywordOn),
-                this.ParseExpressionCore(),
-                this.EatContextualToken(SyntaxKind.EqualsKeyword, ErrorCode.ERR_ExpectedContextualKeywordEquals),
-                this.ParseExpressionCore(),
-                this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword
+                identifier: this.ParseIdentifierToken(),
+                inKeyword: this.EatToken(SyntaxKind.InKeyword),
+                inExpression: this.ParseExpressionCore(),
+                onKeyword: this.EatContextualToken(SyntaxKind.OnKeyword, ErrorCode.ERR_ExpectedContextualKeywordOn),
+                leftExpression: this.ParseExpressionCore(),
+                equalsKeyword: this.EatContextualToken(SyntaxKind.EqualsKeyword, ErrorCode.ERR_ExpectedContextualKeywordEquals),
+                rightExpression: this.ParseExpressionCore(),
+                into: this.CurrentToken.ContextualKind == SyntaxKind.IntoKeyword
                     ? _syntaxFactory.JoinIntoClause(ConvertToKeyword(this.EatToken()), this.ParseIdentifierToken())
                     : null);
         }
