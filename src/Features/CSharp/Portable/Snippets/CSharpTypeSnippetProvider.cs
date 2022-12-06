@@ -36,18 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 SyntaxKind.UnsafeKeyword
             };
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override bool IsValidSnippetLocation(SyntaxContext context, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-
             return
-                syntaxContext.IsGlobalStatementContext ||
-                syntaxContext.IsTypeDeclarationContext(
+                context.IsGlobalStatementContext ||
+                ((CSharpSyntaxContext)context).IsTypeDeclarationContext(
                     validModifiers: s_validModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken));
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)

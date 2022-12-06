@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// <summary>
         /// Determines if a snippet can exist at a particular location.
         /// </summary>
-        Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken);
+        SnippetData? GetSnippetData(SyntaxContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the Snippet from the corresponding snippet provider.

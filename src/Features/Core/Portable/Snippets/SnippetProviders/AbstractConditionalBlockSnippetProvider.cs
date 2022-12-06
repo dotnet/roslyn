@@ -21,12 +21,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         protected abstract TextChange GenerateSnippetTextChange(Document document, int position);
         protected abstract SyntaxNode GetCondition(SyntaxNode node);
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override bool IsValidSnippetLocation(SyntaxContext context, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
+            return context.IsStatementContext || context.IsGlobalStatementContext;
         }
 
         protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)

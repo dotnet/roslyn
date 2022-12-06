@@ -12,7 +12,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Roslyn.Utilities;
 
@@ -46,10 +49,20 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public async Task<ImmutableArray<SnippetData>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
+            {
+                return ImmutableArray<SnippetData>.Empty;
+            }
+
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+
             using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
             foreach (var provider in GetSnippetProviders(document))
             {
-                var snippetData = await provider.GetSnippetDataAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var snippetData = provider.GetSnippetData(context, cancellationToken);
                 arrayBuilder.AddIfNotNull(snippetData);
             }
 
