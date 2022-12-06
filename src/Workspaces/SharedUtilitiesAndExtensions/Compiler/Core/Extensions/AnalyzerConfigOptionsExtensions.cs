@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                 // This code path will avoid allocating a Dictionary wrapper since we can get direct access to the KeyName.
                 if (storageLocation is EditorConfigStorageLocation<T> editorConfigStorageLocation &&
                     analyzerConfigOptions.TryGetValue(editorConfigStorageLocation.KeyName, out var stringValue) &&
-                    editorConfigStorageLocation.TryGetOption(stringValue, typeof(T), out value))
+                    editorConfigStorageLocation.TryGetOption(stringValue, out value))
                 {
                     return true;
                 }

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             Assert.Equal("TestDesciption", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
             Assert.Equal(typeof(bool), setting.Type);
-            Assert.Equal(defaultValue, setting.Value);
+            Assert.Equal(defaultValue, setting.GetValue());
         }
 
         [Theory]
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             Assert.Equal("TestDesciption", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
             Assert.Equal(typeof(DayOfWeek), setting.Type);
-            Assert.Equal(defaultValue, setting.Value);
+            Assert.Equal(defaultValue, setting.GetValue());
         }
 
         private static Option2<CodeStyleOption2<bool>> CreateBoolOption(bool @default = false)

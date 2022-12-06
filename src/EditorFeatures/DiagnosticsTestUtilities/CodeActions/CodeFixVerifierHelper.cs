@@ -140,11 +140,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var editorConfigStorageLocation = key.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
                 if (editorConfigStorageLocation is null)
                 {
-                    remainingOptions.Add(KeyValuePairUtil.Create<OptionKey2, object?>(key, value));
+                    remainingOptions.Add(KeyValuePairUtil.Create(key, value));
                     continue;
                 }
 
-                analyzerConfig.AppendLine(editorConfigStorageLocation.GetEditorConfigString(value, optionSet));
+#if CODE_STYLE
+                var line = editorConfigStorageLocation.GetEditorConfigString(value);
+#else
+                var line = editorConfigStorageLocation.GetEditorConfigString((OptionKey)key, optionSet);
+#endif
+                analyzerConfig.AppendLine(line);
             }
 
             return (SourceText.From(analyzerConfig.ToString(), Encoding.UTF8), remainingOptions);

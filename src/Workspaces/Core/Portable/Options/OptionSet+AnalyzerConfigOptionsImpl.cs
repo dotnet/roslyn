@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.Options
                     return false;
                 }
 
-                var typedValue = _optionSet.GetOption(optionKey);
-                value = storageLocation.GetEditorConfigStringValue(typedValue, _optionSet);
+                value = storageLocation.GetEditorConfigStringValue(optionKey, _optionSet);
                 return true;
             }
 
