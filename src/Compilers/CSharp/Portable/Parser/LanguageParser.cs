@@ -5193,8 +5193,7 @@ tryAgain:
             var paramList = ParseParenthesizedParameterList();
 
             if (!paramList.IsMissing &&
-                 (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                  this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
+                 (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken ||
                   this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword))
             {
                 return true;
@@ -5217,13 +5216,9 @@ tryAgain:
 
         private ExpressionSyntax ParseVariableInitializer()
         {
-            switch (this.CurrentToken.Kind)
-            {
-                case SyntaxKind.OpenBraceToken:
-                    return this.ParseArrayInitializer();
-                default:
-                    return this.ParseExpressionCore();
-            }
+            return this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                ? this.ParseArrayInitializer()
+                : this.ParseExpressionCore();
         }
 
         private bool IsPossibleVariableInitializer()
