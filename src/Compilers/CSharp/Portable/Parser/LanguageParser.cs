@@ -1311,10 +1311,10 @@ tryAgain:
 
             if (!parsingStatementNotDeclaration)
             {
-                var ctk = this.CurrentToken.Kind;
-                if (IsPossibleStartOfTypeDeclaration(ctk) ||
-                    ctk == SyntaxKind.EventKeyword ||
-                    ((ctk == SyntaxKind.ExplicitKeyword || ctk == SyntaxKind.ImplicitKeyword) && PeekToken(1).Kind == SyntaxKind.OperatorKeyword))
+                var currentTokenKind = this.CurrentToken.Kind;
+                if (IsPossibleStartOfTypeDeclaration(currentTokenKind) ||
+                    currentTokenKind == SyntaxKind.EventKeyword ||
+                    (currentTokenKind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword && PeekToken(1).Kind == SyntaxKind.OperatorKeyword))
                 {
                     return true;
                 }
