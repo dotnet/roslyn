@@ -2192,13 +2192,8 @@ tryAgain:
             cancellationToken.ThrowIfCancellationRequested();
 
             // don't reuse members if they were previously declared under a different type keyword kind
-            if (this.IsIncrementalAndFactoryContextMatches)
-            {
-                if (CanReuseMemberDeclaration(CurrentNodeKind, isGlobal: true))
-                {
-                    return (MemberDeclarationSyntax)this.EatNode();
-                }
-            }
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseMemberDeclaration(CurrentNodeKind, isGlobal: true))
+                return (MemberDeclarationSyntax)this.EatNode();
 
             var saveTermState = _termState;
 
