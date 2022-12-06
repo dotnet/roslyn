@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             this.RedoStack.Clear();
             this.initialState = null;
             this.currentState = null;
+
+            if (_trackedSession is not null)
+            {
+                _trackedSession.ReplacementTextChanged -= InlineRenameSession_ReplacementTextChanged;
+                _trackedSession = null;
+            }
         }
 
         private void UpdateCurrentState(string replacementText, ITextSelection selection, SnapshotSpan activeSpan)

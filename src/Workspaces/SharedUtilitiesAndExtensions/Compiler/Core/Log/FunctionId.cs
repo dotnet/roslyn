@@ -583,5 +583,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         // 650-660 for diagnostic/fix related ids.
         Diagnostics_AnalyzerPerformanceInfo = 651,
+
+        // 661-670 for newer rename ids
+        Rename_TryApplyRename_WorkspaceChanged = 661,
     }
 }

@@ -864,31 +864,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
+            // Go to the background thread ofr initial calculation of the final solution
             await TaskScheduler.Default;
-            var finalSolution = newSolution.Workspace.CurrentSolution;
-            foreach (var id in changedDocumentIDs)
-            {
-                // If the document supports syntax tree, then create the new solution from the
-                // updated syntax root.  This should ensure that annotations are preserved, and
-                // prevents the solution from having to reparse documents when we already have
-                // the trees for them.  If we don't support syntax, then just use the text of
-                // the document.
-                var newDocument = newSolution.GetDocument(id);
-
-                if (newDocument.SupportsSyntaxTree)
-                {
-                    var root = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
-                }
-                else
-                {
-                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    finalSolution = finalSolution.WithDocumentText(id, newText);
-                }
-
-                // Make sure to include any document rename as well
-                finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
-            }
+            var finalSolution = CalculateFinalSolutionSynchronously(newSolution, newSolution.Workspace, changedDocumentIDs, cancellationToken);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -896,6 +874,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
                 return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
+
+            if (finalSolution.WorkspaceVersion != _workspace.CurrentSolution.WorkspaceVersion)
+            {
+                Logger.Log(FunctionId.Rename_TryApplyRename_WorkspaceChanged, message: null, LogLevel.Information);
+                finalSolution = CalculateFinalSolutionSynchronously(newSolution, _workspace, changedDocumentIDs, cancellationToken);
+            }
 
             if (!_workspace.TryApplyChanges(finalSolution))
                 return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
@@ -923,6 +907,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // If we successfully updated the workspace then make sure the undo transaction is committed and is
                 // always able to undo anything any other external listener did.
                 undoTransaction.Commit();
+            }
+
+            static Solution CalculateFinalSolutionSynchronously(Solution newSolution, Workspace workspace, List<DocumentId> changedDocumentIDs, CancellationToken cancellationToken)
+            {
+                var finalSolution = workspace.CurrentSolution;
+                foreach (var id in changedDocumentIDs)
+                {
+                    // If the document supports syntax tree, then create the new solution from the
+                    // updated syntax root.  This should ensure that annotations are preserved, and
+                    // prevents the solution from having to reparse documents when we already have
+                    // the trees for them.  If we don't support syntax, then just use the text of
+                    // the document.
+                    var newDocument = newSolution.GetDocument(id);
+
+                    if (newDocument.SupportsSyntaxTree)
+                    {
+                        var root = newDocument.GetRequiredSyntaxRootSynchronously(cancellationToken);
+                        finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
+                    }
+                    else
+                    {
+                        var newText = newDocument.GetTextSynchronously(cancellationToken);
+                        finalSolution = finalSolution.WithDocumentText(id, newText);
+                    }
+
+                    // Make sure to include any document rename as well
+                    finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
+                }
+
+                return finalSolution;
             }
         }
 
