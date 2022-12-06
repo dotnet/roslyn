@@ -1689,6 +1689,14 @@ namespace Microsoft.CodeAnalysis
             var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
+                if (projectState.AdditionalDocumentStates.Contains(documentId) ||
+                    projectState.AnalyzerConfigDocumentStates.Contains(documentId))
+                {
+                    // currently, we don't allow these types of files to be linked.  But we still want to support this
+                    // API in returning at least the document it was passed in.
+                    return ImmutableArray.Create(documentId);
+                }
+
                 // this document no longer exist
                 return ImmutableArray<DocumentId>.Empty;
             }
