@@ -122,7 +122,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (int i = 0; i < parameterCount; i++)
                     {
                         var field = fields[i];
-                        parameters.Add((TypeWithAnnotations.Create(typeParams[i]), field.RefKind, field.Scope, field.DefaultValue, field.IsParams));
+                        var type = TypeWithAnnotations.Create(typeParams[i]);
+
+                        // Replace `T` with `T[]` for params array.
+                        if (field.IsParams)
+                        {
+                            type = TypeWithAnnotations.Create(ArrayTypeSymbol.CreateCSharpArray(containingType.ContainingAssembly, type));
+                        }
+
+                        parameters.Add((type, field.RefKind, field.Scope, field.DefaultValue, field.IsParams));
                     }
 
                     // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate

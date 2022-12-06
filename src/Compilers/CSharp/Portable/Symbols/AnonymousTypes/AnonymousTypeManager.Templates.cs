@@ -199,7 +199,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(nTypeArguments);
                 for (int i = 0; i < nTypeArguments; i++)
                 {
-                    typeArgumentsBuilder.Add(fields[i].TypeWithAnnotations);
+                    var field = fields[i];
+                    if (field.IsParams)
+                    {
+                        Debug.Assert(needsIndexedName);
+                        Debug.Assert(i == fields.Length - 2);
+                        Debug.Assert(field.Type.IsSZArray());
+                        typeArgumentsBuilder.Add(((ArrayTypeSymbol)field.Type).ElementTypeWithAnnotations);
+                    }
+                    else
+                    {
+                        typeArgumentsBuilder.Add(field.TypeWithAnnotations);
+                    }
                 }
 
                 var typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
@@ -209,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Debug.Assert(nTypeArguments != 0);
 
-                    // Replace field types (where type parameters will be) by placeholders.
+                    // Construct key for the delegate with type parameters.
                     var genericFieldTypes = IndexedTypeParameterSymbol.Take(nTypeArguments);
                     if (returnsVoid)
                     {
