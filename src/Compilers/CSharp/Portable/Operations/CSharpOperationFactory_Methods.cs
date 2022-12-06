@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new VariableDeclaratorOperation(symbol, initializer, ignoredDimensions, _semanticModel, syntax, isImplicit);
         }
 
-        [return: NotNullIfNotNull("boundLocal")]
+        [return: NotNullIfNotNull(nameof(boundLocal))]
         internal IVariableDeclaratorOperation? CreateVariableDeclarator(BoundLocal? boundLocal)
         {
             return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol.GetPublicSymbol(), initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, isImplicit: false);

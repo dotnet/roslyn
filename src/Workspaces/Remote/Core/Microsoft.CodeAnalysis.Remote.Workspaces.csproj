@@ -73,5 +73,13 @@
     <InternalsVisibleTo Include="MonoDevelop.Ide.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <!-- END MONODEVELOP -->
+    
+    <!-- BEGIN PROJECT SYSTEM FOR VS CODE -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VSCode" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VSCode.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <!-- END PROJECT SYSTEM FOR VS CODE -->
+
   </ItemGroup>
 </Project>
