@@ -54,6 +54,7 @@
       "src\\Scripting\\CSharp\\Microsoft.CodeAnalysis.CSharp.Scripting.csproj",
       "src\\Scripting\\Core\\Microsoft.CodeAnalysis.Scripting.csproj",
       "src\\Test\\PdbUtilities\\Roslyn.Test.PdbUtilities.csproj",
+      "src\\Tools\\PrepareTests\\PrepareTests.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpSyntaxGenerator\\CSharpSyntaxGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\BoundTreeGenerator\\CompilersBoundTreeGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpErrorFactsGenerator\\CSharpErrorFactsGenerator.csproj",
