@@ -2287,9 +2287,8 @@ tryAgain:
                     // Unless modifiers or attributes are present this is more likely to be a method call than a method definition.
                     if (haveAttributes || haveModifiers)
                     {
-                        var token = SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword);
-                        token = this.AddError(token, ErrorCode.ERR_MemberNeedsType);
-                        var voidType = _syntaxFactory.PredefinedType(token);
+                        var voidType = _syntaxFactory.PredefinedType(
+                            this.AddError(SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword), ErrorCode.ERR_MemberNeedsType));
 
                         if (!IsScript)
                         {
