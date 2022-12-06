@@ -3003,7 +3003,6 @@ public class C : A {
 
             var frozenDocument = documentToFreezeChanged.WithFrozenPartialSemantics(CancellationToken.None);
 
-            // Because we had no compilation produced yet, we expect that only the DocumentToFreeze is in the compilation
             Assert.NotSame(frozenDocument, documentToFreezeChanged);
 
             // Versions should the same since there wasn't a top level change different
@@ -3049,7 +3048,6 @@ public class C : A {
 
             var frozenDocument = documentToFreezeChanged.WithFrozenPartialSemantics(CancellationToken.None);
 
-            // Because we had no compilation produced yet, we expect that only the DocumentToFreeze is in the compilation
             Assert.NotSame(frozenDocument, documentToFreezeChanged);
 
             // Before/after the change must always result in a top level change.
