@@ -4593,13 +4593,7 @@ tryAgain:
                 Debug.Assert(typeParameterList == null, "Exit condition of ParseMemberName in this scenario");
 
                 // No need for a diagnostic, ParseMemberName has already added one.
-                var missingIdentifier = (identifierOrThisOpt == null) ? CreateMissingIdentifierToken() : identifierOrThisOpt;
-
-                var missingAccessorList =
-                    _syntaxFactory.AccessorList(
-                        SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
-                        default(SyntaxList<AccessorDeclarationSyntax>),
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken));
+                var missingIdentifier = identifierOrThisOpt == null ? CreateMissingIdentifierToken() : identifierOrThisOpt;
 
                 return _syntaxFactory.EventDeclaration(
                     attributes,
@@ -4608,7 +4602,10 @@ tryAgain:
                     type,
                     explicitInterfaceOpt, //already has an appropriate error attached
                     missingIdentifier,
-                    missingAccessorList,
+                    _syntaxFactory.AccessorList(
+                        SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
+                        default(SyntaxList<AccessorDeclarationSyntax>),
+                        SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)),
                     semicolonToken: null);
             }
 
