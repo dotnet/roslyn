@@ -49,38 +49,7 @@ record Point { }
 record Point(int x, int y);
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (2,12): error CS8805: Program using top-level statements must be an executable.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 12),
-                // (2,12): error CS1514: { expected
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 12),
-                // (2,12): error CS1513: } expected
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 12),
-                // (2,12): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 12),
-                // (2,12): error CS8803: Top-level statements must precede namespace and type declarations.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 12),
-                // (2,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 12),
-                // (2,13): error CS8185: A declaration is not allowed in this context.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 13),
-                // (2,13): error CS0165: Use of unassigned local variable 'x'
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 13),
-                // (2,20): error CS8185: A declaration is not allowed in this context.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 20),
-                // (2,20): error CS0165: Use of unassigned local variable 'y'
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
-            );
+            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of class. 
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
@@ -113,35 +82,7 @@ record Point(int x, int y);
             );
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (2,12): error CS8805: Program using top-level statements must be an executable.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 12),
-                // (2,12): error CS1514: { expected
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 12),
-                // (2,12): error CS1513: } expected
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 12),
-                // (2,12): error CS8803: Top-level statements must precede namespace and type declarations.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 12),
-                // (2,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 12),
-                // (2,13): error CS8185: A declaration is not allowed in this context.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 13),
-                // (2,13): error CS0165: Use of unassigned local variable 'x'
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 13),
-                // (2,20): error CS8185: A declaration is not allowed in this context.
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 20),
-                // (2,20): error CS0165: Use of unassigned local variable 'y'
-                // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
-            );
+            comp.VerifyDiagnostics();
             comp = CreateCompilation(src2);
             comp.VerifyDiagnostics();
 
@@ -177,20 +118,7 @@ class E
 }
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (4,16): error CS1514: { expected
-                //     class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(4, 16),
-                // (4,16): error CS1513: } expected
-                //     class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(4, 16),
-                // (4,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30),
-                // (4,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30)
-                );
+            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of class.
 
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -213,20 +141,7 @@ class E
                 );
 
             comp = CreateCompilation(src1);
-            comp.VerifyDiagnostics(
-                // (4,16): error CS1514: { expected
-                //     class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(4, 16),
-                // (4,16): error CS1513: } expected
-                //     class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(4, 16),
-                // (4,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30),
-                // (4,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30)
-                );
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src2);
             comp.VerifyDiagnostics();
@@ -257,31 +172,7 @@ record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
                 // (2,8): error CS1002: ; expected
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
-                // (2,19): error CS1514: { expected
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
-                // (2,19): error CS1513: } expected
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 19),
-                // (2,19): error CS8803: Top-level statements must precede namespace and type declarations.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 19),
-                // (2,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 19),
-                // (2,20): error CS8185: A declaration is not allowed in this context.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 20),
-                // (2,20): error CS0165: Use of unassigned local variable 'x'
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 20),
-                // (2,27): error CS8185: A declaration is not allowed in this context.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 27),
-                // (2,27): error CS0165: Use of unassigned local variable 'y'
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 27)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8)
                 );
 
             comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);

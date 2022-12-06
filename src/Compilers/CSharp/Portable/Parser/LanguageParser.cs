@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFunctionPointerParameterList = 1 << 23,
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
             IsEndOfFunctionPointerCallingConvention = 1 << 25,
-            IsEndOfRecordSignature = 1 << 26,
+            IsEndOfRecordOrClassOrStructSignature = 1 << 26,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordSignature;
+        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordOrClassOrStructSignature;
 
         private bool IsTerminator()
         {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
                     case TerminatorState.IsEndOfFunctionPointerCallingConvention when this.IsEndOfFunctionPointerCallingConvention():
-                    case TerminatorState.IsEndOfRecordSignature when this.IsEndOfRecordSignature():
+                    case TerminatorState.IsEndOfRecordOrClassOrStructSignature when this.IsEndOfRecordOrClassOrStructSignature():
                         return true;
                 }
             }
@@ -1517,13 +1517,17 @@ tryAgain:
 
             var outerSaveTerm = _termState;
 
-            if (tryScanRecordStart(out var keyword, out var recordModifier))
-            {
-                _termState |= TerminatorState.IsEndOfRecordSignature;
-            }
-            else
+            if (!tryScanRecordStart(out var keyword, out var recordModifier))
             {
                 keyword = ConvertToKeyword(this.EatToken());
+            }
+
+            bool isRecordOrClassOrStruct = keyword.Kind is not SyntaxKind.InterfaceKeyword;
+
+            if (isRecordOrClassOrStruct)
+            {
+                Debug.Assert(keyword.Kind is (SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.RecordKeyword));
+                _termState |= TerminatorState.IsEndOfRecordOrClassOrStructSignature;
             }
 
             var saveTerm = _termState;
@@ -1532,7 +1536,7 @@ tryAgain:
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
+            var paramList = isRecordOrClassOrStruct && CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
             var baseList = this.ParseBaseList();
@@ -1555,7 +1559,7 @@ tryAgain:
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                if (isRecordOrClassOrStruct && CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
                     semicolon = EatToken(SyntaxKind.SemicolonToken);
                     openBrace = null;
@@ -1686,15 +1690,13 @@ tryAgain:
                 switch (keyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1703,15 +1705,13 @@ tryAgain:
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.StructDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1882,7 +1882,7 @@ tryAgain:
             while (true)
             {
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                    ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
+                    ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
                     this.IsCurrentTokenWhereOfConstraintClause())
                 {
                     break;
@@ -1950,7 +1950,7 @@ tryAgain:
                 while (true)
                 {
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                        || ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        || ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                         || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                     {
@@ -3217,7 +3217,7 @@ parse_member_name:;
             return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
         }
 
-        private bool IsEndOfRecordSignature()
+        private bool IsEndOfRecordOrClassOrStructSignature()
         {
             return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
         }
@@ -4493,7 +4493,16 @@ tryAgain:
                 }
 
                 var type = this.ParseType(mode: ParseTypeMode.Parameter);
-                var identifier = this.ParseIdentifierToken();
+                SyntaxToken identifier;
+
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsCurrentTokenWhereOfConstraintClause())
+                {
+                    identifier = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+                }
+                else
+                {
+                    identifier = this.ParseIdentifierToken();
+                }
 
                 // When the user type "int goo[]", give them a useful error
                 if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)

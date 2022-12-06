@@ -589,17 +589,7 @@ abstract record D
         [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_ConstraintAndSemiColon_Class()
         {
-            UsingTree("abstract class C<T> where T : class;",
-                // (1,36): error CS1003: Syntax error, ',' expected
-                // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 36),
-                // (1,37): error CS1514: { expected
-                // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 37),
-                // (1,37): error CS1513: } expected
-                // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 37)
-                );
+            UsingTree("abstract class C<T> where T : class;");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -630,8 +620,7 @@ abstract record D
                             N(SyntaxKind.ClassKeyword);
                         }
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -641,17 +630,7 @@ abstract record D
         [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_TwoConstraintsAndSemiColon_Class()
         {
-            UsingTree("abstract class C<T1, T2> where T1 : class where T2 : class;",
-                // (1,59): error CS1003: Syntax error, ',' expected
-                // abstract class C<T1, T2> where T1 : class where T2 : class;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 59),
-                // (1,60): error CS1514: { expected
-                // abstract class C<T1, T2> where T1 : class where T2 : class;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 60),
-                // (1,60): error CS1513: } expected
-                // abstract class C<T1, T2> where T1 : class where T2 : class;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 60)
-                );
+            UsingTree("abstract class C<T1, T2> where T1 : class where T2 : class;");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -699,8 +678,7 @@ abstract record D
                             N(SyntaxKind.ClassKeyword);
                         }
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2126,33 +2104,13 @@ class C
         }
 
         [Fact]
-        public void BadParameterListAndBaseListOnClass()
+        public void ParameterListAndBaseListOnClass()
         {
             var text = @$"
 class C(int X, int Y)
 : B(X, Y)
 {{ }}";
-            UsingTree(text,
-                // (2,8): error CS1514: { expected
-                // class C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 8),
-                // (2,8): error CS1513: } expected
-                // class C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 8),
-                // (2,8): error CS8803: Top-level statements must precede namespace and type declarations.
-                // class C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"(int X, int Y)
-").WithLocation(2, 8),
-                // (2,22): error CS1002: ; expected
-                // class C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 22),
-                // (3,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // : B(X, Y)
-                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(3, 1),
-                // (3,10): error CS1002: ; expected
-                // : B(X, Y)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 10)
-            );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2160,55 +2118,32 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.BaseList);
                     {
-                        N(SyntaxKind.InvocationExpression);
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -2235,16 +2170,9 @@ class C(int X, int Y)
                                 N(SyntaxKind.CloseParenToken);
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
                     }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2722,16 +2650,8 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
                 // (1,8): error CS1002: ; expected
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
-                // (1,16): error CS1514: { expected
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 16),
-                // (1,16): error CS1513: } expected
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 16),
-                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8)
+                );
 
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
@@ -2745,31 +2665,8 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
                 // (1,8): error CS1002: ; expected
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
-                // (1,16): error CS1514: { expected
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 16),
-                // (1,16): error CS1513: } expected
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 16),
-                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16),
-                // (1,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(1, 16),
-                // (1,17): error CS8185: A declaration is not allowed in this context.
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(1, 17),
-                // (1,17): error CS0165: Use of unassigned local variable 'X'
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(1, 17),
-                // (1,24): error CS8185: A declaration is not allowed in this context.
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(1, 24),
-                // (1,24): error CS0165: Use of unassigned local variable 'Y'
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(1, 24));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8)
+                );
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2795,49 +2692,29 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2965,31 +2842,8 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(1, 8),
                 // (1,8): error CS1002: ; expected
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8),
-                // (1,15): error CS1514: { expected
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 15),
-                // (1,15): error CS1513: } expected
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 15),
-                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15),
-                // (1,15): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(1, 15),
-                // (1,16): error CS8185: A declaration is not allowed in this context.
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(1, 16),
-                // (1,16): error CS0165: Use of unassigned local variable 'X'
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(1, 16),
-                // (1,23): error CS8185: A declaration is not allowed in this context.
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(1, 23),
-                // (1,23): error CS0165: Use of unassigned local variable 'Y'
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8)
+                );
 
             UsingTree(text, options: TestOptions.Regular8,
                 // (1,8): error CS1001: Identifier expected
@@ -2997,16 +2851,8 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(1, 8),
                 // (1,8): error CS1002: ; expected
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8),
-                // (1,15): error CS1514: { expected
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 15),
-                // (1,15): error CS1513: } expected
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 15),
-                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
-                // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8)
+                );
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3032,49 +2878,29 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3846,13 +3672,7 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "struct").WithLocation(1, 12),
                 // (1,12): error CS1002: ; expected
                 // new record struct S;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 12),
-                // (1,20): error CS1514: { expected
-                // new record struct S;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
-                // (1,20): error CS1513: } expected
-                // new record struct S;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 12)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3881,8 +3701,6 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "S");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -3905,23 +3723,13 @@ class C(int X, int Y)
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
-                // (1,20): error CS1514: { expected
-                // ref record struct S;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
-                // (1,20): error CS1513: } expected
-                // ref record struct S;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20));
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5)
+                );
             UsingTree(text, options: TestOptions.Regular8,
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
-                // (1,20): error CS1514: { expected
-                // ref record struct S;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
-                // (1,20): error CS1513: } expected
-                // ref record struct S;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20));
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5)
+                );
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3940,8 +3748,6 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "S");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -4062,13 +3868,7 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "struct").WithLocation(1, 14),
                 // (1,14): error CS1002: ; expected
                 // const record struct S;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 14),
-                // (1,22): error CS1514: { expected
-                // const record struct S;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 22),
-                // (1,22): error CS1513: } expected
-                // const record struct S;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 22)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 14)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -4096,8 +3896,6 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "S");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -4124,13 +3922,7 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_ValueExpected, "struct").WithLocation(1, 14),
                 // (1,14): error CS1002: ; expected
                 // fixed record struct S;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 14),
-                // (1,22): error CS1514: { expected
-                // fixed record struct S;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 22),
-                // (1,22): error CS1513: } expected
-                // fixed record struct S;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 22)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 14)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -4167,8 +3959,6 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "S");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -4285,6 +4075,84 @@ class C(int X, int Y)
         public void ParseIncompleteRecordStructSyntax()
         {
             ParseIncompleteSyntax("public sealed record struct C() { }");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IncompleteParameterList_09(bool @struct)
+        {
+            var text = @"record 
+" + (@struct ? "struct" : "class") + @" C<T>
+(T x,
+where T : class;";
+            UsingTree(text,
+                // (3,6): error CS1031: Type expected
+                // (T x,
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 6),
+                // (3,6): error CS1001: Identifier expected
+                // (T x,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 6),
+                // (3,6): error CS1026: ) expected
+                // (T x,
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 6)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(@struct ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.Parameter);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
     }
 }
