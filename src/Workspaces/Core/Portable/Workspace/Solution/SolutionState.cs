@@ -1292,17 +1292,12 @@ namespace Microsoft.CodeAnalysis
             SourceText text,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredDocumentState(documentId);
-                if (oldDocument.TryGetText(out var oldText) && text == oldText)
-                    continue;
-
-                newState = newState.UpdateDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
-            }
-
-            return newState;
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredDocumentState(documentId),
+                static (oldDocument, arg) => oldDocument.TryGetText(out var oldText) && oldText == arg.text,
+                static (newState, oldDocument, arg) => newState.UpdateDocumentState(oldDocument.UpdateText(arg.text, arg.mode), textChanged: true),
+                (text, mode));
         }
 
         /// <summary>
@@ -1314,17 +1309,12 @@ namespace Microsoft.CodeAnalysis
             SourceText text,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredAdditionalDocumentState(documentId);
-                if (oldDocument.TryGetText(out var oldText) && text == oldText)
-                    continue;
-
-                newState = newState.UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
-            }
-
-            return newState;
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredAdditionalDocumentState(documentId),
+                static (oldDocument, arg) => oldDocument.TryGetText(out var oldText) && oldText == arg.text,
+                static (newState, oldDocument, arg) => newState.UpdateAdditionalDocumentState(oldDocument.UpdateText(arg.text, arg.mode), textChanged: true),
+                (text, mode));
         }
 
         /// <summary>
@@ -1336,17 +1326,12 @@ namespace Microsoft.CodeAnalysis
             SourceText text,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredAnalyzerConfigDocumentState(documentId);
-                if (oldDocument.TryGetText(out var oldText) && text == oldText)
-                    continue;
-
-                newState = newState.UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(text, mode));
-            }
-
-            return newState;
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredAnalyzerConfigDocumentState(documentId),
+                static (oldDocument, arg) => oldDocument.TryGetText(out var oldText) && oldText == arg.text,
+                static (newState, oldDocument, arg) => newState.UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(arg.text, arg.mode)),
+                (text, mode));
         }
 
         /// <summary>
@@ -1358,17 +1343,12 @@ namespace Microsoft.CodeAnalysis
             TextAndVersion textAndVersion,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredDocumentState(documentId);
-                if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
-                    continue;
-
-                newState = newState.UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
-            }
-
-            return newState;
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredDocumentState(documentId),
+                static (oldDocument, arg) => oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && oldTextAndVersion == arg.textAndVersion,
+                static (newState, oldDocument, arg) => newState.UpdateDocumentState(oldDocument.UpdateText(arg.textAndVersion, arg.mode), textChanged: true),
+                (textAndVersion, mode));
         }
 
         /// <summary>
@@ -1380,17 +1360,12 @@ namespace Microsoft.CodeAnalysis
             TextAndVersion textAndVersion,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredAdditionalDocumentState(documentId);
-                if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
-                    continue;
-
-                newState = newState.UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
-            }
-
-            return newState;
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredAdditionalDocumentState(documentId),
+                static (oldDocument, arg) => oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && oldTextAndVersion == arg.textAndVersion,
+                static (newState, oldDocument, arg) => newState.UpdateAdditionalDocumentState(oldDocument.UpdateText(arg.textAndVersion, arg.mode), textChanged: true),
+                (textAndVersion, mode));
         }
 
         /// <summary>
@@ -1402,17 +1377,12 @@ namespace Microsoft.CodeAnalysis
             TextAndVersion textAndVersion,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredAnalyzerConfigDocumentState(documentId);
-                if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
-                    continue;
-
-                newState = newState.UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode));
-            }
-
-            return newState;
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredAnalyzerConfigDocumentState(documentId),
+                static (oldDocument, arg) => oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && oldTextAndVersion == arg.textAndVersion,
+                static (newState, oldDocument, arg) => newState.UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(arg.textAndVersion, arg.mode)),
+                (textAndVersion, mode));
         }
 
         /// <summary>
@@ -1424,21 +1394,12 @@ namespace Microsoft.CodeAnalysis
             SyntaxNode root,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredDocumentState(documentId);
-                if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
-                    oldTree.TryGetRoot(out var oldRoot) &&
-                    oldRoot == root)
-                {
-                    continue;
-                }
-
-                newState = newState.UpdateDocumentState(oldDocument.UpdateTree(root, mode), textChanged: true);
-            }
-
-            return newState;
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredDocumentState(documentId),
+                static (oldDocument, arg) => oldDocument.TryGetSyntaxTree(out var oldTree) && oldTree.TryGetRoot(out var oldRoot) && oldRoot == arg.root,
+                static (newState, oldDocument, arg) => newState.UpdateDocumentState(oldDocument.UpdateTree(arg.root, arg.mode), textChanged: true),
+                (root, mode));
         }
 
         private static async Task<Compilation> UpdateDocumentInCompilationAsync(
@@ -1460,17 +1421,12 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DocumentId> relatedDocuments,
             SourceCodeKind sourceCodeKind)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredDocumentState(documentId);
-                if (oldDocument.SourceCodeKind == sourceCodeKind)
-                    continue;
-
-                newState = newState.UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), textChanged: true);
-            }
-
-            return newState;
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredDocumentState(documentId),
+                static (oldDocument, sourceCodeKind) => oldDocument.SourceCodeKind == sourceCodeKind,
+                static (newState, oldDocument, sourceCodeKind) => newState.UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), textChanged: true),
+                sourceCodeKind);
         }
 
         public SolutionState UpdateDocumentTextLoader(
@@ -1478,17 +1434,14 @@ namespace Microsoft.CodeAnalysis
             TextLoader loader,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredDocumentState(documentId);
-
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredDocumentState(documentId),
+                static (oldDocument, arg) => false,
                 // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
                 // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-                newState = newState.UpdateDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
-            }
-
-            return newState;
+                static (newState, oldDocument, arg) => newState.UpdateDocumentState(oldDocument.UpdateText(arg.loader, arg.mode), textChanged: true, recalculateDependentVersions: true),
+                (loader, mode));
         }
 
         /// <summary>
@@ -1500,17 +1453,14 @@ namespace Microsoft.CodeAnalysis
             TextLoader loader,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredAdditionalDocumentState(documentId);
-
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredAdditionalDocumentState(documentId),
+                static (oldDocument, arg) => false,
                 // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
                 // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-                newState = newState.UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
-            }
-
-            return newState;
+                static (newState, oldDocument, arg) => newState.UpdateAdditionalDocumentState(oldDocument.UpdateText(arg.loader, arg.mode), textChanged: true, recalculateDependentVersions: true),
+                (loader, mode));
         }
 
         /// <summary>
@@ -1522,17 +1472,14 @@ namespace Microsoft.CodeAnalysis
             TextLoader loader,
             PreservationMode mode)
         {
-            var newState = this;
-            foreach (var documentId in relatedDocuments)
-            {
-                var oldDocument = newState.GetRequiredAnalyzerConfigDocumentState(documentId);
-
+            return this.UpdateRelatedDocuments(
+                relatedDocuments,
+                static (newState, documentId) => newState.GetRequiredAnalyzerConfigDocumentState(documentId),
+                static (oldDocument, arg) => false,
                 // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
                 // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-                newState = newState.UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
-            }
-
-            return newState;
+                static (newState, oldDocument, arg) => newState.UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(arg.loader, arg.mode)),
+                (loader, mode));
         }
 
         private SolutionState UpdateDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
