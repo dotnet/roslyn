@@ -3159,19 +3159,13 @@ parse_member_name:;
         }
 
         private bool IsEndOfMethodSignature()
-        {
-            return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
-        }
+            => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
 
         private bool IsEndOfRecordSignature()
-        {
-            return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
-        }
+            => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
 
         private bool IsEndOfNameInExplicitInterface()
-        {
-            return this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.ColonColonToken;
-        }
+            => this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.ColonColonToken;
 
         private bool IsEndOfFunctionPointerParameterList(bool errored)
             => this.CurrentToken.Kind == (errored ? SyntaxKind.CloseParenToken : SyntaxKind.GreaterThanToken);
@@ -3204,7 +3198,7 @@ parse_member_name:;
                 // Use else if, rather than if, because if we see both a constructor initializer and a constraint clause, we're too lost to recover.
                 var colonToken = this.CurrentToken;
 
-                ConstructorInitializerSyntax initializer = this.ParseConstructorInitializer();
+                var initializer = this.ParseConstructorInitializer();
                 initializer = this.AddErrorToFirstToken(initializer, ErrorCode.ERR_UnexpectedToken, colonToken.Text);
                 paramList = AddTrailingSkippedSyntax(paramList, initializer);
 
@@ -3216,10 +3210,6 @@ parse_member_name:;
 
             _termState = saveTerm;
 
-            BlockSyntax blockBody;
-            ArrowExpressionClauseSyntax expressionBody;
-            SyntaxToken semicolon;
-
             // Method declarations cannot be nested or placed inside async lambdas, and so cannot occur in an
             // asynchronous context. Therefore the IsInAsync state of the parent scope is not saved and
             // restored, just assumed to be false and reset accordingly after parsing the method body.
@@ -3227,7 +3217,7 @@ parse_member_name:;
 
             IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
 
-            this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
+            this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
 
             IsInAsync = false;
 
@@ -3353,15 +3343,9 @@ parse_member_name:;
                     }
                 }
 
-                SyntaxToken style;
-                if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
-                {
-                    style = this.EatToken();
-                }
-                else
-                {
-                    style = this.EatToken(SyntaxKind.ExplicitKeyword);
-                }
+                var style = this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword
+                    ? this.EatToken()
+                    : this.EatToken(SyntaxKind.ExplicitKeyword);
 
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
                 Debug.Assert(!style.IsMissing || haveExplicitInterfaceName == explicitInterfaceOpt is not null);
@@ -3416,10 +3400,7 @@ parse_member_name:;
 
                 var paramList = this.ParseParenthesizedParameterList();
 
-                BlockSyntax blockBody;
-                ArrowExpressionClauseSyntax expressionBody;
-                SyntaxToken semicolon;
-                this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
+                this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
 
                 return _syntaxFactory.ConversionOperatorDeclaration(
                     attributes,
@@ -3633,10 +3614,7 @@ parse_member_name:;
                     break;
             }
 
-            BlockSyntax blockBody;
-            ArrowExpressionClauseSyntax expressionBody;
-            SyntaxToken semicolon;
-            this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
+            this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
 
             // if the operator is invalid, then switch it to plus (which will work either way) so that
             // we can finish building the tree
