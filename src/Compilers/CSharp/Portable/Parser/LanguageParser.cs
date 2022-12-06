@@ -2696,7 +2696,7 @@ parse_member_name:;
                 identifierOrThisOpt != null &&
                 (typeParameterListOpt != null && typeParameterListOpt.ContainsDiagnostics
                   || this.CurrentToken.Kind is not SyntaxKind.OpenParenToken and not SyntaxKind.OpenBraceToken and not SyntaxKind.EqualsGreaterThanToken) &&
-                LanguageParser.ReconsiderTypeAsAsyncModifier(ref modifiers, type, identifierOrThisOpt))
+                ReconsiderTypeAsAsyncModifier(ref modifiers, type, identifierOrThisOpt))
             {
                 this.Reset(ref afterTypeResetPoint);
                 explicitInterfaceOpt = null;
@@ -4050,7 +4050,7 @@ parse_member_name:;
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
                 isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
-            var accessorKind = LanguageParser.GetAccessorKind(accessorName);
+            var accessorKind = GetAccessorKind(accessorName);
 
             // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
             // other contextual keyword (like 'partial') will be converted into a keyword
