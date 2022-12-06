@@ -98,7 +98,7 @@
     },
     {
         "label": "generate compiler code",
-        "command": "dotnet",
+        "command": "${workspaceFolder}/.dotnet/dotnet",
         "type": "shell",
         "args": [
           "pwsh",
