@@ -201,10 +201,6 @@ namespace Microsoft.CodeAnalysis
                         var oldTree = oldState.GetSyntaxTree(cancellationToken);
 
                         compilationPair = compilationPair.ReplaceSyntaxTree(oldTree, tree);
-
-                        // We're changing the text of this document to something else entirely.  So we need to pass
-                        // `textChanged: true, recalculateDependentVersions: true` so that any interested parties that
-                        // compute anything that is dependent on changed text get the right values.
                         inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
