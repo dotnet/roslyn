@@ -18,8 +18,6 @@
  is indicated via a "ValueType" declaration.
 -->
 
-<!-- PROTOTYPE: Remove ValEscape fields from all BoundNodes. -->
-
 <Tree Root="BoundNode">
 
   <!-- Don't put ImmutableArray here, that's handled in a special way internally.-->
@@ -156,14 +154,12 @@
   <!-- This node is used to represent the receiver for an implicit Index or Range indexer. It does not survive lowering -->
   <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
     <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!-- This node represents the receiver for a list pattern. It does not survive lowering -->
   <Node Name="BoundListPatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- This node represents the Index value of accessing an element in a list pattern. It does not survive lowering -->
@@ -174,7 +170,6 @@
   <!-- This node represents the receiver for a slice pattern. It does not survive lowering -->
   <Node Name="BoundSlicePatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- This node represents the Range value of accessing a range in a slice pattern. It does not survive lowering -->
@@ -2363,7 +2358,7 @@
          is null before type inference, and it is replaced by a BoundDiscardExpression with a non-null
          type after inference. -->
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
-    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/> <!-- PROTOTYPE: Remove ValEscape field. -->
   </Node>
 
   <Node Name="BoundThrowExpression" Base="BoundExpression">

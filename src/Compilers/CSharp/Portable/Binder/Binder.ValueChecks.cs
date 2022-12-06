@@ -3382,7 +3382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DiscardExpression:
                     return ((BoundDiscardExpression)expr).ValEscape;
 
-                case BoundKind.DeconstructValuePlaceholder:
+                case BoundKind.DeconstructValuePlaceholder: // PROTOTYPE: Combine all these placeholder cases.
                     return GetPlaceholderScope((BoundDeconstructValuePlaceholder)expr);
 
                 case BoundKind.Local:
@@ -3478,13 +3478,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                    return ((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape;
+                    return GetPlaceholderScope((BoundImplicitIndexerReceiverPlaceholder)expr); // PROTOTYPE: Is this code path hit?
 
                 case BoundKind.ListPatternReceiverPlaceholder:
-                    return ((BoundListPatternReceiverPlaceholder)expr).ValEscape;
+                    return GetPlaceholderScope((BoundListPatternReceiverPlaceholder)expr); // PROTOTYPE: Is this code path hit?
 
                 case BoundKind.SlicePatternReceiverPlaceholder:
-                    return ((BoundSlicePatternReceiverPlaceholder)expr).ValEscape;
+                    return GetPlaceholderScope((BoundSlicePatternReceiverPlaceholder)expr); // PROTOTYPE: Is this code path hit?
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
@@ -3798,7 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // same as uninitialized local
                     return true;
 
-                case BoundKind.DeconstructValuePlaceholder:
+                case BoundKind.DeconstructValuePlaceholder: // PROTOTYPE: Combine all these placeholder cases.
                     if (GetPlaceholderScope((BoundDeconstructValuePlaceholder)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
@@ -3946,7 +3946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                    if (((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape > escapeTo)
+                    if (GetPlaceholderScope((BoundImplicitIndexerReceiverPlaceholder)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;
@@ -3954,7 +3954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.ListPatternReceiverPlaceholder:
-                    if (((BoundListPatternReceiverPlaceholder)expr).ValEscape > escapeTo)
+                    if (GetPlaceholderScope((BoundListPatternReceiverPlaceholder)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;
@@ -3962,7 +3962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.SlicePatternReceiverPlaceholder:
-                    if (((BoundSlicePatternReceiverPlaceholder)expr).ValEscape > escapeTo)
+                    if (GetPlaceholderScope((BoundSlicePatternReceiverPlaceholder)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;

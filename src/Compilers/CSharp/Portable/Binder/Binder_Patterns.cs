@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't require the type to be sliceable if there's no subpattern.
             if (node.Pattern is not null)
             {
-                receiverPlaceholder = new BoundSlicePatternReceiverPlaceholder(node, valEscape: 0, inputType) { WasCompilerGenerated = true };
+                receiverPlaceholder = new BoundSlicePatternReceiverPlaceholder(node, inputType) { WasCompilerGenerated = true };
                 var systemRangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
                 argumentPlaceholder = new BoundSlicePatternRangePlaceholder(node, systemRangeType) { WasCompilerGenerated = true };
 
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!inputType.IsDynamic());
 
             bool hasErrors = false;
-            receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, valEscape: 0, inputType) { WasCompilerGenerated = true };
+            receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, inputType) { WasCompilerGenerated = true };
             if (inputType.IsSZArray())
             {
                 hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, diagnostics, out PropertySymbol lengthProperty);
