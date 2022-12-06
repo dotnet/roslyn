@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
 
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IProjectSystemDiagnosticSource _projectSystemDiagnosticSource;
         private readonly IHostDiagnosticAnalyzerProvider _hostAnalyzerProvider;
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal VisualStudioProject(
             VisualStudioWorkspaceImpl workspace,
             ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            IProjectSystemDiagnosticSource projectSystemDiagnosticSource,
             IHostDiagnosticAnalyzerProvider hostAnalyzerProvider,
             ProjectId id,
             string displayName,
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _workspace = workspace;
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            _projectSystemDiagnosticSource = projectSystemDiagnosticSource;
             _hostAnalyzerProvider = hostAnalyzerProvider;
 
             Id = id;
@@ -920,7 +920,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         // Nope, we actually need to make a new one.
                         var visualStudioAnalyzer = new VisualStudioAnalyzer(
                             mappedFullPath,
-                            _hostDiagnosticUpdateSource,
+                            _projectSystemDiagnosticSource,
                             Id,
                             Language);
 

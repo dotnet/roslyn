@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
 
         private readonly ProjectId _projectId;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IProjectSystemDiagnosticSource _projectSystemDiagnosticSource;
         private readonly string _language;
 
         // these 2 are mutable states that must be guarded under the _gate.
@@ -30,10 +30,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private AnalyzerReference? _analyzerReference;
         private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
 
-        public VisualStudioAnalyzer(string fullPath, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, string language)
+        public VisualStudioAnalyzer(string fullPath, IProjectSystemDiagnosticSource projectSystemDiagnosticSource, ProjectId projectId, string language)
         {
             FullPath = fullPath;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            _projectSystemDiagnosticSource = projectSystemDiagnosticSource;
             _projectId = projectId;
             _language = language;
         }
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _analyzerLoadErrors = _analyzerLoadErrors.Add(data);
-                _hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(_projectId, this, _analyzerLoadErrors);
+                _projectSystemDiagnosticSource.UpdateDiagnosticsForProject(_projectId, this, _analyzerLoadErrors);
             }
         }
 
@@ -79,10 +79,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (!loadErrors.IsEmpty)
                 {
-                    _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(_projectId, this);
+                    _projectSystemDiagnosticSource.ClearDiagnosticsForProject(_projectId, this);
                 }
 
-                _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(fileReference, _language, _projectId);
+                _projectSystemDiagnosticSource.ClearAnalyzerReferenceDiagnostics(fileReference, _language, _projectId);
             }
         }
 
