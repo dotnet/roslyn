@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Determines if the location is valid for a snippet,
         /// if so, then it creates a SnippetData.
         /// </summary>
-        public SnippetData? GetSnippetData(SyntaxContext context, CancellationToken cancellationToken)
+        public SnippetData? GetSnippetDataCore(SyntaxContext context, CancellationToken cancellationToken)
         {
             if (!IsValidSnippetLocation(context, cancellationToken))
             {
@@ -71,6 +71,9 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             return new SnippetData(Description, Identifier, AdditionalFilterTexts);
         }
+
+        public Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         /// <summary>
         /// Handles all the work to generate the Snippet.

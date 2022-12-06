@@ -62,7 +62,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
             foreach (var provider in GetSnippetProviders(document))
             {
-                var snippetData = provider.GetSnippetData(context, cancellationToken);
+                var snippetData = provider is AbstractSnippetProvider abstractSnippetProvider
+                    ? abstractSnippetProvider.GetSnippetDataCore(context, cancellationToken)
+                    : await provider.GetSnippetDataAsync(document, position, cancellationToken).ConfigureAwait(false);
+
                 arrayBuilder.AddIfNotNull(snippetData);
             }
 

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                     validModifiers: s_validModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
-                    cancellationToken: cancellationToken));
+                    cancellationToken: cancellationToken);
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)

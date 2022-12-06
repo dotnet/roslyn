@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override bool IsValidSnippetLocation(SyntaxContext context, CancellationToken cancellationToken)
         {
-            return context.SyntaxTree.IsMemberDeclarationContext(context.Position, contextOpt: context,
-                SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
+            return ((CSharpSyntaxContext)context).IsMemberDeclarationContext(SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
         }
 
         protected override async Task<SyntaxNode> GenerateSnippetSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
