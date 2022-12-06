@@ -3061,7 +3061,7 @@ parse_member_name:;
                 ? this.ParseParenthesizedArgumentList()
                 : _syntaxFactory.ArgumentList(
                     this.EatToken(SyntaxKind.OpenParenToken, reportError),
-                    default,
+                    arguments: default,
                     this.EatToken(SyntaxKind.CloseParenToken, reportError));
 
             return _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
