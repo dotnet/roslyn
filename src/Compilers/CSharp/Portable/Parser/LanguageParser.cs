@@ -5228,8 +5228,7 @@ tryAgain:
 
         private FieldDeclarationSyntax ParseConstantFieldDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxKind parentKind)
         {
-            var constToken = this.EatToken(SyntaxKind.ConstKeyword);
-            modifiers.Add(constToken);
+            modifiers.Add(this.EatToken(SyntaxKind.ConstKeyword));
 
             var type = this.ParseType();
 
@@ -5402,19 +5401,12 @@ tryAgain:
             EqualsValueClauseSyntax equalsValue = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
-                var equals = this.EatToken(SyntaxKind.EqualsToken);
-                ExpressionSyntax value;
-                if (this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBraceToken)
-                {
-                    //an identifier is a valid expression
-                    value = this.ParseIdentifierName(ErrorCode.ERR_ConstantExpected);
-                }
-                else
-                {
-                    value = this.ParseExpressionCore();
-                }
-
-                equalsValue = _syntaxFactory.EqualsValueClause(equals, value: value);
+                //an identifier is a valid expression
+                equalsValue = _syntaxFactory.EqualsValueClause(
+                    this.EatToken(SyntaxKind.EqualsToken),
+                    this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBraceToken
+                        ? this.ParseIdentifierName(ErrorCode.ERR_ConstantExpected)
+                        : this.ParseExpressionCore());
             }
 
             return _syntaxFactory.EnumMemberDeclaration(memberAttrs, modifiers: default, memberName, equalsValue);
