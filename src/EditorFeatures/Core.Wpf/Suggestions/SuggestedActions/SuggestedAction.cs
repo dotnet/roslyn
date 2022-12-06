@@ -141,39 +141,55 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            IEnumerable<CodeActionOperation> operations = null;
+            object options = null;
             if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
-                var options = actionWithOptions.GetOptions(cancellationToken);
-                if (options != null)
-                    operations = await GetOperationsAsync(actionWithOptions, options, cancellationToken).ConfigureAwait(true);
-            }
-            else
-            {
-                operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
-            }
-
-            AssertIsForeground();
-
-            if (operations != null)
-            {
-                // Clear the progress we showed while computing the action.
-                // We'll now show progress as we apply the action.
-                progressTracker.Clear();
-
-                using (Logger.LogBlock(
-                    FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                using (Logger.LogBlock(FunctionId.CodeFixes_GetOptions, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
-                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    options = actionWithOptions.GetOptions(cancellationToken);
+                }
+            }
 
-                    await EditHandler.ApplyAsync(
-                        Workspace,
-                        OriginalSolution,
-                        document,
-                        operations.ToImmutableArray(),
-                        CodeAction.Title,
-                        progressTracker,
-                        cancellationToken).ConfigureAwait(false);
+            using (Logger.LogBlock(
+                   FunctionId.CodeFixes_GetAndApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+            {
+                IEnumerable<CodeActionOperation> operations = null;
+                using (Logger.LogBlock(
+                       FunctionId.CodeFixes_GetAndApplyChanges_GetChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                {
+                    if (options != null)
+                    {
+                        var codeActionWithOptions = (CodeActionWithOptions)CodeAction;
+                        operations = await GetOperationsAsync(codeActionWithOptions, options, cancellationToken).ConfigureAwait(true);
+                    }
+                    else
+                    {
+                        operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
+                    }
+                }
+
+                AssertIsForeground();
+
+                if (operations != null)
+                {
+                    // Clear the progress we showed while computing the action.
+                    // We'll now show progress as we apply the action.
+                    progressTracker.Clear();
+
+                    using (Logger.LogBlock(
+                        FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                    {
+                        var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                        await EditHandler.ApplyAsync(
+                            Workspace,
+                            OriginalSolution,
+                            document,
+                            operations.ToImmutableArray(),
+                            CodeAction.Title,
+                            progressTracker,
+                            cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
         }

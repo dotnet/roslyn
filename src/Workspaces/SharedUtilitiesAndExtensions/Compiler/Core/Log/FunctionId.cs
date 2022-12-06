@@ -583,5 +583,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         // 650-660 for diagnostic/fix related ids.
         Diagnostics_AnalyzerPerformanceInfo = 651,
+
+        CodeFixes_GetAndApplyChanges_GetChanges = 652,
+        CodeFixes_GetAndApplyChanges = 653,
+        CodeFixes_GetOptions = 654,
+        Refactoring_CodeRefactoringService_GetRefactoringFromProvider = 655,
     }
 }

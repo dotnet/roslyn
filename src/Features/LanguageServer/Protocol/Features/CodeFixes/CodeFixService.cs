@@ -694,62 +694,65 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
             where TCodeFixProvider : notnull
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var allDiagnostics =
-                await diagnosticsWithSameSpan.OrderByDescending(d => d.Severity)
-                                             .ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
-            var diagnostics = allDiagnostics.WhereAsArray(hasFix);
-            if (diagnostics.Length <= 0)
+            using (Logger.LogBlock(FunctionId.CodeFixes_GetCodeFixesAsync, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m, fixer)), cancellationToken))
             {
-                // this can happen for suppression case where all diagnostics can't be suppressed
-                return null;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var allDiagnostics =
+                    await diagnosticsWithSameSpan.OrderByDescending(d => d.Severity)
+                                                 .ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
+                var diagnostics = allDiagnostics.WhereAsArray(hasFix);
+                if (diagnostics.Length <= 0)
+                {
+                    // this can happen for suppression case where all diagnostics can't be suppressed
+                    return null;
+                }
+
+                var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+                var fixes = await extensionManager.PerformFunctionAsync(fixer,
+                     () => getFixes(diagnostics),
+                    defaultValue: ImmutableArray<CodeFix>.Empty).ConfigureAwait(false);
+
+                if (fixes.IsDefaultOrEmpty)
+                    return null;
+
+                // If the fix provider supports fix all occurrences, then get the corresponding FixAllProviderInfo and fix all context.
+                var fixAllProviderInfo = extensionManager.PerformFunction(
+                    fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
+
+                FixAllState? fixAllState = null;
+                var supportedScopes = ImmutableArray<FixAllScope>.Empty;
+                if (fixAllProviderInfo != null && textDocument is Document document)
+                {
+                    var diagnosticIds = diagnostics.Where(fixAllProviderInfo.CanBeFixed)
+                                                   .Select(d => d.Id)
+                                                   .ToImmutableHashSet();
+
+                    var diagnosticProvider = fixAllForInSpan
+                        ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
+                        : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
+
+                    var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
+
+                    fixAllState = new FixAllState(
+                        (FixAllProvider)fixAllProviderInfo.FixAllProvider,
+                        fixesSpan,
+                        document,
+                        document.Project,
+                        codeFixProvider,
+                        FixAllScope.Document,
+                        fixes[0].Action.EquivalenceKey,
+                        diagnosticIds,
+                        diagnosticProvider,
+                        fallbackOptions);
+
+                    supportedScopes = fixAllProviderInfo.SupportedScopes;
+                }
+
+                return new CodeFixCollection(
+                    fixer, fixesSpan, fixes, fixAllState,
+                    supportedScopes, diagnostics.First());
             }
-
-            var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-            var fixes = await extensionManager.PerformFunctionAsync(fixer,
-                 () => getFixes(diagnostics),
-                defaultValue: ImmutableArray<CodeFix>.Empty).ConfigureAwait(false);
-
-            if (fixes.IsDefaultOrEmpty)
-                return null;
-
-            // If the fix provider supports fix all occurrences, then get the corresponding FixAllProviderInfo and fix all context.
-            var fixAllProviderInfo = extensionManager.PerformFunction(
-                fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
-
-            FixAllState? fixAllState = null;
-            var supportedScopes = ImmutableArray<FixAllScope>.Empty;
-            if (fixAllProviderInfo != null && textDocument is Document document)
-            {
-                var diagnosticIds = diagnostics.Where(fixAllProviderInfo.CanBeFixed)
-                                               .Select(d => d.Id)
-                                               .ToImmutableHashSet();
-
-                var diagnosticProvider = fixAllForInSpan
-                    ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
-                    : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
-
-                var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
-
-                fixAllState = new FixAllState(
-                    (FixAllProvider)fixAllProviderInfo.FixAllProvider,
-                    fixesSpan,
-                    document,
-                    document.Project,
-                    codeFixProvider,
-                    FixAllScope.Document,
-                    fixes[0].Action.EquivalenceKey,
-                    diagnosticIds,
-                    diagnosticProvider,
-                    fallbackOptions);
-
-                supportedScopes = fixAllProviderInfo.SupportedScopes;
-            }
-
-            return new CodeFixCollection(
-                fixer, fixesSpan, fixes, fixAllState,
-                supportedScopes, diagnostics.First());
         }
 
         /// <summary> Looks explicitly for an <see cref="AbstractSuppressionCodeFixProvider"/>.</summary>
@@ -938,6 +941,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return builder.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
+        }
+
+        private static void CreateLogProperties(Dictionary<string, object?> map, object fixer)
+        {
+            var type = fixer.GetType();
+            var telemetryId = type.GetTelemetryId();
+            map["TelemetryId"] = telemetryId;
         }
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)
