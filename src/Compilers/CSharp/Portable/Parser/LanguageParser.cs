@@ -4754,7 +4754,7 @@ tryAgain:
                 this.ParseVariableDeclarators(type, flags: VariableFlags.LocalOrField, variables: variables, parentKind: parentKind);
 
                 // Make 'scoped' part of the type when it is the last token in the modifiers list
-                if (modifiers.Count != 0 && modifiers[modifiers.Count - 1] is SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword)
+                if (modifiers is [.., SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword])
                 {
                     type = _syntaxFactory.ScopedType(scopedKeyword, type);
                     modifiers.RemoveLast();
