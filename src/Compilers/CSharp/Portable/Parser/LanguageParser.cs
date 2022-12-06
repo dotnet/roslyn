@@ -888,19 +888,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
 
             // Check for optional location :
-            AttributeTargetSpecifierSyntax? attrLocation = null;
-            if (IsSomeWord(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
-            {
-                var id = ConvertToKeyword(this.EatToken());
-                var colon = this.EatToken(SyntaxKind.ColonToken);
-                attrLocation = _syntaxFactory.AttributeTargetSpecifier(id, colon);
-            }
+            var location = IsSomeWord(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+                ? _syntaxFactory.AttributeTargetSpecifier(ConvertToKeyword(this.EatToken()), this.EatToken(SyntaxKind.ColonToken))
+                : null;
 
             var attributes = _pool.AllocateSeparated<AttributeSyntax>();
             this.ParseAttributes(attributes);
             return _syntaxFactory.AttributeList(
                 openBracket,
-                attrLocation,
+                location,
                 _pool.ToListAndFree(attributes),
                 this.EatToken(SyntaxKind.CloseBracketToken));
         }
