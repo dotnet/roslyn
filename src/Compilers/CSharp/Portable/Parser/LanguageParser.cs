@@ -2913,8 +2913,11 @@ parse_member_name:;
             TypeSyntax type,
             SyntaxToken identifierOrThisOpt)
         {
-            if (type.Kind != SyntaxKind.IdentifierName) return false;
-            if (identifierOrThisOpt.Kind != SyntaxKind.IdentifierToken) return false;
+            if (type.Kind != SyntaxKind.IdentifierName)
+                return false;
+
+            if (identifierOrThisOpt.Kind != SyntaxKind.IdentifierToken)
+                return false;
 
             var identifier = ((IdentifierNameSyntax)type).Identifier;
             var contextualKind = identifier.ContextualKind;
@@ -3019,13 +3022,11 @@ parse_member_name:;
             try
             {
                 var paramList = this.ParseParenthesizedParameterList();
-
-                ConstructorInitializerSyntax initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
+                var initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
                     ? this.ParseConstructorInitializer()
                     : null;
 
-                this.ParseBlockAndExpressionBodiesWithSemicolon(
-                    out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon);
+                this.ParseBlockAndExpressionBodiesWithSemicolon(out var body, out var expressionBody, out var semicolon);
 
                 return _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToList(), name, paramList, initializer, body, expressionBody, semicolon);
             }
