@@ -3382,8 +3382,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DiscardExpression:
                     return ((BoundDiscardExpression)expr).ValEscape;
 
-                case BoundKind.DeconstructValuePlaceholder: // PROTOTYPE: Combine all these placeholder cases.
-                    return GetPlaceholderScope((BoundDeconstructValuePlaceholder)expr);
+                case BoundKind.DeconstructValuePlaceholder:
+                case BoundKind.ImplicitIndexerReceiverPlaceholder: // PROTOTYPE: Is this code path hit?
+                case BoundKind.ListPatternReceiverPlaceholder: // PROTOTYPE: Is this code path hit?
+                case BoundKind.SlicePatternReceiverPlaceholder: // PROTOTYPE: Is this code path hit?
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                case BoundKind.AwaitableValuePlaceholder:
+                    return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
                     return GetLocalScopes(((BoundLocal)expr).LocalSymbol).ValEscapeScope;
@@ -3476,15 +3481,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             scopeOfTheContainingExpression,
                             isRefEscape: false);
                     }
-
-                case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                    return GetPlaceholderScope((BoundImplicitIndexerReceiverPlaceholder)expr); // PROTOTYPE: Is this code path hit?
-
-                case BoundKind.ListPatternReceiverPlaceholder:
-                    return GetPlaceholderScope((BoundListPatternReceiverPlaceholder)expr); // PROTOTYPE: Is this code path hit?
-
-                case BoundKind.SlicePatternReceiverPlaceholder:
-                    return GetPlaceholderScope((BoundSlicePatternReceiverPlaceholder)expr); // PROTOTYPE: Is this code path hit?
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
@@ -3646,17 +3642,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // location.
                     return scopeOfTheContainingExpression;
 
-                case BoundKind.InterpolatedStringArgumentPlaceholder:
-                    // We saved off the safe-to-escape of the argument when we did binding
-                    return GetPlaceholderScope((BoundInterpolatedStringArgumentPlaceholder)expr);
-
                 case BoundKind.DisposableValuePlaceholder:
                     // Disposable value placeholder is only ever used to lookup a pattern dispose method
                     // then immediately discarded. The actual expression will be generated during lowering 
                     return scopeOfTheContainingExpression;
 
-                case BoundKind.AwaitableValuePlaceholder:
-                    return GetPlaceholderScope((BoundAwaitableValuePlaceholder)expr);
 
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
@@ -3798,24 +3788,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // same as uninitialized local
                     return true;
 
-                case BoundKind.DeconstructValuePlaceholder: // PROTOTYPE: Combine all these placeholder cases.
-                    if (GetPlaceholderScope((BoundDeconstructValuePlaceholder)expr) > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
-
+                case BoundKind.DeconstructValuePlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
-                    if (GetPlaceholderScope((BoundAwaitableValuePlaceholder)expr) > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
-
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
-                    if (GetPlaceholderScope((BoundInterpolatedStringArgumentPlaceholder)expr) > escapeTo)
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                case BoundKind.ListPatternReceiverPlaceholder:
+                case BoundKind.SlicePatternReceiverPlaceholder:
+                    if (GetPlaceholderScope((BoundValuePlaceholderBase)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;
@@ -3944,30 +3923,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics,
                             isRefEscape: false);
                     }
-
-                case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                    if (GetPlaceholderScope((BoundImplicitIndexerReceiverPlaceholder)expr) > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
-
-                case BoundKind.ListPatternReceiverPlaceholder:
-                    if (GetPlaceholderScope((BoundListPatternReceiverPlaceholder)expr) > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
-
-                case BoundKind.SlicePatternReceiverPlaceholder:
-                    if (GetPlaceholderScope((BoundSlicePatternReceiverPlaceholder)expr) > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;

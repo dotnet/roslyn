@@ -261,11 +261,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // PROTOTYPE: Test all combinations of { safe, unsafe } for { container, local function }.
             var localFunction = node.Symbol;
-            // PROTOTYPE: Test local function within unsafe block.
-            // PROTOTYPE: It's not clear we should be reusing _localEscapeScopes across nested local functions
-            // (or lambdas in VisitLambda) because _localScopeDepth is reset when entering the local function
-            // (or lambda) so the scopes are unrelated across the outer and inner methods.
-            // See https://github.com/dotnet/roslyn/issues/65353 for a related bug.
+            // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
+            // across nested local functions or lambdas because _localScopeDepth is reset when entering
+            // the function or lambda so the scopes across the methods are unrelated.
             var analysis = new RefSafetyAnalysis(_compilation, localFunction, localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);
@@ -275,6 +273,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLambda(BoundLambda node)
         {
             var lambda = node.Symbol;
+            // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
+            // across nested local functions or lambdas because _localScopeDepth is reset when entering
+            // the function or lambda so the scopes across the methods are unrelated.
             var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
             analysis.Visit(node.Body);
             return null;
@@ -347,9 +348,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
         {
             using var _ = new LocalScope(this, node.InnerLocals);
-            // PROTOTYPE: Do we need the same for switch expressions?
             using var patternInput = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
             base.VisitSwitchStatement(node);
+            return null;
+        }
+
+        public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            using var patternInput = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
+            base.VisitConvertedSwitchExpression(node);
             return null;
         }
 
@@ -405,11 +412,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _localEscapeScopes.Add(local, (refEscapeScope, valEscapeScope));
         }
 
+#pragma warning disable IDE0060
         private void RemoveLocalScopes(LocalSymbol local)
         {
             Debug.Assert(_localEscapeScopes is { });
-            _localEscapeScopes.Remove(local);
+            // PROTOTYPE: We cannot remove the locals (or the placeholders presumably)
+            // when they go out of scope because we may need them later when we subsequently
+            // ValidateEscape(). See RefFieldTests.SwitchExpression_* for example.
+            //_localEscapeScopes.Remove(local);
         }
+#pragma warning restore IDE0060
 
         public override BoundNode? VisitLocalDeclaration(BoundLocalDeclaration node)
         {
@@ -539,7 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetLocalScopes(BoundPattern pattern)
         {
-            // PROTOTYPE: Assert we're calling this for all types derived from BoundObjectPattern.
             if (pattern is BoundObjectPattern { Variable: LocalSymbol local })
             {
                 SetLocalScopes(local, _localScopeDepth, _patternInputValEscape);

@@ -27147,6 +27147,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i4").WithArguments("i4").WithLocation(14, 31));
         }
 
+        // PROTOTYPE: Remove all the UseRefSafetyVisitor_ tests where the behavior is unchanged.
         [Fact]
         public void UseRefSafetyVisitor_LocalValEscape()
         {
@@ -27588,7 +27589,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (5,20): error CS8347: Cannot use a result of 'Program.F2(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref F2(out _);
@@ -27616,7 +27617,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
                 // (6,20): error CS8347: Cannot use a result of 'Program.F2(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref F2(out _);
@@ -27658,7 +27659,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 // PROTOTYPE: The errors, as a result of the discard, seem incorrect.
@@ -27674,6 +27675,123 @@ class Program
             {
                 comp.VerifyDiagnostics();
             }
+        }
+
+        [Fact]
+        public void SwitchExpression_Assignment()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void M()
+                    {
+                        Span<int> s;
+                        Span<int> outer = stackalloc int[100];
+                        s = outer switch
+                        {
+                            Span<int> inner => inner
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (10,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             Span<int> inner => inner
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(10, 32));
+        }
+
+        [Fact]
+        public void SwitchExpression_Argument()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static Span<int> F(Span<int> x, Span<int> y)
+                    {
+                        return x;
+                    }
+                    static void M()
+                    {
+                        Span<int> x = default;
+                        Span<int> y = stackalloc int[100];
+                        x = F(x, y switch { Span<int> inner => inner });
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8347: Cannot use a result of 'Program.F(Span<int>, Span<int>)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         x = F(x, y switch { Span<int> inner => inner });
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(x, y switch { Span<int> inner => inner })").WithArguments("Program.F(System.Span<int>, System.Span<int>)", "y").WithLocation(12, 13),
+                // (12,48): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         x = F(x, y switch { Span<int> inner => inner });
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(12, 48));
+        }
+
+        [Fact]
+        public void SwitchExpression_Return()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static Span<int> M()
+                    {
+                        Span<int> outer = stackalloc int[100];
+                        return outer switch
+                        {
+                            Span<int> inner => inner
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (9,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             Span<int> inner => inner
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(9, 32));
+        }
+
+        [Fact]
+        public void SwitchExpression_YieldReturn()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable<int> M()
+                    {
+                        Span<int> outer = stackalloc int[100];
+                        yield return (outer switch
+                        {
+                            Span<int> inner => inner
+                        })[0];
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SwitchExpression_FieldInitializer()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static int F = (new Span<int>() switch
+                        {
+                            Span<int> inner => inner
+                        })[0];
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
         }
     }
 }
