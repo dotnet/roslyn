@@ -2696,7 +2696,7 @@ parse_member_name:;
                 identifierOrThisOpt != null &&
                 (typeParameterListOpt != null && typeParameterListOpt.ContainsDiagnostics
                   || this.CurrentToken.Kind is not SyntaxKind.OpenParenToken and not SyntaxKind.OpenBraceToken and not SyntaxKind.EqualsGreaterThanToken) &&
-                ReconsiderTypeAsAsyncModifier(ref modifiers, type, identifierOrThisOpt))
+                LanguageParser.ReconsiderTypeAsAsyncModifier(ref modifiers, type, identifierOrThisOpt))
             {
                 this.Reset(ref afterTypeResetPoint);
                 explicitInterfaceOpt = null;
@@ -2908,7 +2908,7 @@ parse_member_name:;
         // if the modifiers do not contain async or replace and the type is the identifier "async" or "replace", then
         // add that identifier to the modifiers and assign a new type from the identifierOrThisOpt and the
         // type parameter list
-        private bool ReconsiderTypeAsAsyncModifier(
+        private static bool ReconsiderTypeAsAsyncModifier(
             ref SyntaxListBuilder modifiers,
             TypeSyntax type,
             SyntaxToken identifierOrThisOpt)
@@ -4050,7 +4050,7 @@ parse_member_name:;
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
                 isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
-            var accessorKind = GetAccessorKind(accessorName);
+            var accessorKind = LanguageParser.GetAccessorKind(accessorName);
 
             // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
             // other contextual keyword (like 'partial') will be converted into a keyword
@@ -4139,7 +4139,7 @@ parse_member_name:;
                     ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
                     : ErrorCode.ERR_SemiOrLBraceExpected);
 
-        private SyntaxKind GetAccessorKind(SyntaxToken accessorName)
+        private static SyntaxKind GetAccessorKind(SyntaxToken accessorName)
         {
             return accessorName.ContextualKind switch
             {
