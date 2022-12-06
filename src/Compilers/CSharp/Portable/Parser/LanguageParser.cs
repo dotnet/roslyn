@@ -6370,14 +6370,10 @@ tryAgain:
 
         private NameSyntax ParseAliasQualifiedName(NameOptions allowedParts = NameOptions.None)
         {
-            NameSyntax name = this.ParseSimpleName(allowedParts);
-            if (this.CurrentToken.Kind == SyntaxKind.ColonColonToken)
-            {
-                var token = this.EatToken();
-
-                name = ParseQualifiedNameRight(allowedParts, name, token);
-            }
-            return name;
+            var name = this.ParseSimpleName(allowedParts);
+            return this.CurrentToken.Kind == SyntaxKind.ColonColonToken
+                ? ParseQualifiedNameRight(allowedParts, name, this.EatToken())
+                : name;
         }
 
         private NameSyntax ParseQualifiedName(NameOptions options = NameOptions.None)
