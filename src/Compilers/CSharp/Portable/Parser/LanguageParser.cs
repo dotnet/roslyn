@@ -11247,13 +11247,11 @@ tryAgain:
 
         private ArgumentSyntax ParseArgumentExpression(bool isIndexer)
         {
-            NameColonSyntax nameColon = null;
-            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
-            {
-                var name = this.ParseIdentifierName();
-                var colon = this.EatToken(SyntaxKind.ColonToken);
-                nameColon = _syntaxFactory.NameColon(name, colon);
-            }
+            var nameColon = this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+                ? _syntaxFactory.NameColon(
+                    this.ParseIdentifierName(),
+                    this.EatToken(SyntaxKind.ColonToken))
+                : null;
 
             SyntaxToken refKindKeyword = null;
             if (IsValidArgumentRefKindKeyword(this.CurrentToken.Kind) &&
