@@ -1146,9 +1146,7 @@ tryAgain:
                 {
                     case DeclarationModifiers.Partial:
                         var nextToken = PeekToken(1);
-                        var isPartialType = this.IsPartialType();
-                        var isPartialMember = this.IsPartialMember();
-                        if (isPartialType || isPartialMember)
+                        if (this.IsPartialType() || this.IsPartialMember())
                         {
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
