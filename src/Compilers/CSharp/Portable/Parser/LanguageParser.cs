@@ -1167,8 +1167,7 @@ tryAgain:
                             modTok = ConvertToKeyword(this.EatToken());
                         }
                         else if (
-                            nextToken.Kind == SyntaxKind.EnumKeyword ||
-                            nextToken.Kind == SyntaxKind.DelegateKeyword ||
+                            nextToken.Kind is SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword ||
                             (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None))
                         {
                             // Error reported in ModifierUtils.
@@ -1852,15 +1851,15 @@ tryAgain:
             var list = _pool.AllocateSeparated<BaseTypeSyntax>();
 
             // first type
-            TypeSyntax firstType = this.ParseType();
+            var firstType = this.ParseType();
 
-            ArgumentListSyntax argumentList = null;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
-            {
-                argumentList = this.ParseParenthesizedArgumentList();
-            }
+            var argumentList = this.CurrentToken.Kind == SyntaxKind.OpenParenToken
+                ? this.ParseParenthesizedArgumentList()
+                : null;
 
-            list.Add(argumentList is object ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList) : (BaseTypeSyntax)_syntaxFactory.SimpleBaseType(firstType));
+            list.Add(argumentList != null
+                ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList)
+                : _syntaxFactory.SimpleBaseType(firstType));
 
             // any additional types
             while (true)
