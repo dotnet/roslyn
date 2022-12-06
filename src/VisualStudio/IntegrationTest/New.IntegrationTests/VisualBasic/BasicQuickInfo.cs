@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -11,34 +12,34 @@ using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
     [Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public class BasicQuickInfo : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicQuickInfo(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicQuickInfo))
+        public BasicQuickInfo()
+            : base(nameof(BasicQuickInfo))
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301")]
-        public void QuickInfo1()
+        [IdeFact]
+        public async Task QuickInfo1()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 ''' <summary>Hello!</summary>
 Class Program
     Sub Main(ByVal args As String$$())
     End Sub
-End Class");
-            VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
+End Class", HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
+            var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
+            Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", quickInfo);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/62280")]
-        public void International()
+        [IdeFact]
+        public async Task International()
         {
-            SetUpEditor(@"
+            await SetUpEditorAsync(@"
 ''' <summary>
 ''' This is an XML doc comment defined in code.
 ''' </summary>
@@ -46,10 +47,11 @@ Class العربية123
     Shared Sub Goo()
          Dim goo as العربية123$$
     End Sub
-End Class");
-            VisualStudio.Editor.InvokeQuickInfo();
+End Class", HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
+            var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
             Assert.Equal(@"Class TestProj.العربية123
-This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
+This is an XML doc comment defined in code.", quickInfo);
         }
     }
 }
