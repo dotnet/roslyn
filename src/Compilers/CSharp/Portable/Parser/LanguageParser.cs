@@ -8591,11 +8591,10 @@ done:;
                 return this.ParseExpressionStatement(attributes);
             }
 
-            var spec = this.EatToken();
             return _syntaxFactory.CheckedStatement(
                 SyntaxFacts.GetCheckStatement(spec.Kind),
                 attributes,
-                spec,
+                this.EatToken(),
                 this.ParsePossiblyAttributedBlock());
         }
 
