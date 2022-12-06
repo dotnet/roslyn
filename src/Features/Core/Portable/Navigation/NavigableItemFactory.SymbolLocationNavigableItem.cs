@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Navigation
 
             public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
 
-            public Document Document =>
-                _location.IsInSource ? _solution.GetDocument(_location.SourceTree) : null;
+            public Document Document
+                => _location.IsInSource ? _solution.GetDocument(_location.SourceTree) : null;
 
             public TextSpan SourceSpan => _location.SourceSpan;
 

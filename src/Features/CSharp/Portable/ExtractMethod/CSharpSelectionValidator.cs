@@ -405,13 +405,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // set final span
-            var start = (selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan) ?
-                            Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.OriginalSpan.Start) :
-                            selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
+            var start = (selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan)
+                            ? Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.OriginalSpan.Start)
+                            : selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
 
-            var end = (selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan) ?
-                            Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, selectionInfo.OriginalSpan.End) :
-                            selectionInfo.LastTokenInFinalSpan.FullSpan.End;
+            var end = (selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan)
+                            ? Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, selectionInfo.OriginalSpan.End)
+                            : selectionInfo.LastTokenInFinalSpan.FullSpan.End;
 
             return selectionInfo.With(s => s.FinalSpan = GetAdjustedSpan(text, TextSpan.FromBounds(start, end)));
         }

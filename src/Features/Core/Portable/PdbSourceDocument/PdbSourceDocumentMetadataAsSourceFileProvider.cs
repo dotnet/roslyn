@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             bool signaturesOnly,
             MetadataAsSourceOptions options,
             string tempPath,
+            TelemetryMessage? telemetryMessage,
             CancellationToken cancellationToken)
         {
             // Check if the user wants to look for PDB source documents at all
@@ -89,8 +90,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (signaturesOnly)
                 return null;
 
-            using var telemetry = new TelemetryMessage(cancellationToken);
-
+            // telemetryMessage is only null if signaturesOnly is true
+            Contract.ThrowIfNull(telemetryMessage);
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
             var assemblyVersion = symbol.ContainingAssembly.Identity.Version.ToString();
 
@@ -106,6 +107,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (compilation.GetMetadataReference(symbol.ContainingAssembly) is not PortableExecutableReference { FilePath: not null and var dllPath })
                 return null;
 
+            telemetryMessage.SetDll(Path.GetFileName(dllPath));
+
             _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
 
             // There is no way to go from parameter metadata to its containing method or type, so we need use the symbol API first to
@@ -118,6 +121,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var isReferenceAssembly = MetadataAsSourceHelpers.IsReferenceAssembly(symbol.ContainingAssembly);
             if (isReferenceAssembly)
             {
+                telemetryMessage.SetReferenceAssembly("yes");
                 if (_implementationAssemblyLookupService.TryFindImplementationAssemblyPath(dllPath, out dllPath))
                 {
                     _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
@@ -156,6 +160,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         return null;
                     }
 
+                    telemetryMessage.SetReferenceAssembly("resolved");
+
                     handle = MetadataTokens.EntityHandle(newSymbol.MetadataToken);
                 }
                 else
@@ -168,7 +174,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<SourceDocument> sourceDocuments;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, options.AlwaysUseDefaultSymbolServers, telemetry, cancellationToken).ConfigureAwait(false))
+            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, options.AlwaysUseDefaultSymbolServers, telemetryMessage, cancellationToken).ConfigureAwait(false))
             {
                 if (documentDebugInfoReader is null)
                     return null;
@@ -232,7 +238,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // we can't provide any results, so there is no point adding a project to the workspace etc.
             var useExtendedTimeout = _sourceLinkEnabledProjects.Contains(projectId);
             var encoding = defaultEncoding ?? Encoding.UTF8;
-            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, useExtendedTimeout, cancellationToken)).ToArray();
+            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetryMessage, useExtendedTimeout, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
             if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
                 return null;

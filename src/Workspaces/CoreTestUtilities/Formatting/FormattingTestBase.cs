@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
                 var document = project.AddDocument("Document", SourceText.From(code));
 
                 var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-                var formattingOptions = changedOptionSet != null ?
-                    formattingService.GetFormattingOptions(changedOptionSet.ToAnalyzerConfigOptions(document.Project.Services), fallbackOptions: null) :
-                    formattingService.DefaultOptions;
+                var formattingOptions = changedOptionSet != null
+                    ? formattingService.GetFormattingOptions(changedOptionSet.ToAnalyzerConfigOptions(document.Project.Services), fallbackOptions: null)
+                    : formattingService.DefaultOptions;
 
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
                 var root = await syntaxTree.GetRootAsync();

@@ -357,14 +357,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Include_global_imports
             => ServicesVSResources.Include_global_imports;
 
-        public static string Option_JSON_strings =>
-            ServicesVSResources.JSON_strings;
+        public static string Option_JSON_strings
+            => ServicesVSResources.JSON_strings;
 
-        public static string Option_Colorize_JSON_strings =>
-            ServicesVSResources.Colorize_JSON_strings;
+        public static string Option_Colorize_JSON_strings
+            => ServicesVSResources.Colorize_JSON_strings;
 
-        public static string Option_Report_invalid_JSON_strings =>
-            ServicesVSResources.Report_invalid_JSON_strings;
+        public static string Option_Report_invalid_JSON_strings
+            => ServicesVSResources.Report_invalid_JSON_strings;
 
         public static string Inheritance_Margin
             => ServicesVSResources.Inheritance_Margin;

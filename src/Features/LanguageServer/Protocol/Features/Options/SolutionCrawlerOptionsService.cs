@@ -21,7 +21,7 @@ internal sealed class SolutionCrawlerOptionsService : ISolutionCrawlerOptionsSer
         _globalOptions = globalOptions;
     }
 
-    public bool EnableDiagnosticsInSourceGeneratedFiles =>
-        _globalOptions.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles) ??
+    public bool EnableDiagnosticsInSourceGeneratedFiles
+        => _globalOptions.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles) ??
         _globalOptions.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
 }

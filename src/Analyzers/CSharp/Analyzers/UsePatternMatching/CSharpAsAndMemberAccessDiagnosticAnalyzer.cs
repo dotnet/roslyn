@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     internal partial class CSharpAsAndMemberAccessDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpAsAndMemberAccessDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UsePatternMatchingAsAndMemberAccessId,
+            : base(IDEDiagnosticIds.UsePatternMatchingAsAndMemberAccessDiagnosticId,
                    EnforceOnBuildValues.UsePatternMatchingAsAndMemberAccess,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
                    new LocalizableResourceString(

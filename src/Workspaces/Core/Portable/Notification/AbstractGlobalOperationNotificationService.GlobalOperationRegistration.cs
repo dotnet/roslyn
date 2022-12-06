@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Notification;
 
-internal partial class GlobalOperationNotificationService
+internal partial class AbstractGlobalOperationNotificationService
 {
     private class GlobalOperationRegistration : IDisposable
     {
-        private readonly GlobalOperationNotificationService _service;
+        private readonly AbstractGlobalOperationNotificationService _service;
 
-        public GlobalOperationRegistration(GlobalOperationNotificationService service)
+        public GlobalOperationRegistration(AbstractGlobalOperationNotificationService service)
             => _service = service;
 
         public void Dispose()

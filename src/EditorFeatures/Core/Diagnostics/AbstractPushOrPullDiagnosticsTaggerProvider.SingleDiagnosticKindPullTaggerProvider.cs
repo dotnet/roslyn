@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -21,21 +22,30 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag>
 {
     /// <summary>
-    /// Base type for all taggers that interact with the <see cref="IDiagnosticAnalyzerService"/> and produce tags for
-    /// the diagnostics with different UI presentations.
+    /// Low level tagger responsible for producing specific diagnostics tags for some feature for some particular <see
+    /// cref="DiagnosticKind"/>.  It is itself never exported directly, but it it is used by the <see
+    /// cref="PullDiagnosticsTaggerProvider"/> which aggregates its results and the results for all the other <see
+    /// cref="DiagnosticKind"/> to produce all the diagnostics for that feature.
     /// </summary>
-    internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerProvider<TTag>
-        where TTag : ITag
+    private sealed class SingleDiagnosticKindPullTaggerProvider : AsynchronousTaggerProvider<TTag>
     {
+        private readonly DiagnosticKind _diagnosticKind;
         private readonly IDiagnosticService _diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
-        protected AbstractDiagnosticsTaggerProvider(
+        private readonly AbstractPushOrPullDiagnosticsTaggerProvider<TTag> _callback;
+
+        protected override ImmutableArray<IOption> Options => _callback.Options;
+
+        public SingleDiagnosticKindPullTaggerProvider(
+            AbstractPushOrPullDiagnosticsTaggerProvider<TTag> callback,
+            DiagnosticKind diagnosticKind,
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService,
@@ -44,61 +54,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IAsynchronousOperationListener listener)
             : base(threadingContext, globalOptions, visibilityTracker, listener)
         {
+            _callback = callback;
+            _diagnosticKind = diagnosticKind;
             _diagnosticService = diagnosticService;
             _analyzerService = analyzerService;
         }
 
-        protected internal abstract bool IsEnabled { get; }
-        protected internal abstract bool SupportsDignosticMode(DiagnosticMode mode);
-        protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
-        protected internal abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
-
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
-        protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
-
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
-            // executed on content which was produced by a source generator but is not yet reflected in an open text
-            // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
-            // triggers a text changed event) to ensure diagnostics are positioned correctly.
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
-                TaggerEventSources.OnTextChanged(subjectBuffer));
-        }
+        protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
+        protected sealed override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
 
         /// <summary>
-        /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
-        /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides can change it (e.g. unnecessary classifications).
+        /// When we hear about a new event cancel the costly work we're doing and compute against the latest snapshot.
         /// </summary>
-        /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
-        /// <returns>an array of locations that should have the tag applied.</returns>
-        protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
-            => diagnosticData.DataLocation is not null ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
+        protected sealed override bool CancelOnNewWork => true;
 
-        protected override Task ProduceTagsAsync(
+        protected sealed override bool TagEquals(TTag tag1, TTag tag2)
+            => _callback.TagEquals(tag1, tag2);
+
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+            => CreateEventSourceWorker(subjectBuffer, _diagnosticService);
+
+        protected sealed override Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
             return ProduceTagsAsync(context, spanToTag, cancellationToken);
         }
 
         private async Task ProduceTagsAsync(
-            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
+            TaggerContext<TTag> context, DocumentSnapshotSpan documentSpanToTag, CancellationToken cancellationToken)
         {
-            if (!this.IsEnabled)
+            if (!_callback.IsEnabled)
                 return;
 
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (!SupportsDignosticMode(diagnosticMode))
+            var diagnosticMode = GlobalOptions.GetDiagnosticMode();
+            if (!_callback.SupportsDiagnosticMode(diagnosticMode))
                 return;
 
-            var document = spanToTag.Document;
+            var document = documentSpanToTag.Document;
             if (document == null)
                 return;
 
-            var snapshot = spanToTag.SnapshotSpan.Snapshot;
+            var snapshot = documentSpanToTag.SnapshotSpan.Snapshot;
 
             var workspace = document.Project.Solution.Workspace;
 
@@ -114,13 +110,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
-                    document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document,
+                    documentSpanToTag.SnapshotSpan.Span.ToTextSpan(),
+                    diagnosticKind: _diagnosticKind,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                var requestedSpan = spanToTag.SnapshotSpan;
+                var requestedSpan = documentSpanToTag.SnapshotSpan;
 
                 foreach (var diagnosticData in diagnostics)
                 {
-                    if (this.IncludeDiagnostic(diagnosticData))
+                    if (_callback.IncludeDiagnostic(diagnosticData))
                     {
                         // We're going to be retrieving the diagnostics against the last time the engine
                         // computed them against this document *id*.  That might have been a different
@@ -133,13 +132,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         //    So we'll eventually reach a point where the diagnostics exactly match the
                         //    editorSnapshot.
 
-                        var diagnosticSpans = this.GetLocationsToTag(diagnosticData)
+                        var diagnosticSpans = _callback.GetLocationsToTag(diagnosticData)
                             .Select(loc => loc.UnmappedFileSpan.GetClampedTextSpan(sourceText).ToSnapshotSpan(snapshot));
                         foreach (var diagnosticSpan in diagnosticSpans)
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
                             {
-                                var tagSpan = this.CreateTagSpan(workspace, diagnosticSpan, diagnosticData);
+                                var tagSpan = _callback.CreateTagSpan(workspace, isLiveUpdate: true, diagnosticSpan, diagnosticData);
                                 if (tagSpan != null)
                                     context.AddTag(tagSpan);
                             }

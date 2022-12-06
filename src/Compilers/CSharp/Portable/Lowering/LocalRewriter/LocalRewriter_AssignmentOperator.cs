@@ -300,13 +300,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenRight);
             }
 
-            arguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? argTempsBuilder = null;
+            arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverForMultipleInvocations: false,
                 arguments,
                 property,
                 argsToParamsOpt,
                 argumentRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? argTempsBuilder);
+                storesOpt: null,
+                ref argTempsBuilder);
 
             arguments = MakeArguments(
                 syntax,

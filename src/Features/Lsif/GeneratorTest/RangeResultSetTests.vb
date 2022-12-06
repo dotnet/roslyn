@@ -23,14 +23,13 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <InlineData("class C { [|global|]::System.String s; }", "<global namespace>", WellKnownSymbolMonikerSchemes.DotnetNamespace)>
         Public Async Function ReferenceMoniker(code As String, expectedMoniker As String, expectedMonikerScheme As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
-                                <%= code %>
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            <%= code %>
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
@@ -49,16 +48,15 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <InlineData("extern alias A;")>
         Public Async Function NoRangesAtAll(code As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
-                                <%= code %>
-                            </Document>
-                            <ProjectReference Alias="A">ReferencedWithAlias</ProjectReference>
-                        </Project>
-                        <Project AssemblyName="ReferencedWithAlias" Language="C#" FilePath="Z:\ReferencedWithAlias.csproj"></Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            <%= code %>
+                        </Document>
+                        <ProjectReference Alias="A">ReferencedWithAlias</ProjectReference>
+                    </Project>
+                    <Project AssemblyName="ReferencedWithAlias" Language="C#" FilePath="Z:\ReferencedWithAlias.csproj"></Project>
+                </Workspace>)
 
             Assert.Empty(lsif.Vertices.OfType(Of Range))
         End Function
@@ -66,14 +64,13 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <Fact>
         Public Async Function DefinitionIncludedInDefinitionResult() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
-                                class [|C|] { }
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            class [|C|] { }
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
@@ -87,14 +84,13 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <Fact>
         Public Async Function ReferenceIncludedInReferenceResult() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
-                                class C { [|string|] s; }
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            class C { [|string|] s; }
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
@@ -108,26 +104,25 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <Fact>
         Public Async Function ReferenceIncludedInSameReferenceResultForMultipleFiles() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
-                                class A { [|string|] s; }
-                            </Document>
-                            <Document Name="B.cs" FilePath="Z:\B.cs">
-                                class B { [|string|] s; }
-                            </Document>
-                            <Document Name="C.cs" FilePath="Z:\C.cs">
-                                class C { [|string|] s; }
-                            </Document>
-                            <Document Name="D.cs" FilePath="Z:\D.cs">
-                                class D { [|string|] s; }
-                            </Document>
-                            <Document Name="E.cs" FilePath="Z:\E.cs">
-                                class E { [|string|] s; }
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            class A { [|string|] s; }
+                        </Document>
+                        <Document Name="B.cs" FilePath="Z:\B.cs">
+                            class B { [|string|] s; }
+                        </Document>
+                        <Document Name="C.cs" FilePath="Z:\C.cs">
+                            class C { [|string|] s; }
+                        </Document>
+                        <Document Name="D.cs" FilePath="Z:\D.cs">
+                            class D { [|string|] s; }
+                        </Document>
+                        <Document Name="E.cs" FilePath="Z:\E.cs">
+                            class E { [|string|] s; }
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             For Each rangeVertex In Await lsif.GetSelectedRangesAsync()
                 Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
@@ -149,13 +144,12 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     }")> ' case for crefs
         Public Async Function NoCrossDocumentReferencesWithoutAMoniker(file1 As String, file2 As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="File1.cs" FilePath="Z:\File1.cs"><%= file1 %></Document>
-                            <Document Name="File2.cs" FilePath="Z:\File2.cs"><%= file2 %></Document>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="File1.cs" FilePath="Z:\File1.cs"><%= file1 %></Document>
+                        <Document Name="File2.cs" FilePath="Z:\File2.cs"><%= file2 %></Document>
+                    </Project>
+                </Workspace>)
 
             ' If we ever emit a result set that doesn't have a moniker, some LSIF importers will make up a moniker
             ' for us when they're importing, which can be based on the first range that they see. This is problematic if
@@ -190,15 +184,14 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <Fact>
         Public Async Function InterfaceImplementation() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
 interface I { void {|Base:M|}(); }
 class C : I { public void {|Implementation:M|}() { } }
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Await AssertImplementationCorrectlyLinked(lsif)
         End Function
@@ -206,15 +199,14 @@ class C : I { public void {|Implementation:M|}() { } }
         <Fact>
         Public Async Function [Overrides]() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
 class C { public virtual void {|Base:M|}() { } }
 class D : C { public override void {|Implementation:M|}() { } }
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Await AssertImplementationCorrectlyLinked(lsif)
         End Function
@@ -222,16 +214,15 @@ class D : C { public override void {|Implementation:M|}() { } }
         <Fact>
         Public Async Function OverridesAlwaysPointsToInitialVirtualMethod() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
-                            <Document Name="A.cs" FilePath="Z:\A.cs">
+                <Workspace>
+                    <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
 class C { public virtual void {|Base:M|}() { } }
 class D : C { public override void {|Implementation:M|}() { } }
 class E : D { public override void {|Implementation:M|}() { } }
-                            </Document>
-                        </Project>
-                    </Workspace>))
+                        </Document>
+                    </Project>
+                </Workspace>)
 
             Await AssertImplementationCorrectlyLinked(lsif)
         End Function

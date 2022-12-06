@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ResultProvider resultProvider)
         {
             var expansion = CreateExpansion(inspectionContext, value);
-            return (expansion != null) ?
-                expansion.CreateDynamicViewRow(inspectionContext, name, parent: null, fullNameProvider: resultProvider.FullNameProvider) :
-                new EvalResult(name, Resources.DynamicViewNotDynamic, inspectionContext);
+            return (expansion != null)
+                ? expansion.CreateDynamicViewRow(inspectionContext, name, parent: null, fullNameProvider: resultProvider.FullNameProvider)
+                : new EvalResult(name, Resources.DynamicViewNotDynamic, inspectionContext);
         }
 
         private readonly DkmClrValue _proxyValue;
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             var isRootExpression = parent == null;
             var fullName = isRootExpression ? name : parent.ChildFullNamePrefix;
-            var childFullNamePrefix = (fullName == null) ?
-                null :
-                fullNameProvider.GetClrObjectCreationExpression(
+            var childFullNamePrefix = (fullName == null)
+                ? null
+                : fullNameProvider.GetClrObjectCreationExpression(
                     inspectionContext,
                     proxyTypeAndInfo.ClrType,
                     proxyTypeAndInfo.Info,

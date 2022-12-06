@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         where TPrefixUnaryExpressionSyntax : TExpressionSyntax
     {
         protected AbstractUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
+            : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticId,
                    EnforceOnBuildValues.UseCoalesceExpressionForNullable,
                    CodeStyleOptions2.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
             if (!option.Value)
-            {
                 return;
-            }
 
             var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(

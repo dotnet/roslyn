@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// For non-array simple types, the receiver type name would be its metadata name, e.g. "Int32".
         /// For any array types with simple type as element, the receiver type name would be just "ElementTypeName[]", e.g. "Int32[]" for int[][,]
         /// For non-array complex types, the receiver type name is "".
-        /// For any array types with complex type as element, the receier type name is "[]"
+        /// For any array types with complex type as element, the receiver type name is "[]"
         /// </summary>
         private readonly MultiDictionary<string, ExtensionMethodInfo>? _receiverTypeNameToExtensionMethodMap;
 
@@ -126,11 +126,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             return this.FindAsync(
-                query, new AsyncLazy<IAssemblySymbol>(assembly), filter, cancellationToken);
+                query, new AsyncLazy<IAssemblySymbol?>(assembly), filter, cancellationToken);
         }
 
         public async Task<ImmutableArray<ISymbol>> FindAsync(
-            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly,
+            SearchQuery query, AsyncLazy<IAssemblySymbol?> lazyAssembly,
             SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private Task<ImmutableArray<ISymbol>> FindCoreAsync(
-            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
+            SearchQuery query, AsyncLazy<IAssemblySymbol?> lazyAssembly, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
         /// </summary>
         private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
-            AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
+            AsyncLazy<IAssemblySymbol?> lazyAssembly, string name, CancellationToken cancellationToken)
         {
             var similarNames = _spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
             var result = ArrayBuilder<ISymbol>.GetInstance();
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
         private async Task<ImmutableArray<ISymbol>> FindAsync(
-            AsyncLazy<IAssemblySymbol> lazyAssembly,
+            AsyncLazy<IAssemblySymbol?> lazyAssembly,
             string name,
             bool ignoreCase,
             CancellationToken cancellationToken)
@@ -206,6 +206,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (ignoreCase || StringComparer.Ordinal.Equals(name, node.Name))
                 {
                     assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    if (assemblySymbol is null)
+                        return ImmutableArray<ISymbol>.Empty;
+
                     Bind(index, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
                 }
             }

@@ -12,6 +12,11 @@
         <target state="translated">'{0}' 문에 중괄호를 추가합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
+        <source>Blank line not allowed after arrow expression clause token</source>
+        <target state="new">Blank line not allowed after arrow expression clause token</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_conditional_expression_token">
         <source>Blank line not allowed after conditional expression token</source>
         <target state="new">Blank line not allowed after conditional expression token</target>
@@ -350,6 +355,11 @@
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">로컬 함수 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_nameof">
+        <source>Use 'nameof'</source>
+        <target state="new">Use 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_new">

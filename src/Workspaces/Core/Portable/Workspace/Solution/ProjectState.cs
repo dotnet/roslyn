@@ -961,17 +961,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            dependentDocumentVersion = recalculateDocumentVersion ?
-                new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true) :
-                textChanged ?
-                    new AsyncLazy<VersionStamp>(newDocument.GetTextVersionAsync, cacheResult: true) :
-                    _lazyLatestDocumentVersion;
+            dependentDocumentVersion = recalculateDocumentVersion
+                ? new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true)
+                : textChanged
+                    ? new AsyncLazy<VersionStamp>(newDocument.GetTextVersionAsync, cacheResult: true)
+                    : _lazyLatestDocumentVersion;
 
-            dependentSemanticVersion = recalculateSemanticVersion ?
-                new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true) :
-                textChanged ?
-                    CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates) :
-                    _lazyLatestDocumentTopLevelChangeVersion;
+            dependentSemanticVersion = recalculateSemanticVersion
+                ? new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true)
+                : textChanged
+                    ? CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates)
+                    : _lazyLatestDocumentTopLevelChangeVersion;
         }
     }
 }

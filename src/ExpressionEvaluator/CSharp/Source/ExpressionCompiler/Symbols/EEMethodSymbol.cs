@@ -171,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Note: we don't call ToOtherMethod in the local case because doing so would produce
                 // a new LocalSymbol that would not be ReferenceEquals to the one in this.LocalsForBinding.
                 var oldDisplayClassInstanceFromLocal = oldDisplayClassInstance as DisplayClassInstanceFromLocal;
-                var newDisplayClassInstance = (oldDisplayClassInstanceFromLocal == null) ?
-                    oldDisplayClassInstance.ToOtherMethod(this, this.TypeMap) :
-                    new DisplayClassInstanceFromLocal((EELocalSymbol)localsMap[oldDisplayClassInstanceFromLocal.Local]);
+                var newDisplayClassInstance = (oldDisplayClassInstanceFromLocal == null)
+                    ? oldDisplayClassInstance.ToOtherMethod(this, this.TypeMap)
+                    : new DisplayClassInstanceFromLocal((EELocalSymbol)localsMap[oldDisplayClassInstanceFromLocal.Local]);
 
                 variable = variable.SubstituteFields(newDisplayClassInstance, this.TypeMap);
                 displayClassVariables.Add(pair.Key, variable);

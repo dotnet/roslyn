@@ -2619,6 +2619,45 @@ Keyword("async"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestScopedVar(TestHost testHost)
+        {
+            await TestAsync("""
+                static void method(scoped in S s)
+                {
+                    scoped var rs1 = s;
+                }
+
+                file readonly ref struct S { }
+                """, testHost,
+                Keyword("static"),
+                Keyword("void"),
+                Method("method"),
+                Static("method"),
+                Punctuation.OpenParen,
+                Keyword("scoped"),
+                Keyword("in"),
+                Struct("S"),
+                Parameter("s"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("scoped"),
+                Keyword("var"),
+                Local("rs1"),
+                Operators.Equals,
+                Parameter("s"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Keyword("file"),
+                Keyword("readonly"),
+                Keyword("ref"),
+                Keyword("struct"),
+                Struct("S"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task Lambda_DefaultParameterValue(TestHost testHost)
         {
             await TestAsync(

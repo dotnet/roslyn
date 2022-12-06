@@ -1057,6 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.Block:
                 case SyntaxKind.LabeledStatement:
+                case SyntaxKind.GlobalStatement:
                     distance = ComputeWeightedBlockDistance(leftBlock, rightBlock);
                     return true;
 

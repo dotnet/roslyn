@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 => EnqueueWork(highPriority: false);
 
             private void EnqueueWork(bool highPriority)
-                => _eventChangeQueue.AddWork(highPriority);
+                => _eventChangeQueue.AddWork(highPriority, _dataSource.CancelOnNewWork);
 
             private async ValueTask ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
             {
@@ -383,11 +384,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private bool ShouldSkipTagProduction()
             {
-                if (_dataSource.Options.Any(option => !_dataSource.GlobalOptions.GetOption(option)))
+                if (_dataSource.Options.OfType<Option2<bool>>().Any(option => !_dataSource.GlobalOptions.GetOption(option)))
                     return true;
 
                 var languageName = _subjectBuffer.GetLanguageName();
-                return _dataSource.PerLanguageOptions.Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
+                return _dataSource.Options.OfType<PerLanguageOption2<bool>>().Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
             }
 
             private Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)

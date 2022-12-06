@@ -593,9 +593,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
-            SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
-                SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
-                SingleTypeDeclaration.TypeDeclarationFlags.None;
+            var declFlags = node.AttributeLists.Any()
+                ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes
+                : SingleTypeDeclaration.TypeDeclarationFlags.None;
 
             if (node.BaseList != null)
             {
@@ -618,7 +618,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            // If we have `record class` or `record struct` check that this is supported in the language. Note: we don't
+            // have to do any check for the simple `record` case as the parser itself would never produce such a node
+            // unless the language version was sufficient (since it actually will not produce the node at all on
+            // previous versions).
+            if (node is RecordDeclarationSyntax record &&
+                record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
+            {
+                MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
+            }
+
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = GetQuickAttributes(node.AttributeLists);
 
             foreach (var modifier in node.Modifiers)
@@ -682,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
@@ -715,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableSegmentedDictionary<string, VoidResult> memberNames = GetEnumMemberNames(members, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(

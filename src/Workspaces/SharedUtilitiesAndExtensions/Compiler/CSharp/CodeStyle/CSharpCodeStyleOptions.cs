@@ -327,6 +327,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.AllowBlankLineAfterTokenInConditionalExpression"));
 
+        public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInArrowExpressionClause { get; } = CreateOption(
+            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLineAfterTokenInArrowExpressionClause),
+            CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInArrowExpressionClause,
+            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
+            new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.AllowBlankLineAfterTokenInArrowExpressionClause"));
+
         private static Option2<CodeStyleOption2<NamespaceDeclarationPreference>> CreateNamespaceDeclarationOption(string optionName, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, string editorconfigKeyName)
             => CreateOption(
                 CSharpCodeStyleOptionGroups.CodeBlockPreferences, optionName,
@@ -390,6 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferRangeOperator;
             yield return AllowEmbeddedStatementsOnSameLine;
             yield return AllowBlankLinesBetweenConsecutiveBraces;
+            yield return AllowBlankLineAfterColonInConstructorInitializer;
+            yield return AllowBlankLineAfterTokenInConditionalExpression;
+            yield return AllowBlankLineAfterTokenInArrowExpressionClause;
         }
 
         public static IEnumerable<Option2<CodeStyleOption2<ExpressionBodyPreference>>> GetExpressionBodyOptions()

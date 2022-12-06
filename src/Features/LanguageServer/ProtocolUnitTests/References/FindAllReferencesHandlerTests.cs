@@ -292,8 +292,8 @@ class C
             Assert.Equal(9, textRuns.Count());
         }
 
-        private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress) =>
-            new LSP.ReferenceParams()
+        private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
+            => new LSP.ReferenceParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,

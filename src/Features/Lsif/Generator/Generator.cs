@@ -5,11 +5,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
@@ -249,7 +253,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                     if (declaredSymbol != null)
                     {
-                        var definitionResultsId = symbolResultsTracker.GetResultIdForSymbol(declaredSymbol, Methods.TextDocumentDefinitionName, () => new DefinitionResult(idFactory));
+                        var definitionResultsId = symbolResultsTracker.GetResultIdForSymbol(declaredSymbol, Methods.TextDocumentDefinitionName, static idFactory => new DefinitionResult(idFactory));
                         lsifJsonWriter.Write(new Item(definitionResultsId.As<DefinitionResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory));
 
                         // If this declared symbol also implements an interface member, we count this as a definition of the interface member as well.
@@ -282,12 +286,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         void MarkImplementationOfSymbol(ISymbol baseMember)
                         {
                             // First we create a definition link for the reference results for the base member
-                            var referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(baseMember.OriginalDefinition, idFactory);
+                            var referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(baseMember.OriginalDefinition);
                             lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "definitions"));
 
                             // Then also link the result set for the method to the moniker that it implements
-                            referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(declaredSymbol.OriginalDefinition, idFactory);
-                            var implementedMemberMoniker = symbolResultsTracker.GetResultIdForSymbol<Moniker>(baseMember.OriginalDefinition, "moniker", () => throw new Exception("When we produced the resultSet, we should have already created a moniker for it."));
+                            referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(declaredSymbol.OriginalDefinition);
+                            var implementedMemberMoniker = symbolResultsTracker.GetMoniker(baseMember.OriginalDefinition, semanticModel.Compilation);
                             lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), implementedMemberMoniker, documentVertex.GetId(), idFactory, property: "referenceLinks"));
                         }
                     }
@@ -298,7 +302,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         // symbol but the range can point a different symbol's resultSet. This can happen if the token is
                         // both a definition of a symbol (where we will point to the definition) but also a reference to some
                         // other symbol.
-                        var referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(referencedSymbol.GetOriginalUnreducedDefinition(), idFactory);
+                        var referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(referencedSymbol.GetOriginalUnreducedDefinition());
                         lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "references"));
                     }
 

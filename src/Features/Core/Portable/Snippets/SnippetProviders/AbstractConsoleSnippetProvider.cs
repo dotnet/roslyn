@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string Description => FeaturesResources.console_writeline;
 
-        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("Console", "WriteLine");
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("WriteLine");
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {

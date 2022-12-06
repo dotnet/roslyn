@@ -173,13 +173,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The receiver for a collection initializer is already a temp, so we don't need to preserve any additional temp stores beyond this method.
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? temps = null;
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverForMultipleInvocations: false,
                 initializer.Arguments,
                 addMethod,
                 initializer.ArgsToParamsOpt,
                 argumentRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? temps);
+                storesOpt: null,
+                ref temps);
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps);
 
             var rewrittenType = VisitType(initializer.Type);
@@ -210,7 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var originalReceiver = rewrittenReceiver;
-            var rewrittenArguments = VisitArguments(node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt, ref rewrittenReceiver, out ArrayBuilder<LocalSymbol>? constructionTemps);
+            ArrayBuilder<LocalSymbol>? constructionTemps = null;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(ref rewrittenReceiver, captureReceiverForMultipleInvocations: false, node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt,
+                storesOpt: null, ref constructionTemps);
 
             if (constructionTemps != null)
             {
