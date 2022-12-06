@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsImportedFromMetadata => _underlyingLocal.IsImportedFromMetadata;
         internal override SyntaxToken IdentifierToken => _underlyingLocal.IdentifierToken;
         internal override bool IsPinned => _underlyingLocal.IsPinned;
+        internal override bool IsKnownToReferToTempIfReferenceType => _underlyingLocal.IsKnownToReferToTempIfReferenceType;
         internal override bool IsCompilerGenerated => _underlyingLocal.IsCompilerGenerated;
         internal override DeclarationScope Scope => _underlyingLocal.Scope;
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics = null) =>

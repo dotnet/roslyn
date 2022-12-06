@@ -244,6 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return false; }
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return _containingSymbol; }

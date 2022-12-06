@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedLocalKind _kind;
         private readonly SyntaxNode _syntaxOpt;
         private readonly bool _isPinned;
+        private bool _isKnownToReferToTempIfReferenceType;
         private readonly RefKind _refKind;
 
 #if DEBUG
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SynthesizedLocalKind kind,
             SyntaxNode syntaxOpt = null,
             bool isPinned = false,
+            bool isKnownToReferToTempIfReferenceType = false,
             RefKind refKind = RefKind.None
 #if DEBUG
             ,
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _kind = kind;
             _syntaxOpt = syntaxOpt;
             _isPinned = isPinned;
+            _isKnownToReferToTempIfReferenceType = isKnownToReferToTempIfReferenceType;
             _refKind = refKind;
 
 #if DEBUG
@@ -75,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 kind,
                 syntax,
                 _isPinned,
+                _isKnownToReferToTempIfReferenceType,
                 _refKind);
         }
 
@@ -147,6 +151,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsPinned
         {
             get { return _isPinned; }
+        }
+
+        internal sealed override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return _isKnownToReferToTempIfReferenceType; }
+        }
+
+        internal void SetIsKnownToReferToTempIfReferenceType()
+        {
+            Debug.Assert(!_isKnownToReferToTempIfReferenceType);
+            _isKnownToReferToTempIfReferenceType = true;
         }
 
         internal sealed override bool IsCompilerGenerated
