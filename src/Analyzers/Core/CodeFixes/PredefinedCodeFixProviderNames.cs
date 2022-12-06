@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseIsNullCheckForCastAndEqualityOperator = nameof(UseIsNullCheckForCastAndEqualityOperator);
         public const string UseIsNullCheckForReferenceEquals = nameof(UseIsNullCheckForReferenceEquals);
         public const string UseLocalFunction = nameof(UseLocalFunction);
+        public const string UseNameofInAttribute = nameof(UseNameofInAttribute);
         public const string UseNotPattern = nameof(UseNotPattern);
         public const string UseNullCheckOverTypeCheck = nameof(UseNullCheckOverTypeCheck);
         public const string UseNullPropagation = nameof(UseNullPropagation);

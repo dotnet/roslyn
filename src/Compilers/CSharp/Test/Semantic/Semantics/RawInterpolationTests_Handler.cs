@@ -2342,14 +2342,14 @@ Caught");
         var source = @"
 using System;
 
-ReadOnlySpan<char> s = new char[] { 'i' };
+Span<char> s = new char[] { 'i' };
 try
 {
     Console.WriteLine(""Starting try"");
     throw new MyException { Prop = s.ToString() };
 }
 // Test DefaultInterpolatedStringHandler renders specially, so we're actually comparing to ""value:Prop"" plus some whitespace
-catch (MyException e) when (e.ToString() == $""""""{s}"""""".Trim())
+catch (MyException e) when (e.ToString() == $""""""{(ReadOnlySpan<char>)s}"""""".Trim())
 {
     Console.WriteLine(""Caught"");
 }
@@ -2368,9 +2368,9 @@ Caught");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      122 (0x7a)
+  // Code size      127 (0x7f)
   .maxstack  4
-  .locals init (System.ReadOnlySpan<char> V_0, //s
+  .locals init (System.Span<char> V_0, //s
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     ""char""
@@ -2378,7 +2378,7 @@ Caught");
   IL_0007:  ldc.i4.0
   IL_0008:  ldc.i4.s   105
   IL_000a:  stelem.i2
-  IL_000b:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(char[])""
+  IL_000b:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
   IL_0010:  stloc.0
   .try
   {
@@ -2387,7 +2387,7 @@ Caught");
     IL_001b:  newobj     ""MyException..ctor()""
     IL_0020:  dup
     IL_0021:  ldloca.s   V_0
-    IL_0023:  constrained. ""System.ReadOnlySpan<char>""
+    IL_0023:  constrained. ""System.Span<char>""
     IL_0029:  callvirt   ""string object.ToString()""
     IL_002e:  callvirt   ""void MyException.Prop.set""
     IL_0033:  throw
@@ -2399,7 +2399,7 @@ Caught");
     IL_003a:  brtrue.s   IL_0040
     IL_003c:  pop
     IL_003d:  ldc.i4.0
-    IL_003e:  br.s       IL_006a
+    IL_003e:  br.s       IL_006f
     IL_0040:  callvirt   ""string object.ToString()""
     IL_0045:  ldloca.s   V_1
     IL_0047:  ldc.i4.0
@@ -2407,22 +2407,23 @@ Caught");
     IL_0049:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
     IL_004e:  ldloca.s   V_1
     IL_0050:  ldloc.0
-    IL_0051:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
-    IL_0056:  ldloca.s   V_1
-    IL_0058:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-    IL_005d:  callvirt   ""string string.Trim()""
-    IL_0062:  call       ""bool string.op_Equality(string, string)""
-    IL_0067:  ldc.i4.0
-    IL_0068:  cgt.un
-    IL_006a:  endfilter
+    IL_0051:  call       ""System.ReadOnlySpan<char> System.Span<char>.op_Implicit(System.Span<char>)""
+    IL_0056:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
+    IL_005b:  ldloca.s   V_1
+    IL_005d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_0062:  callvirt   ""string string.Trim()""
+    IL_0067:  call       ""bool string.op_Equality(string, string)""
+    IL_006c:  ldc.i4.0
+    IL_006d:  cgt.un
+    IL_006f:  endfilter
   }  // end filter
   {  // handler
-    IL_006c:  pop
-    IL_006d:  ldstr      ""Caught""
-    IL_0072:  call       ""void System.Console.WriteLine(string)""
-    IL_0077:  leave.s    IL_0079
+    IL_0071:  pop
+    IL_0072:  ldstr      ""Caught""
+    IL_0077:  call       ""void System.Console.WriteLine(string)""
+    IL_007c:  leave.s    IL_007e
   }
-  IL_0079:  ret
+  IL_007e:  ret
 }
 ");
     }

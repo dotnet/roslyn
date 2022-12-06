@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol>? argTempsBuilder = null;
             arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref rewrittenReceiver,
-                captureReceiverForMultipleInvocations: false,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 arguments,
                 property,
                 argsToParamsOpt,
