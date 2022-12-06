@@ -14,6 +14,7 @@ internal static class Program
 
     public static int Main(string[] args)
     {
+        Console.WriteLine("Started PrepareTests tool");
         string? source = null;
         string? destination = null;
         bool isUnix = false;
