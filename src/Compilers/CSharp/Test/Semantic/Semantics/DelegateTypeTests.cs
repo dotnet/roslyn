@@ -10683,6 +10683,74 @@ class Program
                 """).VerifyDiagnostics();
         }
 
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_NonArrayTypeInMetadata()
+        {
+            /*
+                public static class C
+                {
+                    public static void M(params int x) { }
+                }
+             */
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit C
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            int32 x
+                        ) cil managed 
+                    {
+                        .param [1]
+                            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x20a2
+                        // Code size 2 (0x2)
+                        .maxstack 8
+
+                        IL_0000: nop
+                        IL_0001: ret
+                    } // end of method C::M
+
+                } // end of class C
+                """;
+            var source = """
+                var m = C.M;
+                System.Console.WriteLine(m.GetType());
+                """;
+            var comp = CreateCompilationWithIL(source, ilSource).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0`1'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			!T1 arg
+                		) runtime managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                	} // end of method '<>f__AnonymousDelegate0`1'::Invoke
+                } // end of class <>f__AnonymousDelegate0`1
+                """);
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
