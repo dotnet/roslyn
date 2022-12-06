@@ -9743,7 +9743,6 @@ tryAgain:
                              this.CurrentToken.Kind is not (SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken) :
                              this.CurrentToken.Kind != SyntaxKind.IdentifierToken))
                     {
-
                         beforeScopedResetPoint.Reset();
                         return null;
                     }
