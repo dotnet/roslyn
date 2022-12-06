@@ -1984,19 +1984,16 @@ tryAgain:
 
         private TypeParameterConstraintSyntax ParseTypeParameterConstraint()
         {
-            SyntaxToken questionToken = null;
-            var syntaxKind = this.CurrentToken.Kind;
-
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.NewKeyword:
-                    var newToken = this.EatToken();
-                    var open = this.EatToken(SyntaxKind.OpenParenToken);
-                    var close = this.EatToken(SyntaxKind.CloseParenToken);
-                    return _syntaxFactory.ConstructorConstraint(newToken, open, close);
+                    return _syntaxFactory.ConstructorConstraint(
+                        this.EatToken(),
+                        this.EatToken(SyntaxKind.OpenParenToken),
+                        this.EatToken(SyntaxKind.CloseParenToken));
                 case SyntaxKind.StructKeyword:
                     var structToken = this.EatToken();
-
+                    SyntaxToken questionToken = null;
                     if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
                     {
                         questionToken = this.EatToken();
@@ -2005,10 +2002,10 @@ tryAgain:
 
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken, questionToken);
                 case SyntaxKind.ClassKeyword:
-                    var classToken = this.EatToken();
-                    questionToken = this.TryEatToken(SyntaxKind.QuestionToken);
-
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
+                    return _syntaxFactory.ClassOrStructConstraint(
+                        SyntaxKind.ClassConstraint,
+                        this.EatToken(),
+                        this.TryEatToken(SyntaxKind.QuestionToken));
                 case SyntaxKind.DefaultKeyword:
                     return _syntaxFactory.DefaultConstraint(this.EatToken());
                 case SyntaxKind.EnumKeyword:
@@ -2026,8 +2023,7 @@ tryAgain:
                         return _syntaxFactory.TypeConstraint(missingType);
                     }
                 default:
-                    var type = this.ParseType();
-                    return _syntaxFactory.TypeConstraint(type);
+                    return _syntaxFactory.TypeConstraint(this.ParseType());
             }
         }
 
