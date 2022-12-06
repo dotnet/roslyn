@@ -459,7 +459,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         Debug.Assert(variable.Type is { });
-                        var temp = this.TransformCompoundAssignmentLHS(variable, effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
+                        var temp = this.TransformCompoundAssignmentLHS(variable, isRegularCompoundAssignment: false,
+                                                                       effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
                         assignmentTargets.Add(new Binder.DeconstructionVariable(temp, variable.Syntax));
                         break;
                 }

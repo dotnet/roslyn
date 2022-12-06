@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override bool IsCompilerGenerated => true;
             internal override bool IsImportedFromMetadata => false;
             internal override bool IsPinned => false;
+            internal override bool IsKnownToReferToTempIfReferenceType => false;
             public override RefKind RefKind => RefKind.None;
             internal override SynthesizedLocalKind SynthesizedKind => throw ExceptionUtilities.Unreachable();
             internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null) => null;

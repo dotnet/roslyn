@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         /// of qualified names and member access expressions are not language expressions, yet the
         /// containing qualified names or member access expressions are indeed expressions.
         /// </summary>
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         SyntaxNode? GetStandaloneExpression(SyntaxNode? node);
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
 
         // Violation.  This is a feature level API.
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
         // Violation.  This is a feature level API.
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         SyntaxTokenList GetModifiers(SyntaxNode? node);
 
         // Violation.  WithXXX methods should not be here, but should be in SyntaxGenerator.
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers);
 
         // Violation.  This is a feature level API.
