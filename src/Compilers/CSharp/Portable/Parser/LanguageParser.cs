@@ -9552,15 +9552,13 @@ tryAgain:
                     }
                 }
 
-                var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-
                 return _syntaxFactory.LocalDeclarationStatement(
                     attributes,
                     awaitKeyword,
                     usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
-                    semicolon);
+                    this.EatToken(SyntaxKind.SemicolonToken));
             }
             finally
             {
@@ -11032,18 +11030,13 @@ tryAgain:
 
         internal ExpressionSyntax ParseConsequenceSyntax()
         {
-            SyntaxKind tk = this.CurrentToken.Kind;
-            ExpressionSyntax expr = null;
-            switch (tk)
+            var tk = this.CurrentToken.Kind;
+            var expr = tk switch
             {
-                case SyntaxKind.DotToken:
-                    expr = _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
-                    break;
-
-                case SyntaxKind.OpenBracketToken:
-                    expr = _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList());
-                    break;
-            }
+                SyntaxKind.DotToken => (ExpressionSyntax)_syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
+                SyntaxKind.OpenBracketToken => _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()),
+                _ => null,
+            };
 
             Debug.Assert(expr != null);
 
