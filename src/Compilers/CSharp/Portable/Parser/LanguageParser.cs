@@ -2991,8 +2991,7 @@ parse_member_name:;
 
             foreach (var child in node.ChildNodesAndTokens().Reverse())
             {
-                var token = child as SyntaxToken;
-                if (token == null)
+                if (child is not SyntaxToken token)
                 {
                     return IsComplete((CSharpSyntaxNode)child);
                 }
