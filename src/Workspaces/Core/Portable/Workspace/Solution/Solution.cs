@@ -1755,6 +1755,8 @@ namespace Microsoft.CodeAnalysis
                 if (documentId == null)
                     continue;
 
+                // Only a process a document once.  So if it is a linked doc (which we handle inside this if), don't
+                // process another one of the links if we see it in the arguments passed to us.
                 if (processedDocumentIds.Add(documentId))
                 {
                     var relatedDocuments = this.GetRelatedDocumentIds(documentId);
