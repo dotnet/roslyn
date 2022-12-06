@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis
                         // We're changing the text of this document to something else entirely.  So we need to pass
                         // `textChanged: true, recalculateDependentVersions: true` so that any interested parties that
                         // compute anything that is dependent on changed text get the right values.
-                        inProgressProject = inProgressProject.UpdateDocument(docState, textChanged: false, recalculateDependentVersions: false);
+                        inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
                     {

@@ -3054,12 +3054,13 @@ public class C : A {
             // Because we had no compilation produced yet, we expect that only the DocumentToFreeze is in the compilation
             Assert.NotSame(frozenDocument, documentToFreezeChanged);
 
-            // Versions should the different since there was a top level change different
+            // Before/after the change must always result in a top level change.
+            // After the change, we should get the same version between the doc and its frozen version.
             Assert.NotEqual(
                 await documentToFreezeOriginal.GetTopLevelChangeTextVersionAsync(),
                 await frozenDocument.GetTopLevelChangeTextVersionAsync());
 
-            Assert.NotEqual(
+            Assert.Equal(
                 await documentToFreezeChanged.GetTopLevelChangeTextVersionAsync(),
                 await frozenDocument.GetTopLevelChangeTextVersionAsync());
 
@@ -3067,7 +3068,7 @@ public class C : A {
                 await documentToFreezeOriginal.Project.GetDependentSemanticVersionAsync(),
                 await frozenDocument.Project.GetDependentSemanticVersionAsync());
 
-            Assert.NotEqual(
+            Assert.Equal(
                 await documentToFreezeChanged.Project.GetDependentSemanticVersionAsync(),
                 await frozenDocument.Project.GetDependentSemanticVersionAsync());
 
@@ -3075,7 +3076,7 @@ public class C : A {
                 await documentToFreezeOriginal.Project.GetSemanticVersionAsync(),
                 await frozenDocument.Project.GetSemanticVersionAsync());
 
-            Assert.NotEqual(
+            Assert.Equal(
                 await documentToFreezeChanged.Project.GetSemanticVersionAsync(),
                 await frozenDocument.Project.GetSemanticVersionAsync());
 
