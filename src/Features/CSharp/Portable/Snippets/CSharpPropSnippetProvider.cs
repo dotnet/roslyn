@@ -44,14 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override async Task<SyntaxNode> GenerateSnippetSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
             var identifierName = NameGenerator.GenerateUniqueName("MyProperty",
                 n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
             return generator.PropertyDeclaration(
                 name: identifierName,
-                type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
+                type: semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
                 accessibility: Accessibility.Public);
         }
 
