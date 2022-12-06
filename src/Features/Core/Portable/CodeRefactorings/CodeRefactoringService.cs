@@ -164,60 +164,62 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             bool isBlocking,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringFromProvider, KeyValueLogMessage.Create(LogType.Trace, m => CreateLogProperties(m, provider)), cancellationToken));
-            cancellationToken.ThrowIfCancellationRequested();
-            if (extensionManager.IsDisabled(provider))
+            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringFromProvider, KeyValueLogMessage.Create(LogType.Trace, m => CreateLogProperties(m, provider)), cancellationToken))
             {
-                return null;
-            }
-
-            try
-            {
-                using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
-                var context = new CodeRefactoringContext(textDocument, state,
-
-                    // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
-                    (action, applicableToSpan) =>
-                    {
-                        // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
-                        lock (actions)
-                        {
-                            // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
-                            // Always add a name even in cases of 3rd party refactorings that do not export
-                            // name metadata.
-                            action.AddCustomTagAndTelemetryInfo(providerMetadata, provider);
-
-                            actions.Add((action, applicableToSpan));
-                        }
-                    },
-                    options,
-                    isBlocking,
-                    cancellationToken);
-
-                var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
-                await task.ConfigureAwait(false);
-
-                if (actions.Count == 0)
+                cancellationToken.ThrowIfCancellationRequested();
+                if (extensionManager.IsDisabled(provider))
                 {
                     return null;
                 }
 
-                var fixAllProviderInfo = extensionManager.PerformFunction(
-                    provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
-                return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
-            }
-            catch (OperationCanceledException)
-            {
-                // We don't want to catch operation canceled exceptions in the catch block 
-                // below. So catch is here and rethrow it.
-                throw;
-            }
-            catch (Exception e)
-            {
-                extensionManager.HandleException(provider, e);
-            }
+                try
+                {
+                    using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
+                    var context = new CodeRefactoringContext(textDocument, state,
 
-            return null;
+                        // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
+                        (action, applicableToSpan) =>
+                        {
+                            // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
+                            lock (actions)
+                            {
+                                // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
+                                // Always add a name even in cases of 3rd party refactorings that do not export
+                                // name metadata.
+                                action.AddCustomTagAndTelemetryInfo(providerMetadata, provider);
+
+                                actions.Add((action, applicableToSpan));
+                            }
+                        },
+                        options,
+                        isBlocking,
+                        cancellationToken);
+
+                    var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
+                    await task.ConfigureAwait(false);
+
+                    if (actions.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    var fixAllProviderInfo = extensionManager.PerformFunction(
+                        provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
+                    return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
+                }
+                catch (OperationCanceledException)
+                {
+                    // We don't want to catch operation canceled exceptions in the catch block 
+                    // below. So catch is here and rethrow it.
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    extensionManager.HandleException(provider, e);
+                }
+
+                return null;
+            }
         }
 
         private static void CreateLogProperties(Dictionary<string, object?> map, object refactoringProvider)

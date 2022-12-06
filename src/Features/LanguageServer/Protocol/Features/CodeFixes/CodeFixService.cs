@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
             where TCodeFixProvider : notnull
         {
-            using (Logger.LogBlock(FunctionId.CodeFixes_GetCodeFixesAsync, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m, fixer)), cancellationToken));
+            using (Logger.LogBlock(FunctionId.CodeFixes_GetCodeFixesAsync, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m, fixer)), cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
