@@ -1263,6 +1263,26 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateFilePath(filePath));
         }
 
+        private SolutionState UpdateRelatedDocuments<TArg, TTextDocumentState>(
+            ImmutableArray<DocumentId> relatedDocuments,
+            Func<SolutionState, DocumentId, TTextDocumentState> getOldDocument,
+            Func<TTextDocumentState, TArg, bool> isSame,
+            Func<SolutionState, TTextDocumentState, TArg, SolutionState> updateSolution,
+            TArg arg) where TTextDocumentState : TextDocumentState
+        {
+            var newState = this;
+            foreach (var documentId in relatedDocuments)
+            {
+                var oldDocument = getOldDocument(newState, documentId);
+                if (isSame(oldDocument, arg))
+                    continue;
+
+                newState = updateSolution(newState, oldDocument, arg);
+            }
+
+            return newState;
+        }
+
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
