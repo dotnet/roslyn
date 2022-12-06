@@ -115,7 +115,7 @@ namespace IdeCoreBenchmarks
         public async Task RunSerialParsing()
         {
             Console.WriteLine("start profiling now");
-            Thread.Sleep(10000);
+            // Thread.Sleep(10000);
             Console.WriteLine("Starting serial parsing.");
             var start = DateTime.Now;
             var roots = new List<SyntaxNode>();
@@ -129,13 +129,8 @@ namespace IdeCoreBenchmarks
             }
 
             Console.WriteLine("Serial: " + (DateTime.Now - start));
-            Console.WriteLine($"{nameof(DocumentState.s_couldNotShareBecauseNoRelatedDocs)} - {DocumentState.s_couldNotShareBecauseNoRelatedDocs}");
-            Console.WriteLine($"{nameof(DocumentState.s_couldShareBecauseRelatedDocs)} - {DocumentState.s_couldShareBecauseRelatedDocs}");
-            Console.WriteLine($"{nameof(DocumentState.s_wasFirstToCompute)} - {DocumentState.s_wasFirstToCompute}");
-            Console.WriteLine($"{nameof(DocumentState.s_foundSiblingWithSamePPNames)} - {DocumentState.s_foundSiblingWithSamePPNames}");
-            Console.WriteLine($"{nameof(DocumentState.s_foundSiblingWithNoDirectives)} - {DocumentState.s_foundSiblingWithNoDirectives}");
-            Console.WriteLine($"{nameof(DocumentState.s_foundSiblingWithOtherDirectives)} - {DocumentState.s_foundSiblingWithOtherDirectives}");
-            Console.WriteLine($"{nameof(DocumentState.s_couldNotFindSiblingWithTreeToShare)} - {DocumentState.s_couldNotFindSiblingWithTreeToShare}");
+            Console.WriteLine($"{nameof(DocumentState.s_tryShareSyntaxTreeCount)} - {DocumentState.s_tryShareSyntaxTreeCount}");
+            Console.WriteLine($"{nameof(DocumentState.s_successfullySharedSyntaxTreeCount)} - {DocumentState.s_successfullySharedSyntaxTreeCount}");
 
             for (var i = 0; i < 10; i++)
             {

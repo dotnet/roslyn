@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 internal sealed class ConstantTextAndVersionSource : ValueSource<TextAndVersion>, ITextAndVersionSource
 {
-    private readonly TextAndVersion _value;
+    public readonly TextAndVersion Value;
 
     public ConstantTextAndVersionSource(TextAndVersion value)
     {
-        _value = value;
+        Value = value;
     }
 
     public bool CanReloadText
         => false;
 
     public override TextAndVersion GetValue(CancellationToken cancellationToken)
-        => _value;
+        => Value;
 
     public override Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken)
-        => Task.FromResult(_value);
+        => Task.FromResult(Value);
 
     public override void TrySetValue(TextAndVersion value)
     {
@@ -38,7 +38,7 @@ internal sealed class ConstantTextAndVersionSource : ValueSource<TextAndVersion>
 
     public override bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
     {
-        value = _value;
+        value = Value;
         return true;
     }
 

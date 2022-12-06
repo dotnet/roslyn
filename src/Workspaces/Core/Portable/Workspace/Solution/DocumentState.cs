@@ -628,6 +628,9 @@ namespace Microsoft.CodeAnalysis
             return treeAndVersion.Tree;
         }
 
+        public static int s_tryShareSyntaxTreeCount;
+        public static int s_successfullySharedSyntaxTreeCount;
+
         /// <summary>
         /// Attempts to find a corresponding linked document for <paramref name="document"/> that we can reuse a parsed
         /// tree from.  The premise here is that more often than not (and this is proven out in Roslyn.sln itself) that
@@ -636,6 +639,7 @@ namespace Microsoft.CodeAnalysis
         private static void TryInitializeTreeSourceFromRelatedDocument(
             SolutionState solution, DocumentState document, ValueSource<TreeAndVersion> treeSource)
         {
+            s_tryShareSyntaxTreeCount++;
             if (document.FilePath == null)
                 return;
 
@@ -679,6 +683,47 @@ namespace Microsoft.CodeAnalysis
                 // different syntactic meaning like this across versions.  So we allow for this reuse even though the
                 // above it a possibility, since we do not consider it important or relevant to support.
 
+#if false
+
+                // Want to make sure that these two docs are pointing at the same text.  Technically it's possible
+                // (though unpleasant) to have linked docs pointing to different text.  This is because our in-memory
+                // model doesn't enforce any invariants here.  So it's trivially possible to take two linked documents
+                // and do things like `doc1.WithSomeText(text1)` and `doc2.WithSomeText(text2)` and now have them be
+                // inconsistent in that regard.  They will eventually become consistent, but there can be periods when
+                // they are not.  In this case, we don't want a forked doc to grab a tree from another doc that may be
+                // looking at some different text.  So we conservatively only allow for the case where we are certain
+                // things are ok.
+                //
+                //  https://github.com/dotnet/roslyn/issues/65797 tracks a cleaner model where the workspace would
+                // enforce that all linked docs would share the same source and we would not need this conservative
+                // check here.
+                var textsAreEquivalent = (document.TextAndVersionSource, otherDocument.TextAndVersionSource) switch
+                {
+                    // For constant sources (like what we have that wraps open documents, or explicitly forked docs) we
+                    // can reuse if the SourceTexts are clearly identical.
+                    (ConstantTextAndVersionSource constant1, ConstantTextAndVersionSource constant2) => constant1.Value.Text == constant2.Value.Text,
+                    // For loadable sources (like what we have for docs loaded from disk) we know they should have the
+                    // same text since they correspond to the same final physical entity on the machine.  Note: this is
+                    // not strictly true as technically it's possible to race here with event notifications where a file
+                    // changes, one doc sees it and updates its text loader, and the other linked doc hasn't done this
+                    // yet.  However, this race has always existed and we accept that it could cause inconsistencies
+                    // anyways.
+                    (LoadableTextAndVersionSource loadable1, LoadableTextAndVersionSource loadable2) => loadable1.Loader.FilePath == loadable2.Loader.FilePath,
+
+                    // Anything else, and we presume we can't share this root.
+                    _ => false,
+                };
+
+                if (!textsAreEquivalent)
+                {
+                    Console.WriteLine($"Texts are not equivalent: {document.TextAndVersionSource.GetType().Name}-{otherDocument.TextAndVersionSource.GetType().Name}");
+                    continue;
+                }
+
+                // Console.WriteLine("Texts are equivalent");
+
+#endif
+
                 var factory = document.LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                 var newTree = factory.CreateSyntaxTree(
                     document.FilePath, otherTree.Options, otherTree.Encoding, document.LoadTextOptions.ChecksumAlgorithm, otherRoot);
@@ -687,6 +732,7 @@ namespace Microsoft.CodeAnalysis
                 // beat us here. That's ok, our caller (GetSyntaxTreeAsync) will read the source itself.  So we'll only 
                 // ever have one source of truth here.
                 treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
+                s_successfullySharedSyntaxTreeCount++;
                 return;
             }
 
