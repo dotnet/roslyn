@@ -2762,13 +2762,8 @@ parse_member_name:;
             cancellationToken.ThrowIfCancellationRequested();
 
             // don't reuse members if they were previously declared under a different type keyword kind
-            if (this.IsIncrementalAndFactoryContextMatches)
-            {
-                if (CanReuseMemberDeclaration(CurrentNodeKind, isGlobal: false))
-                {
-                    return (MemberDeclarationSyntax)this.EatNode();
-                }
-            }
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseMemberDeclaration(CurrentNodeKind, isGlobal: false))
+                return (MemberDeclarationSyntax)this.EatNode();
 
             var modifiers = _pool.Allocate();
 
