@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (analyzer.IsCompilerAnalyzer())
             {
-                return globalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, project.Language) != CompilerDiagnosticsScope.None;
+                return globalOptions.GetBackgroundCompilerAnalysisScope(project.Language) != CompilerDiagnosticsScope.None;
             }
 
             // Check if user has disabled analyzer execution for this project or via options.
