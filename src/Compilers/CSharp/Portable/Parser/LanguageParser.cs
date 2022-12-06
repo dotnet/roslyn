@@ -1980,15 +1980,12 @@ tryAgain:
                         this.EatToken(SyntaxKind.OpenParenToken),
                         this.EatToken(SyntaxKind.CloseParenToken));
                 case SyntaxKind.StructKeyword:
-                    var structToken = this.EatToken();
-                    SyntaxToken questionToken = null;
-                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
-                    {
-                        questionToken = this.EatToken();
-                        questionToken = this.AddError(questionToken, ErrorCode.ERR_UnexpectedToken, questionToken.Text);
-                    }
-
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken, questionToken);
+                    return _syntaxFactory.ClassOrStructConstraint(
+                        SyntaxKind.StructConstraint,
+                        this.EatToken(),
+                        this.CurrentToken.Kind == SyntaxKind.QuestionToken
+                            ? this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedToken, SyntaxFacts.GetText(SyntaxKind.QuestionToken))
+                            : null);
                 case SyntaxKind.ClassKeyword:
                     return _syntaxFactory.ClassOrStructConstraint(
                         SyntaxKind.ClassConstraint,
@@ -1997,19 +1994,17 @@ tryAgain:
                 case SyntaxKind.DefaultKeyword:
                     return _syntaxFactory.DefaultConstraint(this.EatToken());
                 case SyntaxKind.EnumKeyword:
-                    {
-                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
-                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
-                        return _syntaxFactory.TypeConstraint(missingType);
-                    }
+                    return _syntaxFactory.TypeConstraint(
+                        AddTrailingSkippedSyntax(
+                            this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint),
+                            this.EatToken()));
                 case SyntaxKind.DelegateKeyword when PeekToken(1).Kind is not SyntaxKind.AsteriskToken:
-                    {
-                        // Produce a specific diagnostic for `where T : delegate`
-                        // but not `where T : delegate*<...>
-                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoDelegateConstraint);
-                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
-                        return _syntaxFactory.TypeConstraint(missingType);
-                    }
+                    // Produce a specific diagnostic for `where T : delegate`
+                    // but not `where T : delegate*<...>
+                    return _syntaxFactory.TypeConstraint(
+                        AddTrailingSkippedSyntax(
+                            this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoDelegateConstraint),
+                            this.EatToken()));
                 default:
                     return _syntaxFactory.TypeConstraint(this.ParseType());
             }
