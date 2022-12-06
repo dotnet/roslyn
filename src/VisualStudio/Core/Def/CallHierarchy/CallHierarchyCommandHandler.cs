@@ -60,37 +60,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public bool ExecuteCommand(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
         {
-<<<<<<< HEAD
-            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                context.OperationContext, _threadingContext);
-            if (document == null)
-            {
-                return true;
-            }
-
-            var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-
-            // We're showing our own UI, ensure the editor doesn't show anything itself.
-            context.OperationContext.TakeOwnership();
-            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            ExecuteCommandAsync(document, caretPosition)
-                .ReportNonFatalErrorAsync()
-                .CompletesAsyncOperation(token);
-
-            return true;
-        }
-
-        private async Task ExecuteCommandAsync(Document document, int caretPosition)
-        {
-            using (var context = _threadOperationExecutor.BeginExecute(
-                ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
-            {
-                var cancellationToken = context.UserCancellationToken;
-
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
-                var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
-                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(true);
-=======
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
             var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
@@ -121,25 +90,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
                     semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
->>>>>>> release/dev17.4
 
                 if (symbolUnderCaret != null)
                 {
                     // Map symbols so that Call Hierarchy works from metadata-as-source
                     var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-<<<<<<< HEAD
-                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(true);
-
-                    if (mapping.Symbol != null)
-                    {
-                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(true);
-=======
                     var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
 
                     if (mapping.Symbol != null)
                     {
                         var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
->>>>>>> release/dev17.4
 
                         if (node != null)
                         {
