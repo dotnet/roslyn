@@ -5124,8 +5124,7 @@ tryAgain:
                     var withSeps = sizes.GetWithSeparators();
                     foreach (var item in withSeps)
                     {
-                        var expression = item as ExpressionSyntax;
-                        if (expression != null)
+                        if (item is ExpressionSyntax expression)
                         {
                             bool isOmitted = expression.Kind == SyntaxKind.OmittedArraySizeExpression;
                             if (!isFixed && !isOmitted)
