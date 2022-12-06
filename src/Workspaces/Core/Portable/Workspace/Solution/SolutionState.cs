@@ -1267,7 +1267,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithDocumentText(
+            ImmutableArray<DocumentId> relatedDocuments,
+            SourceText text,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
@@ -1282,7 +1285,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithAdditionalDocumentText(
+            ImmutableArray<DocumentId> relatedDocuments,
+            SourceText text,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
@@ -1297,7 +1303,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithAnalyzerConfigDocumentText(
+            ImmutableArray<DocumentId> relatedDocuments,
+            SourceText text,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
@@ -1312,7 +1321,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public SolutionState WithDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithDocumentText(
+            ImmutableArray<DocumentId> relatedDocuments,
+            TextAndVersion textAndVersion,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
@@ -1327,7 +1339,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public SolutionState WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithAdditionalDocumentText(
+            ImmutableArray<DocumentId> relatedDocuments,
+            TextAndVersion textAndVersion,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
@@ -1342,7 +1357,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public SolutionState WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithAnalyzerConfigDocumentText(
+            ImmutableArray<DocumentId> relatedDocuments,
+            TextAndVersion textAndVersion,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
@@ -1357,7 +1375,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have a syntax tree
         /// rooted by the specified syntax node.
         /// </summary>
-        public SolutionState WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithDocumentSyntaxRoot(
+            ImmutableArray<DocumentId> relatedDocuments,
+            SyntaxNode root,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
@@ -1385,7 +1406,9 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the source
         /// code kind specified.
         /// </summary>
-        public SolutionState WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
+        public SolutionState WithDocumentSourceCodeKind(
+            ImmutableArray<DocumentId> relatedDocuments,
+            SourceCodeKind sourceCodeKind)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.SourceCodeKind == sourceCodeKind)
@@ -1396,7 +1419,10 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), textChanged: true);
         }
 
-        public SolutionState UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public SolutionState UpdateDocumentTextLoader(
+            ImmutableArray<DocumentId> relatedDocuments,
+            TextLoader loader,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
 
@@ -1409,7 +1435,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
-        public SolutionState UpdateAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public SolutionState UpdateAdditionalDocumentTextLoader(
+            ImmutableArray<DocumentId> relatedDocuments,
+            TextLoader loader,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
 
@@ -1422,7 +1451,10 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
-        public SolutionState UpdateAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public SolutionState UpdateAnalyzerConfigDocumentTextLoader(
+            ImmutableArray<DocumentId> relatedDocuments,
+            TextLoader loader,
+            PreservationMode mode)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
 
@@ -1677,33 +1709,6 @@ namespace Microsoft.CodeAnalysis
             {
                 throw ExceptionUtilities.Unreachable();
             }
-        }
-
-        /// <summary>
-        /// Creates a new solution instance with all the documents specified updated to have the same specified text.
-        /// </summary>
-        public SolutionState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
-        {
-            var solution = this;
-
-            foreach (var documentId in documentIds)
-            {
-                if (documentId == null)
-                {
-                    continue;
-                }
-
-                var doc = GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
-                if (doc != null)
-                {
-                    if (!doc.TryGetText(out var existingText) || existingText != text)
-                    {
-                        solution = solution.WithDocumentText(documentId, text, mode);
-                    }
-                }
-            }
-
-            return solution;
         }
 
         public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)

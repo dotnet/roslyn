@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -1362,8 +1363,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new solution instance with the document specified updated to have the text
-        /// specified.
+        /// Creates a new solution instance with the document specified updated to have the text specified. If this
+        /// <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="text"/>.
         /// </summary>
         public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
@@ -1379,18 +1382,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentText(documentId, text, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newState = _state.WithDocumentText(this.GetRelatedDocumentIds(documentId), text, mode);
+            return newState == _state ? this : new Solution(newState);
         }
 
         /// <summary>
-        /// Creates a new solution instance with the additional document specified updated to have the text
-        /// specified.
+        /// Creates a new solution instance with the additional document specified updated to have the text specified. If this
+        /// <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="text"/>.
         /// </summary>
         public Solution WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
@@ -1406,18 +1406,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAdditionalDocumentText(documentId, text, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newState = _state.WithAdditionalDocumentText(this.GetRelatedDocumentIds(documentId), text, mode);
+            return newState == _state ? this : new Solution(newState);
         }
 
         /// <summary>
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
-        /// supplied by the text loader.
+        /// supplied by the text loader. If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="text"/>.
         /// </summary>
         public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
@@ -1433,18 +1430,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAnalyzerConfigDocumentText(documentId, text, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newState = _state.WithAnalyzerConfigDocumentText(this.GetRelatedDocumentIds(documentId), text, mode);
+            return newState == _state ? this : new Solution(newState);
         }
 
         /// <summary>
-        /// Creates a new solution instance with the document specified updated to have the text
-        /// and version specified.
+        /// Creates a new solution instance with the document specified updated to have the text and version specified.
+        /// If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="textAndVersion"/>.
         /// </summary>
         public Solution WithDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
@@ -1460,18 +1454,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentText(documentId, textAndVersion, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newState = _state.WithDocumentText(this.GetRelatedDocumentIds(documentId), textAndVersion, mode);
+            return newState == _state ? this : new Solution(newState);
         }
 
         /// <summary>
-        /// Creates a new solution instance with the additional document specified updated to have the text
-        /// and version specified.
+        /// Creates a new solution instance with the additional document specified updated to have the text and version
+        /// specified. If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="textAndVersion"/>.
         /// </summary>
         public Solution WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
@@ -1487,18 +1478,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAdditionalDocumentText(documentId, textAndVersion, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newState = _state.WithAdditionalDocumentText(this.GetRelatedDocumentIds(documentId), textAndVersion, mode);
+            return newState == _state ? this : new Solution(newState);
         }
 
         /// <summary>
-        /// Creates a new solution instance with the analyzer config document specified updated to have the text
-        /// and version specified.
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text and
+        /// version specified. If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="textAndVersion"/>.
         /// </summary>
         public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
@@ -1514,7 +1502,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
+            var newState = _state.WithAnalyzerConfigDocumentText(this.GetRelatedDocumentIds(documentId), textAndVersion, mode);
             if (newState == _state)
             {
                 return this;
@@ -1541,7 +1529,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentSyntaxRoot(documentId, root, mode);
+            var newState = _state.WithDocumentSyntaxRoot(this.GetRelatedDocumentIds(documentId), root, mode);
             if (newState == _state)
             {
                 return this;
@@ -1551,8 +1539,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new solution instance with the document specified updated to have the source
-        /// code kind specified.
+        /// Creates a new solution instance with the document specified updated to have the source code kind specified.
+        /// If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="sourceCodeKind"/>.
         /// </summary>
         public Solution WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
@@ -1570,18 +1560,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(sourceCodeKind));
             }
 
-            var newState = _state.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newState = _state.WithDocumentSourceCodeKind(this.GetRelatedDocumentIds(documentId), sourceCodeKind);
+            return newState == _state ? this : new Solution(newState);
         }
 
         /// <summary>
-        /// Creates a new solution instance with the document specified updated to have the text
-        /// supplied by the text loader.
+        /// Creates a new solution instance with the document specified updated to have the text supplied by the text
+        /// loader. If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="loader"/>.
         /// </summary>
         public Solution WithDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
@@ -1597,7 +1584,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.UpdateDocumentTextLoader(documentId, loader, mode);
+            var newState = _state.UpdateDocumentTextLoader(this.GetRelatedDocumentIds(documentId), loader, mode);
 
             // Note: state is currently not reused.
             // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
@@ -1607,8 +1594,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new solution instance with the additional document specified updated to have the text
-        /// supplied by the text loader.
+        /// Creates a new solution instance with the additional document specified updated to have the text supplied by
+        /// the text loader. If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="loader"/>.
         /// </summary>
         public Solution WithAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
@@ -1624,7 +1613,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.UpdateAdditionalDocumentTextLoader(documentId, loader, mode);
+            var newState = _state.UpdateAdditionalDocumentTextLoader(this.GetRelatedDocumentIds(documentId), loader, mode);
 
             // Note: state is currently not reused.
             // If UpdateAdditionalDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
@@ -1635,7 +1624,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
-        /// supplied by the text loader.
+        /// supplied by the text loader. If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, then all
+        /// related documents will be updated with the new <paramref name="loader"/>.
         /// </summary>
         public Solution WithAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
@@ -1651,7 +1642,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
+            var newState = _state.UpdateAnalyzerConfigDocumentTextLoader(this.GetRelatedDocumentIds(documentId), loader, mode);
 
             // Note: state is currently not reused.
             // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
@@ -1755,13 +1746,24 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentText(documentIds, text, mode);
-            if (newState == _state)
+            var newState = _state;
+
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var processedDocumentIds);
+
+            foreach (var documentId in documentIds)
             {
-                return this;
+                if (documentId == null)
+                    continue;
+
+                if (processedDocumentIds.Add(documentId))
+                {
+                    var relatedDocuments = this.GetRelatedDocumentIds(documentId);
+                    newState = newState.WithDocumentText(relatedDocuments, text, mode);
+                    processedDocumentIds.AddRange(relatedDocuments);
+                }
             }
 
-            return new Solution(newState);
+            return newState == _state ? this : new Solution(newState);
         }
 
         /// <summary>

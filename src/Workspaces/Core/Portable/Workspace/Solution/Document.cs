@@ -325,13 +325,18 @@ namespace Microsoft.CodeAnalysis
             => this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetDocument(this.Id)!;
 
         /// <summary>
-        /// Creates a new instance of this document updated to have the text specified.
+        /// Creates a new instance of this document updated to have the text specified.  If this document has related
+        /// documents (see <see cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in its containing <see
+        /// cref="Solution"/>, then all related documents will be updated with the new <paramref name="text"/>.
         /// </summary>
         public Document WithText(SourceText text)
             => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
+        /// If this document has related documents (see <see cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in its
+        /// containing <see cref="Solution"/>, then all related documents will be updated with the new <paramref
+        /// name="root"/>.
         /// </summary>
         public Document WithSyntaxRoot(SyntaxNode root)
             => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
