@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly Func<string?, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
 
-        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
-            new();
+        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap = new();
 
         // properties inherited from the containing project:
         private readonly HostLanguageServices _languageServices;
@@ -609,14 +608,6 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public static int s_couldNotShareBecauseNoRelatedDocs;
-        public static int s_couldShareBecauseRelatedDocs;
-        public static int s_wasFirstToCompute;
-        public static int s_foundSiblingWithSamePPNames;
-        public static int s_foundSiblingWithNoDirectives;
-        public static int s_foundSiblingWithOtherDirectives;
-        public static int s_couldNotFindSiblingWithTreeToShare;
-
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public async ValueTask<SyntaxTree> GetSyntaxTreeAsync(SolutionState solutionState, CancellationToken cancellationToken)
         {
@@ -626,100 +617,103 @@ namespace Microsoft.CodeAnalysis
             if (_treeSource.TryGetValue(out var treeAndVersion))
                 return treeAndVersion.Tree;
 
-            // Have to compute the actual value.  See if we're a linked file and one of our other linked versions
-            // already computed the tree.
-            if (this.FilePath != null)
-            {
-                var relatedDocumentIds = solutionState.GetDocumentIdsWithFilePath(this.FilePath);
-                Contract.ThrowIfTrue(relatedDocumentIds.Length == 0);
-
-                if (relatedDocumentIds.Length == 1)
-                {
-                    s_couldNotShareBecauseNoRelatedDocs++;
-                }
-                else
-                {
-                    s_couldShareBecauseRelatedDocs++;
-
-                    var otherSiblingHadComputed = false;
-                    var foundSibling = false;
-                    foreach (var docId in relatedDocumentIds)
-                    {
-                        if (docId == this.Id)
-                            continue;
-
-                        var otherProject = solutionState.GetProjectState(docId.ProjectId);
-                        if (otherProject == null)
-                            continue;
-
-                        var otherDocState = otherProject.DocumentStates.GetState(docId);
-                        if (otherDocState == null)
-                            continue;
-
-                        if (otherDocState._treeSource == null || !otherDocState._treeSource.TryGetValue(out var otherTreeAndVersion))
-                            continue;
-
-                        otherSiblingHadComputed = true;
-                        var otherTree = otherTreeAndVersion.Tree;
-
-                        if (otherTree.TryGetRoot(out var otherRoot))
-                        {
-                            if (otherDocState.ParseOptions.PreprocessorSymbolNames.SetEquals(this.ParseOptions.PreprocessorSymbolNames))
-                            {
-                                var factory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
-                                var newTree = factory.CreateSyntaxTree(
-                                    this.FilePath, otherTree.Options, otherTree.Encoding, this.LoadTextOptions.ChecksumAlgorithm, otherRoot);
-
-                                // if we share the same pp directive names, then we'd produce the same tree.  So we can just reuse this treeAndVersion for ourselves.
-                                _treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
-                                foundSibling = true;
-                                s_foundSiblingWithSamePPNames++;
-                                break;
-                            }
-                            else if (!otherRoot.ContainsDirectives)
-                            {
-                                var factory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
-                                var newTree = factory.CreateSyntaxTree(
-                                    this.FilePath, otherTree.Options, otherTree.Encoding, this.LoadTextOptions.ChecksumAlgorithm, otherRoot);
-
-                                // different pp directive names.  We can reuse this tree if its root doesn't have directives.
-                                _treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
-                                foundSibling = true;
-                                s_foundSiblingWithNoDirectives++;
-                                break;
-                            }
-                            else
-                            {
-                                // var ifDirectives = otherRoot.DescendantTokens(n => n.ContainsDirectives).Any(t => t.LeadingTrivia.Any(t => t.RawKind is 8548 or 737));
-                                if (!otherRoot.ContainsConditionalDirectives())
-                                {
-                                    var factory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
-                                    var newTree = factory.CreateSyntaxTree(
-                                        this.FilePath, otherTree.Options, otherTree.Encoding, this.LoadTextOptions.ChecksumAlgorithm, otherRoot);
-
-                                    // different pp directive names.  We can reuse this tree if its root doesn't have directives.
-                                    _treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
-                                    foundSibling = true;
-                                    s_foundSiblingWithOtherDirectives++;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (!otherSiblingHadComputed)
-                        s_wasFirstToCompute++;
-
-                    if (!foundSibling)
-                        s_couldNotFindSiblingWithTreeToShare++;
-                }
-            }
+            // Before parsing out the tree ourselves, see if we have a sibling linked-document that already parsed it
+            // that we can reuse.
+            TryInitializeTreeSourceFromRelatedDocument(solutionState, this, _treeSource);
 
             treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
             // make sure there is an association between this tree and this doc id before handing it out
             BindSyntaxTreeToId(treeAndVersion.Tree, this.Id);
             return treeAndVersion.Tree;
+        }
+
+        /// <summary>
+        /// Attempts to find a corresponding linked document for <paramref name="document"/> that we can reuse a parsed
+        /// tree from.  The premise here is that more often than not (and this is proven out in Roslyn.sln itself) that
+        /// if a file is linked, then we get the same parse tree for it across all projects it is linked into.
+        /// </summary>
+        private static void TryInitializeTreeSourceFromRelatedDocument(
+            SolutionState solution, DocumentState document, ValueSource<TreeAndVersion> treeSource)
+        {
+            if (document.FilePath == null)
+                return;
+
+            var relatedDocumentIds = solution.GetDocumentIdsWithFilePath(document.FilePath);
+            foreach (var docId in relatedDocumentIds)
+            {
+                // ignore this document when looking at siblings.  We can't initialize ourself with ourself.
+                if (docId == document.Id)
+                    continue;
+
+                var otherProject = solution.GetProjectState(docId.ProjectId);
+                if (otherProject == null)
+                    continue;
+
+                var otherDocument = otherProject.DocumentStates.GetState(docId);
+                if (otherDocument == null)
+                    continue;
+
+                // Now, see if the linked doc actually has its tree readily available.
+                if (otherDocument._treeSource == null || !otherDocument._treeSource.TryGetValue(out var otherTreeAndVersion))
+                    continue;
+
+                // And see if its root is there as well.  Note: we only need the root to determine if the tree contains
+                // pp directives. If this could be stored on the tree itself, that would remove the need for having to have
+                // the actual root available.
+
+                var otherTree = otherTreeAndVersion.Tree;
+                if (!otherTree.TryGetRoot(out var otherRoot))
+                    continue;
+
+                // If the processor directives are not compatible between the other document and this one, we definitely
+                // can't reuse the tree.
+                if (!HasCompatiblePreprocessorDirectives(document, otherDocument, otherRoot))
+                    continue;
+
+                // Note: even if the pp directives are compatible, it may *technically* not be safe to reuse the tree.
+                // For example, C# parses some things differently across language version.  like `record Goo() { }` is a
+                // method prior to 9.0, and a record from 9.0 onwards.  *However*, code that actually contains
+                // constructs that would be parsed differently is considered pathological by us.  e.g. we do not believe
+                // it is a realistic scenario that users would genuinely write such a construct and need it to have
+                // different syntactic meaning like this across versions.  So we allow for this reuse even though the
+                // above it a possibility, since we do not consider it important or relevant to support.
+
+                var factory = document.LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                var newTree = factory.CreateSyntaxTree(
+                    document.FilePath, otherTree.Options, otherTree.Encoding, document.LoadTextOptions.ChecksumAlgorithm, otherRoot);
+
+                // Ok, now try to set out value-source to this newly created tree.  This may fail if some other thread
+                // beat us here. That's ok, our caller (GetSyntaxTreeAsync) will read the source itself.  So we'll only 
+                // ever have one source of truth here.
+                treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
+                return;
+            }
+
+            return;
+
+            static bool HasCompatiblePreprocessorDirectives(DocumentState document1, DocumentState document2, SyntaxNode root)
+            {
+                var ppSymbolsNames1 = document1.ParseOptions?.PreprocessorSymbolNames ?? SpecializedCollections.EmptyEnumerable<string>();
+                var ppSymbolsNames2 = document2.ParseOptions?.PreprocessorSymbolNames ?? SpecializedCollections.EmptyEnumerable<string>();
+
+                // If both documents have the same preprocessor directives defined, then they'll always produce the
+                // same trees.  So we can trivially reuse the tree from one for the other.
+                if (ppSymbolsNames1.SetEquals(ppSymbolsNames2))
+                    return true;
+
+                // If the tree contains no `#` directives whatsoever, then you'll parse out the same tree and can reuse it.
+                if (!root.ContainsDirectives)
+                    return true;
+
+                // It's ok to contain directives like #nullable, or #region.  They don't affect parsing.
+                if (!root.ContainsConditionalDirectives())
+                    return true;
+
+                // If the tree contains a #if directive, and the pp-symbol-names are different, then the files
+                // absolutely may be parsed differently, and so they should not be shared.
+                return false;
+            }
         }
 
         internal SyntaxTree GetSyntaxTree(CancellationToken cancellationToken)
