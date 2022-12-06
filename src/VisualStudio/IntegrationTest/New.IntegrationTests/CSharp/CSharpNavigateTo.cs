@@ -39,6 +39,7 @@ class FirstClass
 ", cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
+            await Task.Delay(3000);
             await TestServices.Input.SendToNavigateToAsync(new InputKey[] { "FirstMethod", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

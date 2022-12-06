@@ -12,6 +12,18 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
+    internal static class AsyncEnumerable<T>
+    {
+        public static readonly IAsyncEnumerable<T> Empty = GetEmptyAsync();
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        private static async IAsyncEnumerable<T> GetEmptyAsync()
+        {
+            yield break;
+        }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+    }
+
     internal static class IAsyncEnumerableExtensions
     {
         internal static class AsyncEnumerable<T>

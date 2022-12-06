@@ -2,17 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -52,50 +55,64 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return cachedIndexMap != null && stringTable != null;
         }
 
-        public async Task SearchCachedDocumentsAsync(
+        public async IAsyncEnumerable<INavigateToSearchResult> SearchCachedDocumentsAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            Func<INavigateToSearchResult, Task> onResultFound,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
-            var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
-
-            var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
-            var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
-
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
-            {
-                var callback = new NavigateToSearchServiceCallback(onItemFound);
-                await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
-                    (service, callbackId, cancellationToken) =>
-                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                    callback, cancellationToken).ConfigureAwait(false);
 
-                return;
+            await foreach (var item in ConvertItemsAsync(
+                project.Solution, activeDocument, SearchCachedDocumentsWorkerAsync(), cancellationToken).ConfigureAwait(false))
+            {
+                yield return item;
             }
 
-            var storageService = solution.Services.GetPersistentStorageService();
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+            IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsWorkerAsync()
+            {
+                var solution = project.Solution;
+
+                var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
+                var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
+
+                if (client != null)
+                {
+                    var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
+
+                    // Kick off the work to do the search in another thread.  That work will push the results into the
+                    // channel.  When the work finishes (for any reason, including cancellation), the channel will be 
+                    // completed.
+                    Task.Run(async () => await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                            (service, callbackId, cancellationToken) =>
+                                service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                            new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false), cancellationToken)
+                        .CompletesChannel(channel);
+
+                    return channel.Reader.ReadAllAsync(cancellationToken);
+                }
+                else
+                {
+                    var storageService = solution.Services.GetPersistentStorageService();
+                    return SearchCachedDocumentsInCurrentProcessAsync(
+                        storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, cancellationToken);
+                }
+            }
         }
 
-        public static async Task SearchCachedDocumentsInCurrentProcessAsync(
+        public static async IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsInCurrentProcessAsync(
             IChecksummedPersistentStorageService storageService,
             ImmutableArray<DocumentKey> documentKeys,
             ImmutableArray<DocumentKey> priorityDocumentKeys,
             string searchPattern,
             IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             // Quick abort if OOP is now fully loaded.
             if (!ShouldSearchCachedDocuments(out _, out _))
-                return;
+                yield break;
 
             var highPriDocsSet = priorityDocumentKeys.ToSet();
             var lowPriDocs = documentKeys.WhereAsArray(d => !highPriDocsSet.Contains(d));
@@ -104,40 +121,35 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-            await SearchCachedDocumentsInCurrentProcessAsync(
+            await foreach (var item in SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, priorityDocumentKeys, cancellationToken).ConfigureAwait(false);
+                priorityDocumentKeys, cancellationToken).ConfigureAwait(false))
+            {
+                yield return item;
+            }
 
-            await SearchCachedDocumentsInCurrentProcessAsync(
+            await foreach (var item in SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+                lowPriDocs, cancellationToken).ConfigureAwait(false))
+            {
+                yield return item;
+            }
         }
 
-        private static async Task SearchCachedDocumentsInCurrentProcessAsync(
+        private static IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsInCurrentProcessAsync(
             IChecksummedPersistentStorageService storageService,
             string patternName,
             string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+            using var _ = ArrayBuilder<IAsyncEnumerable<RoslynNavigateToItem>>.GetInstance(out var builder);
 
             foreach (var documentKey in documentKeys)
-            {
-                tasks.Add(Task.Run(async () =>
-                {
-                    var index = await GetIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
-                    if (index == null)
-                        return;
+                builder.Add(ProcessStaleIndexAsync(storageService, patternName, patternContainer, kinds, documentKey, cancellationToken));
 
-                    await ProcessIndexAsync(
-                        documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
-                }, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            return builder.ToImmutable().MergeAsync(cancellationToken);
         }
 
         private static Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(

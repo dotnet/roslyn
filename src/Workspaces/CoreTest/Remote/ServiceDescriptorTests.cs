@@ -119,6 +119,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     {
                         AddTypeRecursive(method.ReturnType.GetGenericArguments().Single(), method);
                     }
+                    else if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+                    {
+                        AddTypeRecursive(method.ReturnType.GetGenericArguments().Single(), method);
+                    }
                     else
                     {
                         // remote API must return ValueTask or ValueTask<T>

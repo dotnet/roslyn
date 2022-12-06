@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VisualBasic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -30,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-        private Func<RoslynNavigateToItem, Task> GetCallback(
+        private Func<RoslynNavigateToItem, ValueTask> GetCallback(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            return async i => await _callback.InvokeAsync((callback, c) =>
-                callback.OnResultFoundAsync(callbackId, i),
-                cancellationToken).ConfigureAwait(false);
+            return i => _callback.InvokeAsync((callback, cancellationToken) =>
+                callback.OnResultFoundAsync(callbackId, i, cancellationToken),
+                cancellationToken);
         }
 
         public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -47,6 +49,16 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(solutionChecksum, solution => ValueTaskFactory.CompletedTask, cancellationToken);
         }
 
+        private async ValueTask PushToCallbackAsync(
+            RemoteServiceCallbackId callbackId,
+            IAsyncEnumerable<RoslynNavigateToItem> items,
+            CancellationToken cancellationToken)
+        {
+            var callback = GetCallback(callbackId, cancellationToken);
+            await foreach (var item in items.ConfigureAwait(false))
+                await callback(item).ConfigureAwait(false);
+        }
+
         public ValueTask SearchDocumentAsync(
             Checksum solutionChecksum,
             DocumentId documentId,
@@ -55,13 +67,14 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, async solution =>
+            return RunServiceAsync(solutionChecksum, solution =>
             {
                 var document = solution.GetRequiredDocument(documentId);
-                var callback = GetCallback(callbackId, cancellationToken);
-
-                await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                return PushToCallbackAsync(
+                    callbackId,
+                    AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                        document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken),
+                    cancellationToken);
             }, cancellationToken);
         }
 
@@ -74,15 +87,16 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, async solution =>
+            return RunServiceAsync(solutionChecksum, solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
-
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
-                await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                return PushToCallbackAsync(
+                    callbackId,
+                    AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                        project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken),
+                    cancellationToken);
             }, cancellationToken);
         }
 
@@ -94,27 +108,33 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, async solution =>
+            return RunServiceAsync(solutionChecksum, solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
 
-                await AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                    project, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                return PushToCallbackAsync(
+                    callbackId,
+                    AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
+                        project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken),
+                    cancellationToken);
             }, cancellationToken);
         }
 
-        public ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask SearchCachedDocumentsAsync(
+            ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(cancellationToken =>
             {
                 // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
                 // synchronizing the solution over to the remote side.  Instead, we just directly
                 // check whatever cached data we have from the previous vs session.
-                var callback = GetCallback(callbackId, cancellationToken);
                 var storageService = GetWorkspaceServices().GetPersistentStorageService();
-                await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+
+                return PushToCallbackAsync(
+                    callbackId,
+                    AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
+                        storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken),
+                    cancellationToken);
             }, cancellationToken);
         }
     }

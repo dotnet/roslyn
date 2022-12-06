@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             NameMatchSpans = nameMatchSpans;
         }
 
-        public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(
+        public async ValueTask<INavigateToSearchResult?> TryCreateSearchResultAsync(
             Solution solution, Document? activeDocument, CancellationToken cancellationToken)
         {
             if (IsStale)

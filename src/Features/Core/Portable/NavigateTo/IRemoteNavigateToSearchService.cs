@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public interface ICallback
         {
-            ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
+            ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result, CancellationToken cancellationToken);
         }
     }
 
@@ -42,24 +43,25 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
 
-        public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
-            => GetCallback(callbackId).OnResultFoundAsync(result);
+        public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result, CancellationToken cancellationToken)
+            => GetCallback(callbackId).OnResultFoundAsync(result, cancellationToken);
     }
 
     internal sealed class NavigateToSearchServiceCallback
     {
-        private readonly Func<RoslynNavigateToItem, Task> _onResultFound;
+        private readonly Channel<RoslynNavigateToItem> _channel;
 
-        public NavigateToSearchServiceCallback(Func<RoslynNavigateToItem, Task> onResultFound)
+        public NavigateToSearchServiceCallback(
+            Channel<RoslynNavigateToItem> channel)
         {
-            _onResultFound = onResultFound;
+            _channel = channel;
         }
 
-        public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+        public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result, CancellationToken cancellationToken)
         {
             try
             {
-                await _onResultFound(result).ConfigureAwait(false);
+                await _channel.Writer.WriteAsync(result, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
             {

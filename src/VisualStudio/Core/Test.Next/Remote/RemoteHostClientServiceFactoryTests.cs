@@ -10,11 +10,13 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -69,6 +71,103 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out _));
 
             checksumUpdater.Shutdown();
+        }
+
+        private static readonly ImmutableArray<string> s_kinds = ImmutableArray.Create(
+            NavigateToItemKind.Class,
+            NavigateToItemKind.Constant,
+            NavigateToItemKind.Delegate,
+            NavigateToItemKind.Enum,
+            NavigateToItemKind.EnumItem,
+            NavigateToItemKind.Event,
+            NavigateToItemKind.Field,
+            NavigateToItemKind.Interface,
+            NavigateToItemKind.Method,
+            NavigateToItemKind.Module,
+            NavigateToItemKind.Property,
+            NavigateToItemKind.Structure);
+
+        [Fact]
+        public async Task TestStreamingServices()
+        {
+            using var workspace = CreateWorkspace();
+
+            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
+            var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
+
+            var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
+            using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+
+            // add solution, change document
+            workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
+            var project = workspace.AddProject("proj", LanguageNames.CSharp);
+            var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From(""));
+
+            var assetStorage = workspace.Services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+
+            var tasks = new List<Task>();
+
+            // Kick off a ton of work in parallel to try to shake out race conditions with pinning/syncing.
+
+            // 100 outer loops that ensure we generate the same files with the same checksums at least 10 times.
+            for (var i = 0; i < 30; i++)
+            {
+                // 100 inner loops producing variants of the file.
+                for (var j = 0; j < 30; j++)
+                {
+                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(client, document, name: "Goo" + i, i + j)));
+                }
+            }
+
+            await Task.WhenAll(tasks);
+
+            Assert.Equal(0, assetStorage.GetTestAccessor().PinnedScopesCount);
+        }
+
+        private static async Task PerformSearchesAsync(RemoteHostClient client, Document document, string name, int spaces)
+        {
+            // Fork the document, with 100 variants of methods called 'name' in it.
+            var text = SourceText.From(CreateText(name, spaces));
+            var forked = document.Project.Solution.WithDocumentText(document.Id, text);
+
+            // Search teh forked document, ensuring we find all the results we expect.
+            var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
+            var cancellationToken = CancellationToken.None;
+
+            Task.Run(async () => await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                    forked,
+                    (service, solutionChecksum, callbackId, cancellationToken) =>
+                        service.SearchProjectAsync(
+                            solutionChecksum, document.Project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, callbackId, cancellationToken),
+                    new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false))
+                .CompletesChannel(channel);
+
+            var count = 0;
+            await foreach (var result in channel.Reader.ReadAllAsync(CancellationToken.None))
+            {
+                Assert.True(text.ToString(result.DeclaredSymbolInfo.Span).StartsWith(name));
+                Assert.Equal(document.Id, result.DocumentId);
+                count++;
+            }
+
+            Assert.True(count == 100);
+        }
+
+        private static string CreateText(string name, int spaces)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            builder.Append(new string(' ', spaces));
+            builder.AppendLine();
+
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            for (var i = 0; i < 100; i++)
+                builder.AppendLine($"    public void {name}_{i}() {{ }}");
+
+            builder.AppendLine("}");
+            return builder.ToString();
         }
 
         [Fact]
