@@ -36,7 +36,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
-  echo "  --solution                 Soluton to build (Default is Compilers.sln)"
+  echo "  --solution                 Soluton to build (Default is Compilers.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -75,7 +75,7 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
-solution_to_build="Compilers.sln"
+solution_to_build="Compilers.slnf"
 
 args=""
 

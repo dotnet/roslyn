@@ -220,12 +220,12 @@ Before pushing a relevant fix to CI, you can validate locally using the `-testUs
 
 1. Install `dotnet-format` as a global tool. It does ship as part of the SDK, but a separate version can be installed as a global tool and invoked with `dotnet-format {options}`.
 `C:\Source\roslyn> dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json`
-2. Restore and build `Compilers.sln`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
+2. Restore and build `Compilers.slnf`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
 `C:\Source\roslyn> .\restore.cmd`
 `C:\Source\roslyn> .\build.cmd`
 3. Invoke the `dotnet-format` global tool. Running only the analyzers subcommand and fixing only the "missing Public API signature" diagnostic. We must also pass the `--include-generated` flag to include source generated documents in the analysis.
 `C:\Source\roslyn> cd ..`
-`C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
+`C:\Source> dotnet-format analyzers .\roslyn\Compilers.slnf --diagnostics=RS0016 --no-restore --include-generated -v diag`
 
 
 ## Contributing
