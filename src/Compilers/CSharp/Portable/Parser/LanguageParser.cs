@@ -1832,12 +1832,10 @@ tryAgain:
 
         private BaseListSyntax ParseBaseList()
         {
-            if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
-            {
+            var colon = this.TryEatToken(SyntaxKind.ColonToken);
+            if (colon == null)
                 return null;
-            }
 
-            var colon = this.EatToken();
             var list = _pool.AllocateSeparated<BaseTypeSyntax>();
 
             // first type
