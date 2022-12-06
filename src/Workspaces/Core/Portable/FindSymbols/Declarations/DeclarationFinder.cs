@@ -17,25 +17,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DeclarationFinder
     {
-        private static Task AddCompilationDeclarationsWithNormalQueryAsync(
-            Project project, SearchQuery query, SymbolFilter filter,
-            ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
-            return AddCompilationDeclarationsWithNormalQueryAsync(
-                project, query, filter, list,
-                startingCompilation: null,
-                startingAssembly: null,
-                cancellationToken: cancellationToken);
-        }
-
-        private static async Task AddCompilationDeclarationsWithNormalQueryAsync(
+        private static async Task AddCompilationSourceDeclarationsWithNormalQueryAsync(
             Project project,
             SearchQuery query,
             SymbolFilter filter,
             ArrayBuilder<ISymbol> list,
-            Compilation? startingCompilation,
-            IAssemblySymbol? startingAssembly,
             CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
@@ -76,23 +62,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var symbolsWithName = symbols.ToImmutableArray();
 
-                if (startingCompilation != null && startingAssembly != null && !Equals(compilation.Assembly, startingAssembly))
-                {
-                    // Return symbols from skeleton assembly in this case so that symbols have 
-                    // the same language as startingCompilation.
-                    symbolsWithName = symbolsWithName.Select(s => s.GetSymbolKey(cancellationToken).Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
-                                                     .WhereNotNull()
-                                                     .ToImmutableArray();
-                }
-
                 list.AddRange(FilterByCriteria(symbolsWithName, filter));
             }
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(
             Project project,
-            IAssemblySymbol assembly,
-            PortableExecutableReference? reference,
+            AsyncLazy<IAssemblySymbol?> lazyAssembly,
+            PortableExecutableReference reference,
             SearchQuery query,
             SymbolFilter filter,
             ArrayBuilder<ISymbol> list,
@@ -104,16 +81,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
-                if (reference != null)
-                {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
 
-                    Contract.ThrowIfNull(info);
+                Contract.ThrowIfNull(info);
 
-                    var symbols = await info.FindAsync(query, assembly, filter, cancellationToken).ConfigureAwait(false);
-                    list.AddRange(symbols);
-                }
+                var symbols = await info.FindAsync(query, lazyAssembly, filter, cancellationToken).ConfigureAwait(false);
+                list.AddRange(symbols);
             }
         }
 

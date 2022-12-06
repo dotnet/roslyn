@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             [CallerLineNumber] int createdAtLineNumber = 0,
             [CallerFilePath] string? createdAtFilePath = null
 #endif
-            ) : base(containingMethod, typeWithAnnotations, kind, syntaxOpt, isPinned, refKind
+            ) : base(containingMethod, typeWithAnnotations, kind, syntaxOpt, isPinned,
+                     isKnownToReferToTempIfReferenceType: false, refKind
 #if DEBUG
                      , createdAtLineNumber, createdAtFilePath
 #endif

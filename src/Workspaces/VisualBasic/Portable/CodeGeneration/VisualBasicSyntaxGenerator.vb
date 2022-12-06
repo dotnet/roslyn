@@ -159,12 +159,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(whenFalse, ExpressionSyntax))
         End Function
 
-        Public Overrides Function LiteralExpression(value As Object) As SyntaxNode
-            Return ExpressionGenerator.GenerateNonEnumValueExpression(Nothing, value, canUseFieldReference:=True)
-        End Function
-
         Public Overrides Function TypedConstantExpression(value As TypedConstant) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(value)
+        End Function
+
+        Private Protected Overrides Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As SyntaxNode
+            Return ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference)
         End Function
 
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken

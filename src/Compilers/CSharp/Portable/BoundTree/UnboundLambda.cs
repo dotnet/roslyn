@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ?? rebind(ReallyInferReturnType(delegateType: null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty));
 
             // Rebind a lambda to push target conversions through the return/result expressions
-            [return: NotNullIfNotNull("lambda")] BoundLambda? rebind(BoundLambda? lambda)
+            [return: NotNullIfNotNull(nameof(lambda))] BoundLambda? rebind(BoundLambda? lambda)
             {
                 if (lambda is null)
                     return null;
@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameter in lambda.Parameters)
             {
-                builder.Builder.Append(parameter.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                builder.Builder.Append(parameter.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
             }
 
             if (lambda.ReturnTypeWithAnnotations.HasType)

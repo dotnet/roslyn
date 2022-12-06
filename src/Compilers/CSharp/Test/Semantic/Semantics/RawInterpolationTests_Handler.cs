@@ -2342,14 +2342,14 @@ Caught");
         var source = @"
 using System;
 
-ReadOnlySpan<char> s = new char[] { 'i' };
+Span<char> s = new char[] { 'i' };
 try
 {
     Console.WriteLine(""Starting try"");
     throw new MyException { Prop = s.ToString() };
 }
 // Test DefaultInterpolatedStringHandler renders specially, so we're actually comparing to ""value:Prop"" plus some whitespace
-catch (MyException e) when (e.ToString() == $""""""{s}"""""".Trim())
+catch (MyException e) when (e.ToString() == $""""""{(ReadOnlySpan<char>)s}"""""".Trim())
 {
     Console.WriteLine(""Caught"");
 }
@@ -2368,9 +2368,9 @@ Caught");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      122 (0x7a)
+  // Code size      127 (0x7f)
   .maxstack  4
-  .locals init (System.ReadOnlySpan<char> V_0, //s
+  .locals init (System.Span<char> V_0, //s
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     ""char""
@@ -2378,7 +2378,7 @@ Caught");
   IL_0007:  ldc.i4.0
   IL_0008:  ldc.i4.s   105
   IL_000a:  stelem.i2
-  IL_000b:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(char[])""
+  IL_000b:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
   IL_0010:  stloc.0
   .try
   {
@@ -2387,7 +2387,7 @@ Caught");
     IL_001b:  newobj     ""MyException..ctor()""
     IL_0020:  dup
     IL_0021:  ldloca.s   V_0
-    IL_0023:  constrained. ""System.ReadOnlySpan<char>""
+    IL_0023:  constrained. ""System.Span<char>""
     IL_0029:  callvirt   ""string object.ToString()""
     IL_002e:  callvirt   ""void MyException.Prop.set""
     IL_0033:  throw
@@ -2399,7 +2399,7 @@ Caught");
     IL_003a:  brtrue.s   IL_0040
     IL_003c:  pop
     IL_003d:  ldc.i4.0
-    IL_003e:  br.s       IL_006a
+    IL_003e:  br.s       IL_006f
     IL_0040:  callvirt   ""string object.ToString()""
     IL_0045:  ldloca.s   V_1
     IL_0047:  ldc.i4.0
@@ -2407,22 +2407,23 @@ Caught");
     IL_0049:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
     IL_004e:  ldloca.s   V_1
     IL_0050:  ldloc.0
-    IL_0051:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
-    IL_0056:  ldloca.s   V_1
-    IL_0058:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-    IL_005d:  callvirt   ""string string.Trim()""
-    IL_0062:  call       ""bool string.op_Equality(string, string)""
-    IL_0067:  ldc.i4.0
-    IL_0068:  cgt.un
-    IL_006a:  endfilter
+    IL_0051:  call       ""System.ReadOnlySpan<char> System.Span<char>.op_Implicit(System.Span<char>)""
+    IL_0056:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
+    IL_005b:  ldloca.s   V_1
+    IL_005d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_0062:  callvirt   ""string string.Trim()""
+    IL_0067:  call       ""bool string.op_Equality(string, string)""
+    IL_006c:  ldc.i4.0
+    IL_006d:  cgt.un
+    IL_006f:  endfilter
   }  // end filter
   {  // handler
-    IL_006c:  pop
-    IL_006d:  ldstr      ""Caught""
-    IL_0072:  call       ""void System.Console.WriteLine(string)""
-    IL_0077:  leave.s    IL_0079
+    IL_0071:  pop
+    IL_0072:  ldstr      ""Caught""
+    IL_0077:  call       ""void System.Console.WriteLine(string)""
+    IL_007c:  leave.s    IL_007e
   }
-  IL_0079:  ret
+  IL_007e:  ret
 }
 ");
     }
@@ -5170,10 +5171,10 @@ class C
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (4,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M($"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 5),
-            // (8,27): error CS8945: 'NonExistant' is not a valid parameter name from 'C.M(CustomHandler)'.
+            // (4,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M($"""
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 5),
+            // (12,27): error CS8945: 'NonExistant' is not a valid parameter name from 'C.M(CustomHandler)'.
             //     public static void M([InterpolatedStringHandlerArgumentAttribute("NonExistant")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute(""NonExistant"")").WithArguments("NonExistant", "C.M(CustomHandler)").WithLocation(expression.Contains('+') ? 12 : 10, 27));
 
@@ -5205,18 +5206,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M($"");
+            // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 5),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 5),
             // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C.M($"");
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 5),
             // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C.M($"");
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 5));
@@ -5257,10 +5258,10 @@ class C
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
-            // (8,34): error CS8945: 'NonExistant' is not a valid parameter name from 'C.M(int, CustomHandler)'.
+            // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 8),
+            // (12,34): error CS8945: 'NonExistant' is not a valid parameter name from 'C.M(int, CustomHandler)'.
             //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute("i", "NonExistant")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute(""i"", ""NonExistant"")").WithArguments("NonExistant", "C.M(int, CustomHandler)").WithLocation(expression.Contains('+') ? 12 : 10, 34));
 
@@ -5292,18 +5293,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
+            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 8));
@@ -5344,13 +5345,13 @@ class C
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
-            // (8,34): error CS8945: 'NonExistant1' is not a valid parameter name from 'C.M(int, CustomHandler)'.
+            // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 8),
+            // (12,34): error CS8945: 'NonExistant1' is not a valid parameter name from 'C.M(int, CustomHandler)'.
             //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute("NonExistant1", "NonExistant2")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute(""NonExistant1"", ""NonExistant2"")").WithArguments("NonExistant1", "C.M(int, CustomHandler)").WithLocation(expression.Contains('+') ? 12 : 10, 34),
-            // (8,34): error CS8945: 'NonExistant2' is not a valid parameter name from 'C.M(int, CustomHandler)'.
+            // (12,34): error CS8945: 'NonExistant2' is not a valid parameter name from 'C.M(int, CustomHandler)'.
             //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute("NonExistant1", "NonExistant2")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute(""NonExistant1"", ""NonExistant2"")").WithArguments("NonExistant2", "C.M(int, CustomHandler)").WithLocation(expression.Contains('+') ? 12 : 10, 34));
 
@@ -5382,18 +5383,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
+            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 8));
@@ -5434,10 +5435,10 @@ class C
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
-            // (8,34): error CS8948: InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
+            // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 8),
+            // (12,34): error CS8948: InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
             //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute("c")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, @"InterpolatedStringHandlerArgumentAttribute(""c"")").WithLocation(expression.Contains('+') ? 12 : 10, 34));
 
@@ -5469,18 +5470,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M($"");
+            // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 5),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 5),
             // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C.M($"");
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 5),
             // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C.M($"");
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 5));
@@ -5521,10 +5522,10 @@ class C
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
-            // (8,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+            // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 8),
+            // (12,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
             //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute(new string[] { null })] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, "InterpolatedStringHandlerArgumentAttribute(new string[] { null })").WithLocation(expression.Contains('+') ? 12 : 10, 34));
 
@@ -5556,18 +5557,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
+            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 8));
@@ -5603,18 +5604,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
+            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 8));
@@ -5650,18 +5651,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M(1, $"");
+            // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 8),
             // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C.M(1, $"");
+            // C.M(1, $"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 8));
@@ -5702,10 +5703,10 @@ class C
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (4,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M($"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 5),
-            // (8,27): error CS8944: 'C.M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            // (4,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M($"""
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 5),
+            // (12,27): error CS8944: 'C.M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
             //     public static void M([InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute("""")").WithArguments("C.M(CustomHandler)").WithLocation(expression.Contains('+') ? 12 : 10, 27));
 
@@ -5739,18 +5740,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C.M($"");
+            // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 5),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 5),
             // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C.M($"");
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 5),
             // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C.M($"");
+            // C.M($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 5));
@@ -5791,10 +5792,10 @@ class C
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (4,11): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // _ = new C($"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 11),
-            // (8,15): error CS8944: 'C.C(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            // (4,11): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // _ = new C($"""
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 11),
+            // (12,15): error CS8944: 'C.C(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
             //     public C([InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c) {}
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute("""")").WithArguments("C.C(CustomHandler)").WithLocation(expression.Contains('+') ? 12 : 10, 15));
 
@@ -5828,18 +5829,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,11): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // _ = new C($"");
+            // (1,11): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // _ = new C($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 11),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 11),
             // (1,11): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // _ = new C($"");
+            // _ = new C($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 11),
             // (1,11): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // _ = new C($"");
+            // _ = new C($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 11));
@@ -5880,10 +5881,10 @@ public class C<T>
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler });
         comp.VerifyDiagnostics(
-            // (4,20): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C<CustomHandler>.M($"");
-            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 20),
-            // (8,27): error CS8946: 'T' is not an interpolated string handler type.
+            // (4,20): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler t' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C<CustomHandler>.M($"""
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, expression).WithArguments("CustomHandler t", "CustomHandler").WithLocation(4, 20),
+            // (12,27): error CS8946: 'T' is not an interpolated string handler type.
             //     public static void M([InterpolatedStringHandlerArgumentAttribute] T t) { }
             Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgumentAttribute").WithArguments("T").WithLocation(expression.Contains('+') ? 12 : 10, 27));
 
@@ -5921,18 +5922,18 @@ End Structure
 
 """""");", references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyEmitDiagnostics(
-            // (1,20): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // C<CustomHandler>.M($"");
+            // (1,20): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // C<CustomHandler>.M($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 20),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(1, 20),
             // (1,20): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // C<CustomHandler>.M($"");
+            // C<CustomHandler>.M($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(1, 20),
             // (1,20): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // C<CustomHandler>.M($"");
+            // C<CustomHandler>.M($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(1, 20));
@@ -11281,9 +11282,9 @@ public ref struct S1
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.Net50);
         comp.VerifyDiagnostics(
-            // (10,107): error CS8352: Cannot use variable 'out CustomHandler' in this context because it may expose referenced variables outside of their declaration scope
+            // (10,107): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
             //     public CustomHandler(int literalLength, int formattedCount, scoped ref S1 s1) : this() { s1.Handler = this; }
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler").WithLocation(10, 107),
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(10, 107),
             // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
             //         M2(ref s1, $"""{s2}""");
             Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""""""{s2}"""""")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
@@ -11319,9 +11320,9 @@ class Program
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.Net50);
         comp.VerifyDiagnostics(
-            // (5,104): error CS8352: Cannot use variable 'out CustomHandler' in this context because it may expose referenced variables outside of their declaration scope
+            // (5,104): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
             //     public CustomHandler(int literalLength, int formattedCount, scoped ref S s) : this() { s.Handler = this; }
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler").WithLocation(5, 104));
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 104));
     }
 
     [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
@@ -12716,12 +12717,12 @@ M($""""""
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
         comp.VerifyDiagnostics(
-            // (4,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // M($"");
+            // (4,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // M($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 3),
-            // (6,10): error CS8944: 'M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 3),
+            // (8,10): error CS8944: 'M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
             //  void M([InterpolatedStringHandlerArgument("")] CustomHandler c) { }
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("M(CustomHandler)").WithLocation(8, 10 + mod.Length));
     }
@@ -12860,12 +12861,12 @@ delegate void M([InterpolatedStringHandlerArgument("""")] CustomHandler c);
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
         comp.VerifyDiagnostics(
-            // (6,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // m($"");
+            // (6,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // m($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(6, 3),
-            // (8,18): error CS8944: 'M.Invoke(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(6, 3),
+            // (10,18): error CS8944: 'M.Invoke(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
             // delegate void M([InterpolatedStringHandlerArgument("")] CustomHandler c);
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("M.Invoke(CustomHandler)").WithLocation(10, 18));
     }
@@ -12895,18 +12896,18 @@ m($""""""
 
         var comp = CreateCompilation(code, references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (4,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // m($"");
+            // (4,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // m($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 3),
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(4, 3),
             // (4,3): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-            // m($"");
+            // m($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "2").WithLocation(4, 3),
             // (4,3): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-            // m($"");
+            // m($"""
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""""
 
 """"""").WithArguments("CustomHandler", "3").WithLocation(4, 3));
@@ -13209,12 +13210,12 @@ partial struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
         comp.VerifyDiagnostics(
-            // (5,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-            // s.M($"");
+            // (5,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            // s.M($"""
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""""
 
-""""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(5, 5),
-            // (14,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+""""""").WithArguments("CustomHandler c", "CustomHandler").WithLocation(5, 5),
+            // (17,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
             //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
             Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(17, 38));
     }

@@ -39,16 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As ExpressionSyntax
-            If (type.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T) AndAlso
-               (value IsNot Nothing) Then
-                ' If the type of the argument is T?, then the type of the supplied default value can either be T 
-                ' (e.g. Optional x As Integer? = 5) or it can be T? (e.g. Optional x as SomeStruct? = Nothing). The
-                ' below statement handles the case where the type of the supplied default value is T.
-                Return GenerateExpression(DirectCast(type, INamedTypeSymbol).TypeArguments(0), value, canUseFieldReference)
-            End If
-
-            If type.TypeKind = TypeKind.Enum AndAlso value IsNot Nothing Then
-                Return DirectCast(VisualBasicFlagsEnumGenerator.Instance.CreateEnumConstantValue(DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
+            If value IsNot Nothing Then
+                If type.IsNullable() Then
+                    ' If the type of the argument is T?, then the type of the supplied default value can either be T 
+                    ' (e.g. Optional x As Integer? = 5) or it can be T? (e.g. Optional x as SomeStruct? = Nothing). The
+                    ' below statement handles the case where the type of the supplied default value is T.
+                    Return GenerateExpression(DirectCast(type, INamedTypeSymbol).TypeArguments(0), value, canUseFieldReference)
+                ElseIf type?.TypeKind = TypeKind.Enum Then
+                    Return DirectCast(VisualBasicFlagsEnumGenerator.Instance.CreateEnumConstantValue(DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
+                End If
             End If
 
             Return GenerateNonEnumValueExpression(type, value, canUseFieldReference)

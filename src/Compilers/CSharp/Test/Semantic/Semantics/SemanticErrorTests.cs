@@ -23112,9 +23112,9 @@ class Program
                 // (16,14): error CS0307: The variable 'l' cannot be used with type arguments
                 //         Test(l<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "l<>").WithArguments("l", "variable").WithLocation(16, 14),
-                // (17,14): error CS0307: The variable 'object' cannot be used with type arguments
+                // (17,14): error CS0307: The variable 'object p' cannot be used with type arguments
                 //         Test(p<>);
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "p<>").WithArguments("object", "variable").WithLocation(17, 14),
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "p<>").WithArguments("object p", "variable").WithLocation(17, 14),
                 // (19,14): error CS0307: The field 'Program.f' cannot be used with type arguments
                 //         Test(f<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field").WithLocation(19, 14),
