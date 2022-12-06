@@ -8938,72 +8938,65 @@ tryAgain:
                 return false;
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
             {
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+                this.EatToken();
+                if (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
                 {
-                    this.EatToken();
-                    if (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                    switch (mode)
                     {
-                        switch (mode)
-                        {
-                            case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                                if (this.PeekToken(1).Kind == SyntaxKind.CommaToken)
-                                {
-                                    isScoped = true;
-                                    return true;
-                                }
-                                break;
-
-                            case ParseTypeMode.AfterTupleComma:
-                                if (this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
-                                {
-                                    isScoped = true;
-                                    return true;
-                                }
-                                break;
-
-                            default:
-                                // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
-                                // There we err on the side of accepting a declaration.
+                        case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                            if (this.PeekToken(1).Kind == SyntaxKind.CommaToken)
+                            {
                                 isScoped = true;
                                 return true;
-                        }
+                            }
+                            break;
+
+                        case ParseTypeMode.AfterTupleComma:
+                            if (this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
+                            {
+                                isScoped = true;
+                                return true;
+                            }
+                            break;
+
+                        default:
+                            // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
+                            // There we err on the side of accepting a declaration.
+                            isScoped = true;
+                            return true;
                     }
-
-                    this.Reset(ref resetPoint);
                 }
 
-                bool typeIsVar = IsVarType();
-                SyntaxToken lastTokenOfType;
-                if (ScanType(mode, out lastTokenOfType) == ScanTypeFlags.NotType)
-                {
-                    return false;
-                }
-
-                // check for a designation
-                if (!ScanDesignation(permitTupleDesignation && (typeIsVar || IsPredefinedType(lastTokenOfType.Kind))))
-                {
-                    return false;
-                }
-
-                switch (mode)
-                {
-                    case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                        return this.CurrentToken.Kind == SyntaxKind.CommaToken;
-                    case ParseTypeMode.AfterTupleComma:
-                        return this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
-                    default:
-                        // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
-                        // There we err on the side of accepting a declaration.
-                        return true;
-                }
+                resetPoint.Reset();
             }
-            finally
+
+            bool typeIsVar = IsVarType();
+            SyntaxToken lastTokenOfType;
+            if (ScanType(mode, out lastTokenOfType) == ScanTypeFlags.NotType)
             {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
+                return false;
+            }
+
+            // check for a designation
+            if (!ScanDesignation(permitTupleDesignation && (typeIsVar || IsPredefinedType(lastTokenOfType.Kind))))
+            {
+                return false;
+            }
+
+            switch (mode)
+            {
+                case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                    return this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                case ParseTypeMode.AfterTupleComma:
+                    return this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
+                default:
+                    // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
+                    // There we err on the side of accepting a declaration.
+                    return true;
             }
         }
 
