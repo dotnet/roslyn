@@ -74,4 +74,9 @@ internal class VSMacLspLoggerWrapper : ILspServiceLogger
     {
         _logger.TraceWarning(message);
     }
+
+    public void LogDebug(string message, params object[] @params)
+    {
+        _logger.TraceDebug(message);
+    }
 }
