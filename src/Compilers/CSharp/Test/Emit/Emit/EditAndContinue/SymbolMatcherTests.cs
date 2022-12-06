@@ -1887,7 +1887,7 @@ class C
 
             PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out _, out var anonymousDelegates0);
             Assert.Equal(3, anonymousDelegates0.Count);
-            Assert.Equal("<>f__AnonymousDelegate0", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
+            Assert.Equal("<>f__AnonymousDelegate0<T1, T2, TResult>", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
             Assert.Equal("<>f__AnonymousDelegate1", anonymousDelegates0["<>f__AnonymousDelegate1"].Type.ToString());
             Assert.Equal("<>f__AnonymousDelegate2", anonymousDelegates0["<>f__AnonymousDelegate2"].Type.ToString());
 
@@ -1954,7 +1954,7 @@ class C
 
             PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out _, out var anonymousDelegates0);
             Assert.Equal(3, anonymousDelegates0.Count);
-            Assert.Equal("<>f__AnonymousDelegate0", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
+            Assert.Equal("<>f__AnonymousDelegate0<T1, T2, TResult>", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
             Assert.Equal("<>f__AnonymousDelegate1", anonymousDelegates0["<>f__AnonymousDelegate1"].Type.ToString());
             Assert.Equal("<>f__AnonymousDelegate2", anonymousDelegates0["<>f__AnonymousDelegate2"].Type.ToString());
 
