@@ -121,7 +121,7 @@ public class FileTransformGenerator : ISourceGenerator
     public void Execute(GeneratorExecutionContext context)
     {
         // find anything that matches our files
-        var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".xml"));
+        var myFiles = context.AdditionalFiles.Where(at => at.Path.EndsWith(".xml"));
         foreach (var file in myFiles)
         {
             var content = file.GetText(context.CancellationToken);
