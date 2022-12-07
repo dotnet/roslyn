@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
@@ -112,14 +113,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask InitializeWorkspaceConfigurationOptionsAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken)
+        public ValueTask<int> InitializeAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
                 var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
                 service.InitializeOptions(options);
 
-                return ValueTaskFactory.CompletedTask;
+                return ValueTaskFactory.FromResult(Process.GetCurrentProcess().Id);
             }, cancellationToken);
         }
     }

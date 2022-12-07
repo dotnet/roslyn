@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 _inprocServices.ServiceBrokerClient,
                 _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),
-                shutdownCancellationService: null);
+                shutdownCancellationService: null,
+                remoteProcess: null);
         }
 
         public override void Dispose()

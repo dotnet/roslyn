@@ -6,6 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipelines;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.Win32.SafeHandles;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
@@ -49,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly RemoteServiceCallbackDispatcher.Handle _callbackHandle;
         private readonly IRemoteServiceCallbackDispatcher? _callbackDispatcher;
+        private readonly Process? _remoteProcess;
+        private readonly SafeProcessHandle? _remoteProcessHandle;
 
         public BrokeredServiceConnection(
             ServiceDescriptor serviceDescriptor,
@@ -57,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Remote
             ServiceBrokerClient serviceBrokerClient,
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
-            IRemoteHostClientShutdownCancellationService? shutdownCancellationService)
+            IRemoteHostClientShutdownCancellationService? shutdownCancellationService,
+            Process? remoteProcess)
         {
             Contract.ThrowIfFalse((callbackDispatcher == null) == (serviceDescriptor.ClientInterface == null));
 
@@ -68,6 +74,8 @@ namespace Microsoft.CodeAnalysis.Remote
             _shutdownCancellationService = shutdownCancellationService;
             _callbackDispatcher = callbackDispatcher;
             _callbackHandle = callbackDispatcher?.CreateHandle(callbackTarget) ?? default;
+            _remoteProcess = remoteProcess;
+            _remoteProcessHandle = _remoteProcess?.SafeHandle;
         }
 
         public override void Dispose()
@@ -443,7 +451,26 @@ namespace Microsoft.CodeAnalysis.Remote
                 internalException = exception;
             }
 
+            try
+            {
+                // Process.ExitCode throws "Process was not started by this object, so requested information cannot be determined.",
+                // Use Win32 API directly.
+                if (_remoteProcess?.HasExited == true && NativeMethods.GetExitCodeProcess(_remoteProcessHandle!, out var exitCode))
+                {
+                    message += $" Exit code {exitCode}";
+                }
+            }
+            catch
+            {
+            }
+
             _errorReportingService.ShowFeatureNotAvailableErrorInfo(message, TelemetryFeatureName.GetRemoteFeatureName(_serviceDescriptor.ComponentName, _serviceDescriptor.SimpleName), internalException);
         }
+    }
+
+    internal static partial class NativeMethods
+    {
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool GetExitCodeProcess(SafeProcessHandle processHandle, out int exitCode);
     }
 }

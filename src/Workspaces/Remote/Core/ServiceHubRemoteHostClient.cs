@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -35,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
 
         public readonly RemoteProcessConfiguration Configuration;
+
+        private Process? _remoteProcess;
+        private int? _remoteProcessId;
 
         private ServiceHubRemoteHostClient(
             SolutionServices services,
@@ -76,12 +80,27 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
 
-                var workspaceConfigurationService = services.GetService<IWorkspaceConfigurationService>();
-                if (workspaceConfigurationService != null)
+                var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
+
+                var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+                    (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (remoteProcessId.HasValue)
                 {
-                    await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
-                        (service, cancellationToken) => service.InitializeWorkspaceConfigurationOptionsAsync(workspaceConfigurationService.Options, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        client._remoteProcessId = remoteProcessId.Value;
+                        client._remoteProcess = Process.GetProcessById(remoteProcessId.Value);
+                    }
+                    catch (Exception e)
+                    {
+                        hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"Unable to find Roslyn ServiceHub process: {e.Message}");
+                    }
+                }
+                else
+                {
+                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, "Roslyn ServiceHub process initialization failed.");
                 }
 
                 if (configuration.HasFlag(RemoteProcessConfiguration.EnableSolutionCrawler))
@@ -121,7 +140,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 _serviceBrokerClient,
                 _assetStorage,
                 _errorReportingService,
-                _shutdownCancellationService);
+                _shutdownCancellationService,
+                _remoteProcess);
         }
 
         public override void Dispose()
