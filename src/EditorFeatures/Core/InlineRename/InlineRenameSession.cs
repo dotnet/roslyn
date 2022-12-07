@@ -875,14 +875,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
                 return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
-            if (finalSolution.WorkspaceVersion != _workspace.CurrentSolution.WorkspaceVersion)
+            if (!_workspace.TryApplyChanges(finalSolution))
             {
+                // If the workspace changed in TryOnBeforeGlobalSymbolRenamed retry, this prevents rename from failing for cases
+                // where text changes to other files or workspace state change doesn't impact the text changes being applied. 
                 Logger.Log(FunctionId.Rename_TryApplyRename_WorkspaceChanged, message: null, LogLevel.Information);
                 finalSolution = CalculateFinalSolutionSynchronously(newSolution, _workspace, changedDocumentIDs, cancellationToken);
-            }
 
-            if (!_workspace.TryApplyChanges(finalSolution))
-                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+                if (!_workspace.TryApplyChanges(finalSolution))
+                    return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+            }
 
             try
             {
