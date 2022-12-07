@@ -8377,10 +8377,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0231: A params parameter must be the last parameter in a parameter list
                 // var lam = (params int[] xs, int y) => xs.Length + y;
-                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12),
-                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
-                // var lam = (params int[] xs, int y) => xs.Length + y;
-                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12));
         }
 
         [Fact]
@@ -8392,10 +8389,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0231: A params parameter must be the last parameter in a parameter list
                 // var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
-                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12),
-                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
-                // var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
-                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12));
         }
 
         [Fact]
@@ -8407,10 +8401,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0225: The params parameter must be a single dimensional array
                 // var lam = (params int x) => x;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12),
-                // (1,23): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
-                // var lam = (params int x) => x;
-                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
         }
 
         [Fact]
@@ -8422,10 +8413,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0225: The params parameter must be a single dimensional array
                 // var lam = (params int[,] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12),
-                // (1,26): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
-                // var lam = (params int[,] xs) => xs.Length;
-                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 26));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
         }
 
         [Fact]
