@@ -3659,7 +3659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // then immediately discarded. The actual expression will be generated during lowering 
                     return scopeOfTheContainingExpression;
 
-
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.

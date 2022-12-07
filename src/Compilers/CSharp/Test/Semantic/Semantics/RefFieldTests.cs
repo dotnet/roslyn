@@ -16265,6 +16265,81 @@ class C
         }
 
         [Fact]
+        public void DelegateConversions_13()
+        {
+            var source = """
+                ref struct R { }
+
+                delegate R D1(R r);
+                delegate object D2(object o);
+
+                class Program
+                {
+                    static void M(D1 d1) { }
+                    static void M(D2 d2) { }
+
+                    static R F(R r, ref int i) => r;
+                    static object F(object o, ref int i) => o;
+                
+                    static void Main()
+                    {
+                        M(x =>
+                            {
+                                int i = 0;
+                                return F(x, ref i);
+                            });
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Previously, M(D1) was not applicable because of the ref safety error.
+            comp.VerifyDiagnostics(
+                // (16,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
+                //         M(x => { int i = 0; return F(x, ref i); });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DelegateConversions_14(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+
+                ref struct R { }
+
+                delegate R D1(R r);
+                delegate object D2(object o);
+
+                class Program
+                {
+                    static void M(D1 d1) { }
+                    static void M(D2 d2) { }
+
+                    static void F(ref R x, ref Span<int> y) { }
+                    static void F(ref object x, ref Span<int> y) { }
+                
+                    static void Main()
+                    {
+                        M(x =>
+                            {
+                                Span<int> y = stackalloc int[1];
+                                F(ref x, ref y);
+                                return x;
+                            });
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            // PROTOTYPE: Previously, M(D1) was not applicable because of the ref safety error.
+            comp.VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
+                //         M(x =>
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(18, 9));
+        }
+
+        [Fact]
         public void FunctionPointerConversions()
         {
             var source =
