@@ -1972,42 +1972,47 @@ tryAgain:
 
         private TypeParameterConstraintSyntax ParseTypeParameterConstraint()
         {
-            switch (this.CurrentToken.Kind)
+            return this.CurrentToken.Kind switch
             {
-                case SyntaxKind.NewKeyword:
-                    return _syntaxFactory.ConstructorConstraint(
-                        this.EatToken(),
+                SyntaxKind.NewKeyword =>
+                    _syntaxFactory.ConstructorConstraint(
+                        newKeyword: this.EatToken(),
                         this.EatToken(SyntaxKind.OpenParenToken),
-                        this.EatToken(SyntaxKind.CloseParenToken));
-                case SyntaxKind.StructKeyword:
-                    return _syntaxFactory.ClassOrStructConstraint(
+                        this.EatToken(SyntaxKind.CloseParenToken)),
+
+                SyntaxKind.StructKeyword =>
+                    _syntaxFactory.ClassOrStructConstraint(
                         SyntaxKind.StructConstraint,
-                        this.EatToken(),
+                        classOrStructKeyword: this.EatToken(),
                         this.CurrentToken.Kind == SyntaxKind.QuestionToken
                             ? this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedToken, SyntaxFacts.GetText(SyntaxKind.QuestionToken))
-                            : null);
-                case SyntaxKind.ClassKeyword:
-                    return _syntaxFactory.ClassOrStructConstraint(
+                            : null),
+
+                SyntaxKind.ClassKeyword =>
+                    _syntaxFactory.ClassOrStructConstraint(
                         SyntaxKind.ClassConstraint,
-                        this.EatToken(),
-                        this.TryEatToken(SyntaxKind.QuestionToken));
-                case SyntaxKind.DefaultKeyword:
-                    return _syntaxFactory.DefaultConstraint(this.EatToken());
-                case SyntaxKind.EnumKeyword:
-                    return _syntaxFactory.TypeConstraint(
-                        AddTrailingSkippedSyntax(
-                            this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint),
-                            this.EatToken()));
-                case SyntaxKind.DelegateKeyword when PeekToken(1).Kind is not SyntaxKind.AsteriskToken:
-                    // Produce a specific diagnostic for `where T : delegate`
-                    // but not `where T : delegate*<...>
-                    return _syntaxFactory.TypeConstraint(
-                        AddTrailingSkippedSyntax(
+                        classOrStructKeyword: this.EatToken(),
+                        this.TryEatToken(SyntaxKind.QuestionToken)),
+
+                SyntaxKind.DefaultKeyword =>
+                    _syntaxFactory.DefaultConstraint(defaultKeyword: this.EatToken()),
+
+                SyntaxKind.EnumKeyword =>
+                    _syntaxFactory.TypeConstraint(AddTrailingSkippedSyntax(
+                        this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint),
+                        this.EatToken())),
+
+                // Produce a specific diagnostic for `where T : delegate`
+                // but not `where T : delegate*<...>
+                SyntaxKind.DelegateKeyword =>
+                    PeekToken(1).Kind == SyntaxKind.AsteriskToken
+                        ? _syntaxFactory.TypeConstraint(this.ParseType())
+                        : _syntaxFactory.TypeConstraint(AddTrailingSkippedSyntax(
                             this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoDelegateConstraint),
-                            this.EatToken()));
-                default:
-                    return _syntaxFactory.TypeConstraint(this.ParseType());
-            }
+                            this.EatToken())),
+
+                _ => _syntaxFactory.TypeConstraint(this.ParseType()),
+            };
         }
 
         private PostSkipAction SkipBadTypeParameterConstraintTokens(SeparatedSyntaxListBuilder<TypeParameterConstraintSyntax> list, SyntaxKind expected)
