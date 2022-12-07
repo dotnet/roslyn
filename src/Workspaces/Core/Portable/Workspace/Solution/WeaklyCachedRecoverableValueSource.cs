@@ -165,6 +165,10 @@ namespace Microsoft.CodeAnalysis.Host
 
             async Task SaveAndResetInitialValue(Task previousTask)
             {
+                // Explicitly yield our work so that the outer caller can immediately get our task, assign to
+                // s_latestTask and let go of s_taskGuard.
+                await Task.Yield();
+
                 // First wait for the prior task in the chain to be done.  Ignore all errors from prior tasks.  They
                 // do not affect if we run or not.
                 await previousTask.NoThrowAwaitableInternal(captureContext: false);
