@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// takes as its input the node to be rewritten and a function that returns the previously computed
         /// rewritten node for successor nodes.
         /// </summary>
-        public BoundDecisionDag Rewrite(Func<BoundDecisionDagNode, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode>, BoundDecisionDagNode> makeReplacement)
+        public T Rewrite<T>(Func<BoundDecisionDagNode, IReadOnlyDictionary<BoundDecisionDagNode, T>, T> makeReplacement)
         {
             // First, we topologically sort the nodes of the dag so that we can translate the nodes bottom-up.
             // This will avoid overflowing the compiler's runtime stack which would occur for a large switch
@@ -93,20 +93,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Cache simplified/translated replacement for each translated dag node. Since we always visit
             // a node's successors before the node, the replacement should always be in the cache when we need it.
-            var replacement = PooledDictionary<BoundDecisionDagNode, BoundDecisionDagNode>.GetInstance();
+            var replacement = PooledDictionary<BoundDecisionDagNode, T>.GetInstance();
 
             // Loop backwards through the topologically sorted nodes to translate them, so that we always visit a node after its successors
             for (int i = sortedNodes.Length - 1; i >= 0; i--)
             {
                 BoundDecisionDagNode node = sortedNodes[i];
                 Debug.Assert(!replacement.ContainsKey(node));
-                BoundDecisionDagNode newNode = makeReplacement(node, replacement);
+                T newNode = makeReplacement(node, replacement);
                 replacement.Add(node, newNode);
             }
 
             // Return the computed replacement root node
-            var newRoot = replacement[this.RootNode];
+            var result = replacement[this.RootNode];
             replacement.Free();
+            return result;
+        }
+
+        public BoundDecisionDag Rewrite(Func<BoundDecisionDagNode, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode>, BoundDecisionDagNode> makeReplacement)
+        {
+            var newRoot = Rewrite<BoundDecisionDagNode>(makeReplacement);
             return this.Update(newRoot);
         }
 
