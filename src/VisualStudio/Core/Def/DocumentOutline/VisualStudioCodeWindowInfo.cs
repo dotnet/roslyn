@@ -9,5 +9,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// <summary>
     /// All the information the document outline feature needs from Visual Studio.
     /// </summary>
-    internal record VisualStudioCodeWindowInfo(ITextBuffer TextBuffer, string FilePath, SnapshotPoint? CaretPoint);
+    /// <param name="TextBuffer">text buffer used by the editor to find our language-server implementation.</param>
+    /// <param name="FilePath">file path used as part of the LSP request.</param>
+    /// <param name="CaretPoint">Current caret position in the code window.</param>
+    internal sealed record VisualStudioCodeWindowInfo(ITextBuffer TextBuffer, string FilePath, SnapshotPoint? CaretPoint);
 }

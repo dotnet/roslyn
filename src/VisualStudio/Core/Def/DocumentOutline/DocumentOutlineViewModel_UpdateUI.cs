@@ -27,9 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _updateUIQueue.AddWork(new UIData(expansionOption, caretPoint), cancelExistingWork: true);
         }
 
-        private async ValueTask UpdateUIAsync(ImmutableSegmentedList<UIData> options, CancellationToken cancellationToken)
+        private async ValueTask UpdateUIAsync(ImmutableSegmentedList<UIData> data, CancellationToken cancellationToken)
         {
-            var (expansion, caretPoint) = options.Last();
+            var (expansion, caretPoint) = data.Last();
             var model = await _filterAndSortQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             if (model is null)
             {

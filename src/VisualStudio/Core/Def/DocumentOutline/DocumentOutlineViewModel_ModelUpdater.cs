@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -22,22 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private readonly AsyncBatchingWorkQueue<VisualStudioCodeWindowInfo, DocumentSymbolDataModel?> _documentSymbolQueue;
 
-        private async ValueTask EnqueueModelUpdateAsync()
+        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<VisualStudioCodeWindowInfo> infos, CancellationToken cancellationToken)
         {
-            var info = await _visualStudioCodeWindowInfoService.GetVisualStudioCodeWindowInfoAsync(CancellationToken).ConfigureAwait(false);
-            if (info is not null)
-            {
-                _documentSymbolQueue.AddWork(info, cancelExistingWork: true);
-            }
-        }
-
-        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<VisualStudioCodeWindowInfo> settings, CancellationToken cancellationToken)
-        {
-            var setting = settings.Last();
+            var info = infos.Last();
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (textBuffer, filePath, caretPoint) = setting;
+            var (textBuffer, filePath, caretPoint) = info;
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
@@ -53,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var responseBody = response.Value.response.ToObject<DocumentSymbol[]>();
             // It would be a bug in the LSP server implementation if we get back a null result here.
-            RoslynDebug.AssertNotNull(responseBody);
+            Assumes.NotNull(responseBody);
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 

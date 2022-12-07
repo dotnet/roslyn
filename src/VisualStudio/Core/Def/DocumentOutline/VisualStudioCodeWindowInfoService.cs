@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Editor;
@@ -17,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// <summary>
     /// Manages access to Visual Studio code window information in a thread-safe way.
     /// </summary>
-    internal class VisualStudioCodeWindowInfoService
+    internal sealed class VisualStudioCodeWindowInfoService
     {
         private readonly IVsCodeWindow _codeWindow;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
@@ -37,18 +38,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Get <see cref="VisualStudioCodeWindowInfo"/>, switching to the UI thread if necessary.
         /// </summary>
-        public async ValueTask<VisualStudioCodeWindowInfo?> GetVisualStudioCodeWindowInfoAsync(CancellationToken token)
+        public async Task<VisualStudioCodeWindowInfo?> GetVisualStudioCodeWindowInfoAsync(CancellationToken token)
         {
-            if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
-            {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(token);
-            }
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(token);
+            return GetVisualStudioCodeWindowInfo();
+        }
 
+        private VisualStudioCodeWindowInfo? GetVisualStudioCodeWindowInfo()
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
             var wpfTextView = GetLastActiveIWpfTextView();
             if (wpfTextView is null)
             {
                 return null;
             }
+
             var textBuffer = wpfTextView.TextBuffer;
 
             var caretPoint = wpfTextView.GetCaretPoint(textBuffer);
@@ -73,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private SnapshotPoint? GetCurrentCaretSnapshotPoint()
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             var activeTextView = GetLastActiveIWpfTextView();
             if (activeTextView is null)
             {
@@ -85,20 +90,28 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private SnapshotPoint? GetSnapshotPointFromCaretPosition(CaretPosition newPosition)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             var activeTextView = GetLastActiveIWpfTextView();
-            if (activeTextView is null)
-            {
-                return null;
-            }
+            Assumes.NotNull(activeTextView);
 
             var textBuffer = activeTextView.TextBuffer;
             return newPosition.Point.GetPoint(textBuffer, PositionAffinity.Predecessor);
         }
 
+        /// <summary>
+        /// Get the last active text view for our code window.
+        /// Is guaranteed to be a part of our code window and therefore applicable to our language service.
+        /// Will return either the primary or secondary text view from the code window and nothing else.
+        /// Only returns null if this method is called before content has been established for the adapter,
+        /// </summary>
         private IWpfTextView? GetLastActiveIWpfTextView()
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
-                return null;
+            {
+                FailFast.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
+            }
 
             return _editorAdaptersFactoryService.GetWpfTextView(textView);
         }
@@ -106,13 +119,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// The apis is this class can only be called from the UI thread.
         /// </summary>
-        public class VisualStudioCodeWindowInfoService_OnlyCallOnUIThread
+        public sealed class VisualStudioCodeWindowInfoService_OnlyCallOnUIThread
         {
             private readonly VisualStudioCodeWindowInfoService _service;
 
-            protected internal VisualStudioCodeWindowInfoService_OnlyCallOnUIThread(VisualStudioCodeWindowInfoService service)
+            public VisualStudioCodeWindowInfoService_OnlyCallOnUIThread(VisualStudioCodeWindowInfoService service)
             {
                 _service = service;
+            }
+
+            public VisualStudioCodeWindowInfo? GetVisualStudioCodeWindowInfo()
+            {
+                return _service.GetVisualStudioCodeWindowInfo();
             }
 
             public SnapshotPoint? GetCurrentCaretSnapshotPoint()

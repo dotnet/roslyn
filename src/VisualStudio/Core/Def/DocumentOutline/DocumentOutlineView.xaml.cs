@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     /// <summary>
     /// Interaction logic for DocumentOutlineView.xaml
+    /// All operations happen on the UI thread for visual studio
     /// </summary>
     internal partial class DocumentOutlineView : UserControl, IVsCodeWindowEvents, IDisposable
     {
@@ -151,7 +152,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (!e.NewPosition.Equals(e.OldPosition))
             {
                 var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
-                _viewModel.EnqueueUIUpdateTask(ExpansionOption.CurrentExpansion, service.GetSnapshotPointFromCaretPosition(e.NewPosition));
+                var caretPoint = service.GetSnapshotPointFromCaretPosition(e.NewPosition);
+                if (caretPoint.HasValue)
+                {
+                    _viewModel.EnqueueUIUpdateTask(ExpansionOption.CurrentExpansion, caretPoint.Value);
+                }
             }
         }
 
