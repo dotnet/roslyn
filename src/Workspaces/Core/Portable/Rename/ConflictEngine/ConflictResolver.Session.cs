@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 Contract.ThrowIfTrue(conflictLocations.Count != 0, "We're the first phase, so we should have no conflict locations yet");
 
                                 conflictLocations = conflictResolution.RelatedLocations
-                                    .Where(loc => (documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference))
+                                    .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference)
                                     .Select(loc => new ConflictLocationInfo(loc))
                                     .ToImmutableHashSet();
 
