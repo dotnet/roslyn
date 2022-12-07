@@ -1848,13 +1848,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocalFunction(nameToken);
         }
 
-        /// <summary>
-        /// Returns a value that tells how many local scopes are visible, including the current.
-        /// I.E. outside of any method will be 0
-        ///      immediately inside a method - 1
-        /// </summary>
-        internal virtual uint LocalScopeDepth => Next.LocalScopeDepth; // PROTOTYPE: Remove this property.
-
         internal virtual BoundBlock BindEmbeddedBlock(BlockSyntax node, BindingDiagnosticBag diagnostics)
         {
             return BindBlock(node, diagnostics);
