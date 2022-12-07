@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editing
             _generator = generator;
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
         {
             if (node == null)

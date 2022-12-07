@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
     /// just creating a single directory watch on the root of a project for source file changes: rather than creating a file watcher
     /// for each individual file, we can just watch the entire directory and that's it.
     /// </remarks>
-    public sealed class WatchedDirectory
+    internal sealed class WatchedDirectory
     {
         public WatchedDirectory(string path, string? extensionFilter)
         {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
     /// <summary>
     /// A context that is watching one or more files.
     /// </summary>
-    public interface IFileChangeContext : IDisposable
+    internal interface IFileChangeContext : IDisposable
     {
         /// <summary>
         /// Raised when a file has been changed. This may be a file watched explicitly by <see cref="EnqueueWatchingFile(string)"/> or it could be any
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         IWatchedFile EnqueueWatchingFile(string filePath);
     }
 
-    public interface IWatchedFile : IDisposable
+    internal interface IWatchedFile : IDisposable
     {
     }
 }

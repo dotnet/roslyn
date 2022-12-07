@@ -357,6 +357,11 @@
         <target state="translated">Yerel işlev kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_nameof">
+        <source>Use 'nameof'</source>
+        <target state="new">Use 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_new">
         <source>Use 'new(...)'</source>
         <target state="translated">'new(...)' kullanın</target>
