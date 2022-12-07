@@ -53,10 +53,7 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
             if (value != null)
                 return true;
 
-            if (_weakInstance != null && _weakInstance.TryGetTarget(out value) && value != null)
-                return true;
-
-            return false;
+            return _weakInstance != null && _weakInstance.TryGetTarget(out value) && value != null;
         }
 
         public TextAndVersion GetValue(CancellationToken cancellationToken)
