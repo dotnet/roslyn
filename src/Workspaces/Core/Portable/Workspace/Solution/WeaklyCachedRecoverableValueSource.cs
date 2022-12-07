@@ -157,30 +157,23 @@ namespace Microsoft.CodeAnalysis.Host
                 using (s_taskGuard.DisposableWait())
                 {
                     // force all save tasks to be in sequence so we don't hog all the threads.
-                    s_latestTask = SaveAndResetInitialValue(s_latestTask);
+                    s_latestTask = s_latestTask.SafeContinueWithFromAsync(async _ =>
+                    {
+                        // Now defer to our subclass to actually save the instance to secondary storage.
+                        await SaveAsync(instance, CancellationToken.None).ConfigureAwait(false);
+
+                        // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete,
+                        // we want to keep it around to service future requests.  Once we do clear out this value, then all
+                        // future request will either retrieve the value from the weak reference (if anyone else is holding onto
+                        // it), or will recover from underlying storage.
+                        _initialValue = null;
+                    },
+                    CancellationToken.None,
+                    // Ensure we run continuations asynchronously so that we don't start running the continuation while
+                    // holding s_taskGuard.
+                    TaskContinuationOptions.RunContinuationsAsynchronously,
+                    TaskScheduler.Default);
                 }
-            }
-
-            return;
-
-            async Task SaveAndResetInitialValue(Task previousTask)
-            {
-                // Explicitly yield our work so that the outer caller can immediately get our task, assign to
-                // s_latestTask and let go of s_taskGuard.
-                await Task.Yield();
-
-                // First wait for the prior task in the chain to be done.  Ignore all errors from prior tasks.  They
-                // do not affect if we run or not.
-                await previousTask.NoThrowAwaitableInternal(captureContext: false);
-
-                // Now defer to our subclass to actually save the instance to secondary storage.
-                await SaveAsync(instance, CancellationToken.None).ConfigureAwait(false);
-
-                // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete,
-                // we want to keep it around to service future requests.  Once we do clear out this value, then all
-                // future request will either retrieve the value from the weak reference (if anyone else is holding onto
-                // it), or will recover from underlying storage.
-                _initialValue = null;
             }
         }
     }
