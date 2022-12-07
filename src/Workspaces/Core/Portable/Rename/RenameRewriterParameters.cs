@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Rename
         internal readonly Solution OriginalSolution;
         internal readonly SyntaxTree OriginalSyntaxTree;
         internal readonly string OriginalText;
-        internal readonly ICollection<string> PossibleNameConflicts;
+        internal readonly ImmutableArray<string> PossibleNameConflicts;
         internal readonly RenameAnnotation RenamedSymbolDeclarationAnnotation;
         internal readonly Dictionary<TextSpan, RenameLocation> RenameLocations;
         internal readonly RenamedSpansTracker RenameSpansTracker;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Rename
             SyntaxNode syntaxRoot,
             string replacementText,
             string originalText,
-            ICollection<string> possibleNameConflicts,
+            ImmutableArray<string> possibleNameConflicts,
             Dictionary<TextSpan, RenameLocation> renameLocations,
             ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> stringAndCommentTextSpans,
             ISet<TextSpan> conflictLocationSpans,

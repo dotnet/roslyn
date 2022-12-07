@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation = new();
 
-            // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
-            private readonly List<string> _possibleNameConflicts = new();
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
             private bool _replacementTextValid;
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
-                    var documentsIdsToBeCheckedForConflict = await FindDocumentsAndPossibleNameConflictsAsync().ConfigureAwait(false);
+                    var (documentsIdsToBeCheckedForConflict, possibleNameConflicts) = await FindDocumentsAndPossibleNameConflictsAsync().ConfigureAwait(false);
                     var baseSolution = _renameLocationSet.Solution;
 
                     var dependencyGraph = baseSolution.GetProjectDependencyGraph();
@@ -143,7 +141,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 _renameLocationSet.Locations,
                                 renamedSpansTracker,
                                 _replacementTextValid,
-                                conflictLocations).ConfigureAwait(false));
+                                conflictLocations,
+                                possibleNameConflicts).ConfigureAwait(false));
 
                             // Step 2: Check for conflicts in the renamed solution
                             var foundResolvableConflicts = await IdentifyConflictsAsync(
@@ -685,29 +684,32 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             /// <summary>
             /// The method determines the set of documents that need to be processed for Rename and also determines
-            ///  the possible set of names that need to be checked for conflicts.
+            /// the possible set of names that need to be checked for conflicts.
+            /// The list will contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
             /// </summary>
-            private async Task<HashSet<DocumentId>> FindDocumentsAndPossibleNameConflictsAsync()
+            private async Task<(ImmutableHashSet<DocumentId> documentIds, ImmutableArray<string> possibleNameConflicts)> FindDocumentsAndPossibleNameConflictsAsync()
             {
                 try
                 {
-                    var result = new HashSet<DocumentId>();
+                    var documentIds = new HashSet<DocumentId>();
+                    var possibleNameConflictsList = new List<string>();
 
                     var symbol = _renameLocationSet.Symbol;
                     var solution = _renameLocationSet.Solution;
 
                     var allRenamedDocuments = _renameLocationSet.Locations.Select(loc => loc.Location.SourceTree!).Distinct().Select(solution.GetRequiredDocument);
-                    result.AddRange(allRenamedDocuments.Select(d => d.Id));
+                    documentIds.AddRange(allRenamedDocuments.Select(d => d.Id));
 
                     var documentsFromAffectedProjects = RenameUtilities.GetDocumentsAffectedByRename(symbol, solution, _renameLocationSet.Locations);
                     foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
                     {
                         solution.Services.GetLanguageServices(language).GetService<IRenameRewriterLanguageService>()
-                            ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
+                            ?.TryAddPossibleNameConflicts(symbol, _replacementText, possibleNameConflictsList);
                     }
 
-                    await AddDocumentsWithPotentialConflictsAsync(documentsFromAffectedProjects, result).ConfigureAwait(false);
-                    return result;
+                    var possibleNameConflicts = possibleNameConflictsList.ToImmutableArray();
+                    await AddDocumentsWithPotentialConflictsAsync(documentsFromAffectedProjects, documentIds, possibleNameConflicts).ConfigureAwait(false);
+                    return (documentIds.ToImmutableHashSet(), possibleNameConflicts);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
@@ -717,13 +719,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private async Task AddDocumentsWithPotentialConflictsAsync(
                 IEnumerable<Document> documents,
-                HashSet<DocumentId> result)
+                HashSet<DocumentId> documentIds,
+                ImmutableArray<string> possibleNameConflicts)
             {
                 try
                 {
                     foreach (var document in documents)
                     {
-                        if (result.Contains(document.Id))
+                        if (documentIds.Contains(document.Id))
                             continue;
 
                         if (!document.SupportsSyntaxTree)
@@ -732,21 +735,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, _cancellationToken).ConfigureAwait(false);
                         if (info.ProbablyContainsEscapedIdentifier(_originalText))
                         {
-                            result.Add(document.Id);
+                            documentIds.Add(document.Id);
                             continue;
                         }
 
                         if (info.ProbablyContainsIdentifier(_replacementText))
                         {
-                            result.Add(document.Id);
+                            documentIds.Add(document.Id);
                             continue;
                         }
 
-                        foreach (var replacementName in _possibleNameConflicts)
+                        foreach (var replacementName in possibleNameConflicts)
                         {
                             if (info.ProbablyContainsIdentifier(replacementName))
                             {
-                                result.Add(document.Id);
+                                documentIds.Add(document.Id);
                                 break;
                             }
                         }
@@ -766,7 +769,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ImmutableArray<RenameLocation> renameLocations,
                 RenamedSpansTracker renameSpansTracker,
                 bool replacementTextValid,
-                ISet<ConflictLocationInfo> conflictLocations)
+                ISet<ConflictLocationInfo> conflictLocations,
+                ImmutableArray<string> possibleNameConflicts)
             {
                 try
                 {
@@ -805,7 +809,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             originalSyntaxRoot,
                             _replacementText,
                             _originalText,
-                            _possibleNameConflicts,
+                            possibleNameConflicts,
                             allTextSpansInSingleSourceTree,
                             stringAndCommentTextSpansInSingleSourceTree,
                             conflictLocationSpans,
