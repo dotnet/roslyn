@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders;
         private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
         private readonly object _snippetProvidersLock = new();
-        private ImmutableArray<ISnippetProvider> _snippetProviders;
+        private ImmutableArray<AbstractSnippetProvider> _snippetProviders;
 
         public AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders)
         {
@@ -62,29 +62,29 @@ namespace Microsoft.CodeAnalysis.Snippets
             using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
             foreach (var provider in GetSnippetProviders(document))
             {
-                var snippetData = provider is AbstractSnippetProvider abstractSnippetProvider
-                    ? abstractSnippetProvider.GetSnippetDataCore(context, cancellationToken)
-                    : await provider.GetSnippetDataAsync(document, position, cancellationToken).ConfigureAwait(false);
-
+                var snippetData = provider.GetSnippetData(context, cancellationToken);
                 arrayBuilder.AddIfNotNull(snippetData);
             }
 
             return arrayBuilder.ToImmutable();
         }
 
-        private ImmutableArray<ISnippetProvider> GetSnippetProviders(Document document)
+        private ImmutableArray<AbstractSnippetProvider> GetSnippetProviders(Document document)
         {
             lock (_snippetProvidersLock)
             {
                 if (_snippetProviders.IsDefault)
                 {
-                    using var _ = ArrayBuilder<ISnippetProvider>.GetInstance(out var arrayBuilder);
+                    using var _ = ArrayBuilder<AbstractSnippetProvider>.GetInstance(out var arrayBuilder);
+                    Debug.Assert(document.Project.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);
                     foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
                     {
                         var providerData = provider.Value;
                         Debug.Assert(!_identifierToProviderMap.TryGetValue(providerData.Identifier, out var _));
-                        _identifierToProviderMap.Add(providerData.Identifier, providerData);
-                        arrayBuilder.Add(providerData);
+                        Debug.Assert(providerData is AbstractSnippetProvider);
+                        var abstractSnippetProvider = (AbstractSnippetProvider)providerData;
+                        _identifierToProviderMap.Add(providerData.Identifier, abstractSnippetProvider);
+                        arrayBuilder.Add(abstractSnippetProvider);
                     }
 
                     _snippetProviders = arrayBuilder.ToImmutable();

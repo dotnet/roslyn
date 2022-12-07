@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Determines if the location is valid for a snippet,
         /// if so, then it creates a SnippetData.
         /// </summary>
-        public SnippetData? GetSnippetDataCore(SyntaxContext context, CancellationToken cancellationToken)
+        public SnippetData? GetSnippetData(SyntaxContext context, CancellationToken cancellationToken)
         {
             if (!IsValidSnippetLocation(context, cancellationToken))
             {

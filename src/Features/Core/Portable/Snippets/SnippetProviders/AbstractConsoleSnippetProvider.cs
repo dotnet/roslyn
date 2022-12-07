@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsExpressionStatement);
             Contract.ThrowIfNull(snippetExpressionNode);
 
-
             var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(typeof(Console).FullName!), Formatter.Annotation);
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
