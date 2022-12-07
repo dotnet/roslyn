@@ -8110,12 +8110,11 @@ public class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C..ctor(int, string, ref int)", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  4
+  // Code size       37 (0x25)
+  .maxstack  3
   .locals init (long V_0,
                 string V_1,
-                int V_2,
-                long V_3)
+                int V_2)
   IL_0000:  ldarg.0
   IL_0001:  call       ""object..ctor()""
   IL_0006:  ldarg.0
@@ -8130,15 +8129,13 @@ public class C
   IL_0013:  stloc.2
   IL_0014:  ldarg.0
   IL_0015:  ldloc.0
-  IL_0016:  dup
-  IL_0017:  stloc.3
-  IL_0018:  call       ""void C.X.set""
-  IL_001d:  ldarg.0
-  IL_001e:  ldloc.1
-  IL_001f:  stfld      ""string C.<Y>k__BackingField""
-  IL_0024:  ldloc.2
-  IL_0025:  stind.i4
-  IL_0026:  ret
+  IL_0016:  call       ""void C.X.set""
+  IL_001b:  ldarg.0
+  IL_001c:  ldloc.1
+  IL_001d:  stfld      ""string C.<Y>k__BackingField""
+  IL_0022:  ldloc.2
+  IL_0023:  stind.i4
+  IL_0024:  ret
 }");
         }
 
