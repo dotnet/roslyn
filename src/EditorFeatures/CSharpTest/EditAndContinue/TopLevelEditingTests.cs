@@ -1478,7 +1478,7 @@ interface I {}
 interface J {}";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC, srcC) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC, srcC, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -1525,7 +1525,7 @@ interface I {}
 interface J {}";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC, srcC) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC, srcC, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),

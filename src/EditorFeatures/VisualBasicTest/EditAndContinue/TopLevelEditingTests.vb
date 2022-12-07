@@ -1003,7 +1003,7 @@ Interface J : End Interface
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC, srcC)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC, srcC, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -1045,7 +1045,7 @@ Interface J : End Interface
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC, srcC)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC, srcC, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(),
