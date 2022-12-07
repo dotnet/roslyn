@@ -20,7 +20,19 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
         public readonly LoadTextOptions Options;
 
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
+
+        /// <summary>
+        /// Strong reference to the loaded text and version.  Only held onto once computed if <see cref="Source"/>.<see
+        /// cref="CacheResult"/> is <see langword="true"/>.  Once held onto, this will be returned from all calls to
+        /// <see cref="TryGetValue"/>, <see cref="GetValue"/> or <see cref="GetValueAsync"/>.
+        /// </summary>
         private TextAndVersion? _instance;
+
+        /// <summary>
+        /// Weak reference to the loaded text and version that we create whenever the value is computed.  We will
+        /// attempt to return from this if still alive when clients call back into this.  If neither this, nor <see
+        /// cref="_instance"/> are available, the value will be reloaded.
+        /// </summary>
         private WeakReference<TextAndVersion>? _weakInstance;
 
         public LazyValueWithOptions(LoadableTextAndVersionSource source, LoadTextOptions options)
@@ -85,10 +97,11 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
         {
             Contract.ThrowIfTrue(_gate.CurrentCount != 0);
 
+            // Always update the weak ref, so we can return the same instance if anything else is holding onto it.
             _weakInstance ??= new WeakReference<TextAndVersion>(textAndVersion);
             _weakInstance.SetTarget(textAndVersion);
 
-            // if our source wants us to hold on strongly, do so.
+            // if our source wants us to hold onto the value strongly, do so.
             if (this.Source.CacheResult)
                 _instance = textAndVersion;
         }
