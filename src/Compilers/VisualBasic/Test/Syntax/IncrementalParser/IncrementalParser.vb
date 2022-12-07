@@ -1704,7 +1704,6 @@ End Class
         ' Class declaration is reused.
         Assert.Same(extractGreenClassC(oldTree1), extractGreenClassC(newTree1))
 
-
         ''''''''''
         ' Check reuse after a trivial change in an annotated tree.
         ''''''''''
@@ -1729,7 +1728,6 @@ End Class
         ' ...even though the text is the same.
         Assert.Equal(oldClassC2.ToFullString(), newClassC2.ToFullString())
 
-
         Dim oldToken2 = DirectCast(oldClassC2, Syntax.InternalSyntax.ClassStatementSyntax).Identifier
         Dim newToken2 = DirectCast(newClassC2, Syntax.InternalSyntax.ClassStatementSyntax).Identifier
 
@@ -1740,7 +1738,6 @@ End Class
         Assert.NotSame(oldToken2, newToken2)
         ' ...even though the text is the same.
         Assert.Equal(oldToken2.ToFullString(), newToken2.ToFullString())
-
 
     End Sub
 
@@ -1870,7 +1867,6 @@ Imports Microsoft.Visualbasic
         Dim newTree = oldTree.WithChangedText(newText)
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
-
 
     <Fact>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxDelegateSub()

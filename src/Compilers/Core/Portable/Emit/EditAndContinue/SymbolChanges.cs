@@ -558,6 +558,29 @@ namespace Microsoft.CodeAnalysis.Emit
             // unreliable. It may be better to walk down using the usual
             // emit traversal, but prune the traversal to those types and
             // members that are known to contain changes.
+            var associated = GetAssociatedSymbol(symbol);
+            if (associated is not null)
+            {
+                return associated;
+            }
+
+            symbol = symbol.ContainingSymbol;
+            if (symbol != null)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.NetModule:
+                    case SymbolKind.Assembly:
+                        // These symbols are never part of the changes collection.
+                        return null;
+                }
+            }
+
+            return symbol;
+        }
+
+        private static ISymbol? GetAssociatedSymbol(ISymbol symbol)
+        {
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
@@ -581,19 +604,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     break;
             }
 
-            symbol = symbol.ContainingSymbol;
-            if (symbol != null)
-            {
-                switch (symbol.Kind)
-                {
-                    case SymbolKind.NetModule:
-                    case SymbolKind.Assembly:
-                        // These symbols are never part of the changes collection.
-                        return null;
-                }
-            }
-
-            return symbol;
+            return null;
         }
 
         internal IDefinition? GetContainingDefinitionForBackingField(IFieldDefinition fieldDefinition)
@@ -604,10 +615,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 return null;
             }
 
-            var containingSymbol = GetContainingSymbol(field);
-            if (containingSymbol is not null)
+            var associatedSymbol = GetAssociatedSymbol(field);
+            if (associatedSymbol is not null)
             {
-                return GetISymbolInternalOrNull(containingSymbol)?.GetCciAdapter() as IDefinition;
+                return GetISymbolInternalOrNull(associatedSymbol)?.GetCciAdapter() as IDefinition;
             }
 
             return null;

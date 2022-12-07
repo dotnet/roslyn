@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     else
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
 

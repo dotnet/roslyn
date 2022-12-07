@@ -495,6 +495,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">{0} öğesinin görünürlüğünün değiştirilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">Açıklamalara izin verilmiyor</target>
@@ -672,7 +677,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Enum_members">
         <source>Enum members</source>
-        <target state="new">Enum members</target>
+        <target state="translated">Sabit liste üyeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -973,6 +978,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">'{0}' öğesini satır içine al ve koru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1288,6 +1298,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Operators">
         <source>Operators</source>
         <target state="translated">Operatörler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="new">Please resolve errors in your code before renaming this element.</target>
         <note />
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
@@ -2540,6 +2555,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Yakalanan bir değişkenin '{0}' iken '{1}' olarak yeniden adlandırılması, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="new">Renaming anonymous type members is not yet supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}' öğesini '{1}' ile değiştir</target>
@@ -3000,6 +3020,31 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Bağlamlarda geçiş yapmak için gezinti çubuğunu kullanabilirsiniz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="new">You cannot rename elements from previous submissions.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="new">You cannot rename elements that are defined in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="new">You cannot rename operators.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="new">You cannot rename this element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="new">You must rename an identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
         <target state="translated">'{0}' tabanları</target>
@@ -3430,7 +3475,7 @@ If the "d" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">foreach döngüsü</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4282,7 +4327,7 @@ Bu standart biçim belirticisi kullanıldığında, biçimlendirme veya ayrışt
       </trans-unit>
       <trans-unit id="struct_">
         <source>struct</source>
-        <target state="new">struct</target>
+        <target state="translated">'Salt okunur yapı' tercihlerini uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
@@ -4940,6 +4985,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 DateTimeOffset değerlerinde, bu biçim belirticisi, DateTimeOffset değerinin saat cinsinden UTC'den uzaklığını temsil eder.
 
 Uzaklık her zaman başında bir işaretle görüntülenir. Artı işareti (+) UTC'den önceki, eksi işareti (-) ise UTC'den sonraki saatleri gösterir. Tek haneli bir uzaklık, başına bir sıfır eklenerek biçimlendirilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

@@ -1550,19 +1550,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(forEachStatement);
         }
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(catchDeclaration, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(catchDeclaration);
         }
 
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))

@@ -803,5 +803,15 @@ class C
 {
     delegate*$$");
         }
+
+        [Fact, WorkItem(64585, "https://github.com/dotnet/roslyn/issues/64585")]
+        public async Task TestAfterRequired()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    required $$
+}");
+        }
     }
 }

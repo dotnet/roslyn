@@ -40,6 +40,8 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - name: Codeql.Enabled
+    value: true​
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
@@ -319,7 +321,7 @@ stages:
         - OfficialBuild
       pool:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals Build.Windows.Amd64.VS2022
+        demands: ImageOverride -equals windows.vs2022.amd64
 
 - stage: insert
   dependsOn:
@@ -331,7 +333,7 @@ stages:
     displayName: Insert to VS
     pool:
       name: NetCore1ESPool-Svc-Internal
-      demands: ImageOverride -equals Build.Server.Amd64.VS2019
+      demands: ImageOverride -equals windows.vs2022.amd64
     steps:
     - download: current
       artifact: VSSetup

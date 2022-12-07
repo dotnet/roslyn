@@ -2407,6 +2407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             var expr = BindExpression(node.Operand, diagnostics);
             switch (expr.Kind)
             {
@@ -2504,7 +2506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasErrors)
             {
-                hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, warnForManaged: true, node.Location, diagnostics);
+                hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, node.Location, diagnostics);
             }
 
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowMoveableAddressOf);
@@ -4072,6 +4074,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
@@ -4335,8 +4339,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
+            if (Compilation.Assembly.RuntimeSupportsNumericIntPtr)
+            {
+                return;
+            }
+
             switch (operatorKind & BinaryOperatorKind.TypeMask)
             {
                 case BinaryOperatorKind.NInt:
@@ -4346,8 +4355,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
+            if (Compilation.Assembly.RuntimeSupportsNumericIntPtr)
+            {
+                return;
+            }
+
             switch (operatorKind & UnaryOperatorKind.TypeMask)
             {
                 case UnaryOperatorKind.NInt:

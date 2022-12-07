@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TaskList;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -30,7 +31,12 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
 
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;
-    public Uri GetUri() => Document.GetURI();
+    public TextDocumentIdentifier? GetDocumentIdentifier()
+        => !string.IsNullOrEmpty(Document.FilePath)
+            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), Uri = Document.GetURI() }
+            : null;
+
+    public string ToDisplayString() => $"{Document.FilePath ?? Document.Name} in {Document.Project.Name}";
 
     protected abstract bool IncludeTaskListItems { get; }
     protected abstract bool IncludeStandardDiagnostics { get; }

@@ -39,17 +39,35 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         }
 
         protected sealed override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
+            CodeActionOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var diagnostic in diagnostics)
+            // Walk the diagnostics in descending position order so that we process innermost conditionals before
+            // outermost ones. Also, use ApplyExpressionLevelSemanticEditsAsync so that we can appropriately understand
+            // the semantics of conditional nodes if we changed what was inside of them.
+
+            await editor.ApplyExpressionLevelSemanticEditsAsync(
+                document,
+                diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start).ToImmutableArray(),
+                d => d.Location.FindNode(getInnermostNodeForTie: true, cancellationToken),
+                canReplace: (_, _, _) => true,
+                (semanticModel, root, diagnostic, current) => root.ReplaceNode(current, SimplifyConditional(semanticModel, diagnostic, current)),
+                cancellationToken).ConfigureAwait(false);
+
+            return;
+
+            SyntaxNode SimplifyConditional(SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode expr)
             {
-                var expr = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                if (!syntaxFacts.IsConditionalExpression(expr))
+                    return expr;
+
                 syntaxFacts.GetPartsOfConditionalExpression(expr, out var condition, out var whenTrue, out var whenFalse);
 
                 if (diagnostic.Properties.ContainsKey(Negate))
@@ -67,8 +85,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
                     replacement = generator.LogicalAndExpression(condition, right);
                 }
 
-                editor.ReplaceNode(
-                    expr, generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr)));
+                return generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr));
             }
         }
     }

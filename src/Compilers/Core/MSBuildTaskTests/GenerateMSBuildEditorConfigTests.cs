@@ -241,7 +241,6 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
             configTask.Execute();
             var result = configTask.ConfigFileContents;
 
-
             // MSBuild will convert the above relative paths to absolute paths based on the current location.
             // We replicate that behavior here to test we get the expected full paths 
             string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)?.Replace('\\', '/') ?? string.Empty;

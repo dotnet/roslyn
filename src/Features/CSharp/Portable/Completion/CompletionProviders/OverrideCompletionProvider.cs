@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

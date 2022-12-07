@@ -311,6 +311,23 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, int, TResult> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            int index = 0;
+            foreach (var element in source)
+            {
+                builder.Add(selector(element, index));
+                index++;
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)
         {
             if (source == null)
@@ -333,6 +350,21 @@ namespace Roslyn.Utilities
             foreach (var item in source)
             {
                 builder.Add(await selector(item).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
+        /// </summary>
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var item in source)
+            {
+                builder.Add(await selector(item, cancellationToken).ConfigureAwait(false));
             }
 
             return builder.ToImmutableAndFree();

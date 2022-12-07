@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
 
         public override bool IsCompleteSubmission(string text)
-            => SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(text, options: s_parseOptions));
+            => SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithms.Default), options: s_parseOptions));
 
         public override string InteractiveResponseFileName
             => "CSharpInteractive.rsp";

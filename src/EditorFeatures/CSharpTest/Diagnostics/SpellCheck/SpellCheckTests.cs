@@ -681,5 +681,17 @@ class Program : IInterface
 
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, WorkItem(1640728, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]
+        public async Task TestMisspelledWordThatIsAlsoSnippetName()
+        {
+            await TestInRegularAndScriptAsync(
+@"public [|interfacce|] IWhatever
+{
+}",
+@"public interface IWhatever
+{
+}");
+        }
     }
 }

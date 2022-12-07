@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
@@ -60,8 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
         {
-            using var _ = PooledHashSet<AnalyzerReference>.GetInstance(out var oldAnalyzerReferences);
-            oldAnalyzerReferences.UnionWith(_oldSolution.AnalyzerReferences);
+            var oldAnalyzerReferences = new HashSet<AnalyzerReference>(_oldSolution.AnalyzerReferences);
             foreach (var analyzerReference in _newSolution.AnalyzerReferences)
             {
                 if (!oldAnalyzerReferences.Contains(analyzerReference))
@@ -73,8 +71,7 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
         {
-            using var _ = PooledHashSet<AnalyzerReference>.GetInstance(out var newAnalyzerReferences);
-            newAnalyzerReferences.UnionWith(_newSolution.AnalyzerReferences);
+            var newAnalyzerReferences = new HashSet<AnalyzerReference>(_newSolution.AnalyzerReferences);
             foreach (var analyzerReference in _oldSolution.AnalyzerReferences)
             {
                 if (!newAnalyzerReferences.Contains(analyzerReference))

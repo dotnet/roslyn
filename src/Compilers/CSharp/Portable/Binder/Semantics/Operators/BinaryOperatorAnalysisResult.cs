@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(object obj)
         {
             // implement if needed
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override int GetHashCode()
         {
             // implement if needed
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public static BinaryOperatorAnalysisResult Applicable(BinaryOperatorSignature signature, Conversion leftConversion, Conversion rightConversion)

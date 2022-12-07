@@ -553,8 +553,6 @@ IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0]
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ParamsArrayArgumentInNormalForm()

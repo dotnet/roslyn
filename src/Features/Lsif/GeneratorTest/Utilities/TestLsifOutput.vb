@@ -6,17 +6,30 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
+Imports Microsoft.CodeAnalysis.Text
 Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
+Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
         Private ReadOnly _testLsifJsonWriter As TestLsifJsonWriter
         Private ReadOnly _workspace As TestWorkspace
 
+        ''' <summary>
+        ''' A MEF composition that matches the exact same MEF composition that will be used in the actual LSIF tool.
+        ''' </summary>
+        Public Shared ReadOnly TestComposition As TestComposition = TestComposition.Empty.AddAssemblies(Composition.MefCompositionAssemblies)
+
         Public Sub New(testLsifJsonWriter As TestLsifJsonWriter, workspace As TestWorkspace)
             _testLsifJsonWriter = testLsifJsonWriter
             _workspace = workspace
         End Sub
+
+        Public Shared Function GenerateForWorkspaceAsync(workspaceElement As XElement) As Task(Of TestLsifOutput)
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceElement, openDocuments:=False, composition:=TestComposition)
+            Return GenerateForWorkspaceAsync(workspace)
+        End Function
 
         Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace) As Task(Of TestLsifOutput)
             Dim testLsifJsonWriter = New TestLsifJsonWriter()
@@ -27,6 +40,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         End Function
 
         Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace, jsonWriter As ILsifJsonWriter) As Task
+            ' We always want to assert that we're running with the correct composition, or otherwies the test doesn't reflect the real
+            ' world function of the indexer.
+            Assert.Equal(workspace.Composition, TestComposition)
+
             Dim lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(jsonWriter)
 
             For Each project In workspace.CurrentSolution.Projects
@@ -43,6 +60,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             Return _testLsifJsonWriter.GetElementById(id)
         End Function
 
+        Public Function GetLinkedVertices(Of T As Vertex)(vertex As Graph.Vertex, predicate As Func(Of Edge, Boolean)) As ImmutableArray(Of T)
+            Return _testLsifJsonWriter.GetLinkedVertices(Of T)(vertex, predicate)
+        End Function
+
         ''' <summary>
         ''' Returns all the vertices linked to the given vertex by the edge type.
         ''' </summary>
@@ -56,10 +77,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             End Get
         End Property
 
-        ''' <summary>
-        ''' Returns the <see cref="Range" /> verticies in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
-        ''' </summary>
-        Public Async Function GetSelectedRangesAsync() As Task(Of IEnumerable(Of Graph.Range))
+        Private Async Function GetRangesAsync(selector As Func(Of TestHostDocument, IEnumerable(Of TextSpan))) As Task(Of IEnumerable(Of Graph.Range))
             Dim builder = ImmutableArray.CreateBuilder(Of Range)
 
             For Each testDocument In _workspace.Documents
@@ -69,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
                                                         .Single()
                 Dim rangeVertices = GetLinkedVertices(Of Range)(documentVertex, "contains")
 
-                For Each selectedSpan In testDocument.SelectedSpans
+                For Each selectedSpan In selector(testDocument)
                     Dim document = _workspace.CurrentSolution.GetDocument(testDocument.Id)
                     Dim text = Await document.GetTextAsync()
                     Dim linePositionSpan = text.Lines.GetLinePositionSpan(selectedSpan)
@@ -85,8 +103,23 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             Return builder.ToImmutable()
         End Function
 
+        ''' <summary>
+        ''' Returns the <see cref="Range" /> verticies in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
+        ''' </summary>
+        Public Function GetSelectedRangesAsync() As Task(Of IEnumerable(Of Graph.Range))
+            Return GetRangesAsync(Function(testDocument) testDocument.SelectedSpans)
+        End Function
+
         Public Async Function GetSelectedRangeAsync() As Task(Of Graph.Range)
             Return (Await GetSelectedRangesAsync()).Single()
+        End Function
+
+        Public Function GetAnnotatedRangesAsync(annotation As String) As Task(Of IEnumerable(Of Graph.Range))
+            Return GetRangesAsync(Function(testDocument) testDocument.AnnotatedSpans.GetValueOrDefault(annotation))
+        End Function
+
+        Public Async Function GetAnnotatedRangeAsync(annotation As String) As Task(Of Graph.Range)
+            Return (Await GetAnnotatedRangesAsync(annotation)).Single()
         End Function
 
         Public Function GetFoldingRanges(document As Document) As LSP.FoldingRange()

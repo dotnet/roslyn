@@ -1548,6 +1548,10 @@ class Customer2
 }}
 ";
 
+        #endregion
+
+        #region New Line Preferences
+
         private static readonly string s_allow_embedded_statements_on_same_line_true = $@"
 class Class2
 {{
@@ -1737,7 +1741,7 @@ class Class2
 }}
 ";
 
-        private static readonly string s_allow_bank_line_after_colon_in_constructor_initializer_true = $@"
+        private static readonly string s_allow_blank_line_after_colon_in_constructor_initializer_true = $@"
 class Class
 {{
 //[
@@ -1750,7 +1754,7 @@ class Class
 }}
 ";
 
-        private static readonly string s_allow_bank_line_after_colon_in_constructor_initializer_false = $@"
+        private static readonly string s_allow_blank_line_after_colon_in_constructor_initializer_false = $@"
 namespace NS1
 {{
     class Class
@@ -1774,6 +1778,90 @@ namespace NS2
             base()
         {{
         }}
+    //]
+    }}
+}}
+";
+
+        private static readonly string s_allow_blank_line_after_token_in_conditional_expression_true = $@"
+class Class
+{{
+//[
+    // {ServicesVSResources.Allow_colon}
+    void Method()
+    {{
+        var result = CheckCondition() ?
+            WhenTrue :
+            WhenFalse;
+    }}
+//]
+}}
+";
+
+        private static readonly string s_allow_blank_line_after_token_in_conditional_expression_false = $@"
+namespace NS1
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Require_colon}
+        void Method()
+        {{
+            var result = CheckCondition()
+                ? WhenTrue
+                : WhenFalse;
+        }}
+    //]
+    }}
+}}
+namespace NS2
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Over_colon}
+        void Method()
+        {{
+            var result = CheckCondition() ?
+                WhenTrue :
+                WhenFalse;
+        }}
+    //]
+    }}
+}}
+";
+
+        private static readonly string s_allow_blank_line_after_token_in_arrow_expression_clause_true = $@"
+class Class
+{{
+//[
+    // {ServicesVSResources.Allow_colon}
+    int Method() =>
+        1 + 1;
+//]
+}}
+";
+
+        private static readonly string s_allow_blank_line_after_token_in_arrow_expression_clause_false = $@"
+namespace NS1
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Require_colon}
+        int Method()
+            => 1 + 1;
+    //]
+    }}
+}}
+namespace NS2
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Over_colon}
+        int Method() =>
+            1 + 1;
     //]
     }}
 }}
@@ -2213,7 +2301,9 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CSharpVSResources.Allow_embedded_statements_on_same_line, s_allow_embedded_statements_on_same_line_true, s_allow_embedded_statements_on_same_line_false, this, optionStore, newLinePreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CSharpVSResources.Allow_blank_lines_between_consecutive_braces, s_allow_blank_line_between_consecutive_braces_true, s_allow_blank_line_between_consecutive_braces_false, this, optionStore, newLinePreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, ServicesVSResources.Allow_statement_immediately_after_block, s_allow_statement_immediately_after_block_true, s_allow_statement_immediately_after_block_false, this, optionStore, newLinePreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CSharpVSResources.Allow_bank_line_after_colon_in_constructor_initializer, s_allow_bank_line_after_colon_in_constructor_initializer_true, s_allow_bank_line_after_colon_in_constructor_initializer_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CSharpVSResources.Allow_blank_line_after_colon_in_constructor_initializer, s_allow_blank_line_after_colon_in_constructor_initializer_true, s_allow_blank_line_after_colon_in_constructor_initializer_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CSharpVSResources.Allow_blank_line_after_token_in_conditional_expression, s_allow_blank_line_after_token_in_conditional_expression_true, s_allow_blank_line_after_token_in_conditional_expression_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CSharpVSResources.Allow_blank_line_after_token_in_arrow_expression_clause, s_allow_blank_line_after_token_in_arrow_expression_clause_true, s_allow_blank_line_after_token_in_arrow_expression_clause_false, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)

@@ -17,9 +17,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -32,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
 
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly VisualStudioDiagnosticAnalyzerProvider _vsixAnalyzerProvider;
+        private readonly IProjectSystemDiagnosticSource _projectSystemDiagnosticSource;
+        private readonly IHostDiagnosticAnalyzerProvider _hostAnalyzerProvider;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -73,6 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string? _filePath;
         private CompilationOptions? _compilationOptions;
         private ParseOptions? _parseOptions;
+        private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithms.Default;
         private bool _hasAllInformation = true;
         private string? _compilationOutputAssemblyFilePath;
         private string? _outputFilePath;
@@ -104,13 +107,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
         /// may not be in the actual workspace yet.
         /// </summary>
-        private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new();
+        private readonly Dictionary<DocumentId, IWatchedFile> _documentWatchedFiles = new();
 
         /// <summary>
         /// A file change context used to watch source files, additional files, and analyzer config files for this project. It's automatically set to watch the user's project
         /// directory so we avoid file-by-file watching.
         /// </summary>
-        private readonly FileChangeWatcher.IContext _documentFileChangeContext;
+        private readonly IFileChangeContext _documentFileChangeContext;
 
         /// <summary>
         /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
@@ -148,8 +151,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal VisualStudioProject(
             VisualStudioWorkspaceImpl workspace,
             ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            VisualStudioDiagnosticAnalyzerProvider vsixAnalyzerProvider,
+            IProjectSystemDiagnosticSource projectSystemDiagnosticSource,
+            IHostDiagnosticAnalyzerProvider hostAnalyzerProvider,
             ProjectId id,
             string displayName,
             string language,
@@ -160,8 +163,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _workspace = workspace;
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _vsixAnalyzerProvider = vsixAnalyzerProvider;
+            _projectSystemDiagnosticSource = projectSystemDiagnosticSource;
+            _hostAnalyzerProvider = hostAnalyzerProvider;
 
             Id = id;
             Language = language;
@@ -207,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
                 // having to add explicit file watches everywhere.
-                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
+                var projectDirectoryToWatch = new WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
                 _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
             }
             else
@@ -389,6 +392,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             get => _displayName;
             set => ChangeProjectProperty(ref _displayName, value, s => s.WithProjectName(Id, value));
+        }
+
+        public SourceHashAlgorithm ChecksumAlgorithm
+        {
+            get => _checksumAlgorithm;
+            set => ChangeProjectProperty(ref _checksumAlgorithm, value, s => s.WithProjectChecksumAlgorithm(Id, value));
         }
 
         // internal to match the visibility of the Workspace-level API -- this is something
@@ -911,7 +920,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         // Nope, we actually need to make a new one.
                         var visualStudioAnalyzer = new VisualStudioAnalyzer(
                             mappedFullPath,
-                            _hostDiagnosticUpdateSource,
+                            _projectSystemDiagnosticSource,
                             Id,
                             Language);
 
@@ -991,14 +1000,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
                 fullPath.LastIndexOf(Path.DirectorySeparatorChar))
             {
-                if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return OneOrMany.Create(_vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
-                        predicate: item => item.extensionId == RazorVsixExtensionId,
-                        selector: item => item.reference.FullPath));
-                }
+                var vsixRazorAnalyzers = _hostAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+                    predicate: item => item.extensionId == RazorVsixExtensionId,
+                    selector: item => item.reference.FullPath);
 
-                return OneOrMany.Create(ImmutableArray<string>.Empty);
+                if (!vsixRazorAnalyzers.IsEmpty)
+                {
+                    if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return OneOrMany.Create(vsixRazorAnalyzers);
+                    }
+
+                    return OneOrMany.Create(ImmutableArray<string>.Empty);
+                }
             }
 
             return OneOrMany.Create(fullPath);

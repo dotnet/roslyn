@@ -65,14 +65,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var ideOptions = new IdeAnalyzerOptions()
             {
-                CleanCodeGenerationOptions = new CleanCodeGenerationOptions(
-                    CSharpCodeGenerationOptions.Default,
-                    new CodeCleanupOptions(
-                        FormattingOptions: CSharpSyntaxFormattingOptions.Default,
-                        SimplifierOptions: new CSharpSimplifierOptions()
+                CleanCodeGenerationOptions = new()
+                {
+                    GenerationOptions = CSharpCodeGenerationOptions.Default,
+                    CleanupOptions = new()
+                    {
+                        FormattingOptions = CSharpSyntaxFormattingOptions.Default,
+                        SimplifierOptions = new CSharpSimplifierOptions()
                         {
                             VarWhenTypeIsApparent = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)
-                        }))
+                        }
+                    }
+                }
             };
 
             analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideOptions);
@@ -266,9 +270,9 @@ End Class";
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
-            var workspace = (language == LanguageNames.CSharp) ?
-                TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :
-                TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
+            var workspace = (language == LanguageNames.CSharp)
+                ? TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition)
+                : TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
 
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), BackgroundAnalysisScope.FullSolution);

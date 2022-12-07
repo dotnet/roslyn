@@ -495,6 +495,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для изменения видимости {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">Комментарии не разрешены</target>
@@ -672,7 +677,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Enum_members">
         <source>Enum members</source>
-        <target state="new">Enum members</target>
+        <target state="translated">Элементы перечисления</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -973,6 +978,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">Сделать "{0}" встроенным и сохранить его</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1288,6 +1298,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Operators">
         <source>Operators</source>
         <target state="translated">Операторы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="new">Please resolve errors in your code before renaming this element.</target>
         <note />
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
@@ -2540,6 +2555,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для переименования зафиксированной переменной из "{0}" в "{1}" требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="new">Renaming anonymous type members is not yet supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Замените '{0}' на '{1}'</target>
@@ -3000,6 +3020,31 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для переключения контекстов можно использовать панель навигации.</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="new">You cannot rename elements from previous submissions.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="new">You cannot rename elements that are defined in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="new">You cannot rename operators.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="new">You cannot rename this element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="new">You must rename an identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
         <target state="translated">Основания: “{0}”</target>
@@ -3430,7 +3475,7 @@ If the "d" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">Цикл ForEach</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4282,7 +4327,7 @@ When this standard format specifier is used, the formatting or parsing operation
       </trans-unit>
       <trans-unit id="struct_">
         <source>struct</source>
-        <target state="new">struct</target>
+        <target state="translated">структура</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
@@ -4940,6 +4985,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 При использовании значений DateTimeOffset этот описатель формата представляет смещение значения DateTimeOffset от UTC в часах.
 
 Смещение всегда отображается с предшествующим знаком. Знак "плюс" (+) обозначает часы опережения UTC, а знак "минус" (-) — часы отставания от UTC. Смещение из одной цифры форматируется с начальным нулем.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

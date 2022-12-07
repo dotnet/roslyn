@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If initializationStyle = ArrayInitializerStyle.Element Then
                 Me.EmitElementInitializers(arrayType, initExprs, True)
             Else
-                _builder.EmitArrayBlockInitializer(Me.GetRawData(initExprs), inits.Syntax, _diagnostics)
+                _builder.EmitArrayBlockInitializer(Me.GetRawData(initExprs), 1, inits.Syntax, _diagnostics) ' alignment == 1 as there's no special need for alignment (.pack) here.
 
                 If initializationStyle = ArrayInitializerStyle.Mixed Then
                     EmitElementInitializers(arrayType, initExprs, False)
@@ -82,7 +82,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return init.ConstantValueOpt Is Nothing OrElse
                    (includeConstants AndAlso Not init.ConstantValueOpt.IsDefaultValue)
         End Function
-
 
         ''' <summary>
         ''' To handle array initialization of arbitrary rank it is convenient to 
@@ -256,10 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' Non-constant initializers are matched with a zero of corresponding size.
         ''' </summary>
         Private Function GetRawData(initializers As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of Byte)
-            ' the initial size is a guess.
-            ' there is no point to be precise here as MemoryStream always has N + 1 storage 
-            ' and will need to be trimmed regardless
-            Dim writer = Cci.PooledBlobBuilder.GetInstance(initializers.Length * 4)
+            Dim writer = Cci.PooledBlobBuilder.GetInstance()
 
             SerializeArrayRecursive(writer, initializers)
 

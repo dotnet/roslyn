@@ -229,7 +229,7 @@ public struct C
     // (9,40): error CS1510: A ref or out value must be an assignable variable
     //         TypedReference tr3 = __makeref(123); // CS1510
     Diagnostic(ErrorCode.ERR_RefLvalueExpected, "123").WithLocation(9, 40),
-    // (10,40): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    // (10,40): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
     //         TypedReference tr4 = __makeref(P); // CS0206
     Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(10, 40),
     // (11,40): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
@@ -373,7 +373,6 @@ public struct C
         System.Type t = __reftype(null);
     }
 }";
-
 
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
@@ -1202,7 +1201,6 @@ class A
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
             Assert.Equal(1, constructor.Parameters.Length);
         }
-
 
         [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
         [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]

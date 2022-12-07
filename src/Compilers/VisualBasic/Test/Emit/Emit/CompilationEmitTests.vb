@@ -1891,7 +1891,6 @@ Imports System
                                  expectedOutput:=<![CDATA[
 Keep calm and carry on.]]>)
 
-
         End Sub
 
         <Fact>
@@ -1952,7 +1951,6 @@ ABC.
 Life is 42.
 This is a elderberries.
 All done.]]>)
-
 
         End Sub
 
@@ -2279,7 +2277,6 @@ End Module
             Assert.Equal(&H2000UL, peHeaders.PEHeader.SizeOfHeapCommit)
         End Sub
 
-
         <Fact()>
         Public Sub CheckDllCharacteristicsHighEntropyVA()
             Dim source =
@@ -2379,7 +2376,6 @@ End Module
         End Sub
 
 #End Region
-
 
         <Fact()>
         Public Sub Bug10273()
@@ -2543,7 +2539,6 @@ Imports System
             CompileAndVerify(source,
                              sourceSymbolValidator:=sourceSymbolValidator,
                              symbolValidator:=peSymbolValidator)
-
 
         End Sub
 
@@ -3284,7 +3279,7 @@ end namespace
                     ' Verify Assembly security attributes
                     Assert.Equal(2, assemblySecurityAttributes.Count)
                     Dim emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "SecurityPermissionAttribute")
-                    Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
 
                     ' Verify <assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration:=true)>
                     Dim securityAttribute As Cci.SecurityAttribute = assemblySecurityAttributes.First()
@@ -3308,7 +3303,7 @@ end namespace
 
                     ' Get System.Security.Permissions.PrincipalPermissionAttribute
                     emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "PrincipalPermissionAttribute")
-                    Dim principalPermAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim principalPermAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
                     Assert.NotNull(principalPermAttr)
 
                     ' Verify type security attributes: different security action
@@ -3813,7 +3808,6 @@ Public Interface I(Of W As Structure) : End Interface
                     Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint,
                                  flags And GenericParameterAttributes.DefaultConstructorConstraint)
 
-
                     Dim metadataReader = metadata.MetadataReader
                     Dim constraints = metadataReader.GetGenericParameter(tp.Handle).GetConstraints()
                     Assert.Equal(1, constraints.Count)
@@ -3867,7 +3861,6 @@ End interface
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
             Dim imageRef = refCompilation.EmitToImageReference()
-
 
             Dim useSource =
 <compilation>
@@ -3960,7 +3953,6 @@ End interface
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -3973,7 +3965,6 @@ End interface
             Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
-
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -4014,7 +4005,6 @@ End interface
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -4023,7 +4013,6 @@ public interface IUsePlatform
 End interface
 </file>
 </compilation>
-
 
             Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
@@ -4077,7 +4066,6 @@ End interface
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -4113,7 +4101,6 @@ End interface
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -4122,7 +4109,6 @@ public interface IUsePlatform
 End interface
 </file>
 </compilation>
-
 
             Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
@@ -4172,7 +4158,6 @@ End interface
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -4207,7 +4192,6 @@ End interface
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -4216,7 +4200,6 @@ public interface IUsePlatform
 End interface
 </file>
 </compilation>
-
 
             Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
@@ -4265,7 +4248,6 @@ End interface
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
-
 
             Dim useSource =
 <compilation>

@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol DefaultVisit(Symbol symbol)
             {
                 // Symbol should have been handled elsewhere.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol? Visit(Symbol symbol)
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitParameter(ParameterSymbol parameter)
             {
                 // Should never reach here. Should be matched as a result of matching the container.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol? VisitPointerType(PointerTypeSymbol symbol)
@@ -722,7 +722,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     return type.DelegateInvokeMethod is { } invokeMethod &&
                         otherType.DelegateInvokeMethod is { } otherInvokeMethod &&
-                        invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters, (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations)) &&
+                        invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters,
+                            (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations) &&
+                                x.ExplicitDefaultConstantValue == y.ExplicitDefaultConstantValue &&
+                                x.IsParams == y.IsParams) &&
                         isCorrespondingType(invokeMethod.ReturnTypeWithAnnotations, otherInvokeMethod.ReturnTypeWithAnnotations);
                 }
 
@@ -1044,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol DefaultVisit(Symbol symbol)
             {
                 // Symbol should have been handled elsewhere.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol Visit(Symbol symbol)

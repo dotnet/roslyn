@@ -11,27 +11,25 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal interface IPerformanceTrackerService : IWorkspaceService
     {
-        void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount);
-        void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers);
+        void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis);
+        void GenerateReport(List<AnalyzerInfoForPerformanceReporting> analyzerInfos, bool forSpanAnalysis);
 
         event EventHandler SnapshotAdded;
     }
 
-    internal readonly struct ExpensiveAnalyzerInfo
+    internal readonly struct AnalyzerInfoForPerformanceReporting
     {
         public readonly bool BuiltIn;
         public readonly string AnalyzerId;
         public readonly string AnalyzerIdHash;
-        public readonly double LocalOutlierFactor;
         public readonly double Average;
         public readonly double AdjustedStandardDeviation;
 
-        public ExpensiveAnalyzerInfo(bool builtIn, string analyzerId, double lof_value, double average, double stddev) : this()
+        public AnalyzerInfoForPerformanceReporting(bool builtIn, string analyzerId, double average, double stddev) : this()
         {
             BuiltIn = builtIn;
             AnalyzerId = analyzerId;
             AnalyzerIdHash = analyzerId.GetHashCode().ToString();
-            LocalOutlierFactor = lof_value;
             Average = average;
             AdjustedStandardDeviation = stddev;
         }

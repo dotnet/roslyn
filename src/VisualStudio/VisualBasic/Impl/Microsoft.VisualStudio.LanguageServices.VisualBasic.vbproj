@@ -7,6 +7,7 @@
     <UseWpf>true</UseWpf>
     <RootNamespace></RootNamespace>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>

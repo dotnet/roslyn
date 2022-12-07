@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,6 +18,7 @@ using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
@@ -48,20 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public ImmutableArray<string> EvaluationPropertyNames
             => BuildPropertyNames.InitialEvaluationPropertyNames;
 
-        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
-            => CreateProjectContextAsync(
-                languageName: languageName,
-                projectUniqueName: uniqueName,
-                projectFilePath: data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath),
-                projectGuid: id,
-                hierarchy: hostObject,
-                binOutputPath: (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic) ?
-                    data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath) :
-                    data.GetPropertyValue(BuildPropertyNames.TargetPath),
-                assemblyName: data.GetPropertyValue(BuildPropertyNames.AssemblyName),
-                cancellationToken);
+        public ImmutableArray<string> EvaluationItemNames
+            => BuildPropertyNames.InitialEvaluationItemNames;
 
-        public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(
+        // Kept around onyl for integration tests.
+        [Obsolete]
+        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(
             string languageName,
             string projectUniqueName,
             string? projectFilePath,
@@ -71,16 +66,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string? assemblyName,
             CancellationToken cancellationToken)
         {
+            var data = new IntegrationTestEvaluationData(projectFilePath ?? "", projectFilePath ?? "", assemblyName ?? "", binOutputPath ?? "", "SHA256");
+            return CreateProjectContextAsync(projectGuid, projectUniqueName, languageName, data, hierarchy, cancellationToken);
+        }
+
+        [Obsolete]
+        internal sealed class IntegrationTestEvaluationData : EvaluationData
+        {
+            public string ProjectFilePath { get; }
+            public string TargetPath { get; }
+            public string AssemblyName { get; }
+            public string OutputAssembly { get; }
+            public string ChecksumAlgorithm { get; }
+
+            public IntegrationTestEvaluationData(string projectFilePath, string targetPath, string assemblyName, string outputAssembly, string checksumAlgorithm)
+            {
+                ProjectFilePath = projectFilePath;
+                TargetPath = targetPath;
+                AssemblyName = assemblyName;
+                OutputAssembly = outputAssembly;
+                ChecksumAlgorithm = checksumAlgorithm;
+            }
+
+            public override string GetPropertyValue(string name)
+                => name switch
+                {
+                    BuildPropertyNames.MSBuildProjectFullPath => ProjectFilePath,
+                    BuildPropertyNames.TargetPath => TargetPath,
+                    BuildPropertyNames.AssemblyName => AssemblyName,
+                    BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation => "-checksumalgorithm:" + ChecksumAlgorithm,
+                    _ => throw ExceptionUtilities.UnexpectedValue(name)
+                };
+
+            public override ImmutableArray<string> GetItemValues(string name)
+                => name switch
+                {
+                    BuildPropertyNames.IntermediateAssembly => ImmutableArray.Create(OutputAssembly),
+                    _ => throw ExceptionUtilities.UnexpectedValue(name)
+                };
+        }
+
+        public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
+        {
+            // Read all required properties from EvaluationData before we start updating anything.
+
+            var projectFilePath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath);
+
             var creationInfo = new VisualStudioProjectCreationInfo
             {
-                AssemblyName = assemblyName,
+                AssemblyName = data.GetPropertyValue(BuildPropertyNames.AssemblyName),
                 FilePath = projectFilePath,
-                Hierarchy = hierarchy as IVsHierarchy,
-                ProjectGuid = projectGuid,
+                Hierarchy = hostObject as IVsHierarchy,
+                ProjectGuid = id,
             };
 
+            string? binOutputPath, objOutputPath, commandLineArgs;
+            if (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic)
+            {
+                binOutputPath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath);
+                objOutputPath = GetIntermediateAssemblyPath(data, projectFilePath);
+                commandLineArgs = data.GetRequiredPropertyValue(BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation);
+            }
+            else
+            {
+                binOutputPath = data.GetPropertyValue(BuildPropertyNames.TargetPath);
+                objOutputPath = null;
+                commandLineArgs = null;
+            }
+
             var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(
-                projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
+                uniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
 
             // At this point we've mutated the workspace.  So we're no longer cancellable.
             cancellationToken = CancellationToken.None;
@@ -100,15 +155,55 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 await TaskScheduler.Default;
             }
 
-            var project = new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid);
+            var project = new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, id);
 
-            // Set the output path in a batch; if we set the property directly we'll be taking a synchronous lock here and
+            // Set the properties in a batch; if we set the property directly we'll be taking a synchronous lock here and
             // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
             project.StartBatch();
+
+            if (commandLineArgs != null)
+            {
+                project.SetOptions(commandLineArgs);
+            }
+
+            if (objOutputPath != null)
+            {
+                project.CompilationOutputAssemblyFilePath = objOutputPath;
+            }
+
             project.BinOutputPath = binOutputPath;
+
             await project.EndBatchAsync().ConfigureAwait(false);
 
             return project;
+        }
+
+        private static string? GetIntermediateAssemblyPath(EvaluationData data, string projectFilePath)
+        {
+            const string itemName = BuildPropertyNames.IntermediateAssembly;
+
+            var values = data.GetItemValues(itemName);
+            if (values.Length != 1)
+            {
+                // TODO: Throw once we update integration tests to the latest VS (https://github.com/dotnet/roslyn/issues/65439)
+                // var joinedValues = string.Join(";", values);
+                // throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
+                return null;
+            }
+
+            var path = values[0];
+
+            if (!PathUtilities.IsAbsolute(path))
+            {
+                path = Path.Combine(PathUtilities.GetDirectoryName(projectFilePath), path);
+            }
+
+            if (!PathUtilities.IsAbsolute(path))
+            {
+                throw new InvalidProjectDataException(itemName, values[0], $"Item group '{itemName}' is required to specify an absolute path or a path relative to the directory containing the project: '{values[0]}'.");
+            }
+
+            return path;
         }
     }
 }

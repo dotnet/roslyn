@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new EncapsulateFieldRefactoringProvider();
 
-        private OptionsCollection AllOptionsOff =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection AllOptionsOff
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },

@@ -468,7 +468,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, VisualBasicSyntaxNode).GetDirectives(filter)
         End Function
 
-
         ''' <summary>
         ''' Gets the first DirectiveTriviaSyntax item for a specified SyntaxNode.
         ''' </summary>

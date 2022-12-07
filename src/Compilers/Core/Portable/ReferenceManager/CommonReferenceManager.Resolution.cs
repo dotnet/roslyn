@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 

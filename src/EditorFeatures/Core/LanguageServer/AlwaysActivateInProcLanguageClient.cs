@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
@@ -38,11 +39,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public AlwaysActivateInProcLanguageClient(
             CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
             ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
-            ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
+            ILspServiceLoggerFactory lspLoggerFactory,
+            IThreadingContext threadingContext,
+            ExportProvider exportProvider)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
             _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
         }
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             serverCapabilities.ProjectContextProvider = true;
             serverCapabilities.BreakableRangeProvider = true;
 
-            var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var isPullDiagnostics = GlobalOptions.IsLspPullDiagnostics();
             if (isPullDiagnostics)
             {
                 serverCapabilities.SupportsDiagnosticRequests = true;
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// they will get no diagnostics.  When not enabled we don't show the failure box (failure will still be recorded in the task status center)
         /// as the failure is not catastrophic.
         /// </summary>
-        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsLspPullDiagnostics();
 
         public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.AlwaysActiveVSLspServer;
     }

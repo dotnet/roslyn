@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
-            _commonRoot = startToken.GetCommonRoot(endToken) ?? throw ExceptionUtilities.Unreachable;
+            _commonRoot = startToken.GetCommonRoot(endToken) ?? throw ExceptionUtilities.Unreachable();
         }
 
         internal abstract IHeaderFacts HeaderFacts { get; }

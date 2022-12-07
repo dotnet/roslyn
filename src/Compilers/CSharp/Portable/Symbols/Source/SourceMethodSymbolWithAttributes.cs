@@ -362,6 +362,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+
+        /// <summary>
+        /// Binds attributes applied to this method.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindMethodAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), OuterBinder);
+        }
 #nullable disable
 
         public override bool AreLocalsZeroed
@@ -1017,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_lazyCustomAttributesBag != null);
                 Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
 
-                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class })
+                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class or TypeKind.Interface })
                 {
                     switch (this.MethodKind)
                     {
@@ -1094,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.HasAsyncMethodBuilderAttribute(out _))
                 {
-                    hasErrors |= MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                    MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
                 }
 
                 // Avoid checking attributes on containing types to avoid a potential cycle when a lambda
