@@ -75,20 +75,16 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             RudeEditDiagnosticDescription[]? diagnostics = null)
             => new(activeStatements, semanticEdits, lineEdits: null, diagnostics);
 
-        private static int s_uniqueDocumentIndex = 0;
-        internal static string GetDocumentFilePath(int? documentIndex = null)
-        {
-            var index = documentIndex ?? s_uniqueDocumentIndex++;
-            return Path.Combine(TempRoot.Root, index.ToString() + ".cs");
-        }
+        internal static string GetDocumentFilePath(int documentIndex = 0)
+            => Path.Combine(TempRoot.Root, documentIndex.ToString() + ".cs");
 
-        private static SyntaxTree ParseSource(string markedSource, int? documentIndex = null)
+        private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
             => SyntaxFactory.ParseSyntaxTree(
                 ActiveStatementsDescription.ClearTags(markedSource),
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
                 path: GetDocumentFilePath(documentIndex));
 
-        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int? documentIndex = null)
+        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
         {
             var tree1 = ParseSource(src1, documentIndex);
             var tree2 = ParseSource(src2, documentIndex);
@@ -183,12 +179,12 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
              };
 
         internal static ActiveStatementsDescription GetActiveStatements(
-            string oldSource, string newSource, ActiveStatementFlags[] flags = null, int? documentIndex = null, Func<string, SyntaxTree> syntaxTreeFactory = null)
+            string oldSource, string newSource, ActiveStatementFlags[] flags = null, int documentIndex = 0)
         {
             return new ActiveStatementsDescription(
                 oldSource,
                 newSource,
-                syntaxTreeFactory ?? (source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex))),
+                source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)),
                 flags);
         }
 

@@ -103,28 +103,18 @@ End Namespace
             Return New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, lineEdits:=Nothing, diagnostics)
         End Function
 
-        Private Shared s_uniqueDocumentIndex As Integer
-
-        Private Shared Function GetDocumentFilePath(documentIndex As Integer?) As String
-            Dim index As Integer
-            If documentIndex IsNot Nothing Then
-                index = documentIndex.Value
-            Else
-                s_uniqueDocumentIndex += 1
-                index = s_uniqueDocumentIndex
-            End If
-
-            Return Path.Combine(TempRoot.Root, index.ToString() & ".vb")
+        Private Shared Function GetDocumentFilePath(documentIndex As Integer) As String
+            Return Path.Combine(TempRoot.Root, documentIndex.ToString() & ".vb")
         End Function
 
-        Private Shared Function ParseSource(markedSource As String, Optional documentIndex As Integer? = Nothing) As SyntaxTree
+        Private Shared Function ParseSource(markedSource As String, Optional documentIndex As Integer = 0) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(
                 ActiveStatementsDescription.ClearTags(markedSource),
                 VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
                 path:=GetDocumentFilePath(documentIndex))
         End Function
 
-        Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer? = Nothing) As EditScript(Of SyntaxNode)
+        Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer = 0) As EditScript(Of SyntaxNode)
             Dim tree1 = ParseSource(src1, documentIndex)
             Dim tree2 = ParseSource(src2, documentIndex)
 

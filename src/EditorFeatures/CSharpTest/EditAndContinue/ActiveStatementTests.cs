@@ -10743,12 +10743,13 @@ class C
             // Moving inactive method declaration in a file with active statements.
 
             var srcA1 = "partial class C { void F1() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
-            var srcB1 = "partial class C { void F2() { } }";
             var srcA2 = "partial class C { void F1() { <AS:0>System.Console.WriteLine(1);</AS:0> } void F2() { } }";
+
+            var srcB1 = "partial class C { void F2() { } }";
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(

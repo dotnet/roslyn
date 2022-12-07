@@ -12755,8 +12755,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             var syntaxMap = GetSyntaxMap(src1, src2);
-            var activeStatements = GetActiveStatements(src1, src2, syntaxTreeFactory:
-                arg => arg == src1 ? edits.Edits[0].OldNode.SyntaxTree : edits.Edits[0].NewNode.SyntaxTree);
+            var activeStatements = GetActiveStatements(src1, src2);
 
             edits.VerifySemantics(
                 activeStatements,
