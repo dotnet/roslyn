@@ -10990,11 +10990,9 @@ tryAgain:
                             this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
                             this.PeekToken(2).ContextualKind == SyntaxKind.IdentifierToken)
                         {
-                            expr = _syntaxFactory.MemberAccessExpression(
+                            return _syntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(),
                                 this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected));
-
-                            return expr;
                         }
 
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
@@ -11029,52 +11027,45 @@ tryAgain:
 
         internal ExpressionSyntax ParseConsequenceSyntax()
         {
-            var tk = this.CurrentToken.Kind;
-            var expr = tk switch
+            Debug.Assert(CanStartConsequenceExpression(this.CurrentToken.Kind));
+            ExpressionSyntax expr = this.CurrentToken.Kind switch
             {
-                SyntaxKind.DotToken => (ExpressionSyntax)_syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
+                SyntaxKind.DotToken => _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
                 SyntaxKind.OpenBracketToken => _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()),
-                _ => null,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
-
-            Debug.Assert(expr != null);
 
             while (true)
             {
-                tk = this.CurrentToken.Kind;
                 // Nullable suppression operators should only be consumed by a conditional access
                 // if there are further conditional operations performed after the suppression
                 if (isOptionalExclamationsFollowedByConditionalOperation())
                 {
-                    while (tk == SyntaxKind.ExclamationToken)
-                    {
+                    while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
-                        tk = this.CurrentToken.Kind;
-                    }
                 }
 
-                switch (tk)
+                switch (this.CurrentToken.Kind)
                 {
                     case SyntaxKind.OpenParenToken:
                         expr = _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
-                        break;
+                        continue;
 
                     case SyntaxKind.OpenBracketToken:
                         expr = _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
-                        break;
+                        continue;
 
                     case SyntaxKind.DotToken:
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
-                        break;
+                        continue;
 
                     case SyntaxKind.QuestionToken:
-                        if (CanStartConsequenceExpression(this.PeekToken(1).Kind))
-                        {
-                            var qToken = this.EatToken();
-                            var consequence = ParseConsequenceSyntax();
-                            expr = _syntaxFactory.ConditionalAccessExpression(expr, qToken, consequence);
-                        }
-                        return expr;
+                        return !CanStartConsequenceExpression(this.PeekToken(1).Kind)
+                            ? expr
+                            : _syntaxFactory.ConditionalAccessExpression(
+                                expr,
+                                operatorToken: this.EatToken(),
+                                ParseConsequenceSyntax());
 
                     default:
                         return expr;
@@ -11083,12 +11074,11 @@ tryAgain:
 
             bool isOptionalExclamationsFollowedByConditionalOperation()
             {
-                var tk = this.CurrentToken.Kind;
-                for (int i = 1; tk == SyntaxKind.ExclamationToken; i++)
-                {
-                    tk = this.PeekToken(i).Kind;
-                }
-                return tk
+                var index = 0;
+                while (this.PeekToken(index).Kind == SyntaxKind.ExclamationToken)
+                    index++;
+
+                return this.PeekToken(index).Kind
                     is SyntaxKind.OpenParenToken
                     or SyntaxKind.OpenBracketToken
                     or SyntaxKind.DotToken
