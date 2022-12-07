@@ -10941,41 +10941,43 @@ tryAgain:
 
             while (true)
             {
-                SyntaxKind tk = this.CurrentToken.Kind;
-                switch (tk)
+                switch (this.CurrentToken.Kind)
                 {
                     case SyntaxKind.OpenParenToken:
                         expr = _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
-                        break;
+                        continue;
 
                     case SyntaxKind.OpenBracketToken:
                         expr = _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
-                        break;
+                        continue;
 
                     case SyntaxKind.PlusPlusToken:
                     case SyntaxKind.MinusMinusToken:
-                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
-                        break;
+                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(this.CurrentToken.Kind), expr, this.EatToken());
+                        continue;
 
                     case SyntaxKind.ColonColonToken:
                         if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken)
                         {
-                            // replace :: with missing dot and annotate with skipped text "::" and error
-                            var ccToken = this.EatToken();
-                            ccToken = this.AddError(ccToken, ErrorCode.ERR_UnexpectedAliasedName);
-                            var dotToken = this.ConvertToMissingWithTrailingTrivia(ccToken, SyntaxKind.DotToken);
-                            expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, dotToken, this.ParseSimpleName(NameOptions.InExpression));
+                            expr = _syntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                expr,
+                                // replace :: with missing dot and annotate with skipped text "::" and error
+                                this.ConvertToMissingWithTrailingTrivia(this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedAliasedName), SyntaxKind.DotToken),
+                                this.ParseSimpleName(NameOptions.InExpression));
                         }
                         else
                         {
                             // just some random trailing :: ?
                             expr = AddTrailingSkippedSyntax(expr, this.EatTokenWithPrejudice(SyntaxKind.DotToken));
                         }
-                        break;
+
+                        continue;
 
                     case SyntaxKind.MinusGreaterThanToken:
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.PointerMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
-                        break;
+                        continue;
+
                     case SyntaxKind.DotToken:
                         // if we have the error situation:
                         //
@@ -10996,7 +10998,7 @@ tryAgain:
                         }
 
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
-                        break;
+                        continue;
 
                     case SyntaxKind.QuestionToken:
                         if (CanStartConsequenceExpression(this.PeekToken(1).Kind))
@@ -11005,14 +11007,14 @@ tryAgain:
                                 expr,
                                 this.EatToken(),
                                 ParseConsequenceSyntax());
-                            break;
+                            continue;
                         }
 
-                        goto default;
+                        return expr;
 
                     case SyntaxKind.ExclamationToken:
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, this.EatToken());
-                        break;
+                        continue;
 
                     default:
                         return expr;
