@@ -696,6 +696,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem(65836, "https://github.com/dotnet/roslyn/issues/65836")>
         Public Async Function TestRegexReference_RawStringInBounds(testHost As TestHost) As Task
             Dim input =
            <Workspace>
@@ -720,6 +721,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem(65836, "https://github.com/dotnet/roslyn/issues/65836")>
         Public Async Function TestRegexReference_RawStringOutOfBounds(testHost As TestHost) As Task
             Dim input =
            <Workspace>
