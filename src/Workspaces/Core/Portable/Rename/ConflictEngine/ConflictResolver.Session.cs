@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
             private readonly List<string> _possibleNameConflicts = new();
-            private readonly HashSet<DocumentId> _documentsIdsToBeCheckedForConflict = new();
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
             private bool _replacementTextValid;
@@ -100,12 +99,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
-                    await FindDocumentsAndPossibleNameConflictsAsync().ConfigureAwait(false);
+                    var documentsIdsToBeCheckedForConflict = await FindDocumentsAndPossibleNameConflictsAsync().ConfigureAwait(false);
                     var baseSolution = _renameLocationSet.Solution;
 
                     // Process rename one project at a time to improve caching and reduce syntax tree serialization.
                     RoslynDebug.Assert(_topologicallySortedProjects != null);
-                    var documentsGroupedByTopologicallySortedProjectId = _documentsIdsToBeCheckedForConflict
+                    var documentsGroupedByTopologicallySortedProjectId = documentsIdsToBeCheckedForConflict
                         .GroupBy(d => d.ProjectId)
                         .OrderBy(g => _topologicallySortedProjects.IndexOf(g.Key));
 
@@ -230,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     }
 
 #if DEBUG
-                    await DebugVerifyNoErrorsAsync(conflictResolution, _documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
+                    await DebugVerifyNoErrorsAsync(conflictResolution, documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
 #endif
 
                     // Step 5: Rename declaration files
@@ -687,17 +686,19 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// The method determines the set of documents that need to be processed for Rename and also determines
             ///  the possible set of names that need to be checked for conflicts.
             /// </summary>
-            private async Task FindDocumentsAndPossibleNameConflictsAsync()
+            private async Task<HashSet<DocumentId>> FindDocumentsAndPossibleNameConflictsAsync()
             {
                 try
                 {
+                    var result = new HashSet<DocumentId>();
+
                     var symbol = _renameLocationSet.Symbol;
                     var solution = _renameLocationSet.Solution;
                     var dependencyGraph = solution.GetProjectDependencyGraph();
                     _topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(_cancellationToken).ToList();
 
                     var allRenamedDocuments = _renameLocationSet.Locations.Select(loc => loc.Location.SourceTree!).Distinct().Select(solution.GetRequiredDocument);
-                    _documentsIdsToBeCheckedForConflict.AddRange(allRenamedDocuments.Select(d => d.Id));
+                    result.AddRange(allRenamedDocuments.Select(d => d.Id));
 
                     var documentsFromAffectedProjects = RenameUtilities.GetDocumentsAffectedByRename(symbol, solution, _renameLocationSet.Locations);
                     foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
@@ -706,7 +707,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
                     }
 
-                    await AddDocumentsWithPotentialConflictsAsync(documentsFromAffectedProjects).ConfigureAwait(false);
+                    await AddDocumentsWithPotentialConflictsAsync(documentsFromAffectedProjects, result).ConfigureAwait(false);
+                    return result;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
@@ -714,13 +716,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-            private async Task AddDocumentsWithPotentialConflictsAsync(IEnumerable<Document> documents)
+            private async Task AddDocumentsWithPotentialConflictsAsync(
+                IEnumerable<Document> documents,
+                HashSet<DocumentId> result)
             {
                 try
                 {
                     foreach (var document in documents)
                     {
-                        if (_documentsIdsToBeCheckedForConflict.Contains(document.Id))
+                        if (result.Contains(document.Id))
                             continue;
 
                         if (!document.SupportsSyntaxTree)
@@ -729,13 +733,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, _cancellationToken).ConfigureAwait(false);
                         if (info.ProbablyContainsEscapedIdentifier(_originalText))
                         {
-                            _documentsIdsToBeCheckedForConflict.Add(document.Id);
+                            result.Add(document.Id);
                             continue;
                         }
 
                         if (info.ProbablyContainsIdentifier(_replacementText))
                         {
-                            _documentsIdsToBeCheckedForConflict.Add(document.Id);
+                            result.Add(document.Id);
                             continue;
                         }
 
@@ -743,7 +747,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         {
                             if (info.ProbablyContainsIdentifier(replacementName))
                             {
-                                _documentsIdsToBeCheckedForConflict.Add(document.Id);
+                                result.Add(document.Id);
                                 break;
                             }
                         }
