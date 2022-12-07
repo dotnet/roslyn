@@ -27694,7 +27694,7 @@ Position set for item '2'
   // Code size       42 (0x2a)
   .maxstack  3
   .locals init (int V_0,
-              int? V_1)
+                int? V_1)
   IL_0000:  ldarg.0
   IL_0001:  dup
   IL_0002:  box        ""T""
@@ -27839,7 +27839,7 @@ Position set for item '-2'
   // Code size       45 (0x2d)
   .maxstack  3
   .locals init (int V_0,
-              int? V_1)
+                int? V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  dup
   IL_0003:  constrained. ""T""
