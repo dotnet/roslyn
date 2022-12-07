@@ -38,6 +38,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructReadOnly\CSharpMakeStructReadOnlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\CSharpMakeTypeAbstractCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\CSharpMakeTypePartialCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ArrowExpressionClausePlacement\ArrowExpressionClausePlacementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConditionalExpressionPlacement\ConditionalExpressionPlacementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Nullable\CSharpDeclareAsNullableCodeFixProvider.cs" />
@@ -46,6 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeActionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedVerbatimString\CSharpUseInterpolatedVerbatimStringCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNameofInAttribute\CSharpUseNameofInAttributeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternCombinators\CSharpUsePatternCombinatorsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\CSharpForEachCastCodeFixProvider.cs" />

@@ -73,23 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
             }
 
-            if (syntax.ReturnType.Kind() == SyntaxKind.RefType)
-            {
-                var returnType = (RefTypeSyntax)syntax.ReturnType;
-                if (returnType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword)
-                {
-                    _refKind = RefKind.RefReadOnly;
-                }
-                else
-                {
-                    _refKind = RefKind.Ref;
-                }
-            }
-            else
-            {
-                _refKind = RefKind.None;
-            }
-
+            syntax.ReturnType.SkipRefInLocalOrReturn(_declarationDiagnostics, out _refKind);
             _binder = binder;
         }
 
@@ -235,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
             TypeSyntax returnTypeSyntax = Syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
-            TypeWithAnnotations returnType = WithTypeParametersBinder.BindType(returnTypeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics);
+            TypeWithAnnotations returnType = WithTypeParametersBinder.BindType(returnTypeSyntax.SkipScoped(out _).SkipRef(), diagnostics);
 
             var compilation = DeclaringCompilation;
 

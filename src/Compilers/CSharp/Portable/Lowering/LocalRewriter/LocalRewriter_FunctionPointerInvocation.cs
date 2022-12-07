@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol>? temps = null;
             var rewrittenArgs = VisitArgumentsAndCaptureReceiverIfNeeded(
                 rewrittenReceiver: ref discardedReceiver,
-                captureReceiverForMultipleInvocations: false,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 node.Arguments,
                 functionPointer,
                 argsToParamsOpt: default,

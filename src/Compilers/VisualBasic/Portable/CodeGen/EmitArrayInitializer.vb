@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If initializationStyle = ArrayInitializerStyle.Element Then
                 Me.EmitElementInitializers(arrayType, initExprs, True)
             Else
-                _builder.EmitArrayBlockInitializer(Me.GetRawData(initExprs), inits.Syntax, _diagnostics)
+                _builder.EmitArrayBlockInitializer(Me.GetRawData(initExprs), 1, inits.Syntax, _diagnostics) ' alignment == 1 as there's no special need for alignment (.pack) here.
 
                 If initializationStyle = ArrayInitializerStyle.Mixed Then
                     EmitElementInitializers(arrayType, initExprs, False)
