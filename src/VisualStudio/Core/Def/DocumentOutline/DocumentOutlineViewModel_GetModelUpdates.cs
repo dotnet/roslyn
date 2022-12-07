@@ -15,8 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal partial class DocumentOutlineViewModel
     {
-        private record DocumentOutlineSettings(ITextBuffer TextBuffer, string FilePath);
-
         /// <summary>
         /// Queue that uses the language-server-protocol to get document symbol information.
         /// This queue can return null if it is called before and LSP server is registered for our document.

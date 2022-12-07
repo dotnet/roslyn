@@ -25,9 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _filterAndSortQueue.AddWork(new FilterAndSortOptions(SearchText, SortOption, caretPoint), cancelExistingWork: true);
         }
 
-        private async ValueTask<DocumentSymbolDataModel?> FilterAndSortDataModelAsync(ImmutableSegmentedList<FilterAndSortOptions> settings, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel?> FilterAndSortDataModelAsync(ImmutableSegmentedList<FilterAndSortOptions> filterAndSortOptions, CancellationToken cancellationToken)
         {
-            var (searchQuery, sortOption, caretPoint) = settings.Last();
+            var (searchQuery, sortOption, caretPoint) = filterAndSortOptions.Last();
 
             var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             updatedDocumentSymbolData = DocumentOutlineHelper.SortDocumentSymbolData(updatedDocumentSymbolData, sortOption, cancellationToken);
 
-            EnqueueUIUpdateTask(ExpansionOption.NoChange, caretPoint);
+            EnqueueModelUpdateTask(ExpansionOption.NoChange, caretPoint);
 
             return new DocumentSymbolDataModel(updatedDocumentSymbolData, model.OriginalSnapshot);
         }

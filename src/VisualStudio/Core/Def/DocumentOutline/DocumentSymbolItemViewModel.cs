@@ -54,11 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private void SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
+        private void SetProperty(ref bool field, bool value, [CallerMemberName] string propertyName = "")
         {
             // Note: we do not lock here. Worst case is that we fire multiple
             //       NotifyPropertyChanged events which WPF can handle.
-            if (EqualityComparer<T>.Default.Equals(field, value))
+            if (field == value)
             {
                 return;
             }

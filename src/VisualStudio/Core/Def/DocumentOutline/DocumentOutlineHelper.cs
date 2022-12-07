@@ -255,14 +255,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Converts an immutable array of DocumentSymbolData to an immutable array of DocumentSymbolUIItems.
+        /// Converts an immutable array of DocumentSymbolData to an immutable array of <see cref="DocumentSymbolItemViewModel"/>.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolItemViewModel> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
+        public static ImmutableArray<DocumentSymbolItemViewModel> GetDocumentSymbolItemViewModels(ImmutableArray<DocumentSymbolData> documentSymbolData)
         {
             using var _ = ArrayBuilder<DocumentSymbolItemViewModel>.GetInstance(out var documentSymbolItems);
             foreach (var documentSymbol in documentSymbolData)
             {
-                var children = GetDocumentSymbolUIItems(documentSymbol.Children);
+                var children = GetDocumentSymbolItemViewModels(documentSymbol.Children);
                 var documentSymbolItem = new DocumentSymbolItemViewModel(documentSymbol, children);
                 documentSymbolItems.Add(documentSymbolItem);
             }
@@ -305,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Updates the IsExpanded property for the Document Symbol UI representation based on the given Expansion Option. The parameter
+        /// Updates the IsExpanded property for the Document Symbol ViewModel based on the given Expansion Option. The parameter
         /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
         /// </summary>
         public static void SetIsExpanded(
@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Expands all the ancestors of a DocumentSymbolUIItem.
+        /// Expands all the ancestors of a <see cref="DocumentSymbolItemViewModel"/>.
         /// </summary>
         public static void ExpandAncestors(ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems, SnapshotSpan documentSymbolRangeSpan)
         {

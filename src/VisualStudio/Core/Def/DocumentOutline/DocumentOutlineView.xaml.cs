@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
             var caretPoint = service.GetCurrentCaretSnapshotPoint();
-            _viewModel.EnqueueUIUpdateTask(option, caretPoint);
+            _viewModel.EnqueueModelUpdateTask(option, caretPoint);
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 var caretPoint = service.GetSnapshotPointFromCaretPosition(e.NewPosition);
                 if (caretPoint.HasValue)
                 {
-                    _viewModel.EnqueueUIUpdateTask(ExpansionOption.CurrentExpansion, caretPoint.Value);
+                    _viewModel.EnqueueModelUpdateTask(ExpansionOption.CurrentExpansion, caretPoint.Value);
                 }
             }
         }

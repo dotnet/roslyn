@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Queue to batch up work to do to highlight the currently selected symbol node, expand/collapse nodes,
         /// then update the UI.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<UIData> _updateUIQueue;
+        private readonly AsyncBatchingWorkQueue<UIData> _updateModelQueue;
 
-        public void EnqueueUIUpdateTask(ExpansionOption expansionOption, SnapshotPoint? caretPoint)
+        public void EnqueueModelUpdateTask(ExpansionOption expansionOption, SnapshotPoint? caretPoint)
         {
-            _updateUIQueue.AddWork(new UIData(expansionOption, caretPoint), cancelExistingWork: true);
+            _updateModelQueue.AddWork(new UIData(expansionOption, caretPoint), cancelExistingWork: true);
         }
 
-        private async ValueTask UpdateUIAsync(ImmutableSegmentedList<UIData> data, CancellationToken cancellationToken)
+        private async ValueTask UpdateModelAsync(ImmutableSegmentedList<UIData> data, CancellationToken cancellationToken)
         {
             var (expansion, caretPoint) = data.Last();
             var model = await _filterAndSortQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return;
             }
 
-            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData);
+            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
 
             DocumentSymbolItemViewModel? symbolToSelect = null;
             if (caretPoint.HasValue)

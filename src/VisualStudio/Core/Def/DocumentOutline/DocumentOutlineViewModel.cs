@@ -63,9 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 CancellationToken);
 
-            _updateUIQueue = new AsyncBatchingWorkQueue<UIData>(
+            _updateModelQueue = new AsyncBatchingWorkQueue<UIData>(
                 DelayTimeSpan.NearImmediate,
-                UpdateUIAsync,
+                UpdateModelAsync,
                 asyncListener,
                 CancellationToken);
 
