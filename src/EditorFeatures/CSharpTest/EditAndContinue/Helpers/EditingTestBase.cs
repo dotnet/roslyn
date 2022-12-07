@@ -75,16 +75,20 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             RudeEditDiagnosticDescription[]? diagnostics = null)
             => new(activeStatements, semanticEdits, lineEdits: null, diagnostics);
 
-        internal static string GetDocumentFilePath(int documentIndex)
-            => Path.Combine(TempRoot.Root, documentIndex.ToString() + ".cs");
+        private static int s_uniqueDocumentIndex = 0;
+        internal static string GetDocumentFilePath(int? documentIndex = null)
+        {
+            var index = documentIndex ?? s_uniqueDocumentIndex++;
+            return Path.Combine(TempRoot.Root, index.ToString() + ".cs");
+        }
 
-        private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
+        private static SyntaxTree ParseSource(string markedSource, int? documentIndex = null)
             => SyntaxFactory.ParseSyntaxTree(
                 ActiveStatementsDescription.ClearTags(markedSource),
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
                 path: GetDocumentFilePath(documentIndex));
 
-        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
+        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int? documentIndex = null)
         {
             var tree1 = ParseSource(src1, documentIndex);
             var tree2 = ParseSource(src2, documentIndex);
@@ -178,8 +182,15 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                  _ => "class C { void F() { " + bodySource + " } }",
              };
 
-        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[] flags = null, int documentIndex = 0)
-            => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)), flags);
+        internal static ActiveStatementsDescription GetActiveStatements(
+            string oldSource, string newSource, ActiveStatementFlags[] flags = null, int? documentIndex = null, Func<string, SyntaxTree> syntaxTreeFactory = null)
+        {
+            return new ActiveStatementsDescription(
+                oldSource,
+                newSource,
+                syntaxTreeFactory ?? (source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex))),
+                flags);
+        }
 
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
             => new(oldSource, newSource);
