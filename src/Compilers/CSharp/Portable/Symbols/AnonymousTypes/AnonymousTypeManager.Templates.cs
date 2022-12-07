@@ -222,6 +222,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Construct key for the delegate with type parameters.
                     var genericFieldTypes = IndexedTypeParameterSymbol.Take(nTypeArguments);
+
+                    // Replace `T` with `T[]` for params array.
+                    if (fields is [.., { IsParams: true } lastParam, _])
+                    {
+                        var index = nTypeArguments - 1;
+                        // T minus `NullabilityAnnotation.Ignored`
+                        var original = TypeWithAnnotations.Create(genericFieldTypes[index].Type);
+                        // T[]
+                        var replacement = TypeWithAnnotations.Create(((ArrayTypeSymbol)lastParam.Type).WithElementType(original));
+                        genericFieldTypes = genericFieldTypes.SetItem(index, replacement);
+                    }
+
                     if (returnsVoid)
                     {
                         genericFieldTypes = genericFieldTypes.Add(fields[^1].TypeWithAnnotations);
