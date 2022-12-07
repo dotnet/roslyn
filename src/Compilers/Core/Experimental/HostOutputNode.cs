@@ -84,13 +84,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable();
 
-        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
+        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
 
-        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable;
-
-        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
-
-
+        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
     }
 }
