@@ -874,8 +874,7 @@ namespace Microsoft.CodeAnalysis
                 newText,
                 mode,
                 CheckDocumentIsInSolution,
-                (solution, docId) => solution.GetRelatedDocumentIds(docId),
-                (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
+                static (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.DocumentChanged,
                 isCodeDocument: true);
         }
@@ -890,8 +889,7 @@ namespace Microsoft.CodeAnalysis
                 newText,
                 mode,
                 CheckAdditionalDocumentIsInSolution,
-                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
-                (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
+                static (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
                 isCodeDocument: false);
         }
@@ -906,8 +904,7 @@ namespace Microsoft.CodeAnalysis
                 newText,
                 mode,
                 CheckAnalyzerConfigDocumentIsInSolution,
-                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
-                (solution, docId, text, preservationMode) => solution.WithAnalyzerConfigDocumentText(docId, text, preservationMode),
+                static (solution, docId, text, preservationMode) => solution.WithAnalyzerConfigDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 isCodeDocument: false);
         }
@@ -923,7 +920,6 @@ namespace Microsoft.CodeAnalysis
             SourceText newText,
             PreservationMode mode,
             Action<Solution, DocumentId> checkIsInSolution,
-            Func<Solution, DocumentId, ImmutableArray<DocumentId>> getRelatedDocuments,
             Func<Solution, DocumentId, SourceText, PreservationMode, Solution> updateSolutionWithText,
             WorkspaceChangeKind changeKind,
             bool isCodeDocument)
@@ -940,20 +936,16 @@ namespace Microsoft.CodeAnalysis
 
                     data.checkIsInSolution(oldSolution, data.documentId);
 
-                    var newSolution = oldSolution;
+                    // updateSolutionWithText takes care of updating all linked files.
+                    var newSolution = data.updateSolutionWithText(oldSolution, data.documentId, data.newText, data.mode);
 
-                    var linkedDocuments = data.getRelatedDocuments(oldSolution, data.documentId);
-                    foreach (var linkedDocument in linkedDocuments)
-                    {
-                        var previousSolution = newSolution;
-                        newSolution = data.updateSolutionWithText(newSolution, linkedDocument, data.newText, data.mode);
-                        if (previousSolution != newSolution)
-                            updatedDocumentIds.Add(linkedDocument);
-                    }
+                    // notify that all the docs were updated.
+                    if (newSolution != oldSolution)
+                        updatedDocumentIds.AddRange(oldSolution.GetRelatedDocumentIds(data.documentId));
 
                     return newSolution;
                 },
-                data: (@this: this, documentId, newText, mode, checkIsInSolution, getRelatedDocuments, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
+                data: (@this: this, documentId, newText, mode, checkIsInSolution, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     if (data.isCodeDocument)
