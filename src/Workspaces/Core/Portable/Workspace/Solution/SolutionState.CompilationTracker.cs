@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
                         var oldTree = oldState.GetSyntaxTree(cancellationToken);
 
                         compilationPair = compilationPair.ReplaceSyntaxTree(oldTree, tree);
-                        inProgressProject = inProgressProject.UpdateDocument(docState, textChanged: false, recalculateDependentVersions: false);
+                        inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
                     {
