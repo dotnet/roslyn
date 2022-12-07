@@ -41,8 +41,9 @@ namespace Build
             var toolOptions = new ToolInvocationOptions()
             {
                 BlockedEnvironmentVariables = ImmutableArray.Create("MSBuildSDKsPath", "MSBUILD_EXE_PATH"),
+                // Retry build when the file is locked by another process.
                 Retry = new ToolInvocationRetry(
-                    new Regex(".+The process cannot access the file.+because it is being used by another process."), 0 )
+                    new Regex(".+The process cannot access the file.+because it is being used by another process."), null )
             };
 
             return ToolInvocationHelper.InvokePowershell(
