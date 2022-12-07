@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -13,50 +14,30 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal sealed class DocumentSymbolUIItem : INotifyPropertyChanged
+    internal sealed class DocumentSymbolItemViewModel : INotifyPropertyChanged
     {
         public string Name { get; }
-        public ImmutableArray<DocumentSymbolUIItem> Children { get; }
+        public ImmutableArray<DocumentSymbolItemViewModel> Children { get; }
         public SnapshotSpan RangeSpan { get; }
         public SnapshotSpan SelectionRangeSpan { get; }
         public SymbolKind SymbolKind { get; }
         public ImageMoniker ImageMoniker { get; }
-        // _isSelected and _isExpanded should only be mutated/read from the UI thread.
-        private bool _isSelected;
-        private bool _isExpanded;
 
+        private bool _isExpanded;
         public bool IsExpanded
         {
-            get
-            {
-                return _isExpanded;
-            }
-            set
-            {
-                if (_isExpanded != value)
-                {
-                    _isExpanded = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-        public bool IsSelected
-        {
-            get
-            {
-                return _isSelected;
-            }
-            set
-            {
-                if (_isSelected != value)
-                {
-                    _isSelected = value;
-                    NotifyPropertyChanged();
-                }
-            }
+            get => _isExpanded;
+            set => SetProperty(ref _isExpanded, value);
         }
 
-        public DocumentSymbolUIItem(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolUIItem> children)
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
+        }
+
+        public DocumentSymbolItemViewModel(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolItemViewModel> children)
         {
             Name = documentSymbolData.Name;
             Children = children;
@@ -72,6 +53,19 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
+        {
+            // Note: we do not lock here. Worst case is that we fire multiple
+            //       NotifyPropertyChanged events which WPF can handle.
+            if (EqualityComparer<T>.Default.Equals(field, value))
+            {
+                return;
+            }
+
+            field = value;
+            NotifyPropertyChanged(propertyName);
+        }
 
         private static ImageMoniker GetImageMoniker(SymbolKind symbolKind)
         {

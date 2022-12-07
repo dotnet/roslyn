@@ -115,12 +115,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void SymbolTree_MouseDown(object sender, EventArgs e)
         {
-            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolUIItem symbol)
+            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolItemViewModel symbol)
             {
                 var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
                 var activeTextView = service.GetLastActiveIWpfTextView();
-                if (activeTextView is null)
-                    return;
+                Assumes.NotNull(activeTextView);
 
                 // When the user clicks on a symbol node in the window, we want to move the cursor to that line in the editor. If we
                 // don't unsubscribe from Caret_PositionChanged first, we will call EnqueueHighlightExpandAndPresentItemsTask() once

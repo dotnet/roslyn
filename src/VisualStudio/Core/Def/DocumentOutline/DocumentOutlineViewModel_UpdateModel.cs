@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData);
 
-            DocumentSymbolUIItem? symbolToSelect = null;
+            DocumentSymbolItemViewModel? symbolToSelect = null;
             if (caretPoint.HasValue)
             {
                 symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     DocumentOutlineHelper.UnselectAll(DocumentSymbolUIItems);
             }
 
-            DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolUIItem>(documentSymbolUIItems);
+            DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolUIItems);
         }
     }
 }

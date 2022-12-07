@@ -52,7 +52,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         {
         }
 
-        private async Task<(DocumentOutlineTestMocks mocks, DocumentSymbolDataModel model, ImmutableArray<DocumentSymbolUIItem> uiItems)> InitializeMocksAndDataModelAndUIItems(string testCode)
+        private async Task<(DocumentOutlineTestMocks mocks, DocumentSymbolDataModel model, ImmutableArray<DocumentSymbolItemViewModel> uiItems)> InitializeMocksAndDataModelAndUIItems(string testCode)
         {
             await using var mocks = await CreateMocksAsync(testCode);
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(mocks.TextBuffer, mocks.LanguageServiceBroker, mocks.FilePath, CancellationToken.None);
@@ -202,7 +202,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             // Confirm that matching expanded/collapsed node states have been applied
             CheckNodeExpansionMatches(updatedUIItems, originalUIItems);
 
-            static void CheckNodeExpansion(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, bool isExpanded)
+            static void CheckNodeExpansion(ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems, bool isExpanded)
             {
                 foreach (var symbol in documentSymbolItems)
                 {
@@ -211,7 +211,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 }
             }
 
-            static void CheckNodeExpansionMatches(ImmutableArray<DocumentSymbolUIItem> newUIItems, ImmutableArray<DocumentSymbolUIItem> originalUIItems)
+            static void CheckNodeExpansionMatches(ImmutableArray<DocumentSymbolItemViewModel> newUIItems, ImmutableArray<DocumentSymbolItemViewModel> originalUIItems)
             {
                 for (var i = 0; i < newUIItems.Length; i++)
                 {
@@ -236,7 +236,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             // Confirm that only the child node and its ancestors are expanded
             CheckAncestorNodeExpansion(uiItems);
 
-            static void CheckAncestorNodeExpansion(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems)
+            static void CheckAncestorNodeExpansion(ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems)
             {
                 foreach (var symbol in documentSymbolItems)
                 {
@@ -253,7 +253,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             DocumentOutlineHelper.UnselectAll(uiItems);
             CheckNodesUnselected(uiItems);
 
-            static void CheckNodesUnselected(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems)
+            static void CheckNodesUnselected(ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems)
             {
                 foreach (var symbol in documentSymbolItems)
                 {

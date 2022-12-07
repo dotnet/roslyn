@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // initialize public properties
             _sortOption = SortOption.Location;
-            _documentSymbolUIItems = new ObservableCollection<DocumentSymbolUIItem>();
+            _documentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>();
 
             // setup work queues
             _visualStudioCodeWindowInfoQueue = new AsyncBatchingResultQueue<VisualStudioCodeWindowInfo?>(
@@ -93,8 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             set => SetProperty(ref _sortOption, value);
         }
 
-        private ObservableCollection<DocumentSymbolUIItem> _documentSymbolUIItems;
-        public ObservableCollection<DocumentSymbolUIItem> DocumentSymbolUIItems
+        private ObservableCollection<DocumentSymbolItemViewModel> _documentSymbolUIItems;
+        public ObservableCollection<DocumentSymbolItemViewModel> DocumentSymbolUIItems
         {
             get => _documentSymbolUIItems;
             set => SetProperty(ref _documentSymbolUIItems, value);

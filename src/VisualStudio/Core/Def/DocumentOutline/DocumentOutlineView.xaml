@@ -125,7 +125,7 @@
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   ItemsSource="{Binding DocumentSymbolUIItems}">
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolUIItem}" ItemsSource="{Binding Children}">
+                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolItemViewModel}" ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="SymbolTree_MouseDown">
                         <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
                         <TextBlock Text="{Binding Name}" />

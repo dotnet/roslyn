@@ -257,13 +257,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Converts an immutable array of DocumentSymbolData to an immutable array of DocumentSymbolUIItems.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolUIItem> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
+        public static ImmutableArray<DocumentSymbolItemViewModel> GetDocumentSymbolUIItems(ImmutableArray<DocumentSymbolData> documentSymbolData)
         {
-            using var _ = ArrayBuilder<DocumentSymbolUIItem>.GetInstance(out var documentSymbolItems);
+            using var _ = ArrayBuilder<DocumentSymbolItemViewModel>.GetInstance(out var documentSymbolItems);
             foreach (var documentSymbol in documentSymbolData)
             {
                 var children = GetDocumentSymbolUIItems(documentSymbol.Children);
-                var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol, children);
+                var documentSymbolItem = new DocumentSymbolItemViewModel(documentSymbol, children);
                 documentSymbolItems.Add(documentSymbolItem);
             }
 
@@ -273,15 +273,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Returns the Document Symbol node that is currently selected by the caret in the editor if it exists.
         /// </summary>
-        public static DocumentSymbolUIItem? GetDocumentNodeToSelect(
-            ImmutableArray<DocumentSymbolUIItem> documentSymbolItems,
+        public static DocumentSymbolItemViewModel? GetDocumentNodeToSelect(
+            ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems,
             ITextSnapshot originalSnapshot,
             SnapshotPoint currentCaretPoint)
         {
             var originalCaretPoint = currentCaretPoint.TranslateTo(originalSnapshot, PointTrackingMode.Negative);
             return GetNodeToSelect(documentSymbolItems, null);
 
-            DocumentSymbolUIItem? GetNodeToSelect(ImmutableArray<DocumentSymbolUIItem> documentSymbols, DocumentSymbolUIItem? parent)
+            DocumentSymbolItemViewModel? GetNodeToSelect(ImmutableArray<DocumentSymbolItemViewModel> documentSymbols, DocumentSymbolItemViewModel? parent)
             {
                 var selectedSymbol = GetNodeSelectedByCaret(documentSymbols);
 
@@ -292,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             // Returns a DocumentSymbolItem if the current caret position is in its range and null otherwise.
-            DocumentSymbolUIItem? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems)
+            DocumentSymbolItemViewModel? GetNodeSelectedByCaret(ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems)
             {
                 foreach (var symbol in documentSymbolItems)
                 {
@@ -309,8 +309,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
         /// </summary>
         public static void SetIsExpanded(
-            ImmutableArray<DocumentSymbolUIItem> documentSymbolItems,
-            IEnumerable<DocumentSymbolUIItem> currentDocumentSymbolItems,
+            ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems,
+            IEnumerable<DocumentSymbolItemViewModel> currentDocumentSymbolItems,
             ExpansionOption expansionOption)
         {
             for (var i = 0; i < documentSymbolItems.Length; i++)
@@ -327,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Expands all the ancestors of a DocumentSymbolUIItem.
         /// </summary>
-        public static void ExpandAncestors(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, SnapshotSpan documentSymbolRangeSpan)
+        public static void ExpandAncestors(ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems, SnapshotSpan documentSymbolRangeSpan)
         {
             var symbol = GetSymbolInRange(documentSymbolItems, documentSymbolRangeSpan);
             if (symbol is not null)
@@ -336,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 ExpandAncestors(symbol.Children, documentSymbolRangeSpan);
             }
 
-            static DocumentSymbolUIItem? GetSymbolInRange(ImmutableArray<DocumentSymbolUIItem> documentSymbolItems, SnapshotSpan rangeSpan)
+            static DocumentSymbolItemViewModel? GetSymbolInRange(ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems, SnapshotSpan rangeSpan)
             {
                 foreach (var symbol in documentSymbolItems)
                 {
@@ -348,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        internal static void UnselectAll(IEnumerable<DocumentSymbolUIItem> documentSymbolItems)
+        internal static void UnselectAll(IEnumerable<DocumentSymbolItemViewModel> documentSymbolItems)
         {
             foreach (var documentSymbolItem in documentSymbolItems)
             {
