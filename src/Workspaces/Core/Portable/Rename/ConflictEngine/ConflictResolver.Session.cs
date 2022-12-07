@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // Get all rename locations for the current document.
                         var allTextSpansInSingleSourceTree = renameLocations
                             .Where(l => l.DocumentId == documentId && ShouldIncludeLocation(renameLocations, l))
-                            .ToDictionary(l => l.Location.SourceSpan);
+                            .ToImmutableDictionary(l => l.Location.SourceSpan);
 
                         // All textspan in the document documentId, that requires rename in String or Comment
                         var stringAndCommentTextSpansInSingleSourceTree = renameLocations
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var conflictLocationSpans = conflictLocations
                             .Where(t => t.DocumentId == documentId)
                             .Select(t => t.ComplexifiedSpan)
-                            .ToSet();
+                            .ToImmutableHashSet();
 
                         // Annotate all nodes with a RenameLocation annotations to record old locations & old referenced symbols.
                         // Also annotate nodes that should get complexified (nodes for rename locations + conflict locations)

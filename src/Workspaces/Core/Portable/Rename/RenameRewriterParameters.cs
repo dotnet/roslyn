@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Rename
     internal class RenameRewriterParameters
     {
         internal readonly CancellationToken CancellationToken;
-        internal readonly ISet<TextSpan> ConflictLocationSpans;
+        internal readonly ImmutableHashSet<TextSpan> ConflictLocationSpans;
         internal readonly bool IsRenamingInStrings;
         internal readonly bool IsRenamingInComments;
         internal readonly Solution OriginalSolution;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Rename
         internal readonly string OriginalText;
         internal readonly ImmutableArray<string> PossibleNameConflicts;
         internal readonly RenameAnnotation RenamedSymbolDeclarationAnnotation;
-        internal readonly Dictionary<TextSpan, RenameLocation> RenameLocations;
+        internal readonly ImmutableDictionary<TextSpan, RenameLocation> RenameLocations;
         internal readonly RenamedSpansTracker RenameSpansTracker;
         internal readonly ISymbol RenameSymbol;
         internal readonly string ReplacementText;
@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Rename
             string replacementText,
             string originalText,
             ImmutableArray<string> possibleNameConflicts,
-            Dictionary<TextSpan, RenameLocation> renameLocations,
+            ImmutableDictionary<TextSpan, RenameLocation> renameLocations,
             ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> stringAndCommentTextSpans,
-            ISet<TextSpan> conflictLocationSpans,
+            ImmutableHashSet<TextSpan> conflictLocationSpans,
             Solution originalSolution,
             ISymbol renameSymbol,
             bool replacementTextValid,
