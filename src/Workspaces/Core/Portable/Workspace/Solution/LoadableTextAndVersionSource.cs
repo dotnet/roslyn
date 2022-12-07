@@ -94,13 +94,18 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
         {
             Contract.ThrowIfTrue(_gate.CurrentCount != 0);
 
-            // Always update the weak ref, so we can return the same instance if anything else is holding onto it.
-            _weakInstance ??= new WeakReference<TextAndVersion>(textAndVersion);
-            _weakInstance.SetTarget(textAndVersion);
-
-            // if our source wants us to hold onto the value strongly, do so.
             if (this.Source.CacheResult)
+            {
+                // if our source wants us to hold onto the value strongly, do so.  No need to involve the weak-refs as
+                // this will now hold onto the value forever.
                 _instance = textAndVersion;
+            }
+            else
+            {
+                // Update the weak ref, so we can return the same instance if anything else is holding onto it.
+                _weakInstance ??= new WeakReference<TextAndVersion>(textAndVersion);
+                _weakInstance.SetTarget(textAndVersion);
+            }
         }
     }
 
