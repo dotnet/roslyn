@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return SyntaxFactory.ParseLeadingTrivia(text);
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public override SyntaxNode? Visit(SyntaxNode? node)
         {
             _cancellationToken.ThrowIfCancellationRequested();

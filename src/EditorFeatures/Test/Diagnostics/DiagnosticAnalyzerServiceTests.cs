@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // check empty since this could be called to clear up existing diagnostics
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = a.Diagnostics;
                 Assert.Empty(diagnostics);
             };
 
@@ -209,7 +209,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var compilationDiagnostic = false;
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = a.Diagnostics;
                 var diagnostic = Assert.Single(diagnostics);
                 Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
 
@@ -262,7 +262,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = a.Diagnostics;
                 (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
             };
 
@@ -307,7 +307,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             {
                 if (workspace.IsDocumentOpen(a.DocumentId))
                 {
-                    var diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    var diagnostics = a.Diagnostics;
                     // check the diagnostics are reported
                     Assert.Equal(document.Id, a.DocumentId);
                     Assert.Equal(1, diagnostics.Length);
@@ -317,7 +317,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 if (a.DocumentId == document.Id && !workspace.IsDocumentOpen(a.DocumentId))
                 {
                     // check the diagnostics reported are cleared
-                    var diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    var diagnostics = a.Diagnostics;
                     Assert.Equal(0, diagnostics.Length);
                 }
             };
@@ -376,7 +376,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = a.Diagnostics;
                 switch (diagnostics.Length)
                 {
                     case 0:
@@ -495,7 +495,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.Diagnostics;
                 if (diagnostics.Length == 0)
                 {
                     return;
@@ -601,7 +601,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.Diagnostics;
                 if (diagnostics.Length == 0)
                 {
                     return;
@@ -659,7 +659,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var diagnostics = new ConcurrentSet<DiagnosticData>();
             service.DiagnosticsUpdated += (s, e) =>
             {
-                diagnostics.AddRange(e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode));
+                diagnostics.AddRange(e.Diagnostics);
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -765,7 +765,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             DiagnosticData diagnostic = null;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.Diagnostics;
                 if (diagnostics.Length == 0)
                 {
                     return;
@@ -900,7 +900,7 @@ class A
             service.DiagnosticsUpdated += (s, e) =>
             {
                 diagnostics.AddRange(
-                    e.GetPushDiagnostics(workspace.GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                    e.Diagnostics
                      .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
                      .OrderBy(d => d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
             };
@@ -996,7 +996,7 @@ class A
             DiagnosticData diagnostic = null;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.Diagnostics;
                 if (diagnostics.IsEmpty)
                 {
                     return;
@@ -1165,7 +1165,7 @@ class A
             var gotDiagnostics = false;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.Diagnostics;
                 if (diagnostics.Length == 0)
                     return;
 

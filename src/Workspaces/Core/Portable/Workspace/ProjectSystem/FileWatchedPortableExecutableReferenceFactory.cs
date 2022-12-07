@@ -2,44 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Host;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences
+namespace Microsoft.CodeAnalysis.ProjectSystem
 {
-    [Export]
     internal sealed class FileWatchedPortableExecutableReferenceFactory
     {
         private readonly object _gate = new();
 
-        /// <summary>
-        /// This right now acquires the entire VisualStudioWorkspace because right now the production
-        /// of metadata references depends on other workspace services. See the comments on
-        /// <see cref="VisualStudioMetadataReferenceManagerFactory"/> that this strictly shouldn't be necessary
-        /// but for now is quite the tangle to fix.
-        /// </summary>
-        private readonly Lazy<VisualStudioWorkspace> _visualStudioWorkspace;
+        private readonly SolutionServices _solutionServices;
 
         /// <summary>
         /// A file change context used to watch metadata references.
         /// </summary>
-        private readonly FileChangeWatcher.IContext _fileReferenceChangeContext;
+        private readonly IFileChangeContext _fileReferenceChangeContext;
 
         /// <summary>
         /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
         /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
         /// </summary>
-        private readonly Dictionary<PortableExecutableReference, FileChangeWatcher.IFileWatchingToken> _metadataReferenceFileWatchingTokens = new();
+        private readonly Dictionary<PortableExecutableReference, IWatchedFile> _metadataReferenceFileWatchingTokens = new();
 
         /// <summary>
         /// <see cref="CancellationTokenSource"/>s for in-flight refreshing of metadata references. When we see a file change, we wait a bit before trying to actually
@@ -48,33 +36,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
         /// </summary>
         private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FileWatchedPortableExecutableReferenceFactory(
-            Lazy<VisualStudioWorkspace> visualStudioWorkspace,
-            FileChangeWatcherProvider fileChangeWatcherProvider)
+            SolutionServices solutionServices,
+            IFileChangeWatcher fileChangeWatcher)
         {
-            _visualStudioWorkspace = visualStudioWorkspace;
+            _solutionServices = solutionServices;
 
-            // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
-            // watches on individual .dlls that effectively never change.
-            var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
-            var referenceAssemblies = new FileChangeWatcher.WatchedDirectory(referenceAssembliesPath, ".dll");
+            var watchedDirectories = new List<WatchedDirectory>();
+
+            if (PlatformInformation.IsWindows)
+            {
+                // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
+                // watches on individual .dlls that effectively never change.
+                var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
+                watchedDirectories.Add(new WatchedDirectory(referenceAssembliesPath, ".dll"));
+            }
 
             // TODO: set this to watch the NuGet directory as well; there's some concern that watching the entire directory
             // might make restores take longer because we'll be watching changes that may not impact your project.
 
-            _fileReferenceChangeContext = fileChangeWatcherProvider.Watcher.CreateContext(referenceAssemblies);
+            _fileReferenceChangeContext = fileChangeWatcher.CreateContext(watchedDirectories.ToArray());
             _fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
         }
 
-        public event EventHandler<string> ReferenceChanged;
+        public event EventHandler<string>? ReferenceChanged;
 
         public PortableExecutableReference CreateReferenceAndStartWatchingFile(string fullFilePath, MetadataReferenceProperties properties)
         {
             lock (_gate)
             {
-                var reference = _visualStudioWorkspace.Value.CreatePortableExecutableReference(fullFilePath, properties);
+                var reference = _solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
                 var fileWatchingToken = _fileReferenceChangeContext.EnqueueWatchingFile(fullFilePath);
 
                 _metadataReferenceFileWatchingTokens.Add(reference, fileWatchingToken);
@@ -87,12 +78,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
         {
             lock (_gate)
             {
-                if (!_metadataReferenceFileWatchingTokens.TryGetValue(reference, out var token))
+                if (!_metadataReferenceFileWatchingTokens.TryGetValue(reference, out var watchedFile))
                 {
                     throw new ArgumentException("The reference was already not being watched.");
                 }
 
-                _fileReferenceChangeContext.StopWatchingFile(token);
+                watchedFile.Dispose();
                 _metadataReferenceFileWatchingTokens.Remove(reference);
 
                 // Note we still potentially have an outstanding change that we haven't raised a notification
@@ -111,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
             }
         }
 
-        private void FileReferenceChangeContext_FileChanged(object sender, string fullFilePath)
+        private void FileReferenceChangeContext_FileChanged(object? sender, string fullFilePath)
         {
             lock (_gate)
             {

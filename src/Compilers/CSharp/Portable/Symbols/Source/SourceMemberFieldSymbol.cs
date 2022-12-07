@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
             var errorLocation = new SourceLocation(firstIdentifier);
-            DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+            DeclarationModifiers result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
                 isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
@@ -489,31 +489,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
-                    var typeOnly = typeSyntax.SkipScoped(out _).SkipRef(out refKind);
+                    var typeOnly = typeSyntax.SkipScoped(out _).SkipRefInField(out refKind);
                     Debug.Assert(refKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
                     type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
                     if (refKind != RefKind.None)
                     {
                         MessageID.IDS_FeatureRefFields.CheckFeatureAvailability(diagnostics, compilation, typeSyntax.SkipScoped(out _).Location);
                         if (!compilation.Assembly.RuntimeSupportsByRefFields)
-                        {
                             diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, ErrorLocation);
-                        }
 
                         if (!containingType.IsRefLikeType)
-                        {
                             diagnostics.Add(ErrorCode.ERR_RefFieldInNonRefStruct, ErrorLocation);
-                        }
+
                         if (type.Type?.IsRefLikeType == true)
-                        {
                             diagnostics.Add(ErrorCode.ERR_RefFieldCannotReferToRefStruct, typeSyntax.SkipScoped(out _).Location);
-                        }
                     }
                 }
                 else
                 {
                     bool isVar;
-                    type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out RefKind refKindToAssert), diagnostics, out isVar);
+                    type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRefInField(out RefKind refKindToAssert), diagnostics, out isVar);
                     Debug.Assert(refKindToAssert == RefKind.None); // Otherwise we might need to report an error
                     Debug.Assert(type.HasType || isVar);
 

@@ -36,7 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 ImmutableArray<byte> data = this.GetRawData(initExprs);
                 if (data.All(datum => datum == data[0]))
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics.DiagnosticBag);
+                    // All bytes are the same, no need for metadata blob, just initblk to fill it with the repeated value.
+                    _builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitIntConstant(data[0]);
+                    _builder.EmitIntConstant(data.Length);
+                    _builder.EmitOpCode(ILOpCode.Initblk, -3);
 
                     if (initializationStyle == ArrayInitializerStyle.Mixed)
                     {
@@ -45,7 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else if (elementType.SpecialType.SizeInBytes() == 1)
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: false, _diagnostics.DiagnosticBag);
+                    // Initialize the stackalloc by copying the data from a metadata blob
+                    var field = _builder.module.GetFieldForData(data, alignment: 1, inits.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitOpCode(ILOpCode.Ldsflda);
+                    _builder.EmitToken(field, inits.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitIntConstant(data.Length);
+                    _builder.EmitOpCode(ILOpCode.Cpblk, -3);
 
                     if (initializationStyle == ArrayInitializerStyle.Mixed)
                     {

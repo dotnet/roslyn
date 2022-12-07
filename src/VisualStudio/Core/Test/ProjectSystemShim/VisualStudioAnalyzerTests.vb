@@ -56,8 +56,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
 
-                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                Dim eventHandler = New EventHandlers(file, globalOptions)
+                Dim eventHandler = New EventHandlers(file)
                 AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
                 Using analyzer = New VisualStudioAnalyzer(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
@@ -74,15 +73,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         Private Class EventHandlers
             Public File As String
-            Private ReadOnly _globalOptions As IGlobalOptionService
 
-            Public Sub New(file As String, globalOptions As IGlobalOptionService)
+            Public Sub New(file As String)
                 Me.File = file
-                _globalOptions = globalOptions
             End Sub
 
             Public Sub DiagnosticAddedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Dim diagnostics = e.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                Dim diagnostics = e.Diagnostics
                 Assert.Equal(1, diagnostics.Length)
                 Dim diagnostic As DiagnosticData = diagnostics.First()
                 Assert.Equal("BC42378", diagnostic.Id)
@@ -90,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Sub
 
             Public Sub DiagnosticRemovedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Dim diagnostics = e.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                Dim diagnostics = e.Diagnostics
                 Assert.Equal(0, diagnostics.Length)
             End Sub
         End Class

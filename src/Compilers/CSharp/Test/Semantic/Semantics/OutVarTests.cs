@@ -36436,6 +36436,79 @@ class C
             Assert.Equal("System.String M2(out System.Int32 x, [System.String y = null])", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Same(symbolInfo.Symbol, speculativeModel.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Where(l => l.Identifier.ValueText == "M2").Single()));
         }
+
+        [Fact]
+        public void GetSymbolInfoOnSpeculativeMethodBodySemanticModelInDefaultParameterValue_03()
+        {
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (string parameter = M2(out var x)) => { };
+                        _ = lam;
+                    }
+
+                    static string M2(out int x) => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (5,39): error CS1736: Default parameter value for 'parameter' must be a compile-time constant
+                //         var lam = (string parameter = M2(out var x)) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(out var x)").WithArguments("parameter").WithLocation(5, 39));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var tree2 = CSharpSyntaxTree.ParseText(source);
+            var method = tree2.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(method.Body.SpanStart, method, out var speculativeModel));
+
+            var invocation = tree2.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("M2(out var x)", invocation.ToString());
+            var symbolInfo = speculativeModel.GetSymbolInfo(invocation);
+            Assert.Equal("System.String C.M2(out System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
+
+            var equalsValue = method.DescendantNodes().OfType<ParameterSyntax>().Single()
+                .DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+            Assert.True(model.TryGetSpeculativeSemanticModel(equalsValue.Value.SpanStart, equalsValue, out speculativeModel));
+            symbolInfo = speculativeModel.GetSymbolInfo(invocation);
+            Assert.Equal("System.String C.M2(out System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GetSymbolInfoOnSpeculativeMethodBodySemanticModelInDefaultParameterValue_04()
+        {
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (string parameter = () => { static string M2(out int x, string y = M2(out var a, "b")) => throw null; }) => { };
+                        _ = lam;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (5,39): error CS1736: Default parameter value for 'parameter' must be a compile-time constant
+                //         var lam = (string parameter = () => { static string M2(out int x, string y = M2(out var a, "b")) => throw null; }) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"() => { static string M2(out int x, string y = M2(out var a, ""b"")) => throw null; }").WithArguments("parameter").WithLocation(5, 39));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var tree2 = CSharpSyntaxTree.ParseText(source);
+            var method = tree2.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(method.Body.SpanStart, method, out var speculativeModel));
+
+            var invocation = tree2.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal(@"M2(out var a, ""b"")", invocation.ToString());
+            var symbolInfo = speculativeModel.GetSymbolInfo(invocation);
+            Assert.Equal("System.String M2(out System.Int32 x, [System.String y = null])", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Same(symbolInfo.Symbol, speculativeModel.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Where(l => l.Identifier.ValueText == "M2").Single()));
+        }
     }
 
     internal static class OutVarTestsExtensions

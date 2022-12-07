@@ -127,7 +127,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         internal string? CompilationOutputAssemblyFilePath
-            => _visualStudioProject.CompilationOutputAssemblyFilePath;
+        {
+            get => _visualStudioProject.CompilationOutputAssemblyFilePath;
+            set => _visualStudioProject.CompilationOutputAssemblyFilePath = value;
+        }
 
         public ProjectId Id => _visualStudioProject.Id;
 
@@ -273,5 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void RemoveAnalyzerConfigFile(string filePath)
             => _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
+
+        public IAsyncDisposable CreateBatchScope() => _visualStudioProject.CreateBatchScope();
     }
 }

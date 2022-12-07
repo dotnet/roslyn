@@ -722,7 +722,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     return type.DelegateInvokeMethod is { } invokeMethod &&
                         otherType.DelegateInvokeMethod is { } otherInvokeMethod &&
-                        invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters, (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations)) &&
+                        invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters,
+                            (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations) &&
+                                x.ExplicitDefaultConstantValue == y.ExplicitDefaultConstantValue &&
+                                x.IsParams == y.IsParams) &&
                         isCorrespondingType(invokeMethod.ReturnTypeWithAnnotations, otherInvokeMethod.ReturnTypeWithAnnotations);
                 }
 

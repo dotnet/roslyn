@@ -6684,9 +6684,9 @@ public struct Vec4
                 // (28,9): error CS8350: This combination of arguments to 'Program.M0(RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
-                // (28,12): error CS8352: Cannot use variable 'scoped RS' in this context because it may expose referenced variables outside of their declaration scope
+                // (28,12): error CS8352: Cannot use variable 'scoped RS rs3' in this context because it may expose referenced variables outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS").WithLocation(28, 12));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS rs3").WithLocation(28, 12));
         }
 
         [Fact]

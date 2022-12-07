@@ -43,13 +43,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        protected internal override bool SupportsDiagnosticMode(DiagnosticMode mode)
+        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
-            // We only support push diagnostics.  When pull diagnostics are on, squiggles are handled by the lsp client.
-            return mode == DiagnosticMode.Push;
+            // We only support solution crawler push diagnostics.  When lsp pull diagnostics are on, squiggles
+            // are handled by the lsp client.
+            return mode == DiagnosticMode.SolutionCrawlerPush;
         }
 
-        protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
-        protected override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
+        protected sealed override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        protected override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
+        protected sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
         {
             Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
             Contract.ThrowIfFalse(tag2 is RoslynErrorTag);

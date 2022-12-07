@@ -302,8 +302,8 @@ Set 2
   IL_0011:  ldloc.0
   IL_0012:  call       ""S..ctor(int[])""
   IL_0017:  ldloca.s   V_1
-  IL_0019:  dup
-  IL_001a:  stloc.2
+  IL_0019:  stloc.2
+  IL_001a:  ldloc.2
   IL_001b:  call       ""int S.Length.get""
   IL_0020:  ldc.i4.1
   IL_0021:  sub
@@ -543,8 +543,8 @@ abc");
   IL_001c:  ldloc.0
   IL_001d:  call       ""S..ctor(string[])""
   IL_0022:  ldloca.s   V_1
-  IL_0024:  dup
-  IL_0025:  stloc.2
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.2
   IL_0026:  call       ""int S.Length.get""
   IL_002b:  ldc.i4.1
   IL_002c:  sub
@@ -565,8 +565,8 @@ abc");
   IL_0049:  stloc.s    V_4
   IL_004b:  call       ""void S.this[int].set""
   IL_0050:  ldloca.s   V_1
-  IL_0052:  dup
-  IL_0053:  stloc.2
+  IL_0052:  stloc.2
+  IL_0053:  ldloc.2
   IL_0054:  call       ""int S.Length.get""
   IL_0059:  ldc.i4.1
   IL_005a:  sub
@@ -587,8 +587,8 @@ abc");
   IL_0077:  stloc.s    V_4
   IL_0079:  call       ""void S.this[int].set""
   IL_007e:  ldloca.s   V_1
-  IL_0080:  dup
-  IL_0081:  stloc.2
+  IL_0080:  stloc.2
+  IL_0081:  ldloc.2
   IL_0082:  call       ""int S.Length.get""
   IL_0087:  ldc.i4.1
   IL_0088:  sub
@@ -716,8 +716,8 @@ Get 8
   IL_002d:  ldloc.0
   IL_002e:  call       ""S..ctor(int?[])""
   IL_0033:  ldloca.s   V_1
-  IL_0035:  dup
-  IL_0036:  stloc.3
+  IL_0035:  stloc.3
+  IL_0036:  ldloc.3
   IL_0037:  call       ""int S.Length.get""
   IL_003c:  ldc.i4.1
   IL_003d:  sub
@@ -741,8 +741,8 @@ Get 8
   IL_0065:  stloc.s    V_5
   IL_0067:  call       ""void S.this[int].set""
   IL_006c:  ldloca.s   V_1
-  IL_006e:  dup
-  IL_006f:  stloc.3
+  IL_006e:  stloc.3
+  IL_006f:  ldloc.3
   IL_0070:  call       ""int S.Length.get""
   IL_0075:  ldc.i4.1
   IL_0076:  sub
@@ -766,8 +766,8 @@ Get 8
   IL_009e:  stloc.s    V_5
   IL_00a0:  call       ""void S.this[int].set""
   IL_00a5:  ldloca.s   V_1
-  IL_00a7:  dup
-  IL_00a8:  stloc.3
+  IL_00a7:  stloc.3
+  IL_00a8:  ldloc.3
   IL_00a9:  call       ""int S.Length.get""
   IL_00ae:  ldc.i4.1
   IL_00af:  sub
