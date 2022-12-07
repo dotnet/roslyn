@@ -8140,6 +8140,50 @@ public class C
         }
 
         [Fact]
+        [WorkItem(38702, "https://github.com/dotnet/roslyn/issues/38702")]
+        public void AssignInConstructorWithProperties2()
+        {
+            string source = @"
+public class Point
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    public Point(int x, int y) => (X, Y) = (x, y);
+
+    public static void Main()
+    {
+        var p = new Point(1, 2);
+        System.Console.WriteLine(p.X + "" "" + p.Y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Point..ctor(int, int)", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (int V_0,
+              int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.2
+  IL_0009:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""void Point.X.set""
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""void Point.Y.set""
+  IL_0018:  ret
+}");
+        }
+
+        [Fact]
         public void VerifyDeconstructionInAsync()
         {
             var source =
