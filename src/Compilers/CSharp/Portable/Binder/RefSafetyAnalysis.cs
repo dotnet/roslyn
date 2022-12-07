@@ -488,7 +488,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             base.VisitAssignmentOperator(node);
-            ValidateAssignment(node.Syntax, node.Left, node.Right, node.IsRef, _diagnostics);
+            if (node.Left.Kind != BoundKind.DiscardExpression)
+            {
+                ValidateAssignment(node.Syntax, node.Left, node.Right, node.IsRef, _diagnostics);
+            }
             return null;
         }
 

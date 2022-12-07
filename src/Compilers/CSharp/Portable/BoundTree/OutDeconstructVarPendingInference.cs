@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(Placeholder is null);
 
-            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol: VariableSymbol, type.Type, hasErrors: this.HasErrors || !success);
+            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol: VariableSymbol, isDiscardExpression: IsDiscardExpression, type.Type, hasErrors: this.HasErrors || !success);
             return Placeholder;
         }
 

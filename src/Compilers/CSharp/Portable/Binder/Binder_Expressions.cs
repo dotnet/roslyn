@@ -1589,8 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (FallBackOnDiscard(identifier, diagnostics))
                     {
-                        // Cannot escape out of the current expression, as it's a compiler-synthesized location.
-                        expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
+                        expression = new BoundDiscardExpression(node, type: null);
                     }
                 }
 
@@ -2826,8 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var declType = BindVariableTypeWithAnnotations(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
                         Debug.Assert(isVar != declType.HasType);
 
-                        // ValEscape is the same as for an uninitialized local
-                        return new BoundDiscardExpression(declarationExpression, Binder.CallingMethodScope, declType.Type);
+                        return new BoundDiscardExpression(declarationExpression, declType.Type);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);

@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, variableSymbol: null, type);
+                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, variableSymbol: null, isDiscardExpression: false, type);
                 BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
                     inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _, variables);
 
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithExplicitType or BoundLocalDeclarationKind.WithInferredType, LocalSymbol: var symbol } => symbol,
                         _ => null,
                     };
-                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, variableSymbol: variableSymbol);
+                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, variableSymbol: variableSymbol, isDiscardExpression: variableOpt is BoundDiscardExpression);
                     analyzedArguments.Arguments.Add(variable);
                     analyzedArguments.RefKinds.Add(RefKind.Out);
                     outVars.Add(variable);
@@ -852,8 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            // Cannot escape out of the current expression, as it's a compiler-synthesized location.
-            return new BoundDiscardExpression(syntax, LocalScopeDepth, declTypeWithAnnotations.Type);
+            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.Type);
         }
 
         /// <summary>
