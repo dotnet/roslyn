@@ -65,7 +65,7 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
                     if (!TryGetValue(out textAndVersion))
                     {
                         textAndVersion = LoadSynchronously(cancellationToken);
-                        Save_NoLock(textAndVersion);
+                        UpdateWeakAndStrongReferences_NoLock(textAndVersion);
                     }
                 }
             }
@@ -82,7 +82,7 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
                     if (!TryGetValue(out textAndVersion))
                     {
                         textAndVersion = await LoadAsync(cancellationToken).ConfigureAwait(false);
-                        Save_NoLock(textAndVersion);
+                        UpdateWeakAndStrongReferences_NoLock(textAndVersion);
                     }
                 }
             }
@@ -90,7 +90,7 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
             return textAndVersion;
         }
 
-        private void Save_NoLock(TextAndVersion textAndVersion)
+        private void UpdateWeakAndStrongReferences_NoLock(TextAndVersion textAndVersion)
         {
             Contract.ThrowIfTrue(_gate.CurrentCount != 0);
 
