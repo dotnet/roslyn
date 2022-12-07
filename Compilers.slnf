@@ -17,6 +17,7 @@
       "src\\Compilers\\Core\\AnalyzerDriver\\AnalyzerDriver.shproj",
       "src\\Compilers\\Core\\CodeAnalysisTest\\Microsoft.CodeAnalysis.UnitTests.csproj",
       "src\\Compilers\\Core\\CommandLine\\CommandLine.shproj",
+      "src\\Compilers\\Core\\Experimental\\Microsoft.CodeAnalysis.Experimental.csproj",
       "src\\Compilers\\Core\\MSBuildTaskTests\\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj",
       "src\\Compilers\\Core\\MSBuildTask\\Microsoft.Build.Tasks.CodeAnalysis.csproj",
       "src\\Compilers\\Core\\Portable\\Microsoft.CodeAnalysis.csproj",
