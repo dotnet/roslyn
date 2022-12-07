@@ -363,6 +363,33 @@ class C
 }");
         }
 
+        [Fact]
+        public async Task TestDeconstructionPositionalPattern_NullExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Method()
+    {
+        if(this is C(""""[||], ref 0)) { }
+    }
+}",
+@"using System;
+
+class C
+{
+    private void Deconstruct(out string v, out object value)
+    {
+        throw new NotImplementedException();
+    }
+
+    void Method()
+    {
+        if(this is C(""""[||], ref 0)) { }
+    }
+}");
+        }
+
         [Fact, WorkItem(32510, "https://github.com/dotnet/roslyn/issues/32510")]
         public async Task TestDeconstructionAssignment_InvalidDeclaration()
         {

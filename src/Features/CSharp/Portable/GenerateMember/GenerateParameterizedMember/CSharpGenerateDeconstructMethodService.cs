@@ -8,15 +8,12 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -51,15 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             {
                 // Code in GenerateDeconstructMethodCodeFixProvider has already checked that all subpatterns are ConstantPatternSyntax.
                 var namesBuilder = positionalPattern.Subpatterns.SelectAsArray(sub =>
-                    semanticModel.GenerateNameForExpression(((ConstantPatternSyntax)sub.Pattern).Expression, false, cancellationToken));
+                    semanticModel.GenerateNameForExpression(((ConstantPatternSyntax)sub.Pattern).Expression, capitalize: false, cancellationToken));
 
                 var names = NameGenerator.EnsureUniqueness(namesBuilder);
 
-                var targetTypes = positionalPattern.Subpatterns.SelectAsArray(sub =>
-                    semanticModel.GetTypeInfo(((ConstantPatternSyntax)sub.Pattern).Expression, cancellationToken).Type);
-
-                return positionalPattern.Subpatterns.SelectAsArray((sub, i) =>
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(attributes: default, RefKind.Out, isParams: false, semanticModel.GetTypeInfo(((ConstantPatternSyntax)sub.Pattern).Expression, cancellationToken).Type), names[i]));
+                return names.SelectAsArray((name, i) => CodeGenerationSymbolFactory.CreateParameterSymbol(
+                    attributes: default,
+                    refKind: RefKind.Out,
+                    isParams: false,
+                    type: semanticModel.GetTypeInfo(((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, cancellationToken).Type ?? 
+                        semanticModel.GetTypeInfo(positionalPattern.Subpatterns[i].Pattern, cancellationToken).Type,
+                    name: name));
             }
             else
             {
