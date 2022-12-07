@@ -157,7 +157,7 @@
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.5p3]"
     },
-    "release/dev17.6-vs-deps": {
+    "release/dev17.6": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
