@@ -613,7 +613,7 @@ namespace N
             var srcB2 = accessibilityB + " partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -773,7 +773,7 @@ class C
             var srcB2 = "partial class C { void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -1478,7 +1478,7 @@ interface I {}
 interface J {}";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC, srcC) },
                 new[]
                 {
                     DocumentResults(),
@@ -1499,7 +1499,7 @@ interface J {}";
             var srcC2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -1525,7 +1525,7 @@ interface I {}
 interface J {}";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC, srcC) },
                 new[]
                 {
                     DocumentResults(),
@@ -1704,7 +1704,7 @@ public interface I
             var srcB2 = modifier + " partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -1893,7 +1893,7 @@ interface I
 }
 ";
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -1990,7 +1990,7 @@ interface I<T> { void F() {} }
             var srcB2 = srcA1;
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2059,7 +2059,7 @@ interface I { void F() {} }
             var srcB2 = "partial class C { void G() {} void M() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -2096,7 +2096,7 @@ interface I { void F() {} }
             var srcB2 = "partial class C { void G() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2119,7 +2119,7 @@ interface I { void F() {} }
             var srcB2 = "partial class C { void G() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2146,7 +2146,7 @@ interface I { void F() {} }
             var srcB2 = srcA1;
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2171,7 +2171,7 @@ interface I { void F() {} }
             var srcB2 = "[CreateNewOnMetadataUpdate]class C { void F() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2209,7 +2209,7 @@ interface I
 
             // TODO: The methods without bodies do not need to be updated.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2264,7 +2264,7 @@ interface I
 }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2308,7 +2308,7 @@ class C
 }
 ";
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2350,7 +2350,7 @@ partial class C
 }
 ";
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -2394,7 +2394,7 @@ class C
 ";
             // note that accessors are not updated since they do not have bodies
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -2486,7 +2486,7 @@ class C
             editsA.VerifyEdits(
                 "Move [class C {}]@14 -> @41");
 
-            var editsB = GetTopEdits(srcB1, srcB2);
+            var editsB = GetTopEdits(srcB1, srcB2, documentIndex: 1);
             editsB.VerifyEdits(
                 "Move [class C {}]@41 -> @14");
 
@@ -3429,7 +3429,7 @@ partial record C
 }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -3454,7 +3454,7 @@ partial record C
             var srcB2 = @"partial record C;";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -3489,7 +3489,7 @@ partial record C
 }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -3530,7 +3530,7 @@ partial record C
             var srcB2 = @"partial record C;";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -3571,7 +3571,7 @@ partial record C
 }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -3786,7 +3786,7 @@ record C(int X)
             var srcB2 = "";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(semanticEdits: new[]
@@ -4760,7 +4760,7 @@ record C(int X)
             editsA.VerifyEdits(
                 "Move [class C {}]@18 -> @49");
 
-            var editsB = GetTopEdits(srcB1, srcB2);
+            var editsB = GetTopEdits(srcB1, srcB2, documentIndex: 1);
             editsB.VerifyEdits(
                 "Move [class C {}]@49 -> @18");
 
@@ -5141,7 +5141,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -5158,7 +5158,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -5180,7 +5180,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -5202,7 +5202,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -5221,7 +5221,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -5241,7 +5241,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -5263,7 +5263,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -5285,7 +5285,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -5310,7 +5310,7 @@ class D<T>
             var srcC2 = "partial struct S { partial class C { void F2(int x) {} } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -5337,7 +5337,7 @@ class D<T>
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(semanticEdits: new[]
@@ -5364,7 +5364,7 @@ class D<T>
             var srcC2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -5389,7 +5389,7 @@ class D<T>
             var srcC2 = "partial class C<T> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -5419,7 +5419,7 @@ class D<T>
             var srcC2 = "partial class C<T> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -5452,7 +5452,7 @@ class D<T>
             var srcE = "interface I {} interface J {}";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE, srcE) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2), GetTopEdits(srcD1, srcD2, documentIndex: 3), GetTopEdits(srcE, srcE, documentIndex: 4) },
                 new[]
                 {
                     DocumentResults(),
@@ -5483,7 +5483,7 @@ class B : System.Attribute {}
             var srcB2 = "[B]partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(semanticEdits: new[]
@@ -5512,7 +5512,7 @@ class B : System.Attribute {}
             var srcD2 = "[B]partial class C { void G() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2), GetTopEdits(srcD1, srcD2, documentIndex: 3) },
                 new[]
                 {
                     DocumentResults(),
@@ -5540,7 +5540,7 @@ class B : System.Attribute {}
             var srcC2 = "partial class C { void F(int y = 2) { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -5567,7 +5567,7 @@ class B : System.Attribute {}
             var srcF2 = "partial interface I { partial class C { virtual void N2() {} } }"; // insert new virtual into new partial decl
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE1, srcE2), GetTopEdits(srcF1, srcF2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2), GetTopEdits(srcD1, srcD2, documentIndex: 3), GetTopEdits(srcE1, srcE2, documentIndex: 4), GetTopEdits(srcF1, srcF2, documentIndex: 5) },
                 new[]
                 {
                     // A
@@ -6019,7 +6019,7 @@ class B : System.Attribute {}
             var srcB2 = @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -6045,7 +6045,7 @@ class B : System.Attribute {}
             var srcB2 = @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(diagnostics: new[]
@@ -6291,7 +6291,7 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -6313,7 +6313,7 @@ partial class C
             var srcB2 = "partial class C { void F() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6335,7 +6335,7 @@ partial class C
             var srcB2 = "partial class C { void F<T>() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6356,7 +6356,7 @@ partial class C
             var srcB2 = "partial class C<T> { void F() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6376,7 +6376,7 @@ partial class C
             var srcB2 = "partial class C { ~C() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6399,7 +6399,7 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -6421,7 +6421,7 @@ partial class C
             var srcB2 = "partial class C { void F1() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(semanticEdits: new[]
@@ -6474,7 +6474,7 @@ partial class C
 ";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6495,7 +6495,7 @@ partial class C
             var srcB2 = "partial class C { int P { get => 2; set { Console.WriteLine(2); } } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6517,7 +6517,7 @@ partial class C
             var srcB2 = "partial class C { int P => 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6538,7 +6538,7 @@ partial class C
             var srcB2 = "partial class C { int f = 1; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6559,7 +6559,7 @@ partial class C
             var srcB2 = "partial class C { int f; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6580,7 +6580,7 @@ partial class C
             var srcB2 = "partial class C { C(int x) { f = x + 1; } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -6600,7 +6600,7 @@ partial class C
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -6627,7 +6627,7 @@ partial class C
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -6654,7 +6654,7 @@ partial class C
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -7523,7 +7523,7 @@ class C
 ";
             // TODO: The method does not need to be updated since there are no sequence points generated for it.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -7567,7 +7567,7 @@ class C
 }
 ";
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -9074,7 +9074,7 @@ public class SubClass : BaseClass, IConflict
             var srcC2 = "partial class C { partial void F(); }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -9095,7 +9095,7 @@ public class SubClass : BaseClass, IConflict
             var srcC2 = "partial class C { partial void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2) },
                 new[]
                 {
                     DocumentResults(),
@@ -9115,7 +9115,7 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { partial void F(); }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -9134,7 +9134,7 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -9157,7 +9157,7 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -9184,7 +9184,7 @@ public class SubClass : BaseClass, IConflict
             var srcD2 = "partial class C { partial void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1), GetTopEdits(srcC1, srcC2, documentIndex: 2), GetTopEdits(srcD1, srcD2, documentIndex: 3) },
                 new[]
                 {
                     DocumentResults(),
@@ -9205,7 +9205,7 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { partial void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -9226,7 +9226,7 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { partial void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -9373,7 +9373,7 @@ partial class C
             var srcB2 = srcA1;
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -9952,7 +9952,7 @@ class C
             var srcB2 = "partial class C { int x = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -9986,7 +9986,7 @@ class C
             var srcB2 = "partial class C { public C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     // no change in document A
@@ -10023,7 +10023,7 @@ class C
             var srcB2 = "partial class C { public C(int a) { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10173,7 +10173,7 @@ class C
             var srcB2 = "partial class C { static C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
@@ -10197,7 +10197,7 @@ class C
             var srcB2 = "partial class C { C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
@@ -10221,7 +10221,7 @@ class C
             var srcB2 = "partial class C { public C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
@@ -10245,7 +10245,7 @@ class C
             var srcB2 = "partial class C { public C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     // delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed accessibility
@@ -10267,7 +10267,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10291,7 +10291,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10315,7 +10315,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10339,7 +10339,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10363,7 +10363,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10387,7 +10387,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10408,7 +10408,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10720,7 +10720,7 @@ partial class C
             var syntaxMapB = GetSyntaxMap(srcB1, srcB2)[0];
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     // No changes in document A
@@ -10780,7 +10780,7 @@ partial class C
 ";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     // No changes in document A
@@ -10802,7 +10802,7 @@ partial class C
             var srcB2 = "partial class C { int G = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10886,7 +10886,7 @@ partial class C
             var srcB2 = "partial class C { int x = 2; void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10911,7 +10911,7 @@ partial class C
             var srcB2 = "partial class C { int x = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -10936,7 +10936,7 @@ partial class C
             var srcB2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int x = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -11333,7 +11333,7 @@ public class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -12810,7 +12810,7 @@ partial class C
             var srcB2 = "partial class C { int F; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -12832,7 +12832,7 @@ partial class C
             var srcB2 = "partial class C { int F = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -12915,7 +12915,7 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -12938,7 +12938,7 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -13511,7 +13511,7 @@ class C
             var srcB2 = "partial class C { [System.Obsolete]int a = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),
@@ -13775,7 +13775,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -14901,7 +14901,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -14925,7 +14925,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -14951,7 +14951,7 @@ class C
             // Accessors need to be updated even though they do not have an explicit body. 
             // There is still a sequence point generated for them whose location needs to be updated.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -14978,7 +14978,7 @@ class C
             // Accessors need to be updated even though they do not have an explicit body. 
             // There is still a sequence point generated for them whose location needs to be updated.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -15003,7 +15003,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -15995,7 +15995,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -16019,7 +16019,7 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -16045,7 +16045,7 @@ class C
             // Accessors need to be updated even though they do not have an explicit body. 
             // There is still a sequence point generated for them whose location needs to be updated.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -16082,7 +16082,7 @@ partial class C
 }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(diagnostics: new[] { Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a") }),
@@ -16385,7 +16385,7 @@ public class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -16975,7 +16975,7 @@ class C { static void M(string a) { } }
             var srcB2 = @"partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
@@ -17610,7 +17610,7 @@ class B : System.Attribute {}
             var srcB2 = "partial class C<[B]T> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(diagnostics: new[]
@@ -17640,7 +17640,7 @@ class B : System.Attribute {}
             var srcB2 = "partial class C<[B]T> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(semanticEdits: new[]
@@ -18495,7 +18495,7 @@ public class B
 }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(),

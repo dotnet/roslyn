@@ -492,7 +492,7 @@ Option Strict Off
             Dim srcB2 = accessibilityB + " Partial Class C : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults()
@@ -1003,7 +1003,7 @@ Interface J : End Interface
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC, srcC)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -1022,7 +1022,7 @@ Interface J : End Interface
             Dim srcC2 = "Partial Class C : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1045,7 +1045,7 @@ Interface J : End Interface
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC, srcC)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -1222,7 +1222,7 @@ End Interface
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -1425,7 +1425,7 @@ Partial Class C
 End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(semanticEdits:=
                     {
@@ -1474,7 +1474,7 @@ Partial Class C
 End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1512,7 +1512,7 @@ End Class
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1554,7 +1554,7 @@ Delegate Sub D()
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1589,7 +1589,7 @@ End Class
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1624,7 +1624,7 @@ End Interface
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1692,7 +1692,7 @@ End Interface
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1720,7 +1720,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1754,7 +1754,7 @@ Partial Class C
 End Class
 "
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -1791,7 +1791,7 @@ End Class
 "
             ' note that accessors are not updated since they do not have bodies
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -1874,7 +1874,7 @@ End Class
             editsA.VerifyEdits(
                 "Move [Class C : End Class]@14 -> @66")
 
-            Dim editsB = GetTopEdits(srcB1, srcB2)
+            Dim editsB = GetTopEdits(srcB1, srcB2, documentIndex:=1)
             editsB.VerifyEdits(
                 "Move [Class C : End Class]@66 -> @14")
 
@@ -2556,7 +2556,7 @@ End Class
             editsA.VerifyEdits(
                 "Move [Class C : End Class]@18 -> @70")
 
-            Dim editsB = GetTopEdits(srcB1, srcB2)
+            Dim editsB = GetTopEdits(srcB1, srcB2, documentIndex:=1)
             editsB.VerifyEdits(
                 "Move [Class C : End Class]@70 -> @18")
 
@@ -2999,7 +2999,7 @@ End Structure
             Dim srcB2 = "Partial Structure S : End Structure"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults()
@@ -3014,7 +3014,7 @@ End Structure
             Dim srcB2 = "Partial Structure S : End Structure"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         diagnostics:=
@@ -3033,7 +3033,7 @@ End Structure
             Dim srcB2 = "Partial Structure S : End Structure"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         diagnostics:={Diagnostic(RudeEditKind.Insert, "B = 2", FeaturesResources.enum_value)}),
@@ -3050,7 +3050,7 @@ End Structure
 
             ' delegate does not have any user-defined method body and this does not need a PDB update
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         ),
@@ -3066,7 +3066,7 @@ End Structure
             Dim srcB2 = "Partial Structure S : End Structure"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         diagnostics:=
@@ -3088,7 +3088,7 @@ End Structure
             Dim srcC2 = "Partial Structure S : Partial Class C" + vbCrLf + "Sub F2(x As Integer) : End Sub : End Class : End Structure"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -3114,7 +3114,7 @@ End Structure
             Dim srcC2 = "Partial Class C : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -3134,7 +3134,7 @@ End Structure
             Dim srcC2 = "Partial Class C : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -3158,7 +3158,7 @@ End Structure
             Dim srcC2 = "Partial Class C(Of T) : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -3188,7 +3188,7 @@ End Structure
             Dim srcD2 = "<B>Partial Class C" + vbCrLf + "Sub G() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2), GetTopEdits(srcD1, srcD2, documentIndex:=3)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -3221,7 +3221,7 @@ Class B : Inherits Attribute : End Class
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE, srcE)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2), GetTopEdits(srcD1, srcD2, documentIndex:=3), GetTopEdits(srcE, srcE, documentIndex:=4)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -3244,7 +3244,7 @@ Class B : Inherits Attribute : End Class
             Dim srcC2 = "Partial Class C" + vbCrLf + "Sub F(Optional y As Integer = 2) : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(diagnostics:={Diagnostic(RudeEditKind.InitializerUpdate, "Optional x As Integer = 2", FeaturesResources.parameter)}),
@@ -3269,7 +3269,7 @@ Class B : Inherits Attribute : End Class
             Dim srcF2 = "Partial Interface I : Partial Class C" + vbCrLf + "Overridable Sub N2()" + vbCrLf + "End Sub : End Class : End Interface" ' insert new virtual into new partial decl
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE1, srcE2), GetTopEdits(srcF1, srcF2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2), GetTopEdits(srcD1, srcD2, documentIndex:=3), GetTopEdits(srcE1, srcE2, documentIndex:=4), GetTopEdits(srcF1, srcF2, documentIndex:=5)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -3612,7 +3612,7 @@ Class B : Inherits Attribute : End Class
             Dim srcB2 = "Namespace M : Partial Class C : End Class : End Namespace : Namespace N : Partial Class C : End Class : End Namespace"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -3636,7 +3636,7 @@ Class B : Inherits Attribute : End Class
             Dim srcB2 = "Namespace M : Partial Class C : End Class : End Namespace : Namespace M : Partial Class C : End Class : End Namespace"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(diagnostics:=
                     {
@@ -3776,7 +3776,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -3801,7 +3801,7 @@ End Class
             Dim srcB2 = "Partial Class C : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -3820,7 +3820,7 @@ End Class
             Dim srcB2 = "Partial Class C" + vbCrLf + "Sub F() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -3839,7 +3839,7 @@ End Class
             Dim srcB2 = "Partial Class C" + vbCrLf + "Sub F(Of T)() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(diagnostics:=
@@ -3859,7 +3859,7 @@ End Class
 
             ' TODO better message
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(diagnostics:=
@@ -3906,7 +3906,7 @@ End Class
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         diagnostics:=
@@ -3925,7 +3925,7 @@ End Class
             Dim srcB2 = "Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -3977,7 +3977,7 @@ End Class
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -4017,7 +4017,7 @@ Partial Class C
 End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -4037,7 +4037,7 @@ End Class"
             Dim srcB2 = "Partial Class C" + vbCrLf + "Property P As Integer = 2 : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -4056,7 +4056,7 @@ End Class"
             Dim srcB2 = "Partial Class C" + vbCrLf + "Dim P As Integer = 1 : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -4075,7 +4075,7 @@ End Class"
             Dim srcB2 = "Partial Class C" + vbCrLf + "Dim P As Integer : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -4111,7 +4111,7 @@ Partial Class C
 End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -4146,7 +4146,7 @@ End Structure
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(semanticEdits:=
                     {
@@ -4185,7 +4185,7 @@ End Structure
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(semanticEdits:=
                     {
@@ -4224,7 +4224,7 @@ End Structure
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(diagnostics:=
                     {
@@ -4601,7 +4601,7 @@ Imports System.Runtime.InteropServices
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -5299,7 +5299,7 @@ End Interface
             Dim srcC2 = "partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -5319,7 +5319,7 @@ End Interface
             Dim srcC2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -5339,7 +5339,7 @@ End Interface
             ' TODO: should be an update edit since the location of the implementation changed
             ' semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"))}
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults()
@@ -5355,7 +5355,7 @@ End Interface
             Dim srcB2 = "Partial Class C : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -5375,7 +5375,7 @@ End Interface
             Dim srcB2 = "Partial Class C : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -5400,7 +5400,7 @@ End Interface
             Dim srcD2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1), GetTopEdits(srcC1, srcC2, documentIndex:=2), GetTopEdits(srcD1, srcD2, documentIndex:=3)},
                 {
                     DocumentResults(),
                     DocumentResults(),
@@ -5419,7 +5419,7 @@ End Interface
             Dim srcB2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -5437,7 +5437,7 @@ End Interface
             Dim srcB2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -5547,7 +5547,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -5781,7 +5781,7 @@ End Class
             Dim srcB2 = "Class C" & vbLf & "Dim x = 2 : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -5834,7 +5834,7 @@ End Class
 
             ' no change in document A
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -5867,7 +5867,7 @@ End Class
 
             ' no change in document B
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.Parameters.IsEmpty))}),
@@ -5936,7 +5936,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -5954,7 +5954,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         ),
@@ -5973,7 +5973,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         ),
@@ -5992,7 +5992,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -6010,7 +6010,7 @@ End Class
 
             ' delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed visibility
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -6028,7 +6028,7 @@ End Class
 
             ' delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed visibility
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -6047,7 +6047,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -6066,7 +6066,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -6085,7 +6085,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -6104,7 +6104,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -6123,7 +6123,7 @@ End Class
 
             ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -6148,7 +6148,7 @@ End Class
 
             ' delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed visibility
             VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         diagnostics:={Diagnostic(RudeEditKind.ChangingAccessibility, visibility & "Sub New()", FeaturesResources.constructor)}),
@@ -6481,7 +6481,7 @@ End Class
             Dim syntaxMapB = GetSyntaxMap(srcB1, srcB2)(0)
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -6547,7 +6547,7 @@ End Class
             ' The actual edits do not matter since there are semantic errors in the compilation.
             ' We just should not crash.
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(diagnostics:=Array.Empty(Of RudeEditDiagnosticDescription)())
@@ -6614,7 +6614,7 @@ Partial Class C
 End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -6653,7 +6653,7 @@ End Class
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -6694,7 +6694,7 @@ End Class
 "
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -6838,7 +6838,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("M.ExternSub"))})
@@ -7269,7 +7269,7 @@ End Class
             Dim srcB2 = "Partial Class C : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults()
@@ -8127,7 +8127,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -8151,7 +8151,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults()
@@ -8170,7 +8170,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
@@ -9127,7 +9127,7 @@ End Class
             Dim srcB2 = "Partial Class C : Private a, b As Byte : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(diagnostics:=
@@ -9146,7 +9146,7 @@ End Class
             Dim srcB2 = "Partial Class C : Private a As Integer = 1 : Private b As Integer = 2 : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -9165,7 +9165,7 @@ End Class
             Dim srcB2 = "Partial Class C : Dim F1(1, 3), F2? As Integer : End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(),
                     DocumentResults(semanticEdits:=
@@ -10388,7 +10388,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         semanticEdits:=
@@ -10837,7 +10837,7 @@ End Class
             Dim srcB2 = "Partial Class C" & vbLf & "End Class"
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2, documentIndex:=1)},
                 {
                     DocumentResults(
                         diagnostics:=
