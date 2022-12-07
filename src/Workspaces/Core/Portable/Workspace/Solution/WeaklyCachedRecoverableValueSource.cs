@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Host
             if (TryGetWeakValue(out var instance))
                 return instance;
 
-            // Otherwise, we're either holding the value strongly, or we need to recovery it from secondary storage.
+            // Otherwise, we're either holding the value strongly, or we need to recover it from secondary storage.
             using (Gate.DisposableWait(cancellationToken))
             {
                 if (!TryGetStrongOrWeakValue(out instance))
