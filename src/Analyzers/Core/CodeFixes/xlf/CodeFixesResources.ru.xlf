@@ -57,6 +57,11 @@
         <target state="translated">Сделать статическим</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="new">Make type partial</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
         <target state="translated">Удалите лишние пустые строки</target>

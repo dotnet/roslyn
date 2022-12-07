@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                                 .SelectAsArray(interpolation.Syntax.SyntaxTree.GetLocation);
         }
 
-        [return: NotNullIfNotNull("expression")]
+        [return: NotNullIfNotNull(nameof(expression))]
         private static IOperation? Unwrap(IOperation? expression, bool towardsParent = false)
         {
             while (true)

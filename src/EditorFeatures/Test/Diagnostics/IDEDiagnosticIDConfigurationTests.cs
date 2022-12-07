@@ -449,6 +449,9 @@ dotnet_diagnostic.IDE0260.severity = %value%
 # IDE0270
 dotnet_diagnostic.IDE0270.severity = %value%
 
+# IDE0280
+dotnet_diagnostic.IDE0280.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -1089,6 +1092,9 @@ csharp_style_pattern_matching_over_as_with_null_check = true
 
 # IDE0270, PreferCoalesceExpression
 dotnet_style_coalesce_expression = true
+
+# IDE0280
+No editorconfig based code style option
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

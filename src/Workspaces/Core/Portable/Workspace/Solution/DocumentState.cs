@@ -124,17 +124,7 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = await newTextSource.GetValueAsync(loadTextOptions, cancellationToken).ConfigureAwait(false);
-                var treeAndVersion = CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
-
-                // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
-                // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
-                // storage after the first time GetRoot (or GetRootAsync) is called. Since we know we are creating a
-                // RecoverableSyntaxTree for the purpose of avoiding problematic memory overhead, we call GetRoot
-                // immediately to force the object to weakly hold its data from the start.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1307180
-                await treeAndVersion.Tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-                return treeAndVersion;
+                return CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
             }
         }
 
@@ -150,17 +140,7 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = newTextSource.GetValue(loadTextOptions, cancellationToken);
-                var treeAndVersion = CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
-
-                // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
-                // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
-                // storage after the first time GetRoot (or GetRootAsync) is called. Since we know we are creating a
-                // RecoverableSyntaxTree for the purpose of avoiding problematic memory overhead, we call GetRoot
-                // immediately to force the object to weakly hold its data from the start.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1307180
-                treeAndVersion.Tree.GetRoot(cancellationToken);
-
-                return treeAndVersion;
+                return CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
             }
         }
 

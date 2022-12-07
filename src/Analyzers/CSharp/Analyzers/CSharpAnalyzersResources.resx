@@ -401,4 +401,7 @@
   <data name="Blank_line_not_allowed_after_arrow_expression_clause_token" xml:space="preserve">
     <value>Blank line not allowed after arrow expression clause token</value>
   </data>
+  <data name="Use_nameof" xml:space="preserve">
+    <value>Use 'nameof'</value>
+  </data>
 </root>
