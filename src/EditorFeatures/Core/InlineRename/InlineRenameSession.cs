@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
-            // Go to the background thread ofr initial calculation of the final solution
+            // Go to the background thread for initial calculation of the final solution
             await TaskScheduler.Default;
             var finalSolution = CalculateFinalSolutionSynchronously(newSolution, newSolution.Workspace, changedDocumentIDs, cancellationToken);
 
