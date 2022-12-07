@@ -51,7 +51,7 @@ namespace Roslyn.Test.Utilities
             TestOutputLspLogger = testOutputHelper != null ? new TestOutputLspLogger(testOutputHelper) : NoOpLspLogger.Instance;
         }
 
-        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
+        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
