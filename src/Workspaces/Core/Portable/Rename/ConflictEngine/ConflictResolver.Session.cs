@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
             private bool _replacementTextValid;
-            private List<ProjectId>? _topologicallySortedProjects;
             private bool _documentOfRenameSymbolHasBeenRenamed;
 
             public Session(
@@ -102,11 +101,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var documentsIdsToBeCheckedForConflict = await FindDocumentsAndPossibleNameConflictsAsync().ConfigureAwait(false);
                     var baseSolution = _renameLocationSet.Solution;
 
+                    var dependencyGraph = baseSolution.GetProjectDependencyGraph();
+                    var topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(_cancellationToken).ToList();
+
                     // Process rename one project at a time to improve caching and reduce syntax tree serialization.
-                    RoslynDebug.Assert(_topologicallySortedProjects != null);
                     var documentsGroupedByTopologicallySortedProjectId = documentsIdsToBeCheckedForConflict
                         .GroupBy(d => d.ProjectId)
-                        .OrderBy(g => _topologicallySortedProjects.IndexOf(g.Key));
+                        .OrderBy(g => topologicallySortedProjects.IndexOf(g.Key));
 
                     _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key));
                     var renamedSpansTracker = new RenamedSpansTracker();
@@ -694,8 +695,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     var symbol = _renameLocationSet.Symbol;
                     var solution = _renameLocationSet.Solution;
-                    var dependencyGraph = solution.GetProjectDependencyGraph();
-                    _topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(_cancellationToken).ToList();
 
                     var allRenamedDocuments = _renameLocationSet.Locations.Select(loc => loc.Location.SourceTree!).Distinct().Select(solution.GetRequiredDocument);
                     result.AddRange(allRenamedDocuments.Select(d => d.Id));
