@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Returns a version of this service whose apis can only be called on the UI thread.
         /// </summary>
-        public VisualStudioCodeWindowInfoService_OnlyCallOnUIThread GetServiceAndThrowIfNotOnUIThread()
+        public IVisualStudioCodeWindowInfoServiceUIThreadOperations GetServiceAndThrowIfNotOnUIThread()
         {
             _threadingContext.ThrowIfNotOnUIThread();
             return new VisualStudioCodeWindowInfoService_OnlyCallOnUIThread(this);
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// The apis is this class can only be called from the UI thread.
         /// </summary>
-        public sealed class VisualStudioCodeWindowInfoService_OnlyCallOnUIThread
+        private sealed class VisualStudioCodeWindowInfoService_OnlyCallOnUIThread : IVisualStudioCodeWindowInfoServiceUIThreadOperations
         {
             private readonly VisualStudioCodeWindowInfoService _service;
 
