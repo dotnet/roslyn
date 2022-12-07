@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // the order used for serialization of semantic tokens array.
             var capabilitiesVertex = new Capabilities(generator._idFactory,
                 HoverProvider, DeclarationProvider, DefinitionProvider, ReferencesProvider,
-                TypeDefinitionProvider, DocumentSymbolProvider, FoldingRangeProvider, DiagnosticProvider, SemanticTokenTypes.AllTypes);
+                TypeDefinitionProvider, DocumentSymbolProvider, FoldingRangeProvider, DiagnosticProvider, SemanticTokensHelpers.AllTokenTypes);
             generator._lsifJsonWriter.Write(capabilitiesVertex);
             return generator;
         }
@@ -365,26 +365,18 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             SourceText text,
             LsifDocument documentVertex)
         {
-            var ids = new Dictionary<string, int>();
-
-            // Create lookup table for semantic token types.
-            // Order must match the semantic tokens legend in capabilities.
-            for (var i = 0; i < SemanticTokenTypes.AllTypes.Count; i++)
-            {
-                ids[SemanticTokenTypes.AllTypes[i]] = i;
-            }
 
             // Compute colorization data.
             var data = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 document,
-                ids,
+                SemanticTokensHelpers.TokenTypeToIndex,
                 new LspProtocol.Range()
                 {
                     Start = new Position(0, 0),
                     End = new Position(text.Lines.Count - 1, text.Lines[text.Lines.Count - 1].EndIncludingLineBreak)
                 },
                 Classification.ClassificationOptions.Default,
-                includeSyntacticClassifications: false,
+                includeSyntacticClassifications: true,
             CancellationToken.None);
 
             var semanticTokensResult = new SemanticTokensResult(new SemanticTokens { Data = data }, idFactory);

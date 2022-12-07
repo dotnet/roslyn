@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 tokenTypeStr = classificationType;
             }
 
-            /*Contract.ThrowIfFalse(*/tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex);//, "No matching token type index found.");
+            Contract.ThrowIfFalse(tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex), "No matching token type index found.");
             return tokenTypeIndex;
         }
 
