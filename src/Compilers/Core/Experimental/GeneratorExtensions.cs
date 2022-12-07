@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Experimental
     {
         public static void RegisterHostOutput<TSource>(ref this IncrementalGeneratorInitializationContext @this, IncrementalValuesProvider<TSource> source, Action<HostProductionContext, TSource, CancellationToken> action)
         {
+            _ = @this;
             source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action));
         }
 
