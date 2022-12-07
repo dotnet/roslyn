@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalGeneratorOutputKind Kind => (IncrementalGeneratorOutputKind)0b100000; // several steps higher than IncrementalGeneratorOutputKind.Implementation
 
-        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
             string stepName = "HostOutput";
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
-            if (sourceTable.IsCached)
+            if (sourceTable.IsCached && previousTable is not null)
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
