@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var intermediateSolution = conflictResolution.OldSolution;
                     foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
                     {
-                        var conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
+                        var conflictLocations = ImmutableHashSet<ConflictLocationInfo>.Empty;
 
                         var documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(documentsByProject);
                         // Rename is going to be in 5 phases.
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 conflictLocations = conflictResolution.RelatedLocations
                                     .Where(loc => (documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference))
                                     .Select(loc => new ConflictLocationInfo(loc))
-                                    .ToSet();
+                                    .ToImmutableHashSet();
 
                                 // If there were no conflicting locations in references, then the first conflict phase has to be skipped.
                                 if (conflictLocations.Count == 0)
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 conflictLocations = conflictLocations.Concat(conflictResolution.RelatedLocations
                                     .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict)
                                     .Select(loc => new ConflictLocationInfo(loc)))
-                                    .ToSet();
+                                    .ToImmutableHashSet();
                             }
 
                             // Set the documents with conflicts that need to be processed in the next phase.
@@ -192,7 +192,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
                                     .Select(l => Tuple.Create(l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
 
-                                conflictLocations = conflictLocations.Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan))).ToSet();
+                                conflictLocations = conflictLocations
+                                    .Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan)))
+                                    .ToImmutableHashSet();
                             }
 
                             // Clean up side effects from rename before entering the next phase
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 IEnumerable<DocumentId> allDocumentIdsInProject,
                 ProjectId projectId,
                 MutableConflictResolution conflictResolution,
-                ISet<ConflictLocationInfo> conflictLocations)
+                ImmutableHashSet<ConflictLocationInfo> conflictLocations)
             {
                 try
                 {
