@@ -311,21 +311,21 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, int, TResult> indexer)
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, int, TResult> selector)
         {
-            // Create a builder for an immutable array.
-            var builder = ImmutableArray.CreateBuilder<TResult>();
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
 
-            // Add the elements from the source sequence.
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
             int index = 0;
             foreach (var element in source)
             {
-                builder.Add(indexer(element, index));
+                builder.Add(selector(element, index));
                 index++;
             }
 
-            // Return the immutable array.
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)

@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     attributes: default,
                     refKind: RefKind.Out,
                     isParams: false,
-                    type: semanticModel.GetTypeInfo(((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, cancellationToken).Type ?? 
-                        semanticModel.GetTypeInfo(positionalPattern.Subpatterns[i].Pattern, cancellationToken).Type,
+                    type: semanticModel.GetTypeInfo(((ConstantPatternSyntax)positionalPattern.Subpatterns[i].Pattern).Expression, cancellationToken).Type ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object),
                     name: name));
             }
             else
