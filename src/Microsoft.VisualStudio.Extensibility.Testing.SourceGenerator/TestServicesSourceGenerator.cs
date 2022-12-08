@@ -119,7 +119,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System;
     using System.ComponentModel.Design;
-    using System.Diagnostics;
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
@@ -236,11 +235,27 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             throw new NotSupportedException($""Unexpected version format: {versionProperty}"");
         }
+    }
+}
+";
 
+        private const string ShellInProcessVariantHelperSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System;
+    using System.Diagnostics;
+    using System.Runtime.InteropServices;
+
+    internal partial class ShellInProcess
+    {
         // Derived from System.Runtime.InteropServices.Variant
         // https://github.com/dotnet/runtime/blob/14c3a15145ef465f4f3a2e14270c930142249454/src/libraries/Common/src/System/Runtime/InteropServices/Variant.cs
         [StructLayout(LayoutKind.Explicit)]
-        internal partial struct VariantHelper
+        private partial struct VariantHelper
         {
             // Most of the data types in the VariantHelper are carried in _typeUnion
             [FieldOffset(0)] private TypeUnion _typeUnion;
@@ -1307,6 +1322,7 @@ namespace Microsoft.VisualStudio
                 context.AddSource($"EditorInProcess1{SourceSuffix}", EditorInProcessSource);
                 context.AddSource($"SolutionExplorerInProcess1{SourceSuffix}", SolutionExplorerInProcessSource);
                 context.AddSource($"ShellInProcess1{SourceSuffix}", ShellInProcessSource);
+                context.AddSource($"ShellInProcess.VariantHelper{SourceSuffix}", ShellInProcessVariantHelperSource);
                 context.AddSource($"WorkspaceInProcess1{SourceSuffix}", WorkspaceInProcessSource);
                 context.AddSource($"TestServiceAttribute{SourceSuffix}", TestServiceAttributeSource);
             });
