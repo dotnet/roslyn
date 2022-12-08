@@ -205,8 +205,11 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
         {
-            var newVersion = GetNewerVersion();
-            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, FilePath);
+            // Intentionally do not hold onto the new version into this TextAndVersion ourselves. While we are making a
+            // fresh TextAndVersion, when we call into UpdateText it might be that we end up pointing at a different
+            // instance corresponding to another file linked with us that shares this same SourceText.  In this fashion,
+            // all files that are linked together will have the same corresponding SourceText and Version.
+            var newTextAndVersion = TextAndVersion.Create(newText, GetNewerVersion(), FilePath);
 
             return UpdateText(newTextAndVersion, mode);
         }
