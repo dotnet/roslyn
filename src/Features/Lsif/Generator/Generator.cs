@@ -71,9 +71,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             return generator;
         }
 
-        public async Task GenerateForProjectAsync(Project project, GeneratorOptions options)
+        public async Task GenerateForProjectAsync(
+            Project project,
+            GeneratorOptions options,
+            CancellationToken cancellationToken)
         {
-            var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var projectPath = project.FilePath;
             Contract.ThrowIfNull(projectPath);
 
@@ -121,7 +124,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
                     // is preserved.
                     var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                    var documentId = await GenerateForDocumentAsync(document, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
+                    var documentId = await GenerateForDocumentAsync(
+                        document, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory, cancellationToken).ConfigureAwait(false);
                     topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
                     documentWriter.FlushToUnderlyingAndEmpty();
 
@@ -154,9 +158,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
-            IdFactory idFactory)
+            IdFactory idFactory,
+            CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document).ConfigureAwait(false);
 
@@ -164,8 +169,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
-            await GenerateDocumentSymbolsAsync(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory).ConfigureAwait(false);
-            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory).ConfigureAwait(false);
+            await GenerateDocumentSymbolsAsync(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, cancellationToken).ConfigureAwait(false);
+            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken).ConfigureAwait(false);
 
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
             GC.KeepAlive(semanticModel);
@@ -178,10 +183,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             LsifDocument documentVertex,
             GeneratorOptions options,
             ILsifJsonWriter lsifJsonWriter,
-            IdFactory idFactory)
+            IdFactory idFactory,
+            CancellationToken cancellationToken)
         {
             var foldingRanges = await FoldingRangesHandler.GetFoldingRangesAsync(
-                document, options.BlockStructureOptions, CancellationToken.None).ConfigureAwait(false);
+                document, options.BlockStructureOptions, cancellationToken).ConfigureAwait(false);
             var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
             lsifJsonWriter.Write(foldingRangeResult);
             lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
@@ -193,11 +199,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
-            IdFactory idFactory)
+            IdFactory idFactory,
+            CancellationToken cancellationToken)
         {
             var languageServices = document.Project.Services;
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxTree = semanticModel.SyntaxTree;
             var sourceText = semanticModel.SyntaxTree.GetText();
@@ -246,7 +253,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     return rangeVertex;
                 }, LazyThreadSafetyMode.None);
 
-                var declaredSymbol = semanticFactsService.GetDeclaredSymbol(semanticModel, syntaxToken, CancellationToken.None);
+                var declaredSymbol = semanticFactsService.GetDeclaredSymbol(semanticModel, syntaxToken, cancellationToken);
                 ISymbol? referencedSymbol = null;
 
                 if (syntaxFactsService.IsBindableToken(syntaxToken))
@@ -335,7 +342,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
                         var hover = await HoverHandler.GetHoverAsync(
-                            document, syntaxToken.SpanStart, options.SymbolDescriptionOptions, LspClientCapabilities, CancellationToken.None);
+                            document, syntaxToken.SpanStart, options.SymbolDescriptionOptions, LspClientCapabilities, cancellationToken);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);
