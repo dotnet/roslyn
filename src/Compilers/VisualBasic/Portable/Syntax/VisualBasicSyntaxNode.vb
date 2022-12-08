@@ -110,12 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ConditionalDirectiveKind As Integer
-            Get
-                Return SyntaxKind.IfDirectiveTrivia
-            End Get
-        End Property
-
         ''' <summary>
         ''' The parent of this node.
         ''' </summary>
