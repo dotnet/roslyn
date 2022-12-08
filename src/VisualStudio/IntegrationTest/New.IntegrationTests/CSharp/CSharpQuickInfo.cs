@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/65840")]
+        [IdeFact]
         public async Task QuickInfo_MetadataDocumentation()
         {
             await SetUpEditorAsync(@"
@@ -40,7 +40,7 @@ class Program
                 quickInfo);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/65840"), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public async Task QuickInfo_Documentation()
         {
             await SetUpEditorAsync(@"
@@ -56,7 +56,7 @@ class Program$$
             Assert.Equal("class Program\r\nHello!", quickInfo);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/65840"), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public async Task International()
         {
             await SetUpEditorAsync(@"
@@ -76,7 +76,7 @@ class العربية123
 This is an XML doc comment defined in code.", quickInfo);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/65840"), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public async Task SectionOrdering()
         {
             await SetUpEditorAsync(@"

@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/65840")]
+        [IdeFact]
         public async Task QuickInfo1()
         {
             await SetUpEditorAsync(@"
@@ -36,7 +36,7 @@ End Class", HangMitigatingCancellationToken);
             Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", quickInfo);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/65840")]
+        [IdeFact]
         public async Task International()
         {
             await SetUpEditorAsync(@"
