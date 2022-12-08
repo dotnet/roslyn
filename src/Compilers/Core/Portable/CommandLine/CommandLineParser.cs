@@ -844,7 +844,6 @@ namespace Microsoft.CodeAnalysis
                 length -= offset;
             }
 
-
             if (length >= 1)
             {
                 filePath = RemoveQuotesAndSlashes(parts[offset + 0]);

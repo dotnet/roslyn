@@ -33,26 +33,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using s = delegate*<void>;");
 
             comp.VerifyDiagnostics(
-                // (2,26): error CS8805: Program using top-level statements must be an executable.
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, ";").WithLocation(2, 26),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1),
                 // (2,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
-                // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,26): error CS1001: Identifier expected
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 26),
                 // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
-
-                // See same-named test in TopLevelStatementsParsingTests, there is a single top-level statement in the tree and it is an empty statement.
-                // (2,26): error CS8937: At least one top-level statement must be non-empty.
+                // (2,11): error CS8805: Program using top-level statements must be an executable.
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "delegate*<void>;").WithLocation(2, 11),
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1)
             );
         }
 
@@ -3307,8 +3305,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
             comp.VerifyDiagnostics(
                 // (7,9): error CS8370: Feature 'function pointers' is not available in C# 7.3. Please use language version 9.0 or greater.
                 //         delegate*<void> ptr = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(7, 9)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate").WithArguments("function pointers", "9.0").WithLocation(7, 9));
         }
 
         [Fact]

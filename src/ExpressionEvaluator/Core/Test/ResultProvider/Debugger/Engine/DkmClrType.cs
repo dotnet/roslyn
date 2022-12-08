@@ -129,9 +129,9 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 if (_lazyGenericArguments == null)
                 {
                     var typeArgs = _lmrType.GetGenericArguments();
-                    var genericArgs = (typeArgs.Length == 0) ?
-                        s_emptyTypes :
-                        new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(_appDomain, t)).ToArray());
+                    var genericArgs = (typeArgs.Length == 0)
+                        ? s_emptyTypes
+                        : new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(_appDomain, t)).ToArray());
                     Interlocked.CompareExchange(ref _lazyGenericArguments, genericArgs, null);
                 }
                 return _lazyGenericArguments;

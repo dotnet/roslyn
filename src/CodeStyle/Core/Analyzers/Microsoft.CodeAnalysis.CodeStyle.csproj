@@ -8,6 +8,9 @@
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
+
+    <!-- Package used for symbol publishing. The assembly ships in analyzer packages Microsoft.CodeAnalysis.(CSharp|VisualBasic).CodeStyle -->
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />

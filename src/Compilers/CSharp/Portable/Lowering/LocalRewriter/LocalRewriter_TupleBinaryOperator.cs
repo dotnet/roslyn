@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }:
                     // This conversion can be performed lazily, but need not be saved.  It is treated as non-side-effecting.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
-                case BoundConversion { Conversion: { Kind: var conversionKind } conversion } bc when conversionMustBePerformedOnOriginalExpression(bc, conversionKind):
+                case BoundConversion { Conversion: { Kind: var conversionKind } conversion } when conversionMustBePerformedOnOriginalExpression(conversionKind):
                     // Some conversions cannot be performed on a copy of the argument and must be done early.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
                 case BoundConversion { Conversion: { IsUserDefined: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit:
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
             }
 
-            bool conversionMustBePerformedOnOriginalExpression(BoundConversion expr, ConversionKind kind)
+            bool conversionMustBePerformedOnOriginalExpression(ConversionKind kind)
             {
                 // These are conversions from-expression that
                 // must be performed on the original expression, not on a copy of it.
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Produces:
             //     ... logical expression using leftValue and rightValue ...
-            BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, temps, innerEffects, operatorKind);
+            BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, temps, operatorKind);
 
             // Produces:
             //     leftValue = left.GetValueOrDefault(); (or left if !leftNullable)
@@ -469,7 +469,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-
             BoundExpression MakeBoundConversion(BoundExpression expr, Conversion conversion, TypeWithAnnotations type, BoundConversion enclosing)
             {
                 return new BoundConversion(
@@ -484,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteNonNullableNestedTupleOperators(TupleBinaryOperatorInfo.Multiple operators,
             BoundExpression left, BoundExpression right, TypeSymbol type,
-            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects, BinaryOperatorKind operatorKind)
+            ArrayBuilder<LocalSymbol> temps, BinaryOperatorKind operatorKind)
         {
             ImmutableArray<TupleBinaryOperatorInfo> nestedOperators = operators.Operators;
 

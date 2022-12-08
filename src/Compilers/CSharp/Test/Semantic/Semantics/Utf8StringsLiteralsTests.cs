@@ -65,6 +65,100 @@ class C
         }
 
         [Fact]
+        public void ImplicitConversions_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+    }
+
+    static byte[] Test1() => ""hello""U8;
+    static Span<byte> Test2() => ""dog""U8;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (9,30): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'byte[]'
+                //     static byte[] Test1() => "hello"U8;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""U8").WithArguments("System.ReadOnlySpan<byte>", "byte[]").WithLocation(9, 30),
+                // (10,34): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'System.Span<byte>'
+                //     static Span<byte> Test2() => "dog"U8;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""dog""U8").WithArguments("System.ReadOnlySpan<byte>", "System.Span<byte>").WithLocation(10, 34)
+                );
+        }
+
+        [Fact]
+        public void ImplicitConversions_03()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+    }
+
+    const string nullConstant = null; 
+    static byte[] Test1() => nullConstant;
+    static Span<byte> Test2() => nullConstant;
+    static ReadOnlySpan<byte> Test3() => nullConstant;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,30): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
+                //     static byte[] Test1() => nullConstant;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "nullConstant").WithArguments("string", "byte[]").WithLocation(10, 30),
+                // (11,34): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<byte>'
+                //     static Span<byte> Test2() => nullConstant;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "nullConstant").WithArguments("string", "System.Span<byte>").WithLocation(11, 34),
+                // (12,42): error CS0029: Cannot implicitly convert type 'string' to 'System.ReadOnlySpan<byte>'
+                //     static ReadOnlySpan<byte> Test3() => nullConstant;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "nullConstant").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(12, 42)
+                );
+        }
+
+        [Fact]
+        public void ImplicitConversions_04()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+    }
+
+    const object nullConstant = null; 
+    static byte[] Test1() => nullConstant;
+    static Span<byte> Test2() => nullConstant;
+    static ReadOnlySpan<byte> Test3() => nullConstant;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,30): error CS0266: Cannot implicitly convert type 'object' to 'byte[]'. An explicit conversion exists (are you missing a cast?)
+                //     static byte[] Test1() => nullConstant;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "byte[]").WithLocation(10, 30),
+                // (11,34): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<byte>'. An explicit conversion exists (are you missing a cast?)
+                //     static Span<byte> Test2() => nullConstant;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.Span<byte>").WithLocation(11, 34),
+                // (11,34): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<byte>'. An explicit conversion exists (are you missing a cast?)
+                //     static Span<byte> Test2() => nullConstant;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.Span<byte>").WithLocation(11, 34),
+                // (12,42): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<byte>'. An explicit conversion exists (are you missing a cast?)
+                //     static ReadOnlySpan<byte> Test3() => nullConstant;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.ReadOnlySpan<byte>").WithLocation(12, 42),
+                // (12,42): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<byte>'. An explicit conversion exists (are you missing a cast?)
+                //     static ReadOnlySpan<byte> Test3() => nullConstant;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.ReadOnlySpan<byte>").WithLocation(12, 42)
+                );
+        }
+
+        [Fact]
         public void ImplicitConversions_TupleLiteral_01()
         {
             var source = @"
@@ -140,6 +234,91 @@ class C
                 // (9,28): error CS0030: Cannot convert type 'string' to 'System.ReadOnlySpan<byte>'
                 //         var readonlySpan = (ReadOnlySpan<byte>)"cat";
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(ReadOnlySpan<byte>)""cat""").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(9, 28)
+                );
+        }
+
+        [Fact]
+        public void ExplicitConversions_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var array = (byte[])""hello""u8;
+        var span = (Span<byte>)""dog""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0030: Cannot convert type 'System.ReadOnlySpan<byte>' to 'byte[]'
+                //         var array = (byte[])"hello"u8;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(byte[])""hello""u8").WithArguments("System.ReadOnlySpan<byte>", "byte[]").WithLocation(7, 21),
+                // (8,20): error CS0030: Cannot convert type 'System.ReadOnlySpan<byte>' to 'System.Span<byte>'
+                //         var span = (Span<byte>)"dog"u8;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(Span<byte>)""dog""u8").WithArguments("System.ReadOnlySpan<byte>", "System.Span<byte>").WithLocation(8, 20)
+                );
+        }
+
+        [Fact]
+        public void ExplicitConversions_03()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        const string nullConstant = null;
+        var array = (byte[])nullConstant;
+        var span = (Span<byte>)nullConstant;
+        var readonlySpan = (ReadOnlySpan<byte>)nullConstant;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0030: Cannot convert type 'string' to 'byte[]'
+                //         var array = (byte[])nullConstant;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(byte[])nullConstant").WithArguments("string", "byte[]").WithLocation(8, 21),
+                // (9,20): error CS0030: Cannot convert type 'string' to 'System.Span<byte>'
+                //         var span = (Span<byte>)nullConstant;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<byte>)nullConstant").WithArguments("string", "System.Span<byte>").WithLocation(9, 20),
+                // (10,28): error CS0030: Cannot convert type 'string' to 'System.ReadOnlySpan<byte>'
+                //         var readonlySpan = (ReadOnlySpan<byte>)nullConstant;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<byte>)nullConstant").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(10, 28)
+                );
+        }
+
+        [Fact]
+        public void ExplicitConversions_04()
+        {
+            var source = @"#pragma warning disable CS0219 // The variable is assigned but its value is never used
+using System;
+class C
+{
+    static void Main()
+    {
+        const object nullConstant = null;
+        var array = (byte[])nullConstant;
+        var span = (Span<byte>)nullConstant;
+        var readonlySpan = (ReadOnlySpan<byte>)nullConstant;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (9,20): error CS0457: Ambiguous user defined conversions 'Span<byte>.implicit operator Span<byte>(ArraySegment<byte>)' and 'Span<byte>.implicit operator Span<byte>(byte[]?)' when converting from 'object' to 'Span<byte>'
+                //         var span = (Span<byte>)nullConstant;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(Span<byte>)nullConstant").WithArguments("System.Span<byte>.implicit operator System.Span<byte>(System.ArraySegment<byte>)", "System.Span<byte>.implicit operator System.Span<byte>(byte[]?)", "object", "System.Span<byte>").WithLocation(9, 20),
+                // (10,28): error CS0457: Ambiguous user defined conversions 'ReadOnlySpan<byte>.implicit operator ReadOnlySpan<byte>(ArraySegment<byte>)' and 'ReadOnlySpan<byte>.implicit operator ReadOnlySpan<byte>(byte[]?)' when converting from 'object' to 'ReadOnlySpan<byte>'
+                //         var readonlySpan = (ReadOnlySpan<byte>)nullConstant;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(ReadOnlySpan<byte>)nullConstant").WithArguments("System.ReadOnlySpan<byte>.implicit operator System.ReadOnlySpan<byte>(System.ArraySegment<byte>)", "System.ReadOnlySpan<byte>.implicit operator System.ReadOnlySpan<byte>(byte[]?)", "object", "System.ReadOnlySpan<byte>").WithLocation(10, 28)
                 );
         }
 
@@ -2339,6 +2518,36 @@ class C
                 // (10,28): warning CS0219: The variable 'x3' is assigned but its value is never used
                 //         ReadOnlySpan<byte> x3 = "125"U8;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(10, 28)
+                );
+        }
+
+        [Fact]
+        public void NotConstant_01()
+        {
+            var source = @"#pragma warning disable CS0219 // The variable 'y' is assigned but its value is never used
+using System;
+class C
+{
+    const ReadOnlySpan<byte> x = ""07""U8;
+
+    static void Main()
+    {
+        const ReadOnlySpan<byte> y = ""08""U8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,11): error CS8345: Field or auto-implemented property cannot be of type 'ReadOnlySpan<byte>' unless it is an instance member of a ref struct.
+                //     const ReadOnlySpan<byte> x = "07"U8;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<byte>").WithArguments("System.ReadOnlySpan<byte>").WithLocation(5, 11),
+                // (5,34): error CS0133: The expression being assigned to 'C.x' must be constant
+                //     const ReadOnlySpan<byte> x = "07"U8;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""07""U8").WithArguments("C.x").WithLocation(5, 34),
+                // (9,15): error CS0283: The type 'ReadOnlySpan<byte>' cannot be declared const
+                //         const ReadOnlySpan<byte> y = "08"U8;
+                Diagnostic(ErrorCode.ERR_BadConstType, "ReadOnlySpan<byte>").WithArguments("System.ReadOnlySpan<byte>").WithLocation(9, 15)
                 );
         }
 

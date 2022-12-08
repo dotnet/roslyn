@@ -1489,7 +1489,7 @@ Class Program
     Private Sub M(d As Derived)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         M([||]new Base)
     End Sub
 End Class")
@@ -1516,7 +1516,7 @@ Class Program
     Private Sub M(d As Derived)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         M([||]new Test)
     End Sub
 End Class",
@@ -1538,7 +1538,7 @@ Class Program
     Private Sub M(d As Derived)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         M(CType(new Test, Derived))
     End Sub
 End Class")
@@ -1559,7 +1559,7 @@ Class Program
     Private Sub M(d As Julia)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         M([||]new Base)
     End Sub
 End Class")
@@ -1586,7 +1586,7 @@ Class Program
     Private Sub M(d As Derived)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         M([||]new Test)
     End Sub
 End Class",
@@ -1608,7 +1608,7 @@ Class Program
     Private Sub M(d As Derived)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         M(CType(new Test, Derived))
     End Sub
 End Class")
@@ -1629,7 +1629,7 @@ Class Program
         Implements Base1, Base2
     End Class
 
-    Private Sub Foo(ByRef b As Base2)
+    Private Sub Goo(ByRef b As Base2)
         Dim d As Derived = [||]b
     End Sub
 End Class",
@@ -1645,7 +1645,7 @@ Class Program
         Implements Base1, Base2
     End Class
 
-    Private Sub Foo(ByRef b As Base2)
+    Private Sub Goo(ByRef b As Base2)
         Dim d As Derived = CType(b, Derived)
     End Sub
 End Class")
@@ -1670,7 +1670,7 @@ Class Program
         Inherits Derived1
     End Class
 
-    Private Sub Foo(ByRef b As Base2)
+    Private Sub Goo(ByRef b As Base2)
         Dim d As Derived2 = [||]b
     End Sub
 End Class",
@@ -1690,7 +1690,7 @@ Class Program
         Inherits Derived1
     End Class
 
-    Private Sub Foo(ByRef b As Base2)
+    Private Sub Goo(ByRef b As Base2)
         Dim d As Derived2 = CType(b, Derived2)
     End Sub
 End Class")
@@ -1708,7 +1708,7 @@ Class Program
         Implements Base1
     End Interface
 
-    Private Function Foo(ByRef b As Base1) As Base2
+    Private Function Goo(ByRef b As Base1) As Base2
         Return b[||]
     End Function
 End Class",
@@ -1721,7 +1721,7 @@ Class Program
         Implements Base1
     End Interface
 
-    Private Function Foo(ByRef b As Base1) As Base2
+    Private Function Goo(ByRef b As Base1) As Base2
         Return CType(b, Base2)
     End Function
 End Class")
@@ -1739,7 +1739,7 @@ Class Program
         Implements Base1
     End Interface
 
-    Private Sub Foo(ByRef b As Base1)
+    Private Sub Goo(ByRef b As Base1)
         Dim b2 As Base2 = b[||]
     End Sub
 End Class",
@@ -1752,7 +1752,7 @@ Class Program
         Implements Base1
     End Interface
 
-    Private Sub Foo(ByRef b As Base1)
+    Private Sub Goo(ByRef b As Base1)
         Dim b2 As Base2 = CType(b, Base2)
     End Sub
 End Class")
@@ -1781,11 +1781,11 @@ Class Program
         Inherits Derived1
     End Class
 
-    Private Sub Foo(ByRef b As Derived2)
+    Private Sub Goo(ByRef b As Derived2)
     End Sub
 
     Private Sub M(ByRef b As Base1)
-        Foo([||]b)
+        Goo([||]b)
     End Sub
 End Class",
 "Option Strict On
@@ -1808,11 +1808,11 @@ Class Program
         Inherits Derived1
     End Class
 
-    Private Sub Foo(ByRef b As Derived2)
+    Private Sub Goo(ByRef b As Derived2)
     End Sub
 
     Private Sub M(ByRef b As Base1)
-        Foo(CType(b, Derived2))
+        Goo(CType(b, Derived2))
     End Sub
 End Class")
         End Function
@@ -1857,7 +1857,7 @@ Class Program
         Implements A(Of T)
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As B(Of IB) = New B(Of IB)
         Dim c1 As A(Of IA) = b[||]
     End Sub
@@ -1883,7 +1883,7 @@ Class Program
         Implements A(Of T, U)
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As B(Of CB, Integer) = New B(Of CB, Integer)
         Dim c1 As A(Of IA, String) = b[||]
     End Sub
@@ -1904,7 +1904,7 @@ Class Program
         Implements A(Of T, U)
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As B(Of CB, Integer) = New B(Of CB, Integer)
         Dim c1 As A(Of IA, String) = CType(b, A(Of IA, String))
     End Sub
@@ -1960,7 +1960,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim func As Func(Of Derived, Derived) = Function(d) d
         Dim b As Base
         Dim b2 As Base = func(b[||])
@@ -1977,7 +1977,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim func As Func(Of Derived, Derived) = Function(d) d
         Dim b As Base
         Dim b2 As Base = func(CType(b, Derived))
@@ -1999,7 +1999,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim func As Func(Of Base, Base) = Function(d) d
         Dim b As Base
         Dim b2 As Derived = [||]func(b)
@@ -2016,7 +2016,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim func As Func(Of Base, Base) = Function(d) d
         Dim b As Base
         Dim b2 As Derived = CType(func(b), Derived)
@@ -2038,7 +2038,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Function Foo() As Derived
+    Private Function Goo() As Derived
         Dim func As Func(Of Base, Base) = Function(d) d
         Dim b As Base
         Return [||]func(b)
@@ -2055,7 +2055,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Function Foo() As Derived
+    Private Function Goo() As Derived
         Dim func As Func(Of Base, Base) = Function(d) d
         Dim b As Base
         Return CType(func(b), Derived)
@@ -2077,7 +2077,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Shared Function Foo() As Action(Of Base)
+    Private Shared Function Goo() As Action(Of Base)
         Return [|Sub(ByVal b As Derived)
                    Console.WriteLine()
                End Sub|]
@@ -2094,7 +2094,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Shared Function Foo() As Action(Of Base)
+    Private Shared Function Goo() As Action(Of Base)
         Return CType(Sub(ByVal b As Derived)
                    Console.WriteLine()
                End Sub, Action(Of Base))
@@ -2119,7 +2119,7 @@ Class Program
     Private Sub M(ByVal d As Derived, ByVal action As Action(Of Derived))
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base = New Derived()
         M([||]b, Sub(ByVal d As Derived)
              End Sub)
@@ -2139,7 +2139,7 @@ Class Program
     Private Sub M(ByVal d As Derived, ByVal action As Action(Of Derived))
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base = New Derived()
         M(CType(b, Derived), Sub(ByVal d As Derived)
              End Sub)
@@ -2164,7 +2164,7 @@ Class Program
     Private Sub M(ByVal d As Derived, ByRef action As Action(Of Derived))
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base = New Derived()
         M(b[||], Sub(ByRef d As Base)
              End Sub)
@@ -2188,7 +2188,7 @@ Class Program
     Private Shared Sub M(ByVal d As Derived, ParamArray action As Action(Of Derived)())
     End Sub
 
-    Private Shared Sub Foo()
+    Private Shared Sub Goo()
         Dim b1 As Base = New Derived()
         Dim action As Action(Of Derived) = Sub(b)
                                            End Sub
@@ -2208,7 +2208,7 @@ Class Program
     Private Shared Sub M(ByVal d As Derived, ParamArray action As Action(Of Derived)())
     End Sub
 
-    Private Shared Sub Foo()
+    Private Shared Sub Goo()
         Dim b1 As Base = New Derived()
         Dim action As Action(Of Derived) = Sub(b)
                                            End Sub
@@ -2217,7 +2217,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        <Fact>
         Public Async Function RedundantCast1() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2229,7 +2229,7 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base
         Dim d As Derived = [||]CType(b, Base)
     End Sub
@@ -2243,14 +2243,14 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base
         Dim d As Derived = CType(b, Derived)
     End Sub
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        <Fact>
         Public Async Function RedundantCast2() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2266,7 +2266,7 @@ Class Program
         Inherits Derived1
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base
         Dim d As Derived2 = [||]CType(b, Derived1)
     End Sub
@@ -2284,14 +2284,14 @@ Class Program
         Inherits Derived1
     End Class
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base
         Dim d As Derived2 = CType(b, Derived2)
     End Sub
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        <Fact>
         Public Async Function RedundantCast3() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2306,7 +2306,7 @@ Class Program
     Private Sub M(ByVal d As Derived)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base
         M([||]CType(b, Base))
     End Sub
@@ -2323,16 +2323,17 @@ Class Program
     Private Sub M(ByVal d As Derived)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base
         M(CType(b, Derived))
     End Sub
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        <Fact>
         Public Async Function RedundantCast4() As Task
-            Await TestInRegularAndScriptAsync(
+            ' Currently not offered, but could be allowed in the future.
+            Await TestMissingAsync(
 "Option Strict On
 Class Program
     Class Base
@@ -2349,30 +2350,9 @@ Class Program
     Private Sub M(ByRef d As Derived2)
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Dim b As Base
         M([||]CType(b, Derived1))
-    End Sub
-End Class",
-"Option Strict On
-Class Program
-    Class Base
-    End Class
-
-    Class Derived1
-        Inherits Base
-    End Class
-
-    Class Derived2
-        Inherits Base
-    End Class
-
-    Private Sub M(ByRef d As Derived2)
-    End Sub
-
-    Private Sub Foo()
-        Dim b As Base
-        M(CType(b, Derived2))
     End Sub
 End Class")
         End Function
@@ -2394,7 +2374,7 @@ Class Program
     Private Shared Sub M(ByVal d As Derived, ParamArray action As Action(Of Derived)())
     End Sub
 
-    Private Shared Sub Foo()
+    Private Shared Sub Goo()
         Dim b1 As Base = New Derived()
         Dim list() As Action(Of Derived) = {}
         Dim action As Action(Of Derived) = Sub(b)
@@ -2441,15 +2421,15 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByVal i As Integer)
+    Private Sub Goo(ByVal s As String, ByVal i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        [||]Foo("""", b)
+        [||]Goo("""", b)
     End Sub
 End Class",
 "Option Strict On
@@ -2461,15 +2441,15 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByVal i As Integer)
+    Private Sub Goo(ByVal s As String, ByVal i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo("""", CType(b, Derived))
+        Goo("""", CType(b, Derived))
     End Sub
 End Class")
         End Function
@@ -2486,15 +2466,15 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo("""", [||]b, 1)
+        Goo("""", [||]b, 1)
     End Sub
 End Class",
 "Option Strict On
@@ -2506,15 +2486,15 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo("""", CType(b, Derived), 1)
+        Goo("""", CType(b, Derived), 1)
     End Sub
 End Class")
         End Function
@@ -2531,12 +2511,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        [|Foo("""", b)|]
+        [|Goo("""", b)|]
     End Sub
 End Class",
 "Option Strict On
@@ -2548,12 +2528,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo("""", CType(b, Derived))
+        Goo("""", CType(b, Derived))
     End Sub
 End Class")
         End Function
@@ -2570,12 +2550,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        [|Foo("""", b, 1, 2, 3)|]
+        [|Goo("""", b, 1, 2, 3)|]
     End Sub
 End Class",
 "Option Strict On
@@ -2587,12 +2567,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo("""", CType(b, Derived), 1, 2, 3)
+        Goo("""", CType(b, Derived), 1, 2, 3)
     End Sub
 End Class")
         End Function
@@ -2609,13 +2589,13 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Derived())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Derived())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim d As Derived = New Derived()
-        [|Foo("""", d, b, b)|]
+        [|Goo("""", d, b, b)|]
     End Sub
 End Class",
 "Option Strict On
@@ -2627,13 +2607,13 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Derived())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Derived())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim d As Derived = New Derived()
-        Foo("""", d, CType(b, Derived), b)
+        Goo("""", d, CType(b, Derived), b)
     End Sub
 End Class")
         End Function
@@ -2650,12 +2630,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived)
+    Private Sub Goo(ByVal s As String, ByVal d As Derived)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        [|Foo(b, """")|]
+        [|Goo(b, """")|]
     End Sub
 End Class")
         End Function
@@ -2672,12 +2652,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived, i As Integer)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived, i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        [|Foo("""", d:=b, 1)|]
+        [|Goo("""", d:=b, 1)|]
     End Sub
 End Class",
 "Option Strict On
@@ -2689,12 +2669,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived, i As Integer)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived, i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo("""", d:=CType(b, Derived), 1)
+        Goo("""", d:=CType(b, Derived), 1)
     End Sub
 End Class")
         End Function
@@ -2711,13 +2691,13 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim strlist = New String(0) {}
-        [|Foo("""", d:=b, strlist)|]
+        [|Goo("""", d:=b, strlist)|]
     End Sub
 End Class",
 "Option Strict On
@@ -2729,13 +2709,13 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim strlist = New String(0) {}
-        Foo("""", d:=CType(b, Derived), strlist)
+        Goo("""", d:=CType(b, Derived), strlist)
     End Sub
 End Class")
         End Function
@@ -2752,13 +2732,13 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim strlist = New String(0) {}
-        [|Foo("""", d:=b, list:=strlist)|]
+        [|Goo("""", d:=b, list:=strlist)|]
     End Sub
 End Class")
         End Function
@@ -2775,13 +2755,13 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim strlist = New String(0) {}
-        [|Foo("""", d:=b, )|]
+        [|Goo("""", d:=b, )|]
     End Sub
 End Class")
         End Function
@@ -2798,12 +2778,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, i As Integer)
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        [|Foo(d:=b, """", 1)|]
+        [|Goo(d:=b, """", 1)|]
     End Sub
 End Class")
         End Function
@@ -2820,12 +2800,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, i As Integer)
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        [|Foo("""", i:=1, d:=b)|]
+        [|Goo("""", i:=1, d:=b)|]
     End Sub
 End Class",
 "Option Strict On
@@ -2837,12 +2817,12 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, i As Integer)
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo("""", i:=1, d:=CType(b, Derived))
+        Goo("""", i:=1, d:=CType(b, Derived))
     End Sub
 End Class")
         End Function
@@ -2859,13 +2839,13 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim strlist = New String(0) {}
-        [|Foo(s:="""", d:=b, strlist)|]
+        [|Goo(s:="""", d:=b, strlist)|]
     End Sub
 End Class",
 "Option Strict On
@@ -2877,13 +2857,13 @@ Class Program
         Inherits Base
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    Private Sub Goo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim strlist = New String(0) {}
-        Foo(s:="""", d:=CType(b, Derived), strlist)
+        Goo(s:="""", d:=CType(b, Derived), strlist)
     End Sub
 End Class")
         End Function
@@ -3138,16 +3118,16 @@ Class Program
         Inherits Derived
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal j As Integer, ByVal i As Integer, ByVal d As Derived)
+    Private Sub Goo(ByVal s As String, ByVal j As Integer, ByVal i As Integer, ByVal d As Derived)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByVal i As Integer, ByVal d As Derived2)
+    Private Sub Goo(ByVal s As String, ByVal i As Integer, ByVal d As Derived2)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim strlist = New String(0) {}
-        [|Foo("""", 1, i:=1, d:=b)|]
+        [|Goo("""", 1, i:=1, d:=b)|]
     End Sub
 End Class"
 
@@ -3165,16 +3145,16 @@ Class Program
         Inherits Derived
     End Class
 
-    Private Sub Foo(ByVal s As String, ByVal j As Integer, ByVal i As Integer, ByVal d As Derived)
+    Private Sub Goo(ByVal s As String, ByVal j As Integer, ByVal i As Integer, ByVal d As Derived)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByVal i As Integer, ByVal d As Derived2)
+    Private Sub Goo(ByVal s As String, ByVal i As Integer, ByVal d As Derived2)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
         Dim strlist = New String(0) {}
-        Foo("""", 1, i:=1, d:=CType(b, Derived))
+        Goo("""", 1, i:=1, d:=CType(b, Derived))
     End Sub
 End Class"
 
@@ -3200,18 +3180,18 @@ Class Program
         Inherits Derived
     End Class
 
-    Private Sub Foo(ByRef d As Derived, ByVal s As String, ByVal i As Integer)
+    Private Sub Goo(ByRef d As Derived, ByVal s As String, ByVal i As Integer)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByVal d As String, ByVal i As Integer)
+    Private Sub Goo(ByVal s As String, ByVal d As String, ByVal i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        [|Foo(s:="""", i:=1, d:=b)|]
+        [|Goo(s:="""", i:=1, d:=b)|]
     End Sub
 End Class"
 
@@ -3236,18 +3216,18 @@ Class Program
         Inherits Derived
     End Class
 
-    Private Sub Foo(ByRef d As Derived, ByVal s As String, ByVal i As Integer)
+    Private Sub Goo(ByRef d As Derived, ByVal s As String, ByVal i As Integer)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
+    Private Sub Goo(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
     End Sub
 
-    Private Sub Foo(ByVal s As String, ByVal d As String, ByVal i As Integer)
+    Private Sub Goo(ByVal s As String, ByVal d As String, ByVal i As Integer)
     End Sub
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo(s:="""", i:=1, d:={0})
+        Goo(s:="""", i:=1, d:={0})
     End Sub
 End Class"
 
@@ -3277,14 +3257,14 @@ Class Program
         Inherits Derived
     End Class
 
-    Private Sub Foo(ByVal d1 As Derived)
+    Private Sub Goo(ByVal d1 As Derived)
     End Sub
 
-    Private Sub Foo(ByVal d2 As Derived2)
+    Private Sub Goo(ByVal d2 As Derived2)
     End Sub
 
     Private Sub M()
-        [|Foo(New Base())|]
+        [|Goo(New Base())|]
     End Sub
 End Class")
         End Function

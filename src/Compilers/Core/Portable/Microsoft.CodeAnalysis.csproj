@@ -83,6 +83,7 @@
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />

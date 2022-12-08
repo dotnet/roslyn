@@ -2441,9 +2441,15 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
                 // (1,27): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
-                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,27): error CS0246: The type or namespace name 'Basic' could not be found (are you missing a using directive or an assembly reference?)
                 //  > Roslyn.Utilities.dll!  Basic
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Basic").WithArguments("Basic").WithLocation(1, 27),
+                // (1,32): error CS1001: Identifier expected
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 32),
+                // (1,32): error CS1002: ; expected
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32)
                 );
         }
 
@@ -2721,7 +2727,10 @@ namespace x
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (7,21): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21),
+                // (7,21): error CS8754: There is no target type for 'new()'
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new ()").WithArguments("new()").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2772,7 +2781,10 @@ namespace x
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (7,21): error CS8059: Feature 'target-typed object creation' is not available in C# 6. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21),
+                // (7,21): error CS8754: There is no target type for 'new()'
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new ()").WithArguments("new()").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2792,7 +2804,10 @@ namespace x
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (7,21): error CS8107: Feature 'target-typed object creation' is not available in C# 7.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21),
+                // (7,21): error CS8754: There is no target type for 'new()'
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new ()").WithArguments("new()").WithLocation(7, 21));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2825,7 +2840,6 @@ public class Extensions
     public void M<>() {}
 }
 ";
-
 
             ParseAndValidate(test,
                 // (1,17): error CS1001: Identifier expected
@@ -3246,9 +3260,9 @@ class A
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,27): error CS1065: Default values are not valid in this context.
-                //     D d1 = delegate(int x = 42) { };
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
+                    // (5,27): error CS1065: Default values are not valid in this context.
+                    //     D d1 = delegate(int x = 42) { };
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
         }
 
         [Fact]
@@ -3263,9 +3277,9 @@ class A
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,34): error CS1065: Default values are not valid in this context.
-                //     D d1 = delegate(int x, int y = 42) { };
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
+                    // (5,34): error CS1065: Default values are not valid in this context.
+                    //     D d1 = delegate(int x, int y = 42) { };
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
@@ -3857,28 +3871,32 @@ namespace x
 ";
 
             ParseAndValidate(test,
-   // (1,15): error CS1514: { expected
-   // public class S.D 
-   Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(1, 15),
-   // (1,15): error CS1513: } expected
-   // public class S.D 
-   Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(1, 15),
-   // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
-   // public class S.D 
-   Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
-   // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
-   // public class S.D 
-   Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
-   // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
-   // {
-   Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
-").WithLocation(2, 1),
-   // (2,2): error CS1513: } expected
-   // {
-   Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
-   // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-   // }
-   Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+                // (1,15): error CS1514: { expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(1, 15),
+                // (1,15): error CS1513: } expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(1, 15),
+                // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
+                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
+{
+").WithLocation(1, 16),
+                // (1,17): error CS1001: Identifier expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 17),
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 17),
+                // (2,2): error CS1002: ; expected
+                // {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
         }
 
         [WorkItem(535932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535932")]
@@ -4114,24 +4132,39 @@ namespace nms
 ";
             // Extra Errors
             ParseAndValidate(test,
-    // (12,13): error CS1524: Expected catch or finally
-    //             }
-    Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}"),
-    // (11,21): error CS1031: Type expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_TypeExpected, "throw"),
-    // (11,21): error CS1026: ) expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "throw"),
-    // (11,21): error CS1002: ; expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "throw"),
-    // (11,80): error CS1002: ; expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-    // (11,80): error CS1513: } expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+                // (11,21): error CS1031: Type expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "throw"),
+                // (11,21): error CS1026: ) expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "throw"),
+                // (11,21): error CS1002: ; expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "throw"),
+                // (11,80): error CS1002: ; expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
+                // (11,80): error CS1513: } expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+        }
+
+        [Fact]
+        public void ParseTryWithoutCatchesOrFinally()
+        {
+            var test = @"
+public class mine
+{
+    void M()
+    {
+        try { }
+    }
+}
+";
+            ParseAndValidate(test,
+                // (6,15): error CS1524: Expected catch or finally
+                //         try { }
+                Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15));
         }
 
         [WorkItem(906299, "DevDiv/Personal")]
@@ -5536,17 +5569,26 @@ class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (6,27): error CS0103: The name 'b' does not exist in the current context
+                //         var q = from a in b
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b"));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = from a in b
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = from a in b
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "from").WithArguments("query expression", "3").WithLocation(6, 17),
+                // (6,27): error CS0103: The name 'b' does not exist in the current context
+                //         var q = from a in b
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(6, 27));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = from a in b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "from a in b").WithArguments("query expression", "3"),
-                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = from a in b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "from").WithArguments("query expression", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -5565,10 +5607,16 @@ class C
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
                 // (6,17): error CS8023: Feature 'anonymous types' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = new { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("anonymous types", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("anonymous types", "3").WithLocation(6, 17));
         }
 
         [Fact]
@@ -5583,14 +5631,26 @@ class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (6,17): error CS0826: No best type found for implicitly-typed array
+                //         var q = new [] { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new [] { }").WithLocation(6, 17));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new [] { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,17): error CS8023: Feature 'implicitly typed array' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new [] { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("implicitly typed array", "3").WithLocation(6, 17),
+                // (6,17): error CS0826: No best type found for implicitly-typed array
+                //         var q = new [] { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new [] { }").WithLocation(6, 17));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,17): error CS8023: Feature 'implicitly typed array' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = new [] { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("implicitly typed array", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -5605,14 +5665,27 @@ class C
     }
 }
 ";
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyEmitDiagnostics(
+                // (6,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(6, 21));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(6, 21),
+                // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3").WithLocation(6, 25));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = new Goo { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -5627,14 +5700,26 @@ class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (6,17): error CS8026: Feature 'inferred delegate type' is not available in C# 5. Please use language version 10.0 or greater.
+                //         var q = a => b;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "a => b").WithArguments("inferred delegate type", "10.0").WithLocation(6, 17));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = a => b;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,17): error CS8023: Feature 'inferred delegate type' is not available in C# 2. Please use language version 10.0 or greater.
+                //         var q = a => b;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "a => b").WithArguments("inferred delegate type", "10.0").WithLocation(6, 17),
+                // (6,19): error CS8023: Feature 'lambda expression' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = a => b;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "=>").WithArguments("lambda expression", "3").WithLocation(6, 19));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,19): error CS8023: Feature 'lambda expression' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = a => b;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "=>").WithArguments("lambda expression", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -5649,15 +5734,29 @@ public class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (4,23): error CS0161: 'C.Main()': not all code paths return a value
+                //     public static int Main()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("C.Main()").WithLocation(4, 23),
+                // (6,29): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         try { } catch when (true) {}
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(6, 29));
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (4,23): error CS0161: 'C.Main()': not all code paths return a value
+                //     public static int Main()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("C.Main()").WithLocation(4, 23),
+                // (6,23): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
+                //         try { } catch when (true) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(6, 23),
+                // (6,29): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         try { } catch when (true) {}
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(6, 29));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
             tree.GetDiagnostics().Verify();
 
             tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
-            tree.GetDiagnostics().Verify(
-    // (6,23): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
-    //         try { } catch when (true) {}
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(6, 23)
-                );
+            tree.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -5922,14 +6021,12 @@ class C
     }
 }";
 
-
             // Moved to be a semantic diagnostic.
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
-        [WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
-        [Fact]
+        [Fact, WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
         public void AsyncBeforeCSharp5()
         {
             var text = @"
@@ -5941,15 +6038,24 @@ class C
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
-            tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (4,5): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async void M() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "async").WithArguments("async function", "5"));
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16));
+
+            tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyDiagnostics(
+                // (4,16): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
+                //     async void M() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "M").WithArguments("async function", "5").WithLocation(4, 16),
+                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async void M() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16));
         }
 
-        [WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
-        [Fact]
+        [Fact, WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
         public void AsyncWithOtherModifiersBeforeCSharp5()
         {
             var text = @"
@@ -5960,12 +6066,20 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (4,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async static void M() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 23));
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (4,5): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyDiagnostics(
+                // (4,23): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
                 //     async static void M() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "async").WithArguments("async function", "5"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "M").WithArguments("async function", "5").WithLocation(4, 23),
+                // (4,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async static void M() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 23));
         }
 
         [Fact]
@@ -5982,12 +6096,32 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (6,9): error CS0246: The type or namespace name 'Func<,>' could not be found (are you missing a using directive or an assembly reference?)
+                //         Func<int, Task<int>> f = async x => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Func<int, Task<int>>").WithArguments("Func<,>").WithLocation(6, 9),
+                // (6,19): error CS0246: The type or namespace name 'Task<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         Func<int, Task<int>> f = async x => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
+                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Func<int, Task<int>> f = async x => x;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42));
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+            CreateCompilation(text, parseOptions: TestOptions.Regular4).VerifyDiagnostics(
+                // (6,9): error CS0246: The type or namespace name 'Func<,>' could not be found (are you missing a using directive or an assembly reference?)
+                //         Func<int, Task<int>> f = async x => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Func<int, Task<int>>").WithArguments("Func<,>").WithLocation(6, 9),
+                // (6,19): error CS0246: The type or namespace name 'Task<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         Func<int, Task<int>> f = async x => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
                 // (6,34): error CS8025: Feature 'async function' is not available in C# 4. Please use language version 5 or greater.
                 //         Func<int, Task<int>> f = async x => x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5").WithLocation(6, 34),
+                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Func<int, Task<int>> f = async x => x;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42));
         }
 
         [Fact]
@@ -6004,12 +6138,32 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (6,9): error CS0246: The type or namespace name 'Func<,>' could not be found (are you missing a using directive or an assembly reference?)
+                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Func<int, Task<int>>").WithArguments("Func<,>").WithLocation(6, 9),
+                // (6,19): error CS0246: The type or namespace name 'Task<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
+                // (6,40): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 40));
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+            CreateCompilation(text, parseOptions: TestOptions.Regular4).VerifyDiagnostics(
+                // (6,9): error CS0246: The type or namespace name 'Func<,>' could not be found (are you missing a using directive or an assembly reference?)
+                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Func<int, Task<int>>").WithArguments("Func<,>").WithLocation(6, 9),
+                // (6,19): error CS0246: The type or namespace name 'Task<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
                 // (6,34): error CS8025: Feature 'async function' is not available in C# 4. Please use language version 5 or greater.
                 //         Func<int, Task<int>> f = async delegate (int x) { return x; };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5").WithLocation(6, 34),
+                // (6,40): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 40));
         }
 
         [Fact]
@@ -6025,14 +6179,35 @@ class C
     }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular4).VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'AttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attr(x:1)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attr").WithArguments("AttrAttribute").WithLocation(2, 2),
+                // (2,2): error CS0246: The type or namespace name 'Attr' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attr(x:1)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attr").WithArguments("Attr").WithLocation(2, 2),
+                // (7,9): error CS0103: The name 'M' does not exist in the current context
+                //         M(y:2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(7, 9));
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'AttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attr(x:1)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attr").WithArguments("AttrAttribute").WithLocation(2, 2),
+                // (2,2): error CS0246: The type or namespace name 'Attr' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attr(x:1)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attr").WithArguments("Attr").WithLocation(2, 2),
                 // (2,7): error CS8024: Feature 'named argument' is not available in C# 3. Please use language version 4 or greater.
                 // [Attr(x:1)]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "x:").WithArguments("named argument", "4"),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "x:").WithArguments("named argument", "4").WithLocation(2, 7),
+                // (7,9): error CS0103: The name 'M' does not exist in the current context
+                //         M(y:2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(7, 9),
                 // (7,11): error CS8024: Feature 'named argument' is not available in C# 3. Please use language version 4 or greater.
                 //         M(y:2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "y:").WithArguments("named argument", "4"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "y:").WithArguments("named argument", "4").WithLocation(7, 11));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6074,11 +6249,14 @@ class C
     void M(int x = 1) { }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular4).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyDiagnostics(
                 // (4,18): error CS8024: Feature 'optional parameter' is not available in C# 3. Please use language version 4 or greater.
                 //     void M(int x = 1) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "= 1").WithArguments("optional parameter", "4"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "=").WithArguments("optional parameter", "4").WithLocation(4, 18));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6093,11 +6271,20 @@ class C
     }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyEmitDiagnostics(
+                // (6,24): error CS0117: 'C' does not contain a definition for 'Goo'
+                //         return new C { Goo = 1 }; 
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("C", "Goo").WithLocation(6, 24));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
                 // (6,22): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         return new C { Goo = 1 }; 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3").WithLocation(6, 22),
+                // (6,24): error CS0117: 'C' does not contain a definition for 'Goo'
+                //         return new C { Goo = 1 }; 
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("C", "Goo").WithLocation(6, 24));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6112,11 +6299,20 @@ class C
     }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyEmitDiagnostics(
+                // (6,22): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         return new C { 1, 2, 3 }; 
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2, 3 }").WithArguments("C").WithLocation(6, 22));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
                 // (6,22): error CS8023: Feature 'collection initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         return new C { 1, 2, 3 }; 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("collection initializer", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("collection initializer", "3").WithLocation(6, 22),
+                // (6,22): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         return new C { 1, 2, 3 }; 
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2, 3 }").WithArguments("C").WithLocation(6, 22));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6225,10 +6421,25 @@ class C
         {
             var source = @"[module:Obsolete()]";
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
-                // (1,2): warning CS1645: Feature 'module as an attribute target specifier' is not part of the standardized ISO C# language specification, and may not be accepted by other compilers
+            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (1,9): error CS0246: The type or namespace name 'ObsoleteAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [module:Obsolete()]
-                Diagnostic(ErrorCode.WRN_NonECMAFeature, "module:").WithArguments("module as an attribute target specifier"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("ObsoleteAttribute").WithLocation(1, 9),
+                // (1,9): error CS0246: The type or namespace name 'Obsolete' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("Obsolete").WithLocation(1, 9));
+            CreateCompilation(source, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
+                // (1,2): warning CS1645: Feature 'IDS_FeatureModuleAttrLoc' is not part of the standardized ISO C# language specification, and may not be accepted by other compilers
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.WRN_NonECMAFeature, "module:").WithArguments("IDS_FeatureModuleAttrLoc").WithLocation(1, 2),
+                // (1,9): error CS0246: The type or namespace name 'ObsoleteAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("ObsoleteAttribute").WithLocation(1, 9),
+                // (1,9): error CS0246: The type or namespace name 'Obsolete' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("Obsolete").WithLocation(1, 9));
         }
 
         [Fact]
@@ -6259,34 +6470,54 @@ class C
         var x = $""hello world"";
     }
 }";
+            CreateCompilation(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (11,51): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(11, 51),
+                // (18,18): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
+                //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Exception").WithArguments("Exception").WithLocation(18, 18));
+            CreateCompilation(source, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (3,9): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
+                //     int L { get; } = 12; // auto property initializer
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "L").WithArguments("readonly automatically implemented properties", "6").WithLocation(3, 9),
+                // (3,20): error CS8026: Feature 'auto property initializer' is not available in C# 5. Please use language version 6 or greater.
+                //     int L { get; } = 12; // auto property initializer
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=").WithArguments("auto property initializer", "6").WithLocation(3, 20),
+                // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     int M() => 12; // expression-bodied method
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
+                // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
+                //     int N => 12; // expression-bodied property
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied property", "6").WithLocation(7, 11),
+                // (9,21): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5. Please use language version 6 or greater.
+                //     int this[int a] => a + 1; // expression-bodied indexer
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
+                // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
+                // (11,51): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(11, 51),
+                // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
+                // (18,18): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
+                //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Exception").WithArguments("Exception").WithLocation(18, 18),
+                // (18,32): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
+                //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(18, 32),
+                // (21,18): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                //         var s = o?.ToString(); // null propagating operator
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(21, 18),
+                // (22,17): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
+                //         var x = $"hello world";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello world""").WithArguments("interpolated strings", "6").WithLocation(22, 17));
+
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify();
 
-            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify(
-    // (3,20): error CS8026: Feature 'auto property initializer' is not available in C# 5. Please use language version 6 or greater.
-    //     int L { get; } = 12; // auto property initializer
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "= 12").WithArguments("auto property initializer", "6").WithLocation(3, 20),
-    // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-    //     int M() => 12; // expression-bodied method
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
-    // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
-    //     int N => 12; // expression-bodied property
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied property", "6").WithLocation(7, 11),
-    // (9,21): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5. Please use language version 6 or greater.
-    //     int this[int a] => a + 1; // expression-bodied indexer
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> a + 1").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
-    // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-    //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
-    // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-    //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
-    // (18,32): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
-    //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(18, 32),
-    // (21,17): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
-    //         var s = o?.ToString(); // null propagating operator
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "o?.ToString()").WithArguments("null propagating operator", "6").WithLocation(21, 17)
-                );
+            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify();
         }
 
         [ClrOnlyFact]

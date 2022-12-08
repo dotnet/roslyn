@@ -362,6 +362,11 @@
         <target state="translated">名称“{0}”与相应 "Deconstruct" 参数“{1}”不匹配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="new">A deconstruction variable cannot be declared as a ref local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
         <source>The 'default' constraint is valid on override and explicit interface implementation methods only.</source>
         <target state="translated">"default" 约束仅针对替代和显式接口实现方法有效。</target>
@@ -745,6 +750,11 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">无法通过对隐式范围索引器的调用为参数命名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1292,6 +1302,11 @@
         <target state="translated">无法将“{1}”ref 分配给“{0}”，因为“{1}”只能通过 return 语句对当前方法进行转义。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">ref 字段不能引用 ref 结构。</target>
@@ -1410,6 +1425,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">目标运行时不支持可扩展或运行时环境默认调用约定。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="new">The 'scoped' modifier cannot be used with discard.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1757,6 +1777,16 @@
         <target state="translated">Lambda 属性</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaOptionalParameters">
+        <source>lambda optional parameters</source>
+        <target state="new">lambda optional parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaParamsArray">
+        <source>lambda params array</source>
+        <target state="new">lambda params array</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="translated">lambda 返回类型</target>
@@ -1845,6 +1875,11 @@
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="translated">与常量字符串上的 ReadOnly/Span&lt;char&gt; 匹配的模式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="new">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2082,6 +2117,16 @@
         <target state="translated">不应要求使用 'ObsoleteAttribute' 特性化的成员，除非包含类型已过时或所有构造函数已过时。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="new">Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch_Title">
+        <source>The default parameter value does not match in the target delegate type.</source>
+        <target state="new">The default parameter value does not match in the target delegate type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">退出时参数“{0}”必须具有非 null 值，因为参数“{1}”是非 null。</target>
@@ -2100,6 +2145,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">处理程序参数之后，要进行内插字符串处理程序转换的参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="new">Parameter {0} has params modifier in lambda but not in target delegate type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="new">Parameter has params modifier in lambda but not in target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2155,6 +2210,16 @@
       <trans-unit id="WRN_RefAssignReturnOnly_Title">
         <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
         <target state="translated">此 ref 分配的值只能通过 return 语句转义当前方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="new">This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -5242,8 +5307,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">属性或索引器不能作为 out 或 ref 参数传递</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="needs-review-translation">属性或索引器不能作为 out 或 ref 参数传递</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8450,8 +8515,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">这是一个异步方法，因此返回表达式的类型必须为“{0}”而不是“Task&lt;{0}&gt;”</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">这是一个异步方法，因此返回表达式的类型必须为“{0}”而不是“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9613,8 +9678,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">由于“{0}”是返回“Task”的异步方法，因此返回关键字不能后接对象表达式。是否要返回“Task&lt;T&gt;”?</target>
+        <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
+        <target state="new">Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11043,8 +11108,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">转换为“Task”返回委托的异步 lambda 表达式不能返回值。是否要返回“Task&lt;T&gt;”?</target>
+        <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
+        <target state="new">Async lambda expression converted to a '{0}' returning delegate cannot return a value</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

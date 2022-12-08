@@ -373,7 +373,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -1057,7 +1057,7 @@ SyntaxTree: ";
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, contextDetail)}
@@ -3811,7 +3811,7 @@ public class C
                 Assert.Equal(analyzer.Descriptor.Id, diagnostic.Id);
                 Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
                 var location = (ExternalFileLocation)diagnostic.Location;
-                Assert.Equal(additionalFile.Path, location.FilePath);
+                Assert.Equal(additionalFile.Path, location.GetLineSpan().Path);
                 Assert.Equal(diagnosticSpan, location.SourceSpan);
             }
         }
@@ -4008,6 +4008,31 @@ public record A(int X, int Y);";
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
+        }
+
+        [Fact, WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
+        public void TestDisabledByDefaultAnalyzerEnabledForSingleFile()
+        {
+            var source1 = "class C1 { }";
+            var source2 = "class C2 { }";
+            var source3 = "class C3 { }";
+            var analyzer = new AnalyzerWithDisabledRules();
+
+            // Enable disabled by default analyzer for first source file with analyzer config options.
+            var compilation = CreateCompilation(new[] { source1, source2, source3 });
+            var tree1 = compilation.SyntaxTrees[0];
+            var options = compilation.Options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree1, (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn)));
+            compilation = compilation.WithOptions(options);
+
+            // Verify single analyzer diagnostic reported in the compilation.
+            compilation.VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer }, null, null,
+                    Diagnostic("ID1", "C1").WithLocation(1, 7));
+
+            // PERF: Verify no analyzer callbacks are made for source files where the analyzer was not enabled.
+            var symbol = Assert.Single(analyzer.CallbackSymbols);
+            Assert.Equal("C1", symbol.Name);
         }
     }
 }

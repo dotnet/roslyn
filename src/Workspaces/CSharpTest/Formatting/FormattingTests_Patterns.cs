@@ -66,7 +66,7 @@ class A
                 BinaryOperatorSpacingOptions.Single => expectedSingle,
                 BinaryOperatorSpacingOptions.Ignore => expectedIgnore,
                 BinaryOperatorSpacingOptions.Remove => expectedRemove,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -156,7 +156,7 @@ class A
                 (BinaryOperatorSpacingOptions.Single, true) => expectedSingleTrue,
                 (BinaryOperatorSpacingOptions.Ignore, true) => expectedIgnoreTrue,
                 (BinaryOperatorSpacingOptions.Remove, true) => expectedRemoveTrue,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -214,7 +214,7 @@ class A
                 BinaryOperatorSpacingOptions.Single => expectedSingle,
                 BinaryOperatorSpacingOptions.Ignore => expectedIgnore,
                 BinaryOperatorSpacingOptions.Remove => expectedRemove,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -303,7 +303,7 @@ class A
                 (BinaryOperatorSpacingOptions.Single, true) => expectedSingleTrue,
                 (BinaryOperatorSpacingOptions.Ignore, true) => expectedIgnoreTrue,
                 (BinaryOperatorSpacingOptions.Remove, true) => expectedRemoveTrue,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)

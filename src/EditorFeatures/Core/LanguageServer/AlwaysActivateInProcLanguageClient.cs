@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
@@ -38,11 +39,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public AlwaysActivateInProcLanguageClient(
             CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
             ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
-            ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
+            ILspServiceLoggerFactory lspLoggerFactory,
+            IThreadingContext threadingContext,
+            ExportProvider exportProvider)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
             _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
         }

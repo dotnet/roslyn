@@ -92,7 +92,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(children(1), binop.OperatorToken)
             Assert.Equal(children(2), binop.Right)
 
-
             Dim ItemList As New List(Of String)
             Dim ItemListRev As New List(Of String)
 
@@ -319,7 +318,6 @@ End Class
             End If
         End Sub
 
-
         ' Check that spans within a given tree are all consistent. Makes sure the children's spans all
         ' line up correctly.
         Private Sub VerifyAllSpans(tree As SyntaxNode)
@@ -386,7 +384,6 @@ End Class
             Assert.Equal(New TextSpan(3, 1), binop.Right.Span)
             Assert.Equal(New TextSpan(3, 1), binop.Right.FullSpan)
 
-
             Dim simpleTree = CreateSimpleTree()
             Assert.Equal(New TextSpan(0, 17), simpleTree.Span)
             Assert.Equal(New TextSpan(0, 18), simpleTree.FullSpan)
@@ -448,7 +445,6 @@ End Class
                                                               Dim x As New TextSpan(0, -1)
                                                           End Sub)
 
-
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub()
                                                               Dim x As New TextSpan(-1, -1)
                                                           End Sub)
@@ -457,7 +453,6 @@ End Class
                                                               Dim x As New TextSpan(2, -4)
                                                           End Sub)
         End Sub
-
 
         ' Test that a list with 0 items works correctly.
         <Fact>
@@ -568,7 +563,6 @@ End Class
         Private Function CreateSimpleTypeName(id As String) As TypeSyntax
             Return SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, id, SyntaxFactory.WhitespaceTrivia(" ")))
         End Function
-
 
         'helper to check an empty separated list
         Private Sub CheckEmptySeparatedList(seplist As SeparatedSyntaxList(Of TypeSyntax))
@@ -1574,7 +1568,6 @@ End Class</x>.Value)
             Assert.Throws(Of InvalidOperationException)(Function() cu.InsertTokensAfter(identifierC, New SyntaxToken() {}))
         End Sub
 
-
         <Fact>
         Public Sub TestReplaceSingleTriviaInNode()
             Dim expr = SyntaxFactory.ParseExpression("a + b")
@@ -1810,7 +1803,6 @@ End Class</x>.Value)
             Assert.Equal(" <goo> </ >  ", ident.LeadingTrivia()(0).ToFullString)
             Assert.Equal("<goo> </ >", ident.LeadingTrivia()(0).ToString())
 
-
             Dim identExpr = SyntaxFactory.IdentifierName(ident)
 
             ' make sure FindLeaf digs into the structured trivia.
@@ -1854,7 +1846,6 @@ End Class</x>.Value)
             statementBuilder.Add(SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken)))
             statementBuilder.Add(SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken)))
             statementBuilder.Add(SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken)))
-
 
             Return SyntaxFactory.NamespaceBlock(SyntaxFactory.NamespaceStatement(
                                             SyntaxFactory.Token(SyntaxKind.NamespaceKeyword, trailing:=_spaceTrivia), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("goo"))),
@@ -2040,7 +2031,6 @@ End Module
 
         End Sub
 
-
         <Fact>
         Public Sub TestFirstLastDirective()
             Dim prog = ParseAndVerify(<![CDATA[
@@ -2092,7 +2082,6 @@ End Module
             Dim lDir = mDecl.GetLastDirective
             Dim lDir1 = fDir.GetNextDirective
             Assert.Equal("#const y = 2", lDir1.ToString)
-
 
             Dim fDir2 = fDir1.GetNextDirective(Function(d) d.ToString = "#const y = 3")
             Assert.Equal("#const y = 3", fDir2.ToString)
@@ -3335,7 +3324,6 @@ End Module
             Assert.Equal(1, x.Count)
         End Sub
 
-
         <WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")>
         <Fact>
         Public Sub TestFindTrivia_NoStackOverflowOnLargeExpression()
@@ -3441,7 +3429,6 @@ Option Explicit On
 Option Compare Text
     </file>
 </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
-
 
             Dim vbpo1 = compilation.Options
             Dim vbpo2 = compilation2.Options

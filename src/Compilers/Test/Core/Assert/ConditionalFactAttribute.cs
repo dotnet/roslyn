@@ -144,12 +144,6 @@ namespace Roslyn.Test.Utilities
 
     public static class ExecutionConditionUtil
     {
-        public static ExecutionArchitecture Architecture => (IntPtr.Size) switch
-        {
-            4 => ExecutionArchitecture.x86,
-            8 => ExecutionArchitecture.x64,
-            _ => throw new InvalidOperationException($"Unrecognized pointer size {IntPtr.Size}")
-        };
         public static ExecutionConfiguration Configuration =>
 #if DEBUG
             ExecutionConfiguration.Debug;
@@ -186,23 +180,24 @@ namespace Roslyn.Test.Utilities
         public static bool OperatingSystemRestrictsFileNames => s_operatingSystemRestrictsFileNames.Value;
     }
 
-    public enum ExecutionArchitecture
-    {
-        x86,
-        x64,
-    }
-
     public enum ExecutionConfiguration
     {
         Debug,
         Release,
     }
 
-    public class x86 : ExecutionCondition
+    public class Bitness32 : ExecutionCondition
     {
-        public override bool ShouldSkip => ExecutionConditionUtil.Architecture != ExecutionArchitecture.x86;
+        public override bool ShouldSkip => IntPtr.Size != 4;
 
-        public override string SkipReason => "Target platform is not x86";
+        public override string SkipReason => "Target bitness is not 32-bit";
+    }
+
+    public class Bitness64 : ExecutionCondition
+    {
+        public override bool ShouldSkip => IntPtr.Size != 8;
+
+        public override string SkipReason => "Target bitness is not 64-bit";
     }
 
     public class HasShiftJisDefaultEncoding : ExecutionCondition

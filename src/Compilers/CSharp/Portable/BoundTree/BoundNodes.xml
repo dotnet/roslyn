@@ -97,7 +97,16 @@
   -->
   <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
-  
+
+  <!--
+  This node is used in memory safety analysis to represent a receiver
+  that will be replaced with a copy captured in a temp during IL gen. 
+  -->
+  <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="LocalScopeDepth" Type="uint"/>
+  </Node>
+
   <!--
   This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.

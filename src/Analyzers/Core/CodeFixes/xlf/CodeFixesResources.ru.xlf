@@ -37,14 +37,14 @@
         <target state="translated">Преобразовать тип в "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Устраните нарушение имени: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">Исправить все случаи в</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="new">Fix name violation: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -67,9 +67,9 @@
         <target state="translated">Удалить избыточное присваивание</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">Подавление проблем или настройка уровня их серьезности</target>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
+        <target state="new">Suppress or configure issues</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 foreach (ResourceDescription r in ManifestResources)
                 {
-                    builder.Add(r.ToManagedResource(this));
+                    builder.Add(r.ToManagedResource());
                 }
 
                 if (OutputKind != OutputKind.NetModule)

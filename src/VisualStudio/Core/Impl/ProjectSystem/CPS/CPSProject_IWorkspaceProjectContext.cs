@@ -137,12 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void SetOptions(ImmutableArray<string> arguments)
             => _visualStudioProjectOptionsProcessor?.SetCommandLine(arguments);
 
-        public string? DefaultNamespace
-        {
-            get => _visualStudioProject.DefaultNamespace;
-            private set => _visualStudioProject.DefaultNamespace = value;
-        }
-
         public void SetProperty(string name, string? value)
         {
             if (name == BuildPropertyNames.RootNamespace)
@@ -152,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // use it for their own purpose.
                 // In the future, we might consider officially exposing "default namespace" for VB project 
                 // (e.g. through a <defaultnamespace> msbuild property)
-                DefaultNamespace = value;
+                _visualStudioProject.DefaultNamespace = value;
             }
             else if (name == BuildPropertyNames.MaxSupportedLangVersion)
             {

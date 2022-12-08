@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.SpinWaitComplete(incompletePart, cancellationToken);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal void EnsureFieldDefinitionsNoted()
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     aggregateLength += syntaxRef.Span.Length;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             int syntaxOffset;
@@ -1099,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // an implicit constructor has no body and no initializer, so the variable has to be declared in a member initializer
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

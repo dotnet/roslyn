@@ -177,6 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((result & DeclarationModifiers.Fixed) != 0)
             {
+                foreach (var modifier in modifiers)
+                {
+                    if (modifier.IsKind(SyntaxKind.FixedKeyword))
+                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
+                }
+
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Static, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Const, diagnostics, errorLocation);
@@ -507,8 +513,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     bool isVar;
-                    type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
-
+                    type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out RefKind refKindToAssert), diagnostics, out isVar);
+                    Debug.Assert(refKindToAssert == RefKind.None); // Otherwise we might need to report an error
                     Debug.Assert(type.HasType || isVar);
 
                     if (isVar)

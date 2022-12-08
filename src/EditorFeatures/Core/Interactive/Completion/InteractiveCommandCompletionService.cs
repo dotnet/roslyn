@@ -7,6 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -15,18 +16,21 @@ namespace Microsoft.CodeAnalysis.Interactive
         [ExportLanguageServiceFactory(typeof(CompletionService), InteractiveLanguageNames.InteractiveCommand), Shared]
         internal sealed class Factory : ILanguageServiceFactory
         {
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
+            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
             {
+                _listenerProvider = listenerProvider;
             }
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new InteractiveCommandCompletionService(languageServices.LanguageServices.SolutionServices);
+                => new InteractiveCommandCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);
         }
 
-        private InteractiveCommandCompletionService(SolutionServices services)
-            : base(services)
+        private InteractiveCommandCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
+            : base(services, listenerProvider)
         {
         }
 

@@ -144,7 +144,6 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             }
         }
 
-
         private async Task<string> GetMSBuildVersionStringAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             var nullIndex = identifier.IndexOf('\0');
             if (nullIndex >= 0)
             {
-                identifier = identifier.Substring(0, nullIndex);
+                identifier = identifier[..nullIndex];
             }
 
             var needsEscaping = SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None;
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         }
 
         public SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         public bool IsNameOfSubpattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
@@ -1497,6 +1497,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             pattern = unaryPattern.Pattern;
         }
 
+        public void GetPartsOfRelationalPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode expression)
+        {
+            var relationalPattern = (RelationalPatternSyntax)node;
+            operatorToken = relationalPattern.OperatorToken;
+            expression = relationalPattern.Expression;
+        }
+
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
@@ -1687,11 +1694,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         #region GetXXXOfYYY members
 
+        public SyntaxNode GetArgumentListOfImplicitElementAccess(SyntaxNode node)
+            => ((ImplicitElementAccessSyntax)node).ArgumentList;
+
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
             => ((AwaitExpressionSyntax)node).Expression;
 
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
+
+        public SyntaxNode? GetExpressionOfThrowStatement(SyntaxNode node)
+            => ((ThrowStatementSyntax)node).Expression;
 
         public SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node)
             => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression) initExpr ? initExpr.Expressions : default;

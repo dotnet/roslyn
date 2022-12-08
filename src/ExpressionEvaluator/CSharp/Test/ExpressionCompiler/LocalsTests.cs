@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -3844,7 +3845,7 @@ class C
     {
     }
 }";
-            var references = TargetFrameworkUtil.Mscorlib461ExtendedReferences.Concat(new[] { TestMetadata.Net461.SystemThreadingTasks, TestMetadata.SystemThreadingTasksExtensions.PortableLib });
+            var references = TargetFrameworkUtil.Mscorlib461ExtendedReferences.Concat(new[] { Net461.SystemThreadingTasks, TestMetadata.SystemThreadingTasksExtensions.PortableLib });
             var comp = CreateEmptyCompilation(new[] { source, AsyncStreamsTypes }, references: references);
             WithRuntimeInstance(comp, references, runtime =>
             {

@@ -70,7 +70,6 @@ BC42024: Unused local variable: 'x'.
             ~
                 </errors>)
 
-
             Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Suppress))
             Dim comp2 = CreateCompilation({tree}, options:=options)
             comp2.AssertNoDiagnostics()
@@ -348,7 +347,6 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             '    Sub()
             '        comp.GetTypeByNameAndArity(String.Empty, -4)
             '    End Sub)
-
 
             Dim compilationDef =
 <compilation name="compilation">
@@ -2249,7 +2247,6 @@ End Class
             c2 = c1.WithOptions(TestOptions.ReleaseModule)
             Assert.False(c1.ReferenceManagerEquals(c2))
 
-
             c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseModule)
 
             c2 = c1.WithOptions(TestOptions.ReleaseExe)
@@ -2513,7 +2510,6 @@ End Class
             Assert.Null(comp.GetMetadataReference(Nothing))
         End Sub
 
-
         <Fact()>
         Public Sub EqualityOfMergedNamespaces()
             Dim moduleComp = CompilationUtils.CreateEmptyCompilation(
@@ -2534,7 +2530,6 @@ Namespace NS2
 End Namespace
     </file>
 </compilation>, options:=TestOptions.ReleaseModule)
-
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
@@ -2740,7 +2735,6 @@ Namespace System
     End Structure
 End Namespace
 "
-
 
             Dim tuple = "
 Namespace System

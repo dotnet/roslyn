@@ -2616,5 +2616,34 @@ Keyword("async"));
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Lambda_DefaultParameterValue(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    const int N = 10;
+
+                    void M()
+                    {
+                        var lam = [|(int x = N) => x|];
+                    }
+                }
+
+                """,
+                testHost,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Operators.Equals,
+                Constant("N"),
+                Static("N"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Parameter("x"));
+        }
     }
 }

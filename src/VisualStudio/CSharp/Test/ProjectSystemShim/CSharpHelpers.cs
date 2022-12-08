@@ -121,7 +121,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 var index = arg.IndexOf(outPrefix);
                 if (index >= 0)
                 {
-                    outputPath = arg.Substring(index + outPrefix.Length);
+                    outputPath = arg[(index + outPrefix.Length)..];
                 }
             }
 

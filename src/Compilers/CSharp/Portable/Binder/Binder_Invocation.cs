@@ -1863,13 +1863,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.MayBeNameofOperator())
             {
                 var binder = this.GetBinder(node);
-                if (binder is null)
-                {
-                    // This could happen during speculation due to a bug
-                    // Tracked by https://github.com/dotnet/roslyn/issues/60801
-                    result = null;
-                    return false;
-                }
                 if (binder.EnclosingNameofArgument == node.ArgumentList.Arguments[0].Expression)
                 {
                     result = binder.BindNameofOperatorInternal(node, diagnostics);

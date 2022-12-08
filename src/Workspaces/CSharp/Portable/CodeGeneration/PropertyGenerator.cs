@@ -343,8 +343,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            // Most modifiers not allowed if we're an explicit impl.
-            if (!property.ExplicitInterfaceImplementations.Any())
+            // Only "static" allowed if we're an explicit impl.
+            if (property.ExplicitInterfaceImplementations.Any())
+            {
+                if (property.IsStatic)
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            }
+            else
             {
                 // If we're generating into an interface, then allow modifiers for static abstract members
                 if (destination is CodeGenerationDestination.InterfaceType)
@@ -354,9 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
 
                         if (property.IsAbstract)
-                        {
                             tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-                        }
                     }
                 }
                 else if (destination is not CodeGenerationDestination.CompilationUnit)
@@ -364,51 +367,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                     if (property.IsStatic)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-                    }
 
                     // note: explicit interface impls are allowed to be 'readonly' but it never actually affects callers
                     // because of the boxing requirement in order to call the method.
                     // therefore it seems like a small oversight to leave out the keyword for an explicit impl from metadata.
                     var hasAllReadOnlyAccessors = property.GetMethod?.IsReadOnly != false && property.SetMethod?.IsReadOnly != false;
+
                     // Don't show the readonly modifier if the containing type is already readonly
                     if (hasAllReadOnlyAccessors && !property.ContainingType.IsReadOnly)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
-                    }
 
                     if (property.IsSealed)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
-                    }
 
                     if (property.IsOverride)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
-                    }
 
                     if (property.IsVirtual)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
-                    }
 
                     if (property.IsAbstract)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-                    }
 
                     if (property.IsRequired)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
-                    }
                 }
             }
 
             if (CodeGenerationPropertyInfo.GetIsUnsafe(property))
-            {
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
-            }
 
             return tokens.ToSyntaxTokenList();
         }

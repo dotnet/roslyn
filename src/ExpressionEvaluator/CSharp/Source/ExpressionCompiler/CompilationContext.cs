@@ -194,9 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         _methodNotType,
                         out declaredLocals);
 
-                    return (syntax is StatementSyntax statementSyntax) ?
-                        BindStatement(binder, statementSyntax, diags, out properties) :
-                        BindExpression(binder, (ExpressionSyntax)syntax, diags, out properties);
+                    return (syntax is StatementSyntax statementSyntax)
+                        ? BindStatement(binder, statementSyntax, diags, out properties)
+                        : BindExpression(binder, (ExpressionSyntax)syntax, diags, out properties);
                 });
 
             return synthesizedType;

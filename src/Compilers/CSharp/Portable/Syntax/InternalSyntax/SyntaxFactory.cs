@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-
         // NOTE: it would be nice to have constants for OmittedArraySizeException and OmittedTypeArgument,
         // but it's non-trivial to introduce such constants, since they would make this class take a dependency
         // on the static fields of SyntaxToken (specifically, TokensWithNoTrivia via SyntaxToken.Create).  That

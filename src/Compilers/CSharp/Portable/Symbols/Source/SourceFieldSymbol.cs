@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ConstantValue _lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
 
-
         protected SourceFieldSymbolWithSyntaxReference(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
             : base(containingType)
         {

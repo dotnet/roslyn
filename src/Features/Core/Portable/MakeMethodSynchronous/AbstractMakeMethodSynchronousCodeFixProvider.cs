@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         private async Task<Solution> RenameThenRemoveAsyncTokenAsync(Document document, SyntaxNode node, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
             var name = methodSymbol.Name;
-            var newName = name.Substring(0, name.Length - AsyncSuffix.Length);
+            var newName = name[..^AsyncSuffix.Length];
             var solution = document.Project.Solution;
 
             // Store the path to this node.  That way we can find it post rename.

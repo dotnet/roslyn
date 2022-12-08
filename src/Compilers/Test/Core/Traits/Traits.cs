@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseNotPattern = "CodeActions.UseNotPattern";
             public const string CodeActionsUsePatternCombinators = "CodeActions.UsePatternCombinators";
+            public const string CodeActionsUsePatternMatchingForAsAndMemberAccess = "CodeActions.UsePatternMatchingForAsAndMemberAccess";
             public const string CodeActionsUseRecursivePatterns = "CodeActions.UseRecursivePatterns";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
@@ -306,6 +307,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string StringIndentation = nameof(StringIndentation);
             public const string SuggestionTags = nameof(SuggestionTags);
             public const string SyncNamespaces = nameof(SyncNamespaces);
+            public const string Tagging = nameof(Tagging);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TaskList = nameof(TaskList);

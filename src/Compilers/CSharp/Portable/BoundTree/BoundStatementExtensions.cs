@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         [Conditional("DEBUG")]
         internal static void AssertIsLabeledStatementWithLabel(this BoundStatement node, LabelSymbol label)
         {
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         }
                     }
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);

@@ -60,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' by the BoundConversion creation. We should never receive one in this top level create call.
             Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
 
-
             Select Case boundNode.Kind
                 Case BoundKind.AssignmentOperator
                     Return CreateBoundAssignmentOperatorOperation(DirectCast(boundNode, BoundAssignmentOperator))
@@ -279,10 +278,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return CreateBoundReDimClauseOperation(DirectCast(boundNode, BoundRedimClause))
                 Case BoundKind.TypeArguments
                     Return CreateBoundTypeArgumentsOperation(DirectCast(boundNode, BoundTypeArguments))
+                Case BoundKind.Attribute
+                    Return CreateBoundAttributeOperation(DirectCast(boundNode, BoundAttribute))
 
                 Case BoundKind.AddressOfOperator,
                      BoundKind.ArrayLiteral,
-                     BoundKind.Attribute,
                      BoundKind.ByRefArgumentWithCopyBack,
                      BoundKind.CompoundAssignmentTargetPlaceholder,
                      BoundKind.EraseStatement,
@@ -670,6 +670,23 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim children As ImmutableArray(Of IOperation) = ImmutableArray(Of IOperation).Empty
 
             Return New InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundAttributeOperation(boundAttribute As BoundAttribute) As IAttributeOperation
+            Dim isAttributeImplicit = boundAttribute.WasCompilerGenerated
+            If boundAttribute.Constructor Is Nothing OrElse boundAttribute.ConstructorArguments.Length <> boundAttribute.Constructor.ParameterCount Then
+                Dim invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit:=True)
+                Return New AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit)
+            End If
+
+            Dim initializer As ObjectOrCollectionInitializerOperation = Nothing
+            If Not boundAttribute.NamedArguments.IsEmpty Then
+                Dim namedArguments = CreateFromArray(Of BoundExpression, IOperation)(boundAttribute.NamedArguments)
+                initializer = New ObjectOrCollectionInitializerOperation(namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.Type, isImplicit:=True)
+            End If
+
+            Dim objectCreationOperation = New ObjectCreationOperation(boundAttribute.Constructor, initializer, DeriveArguments(boundAttribute), _semanticModel, boundAttribute.Syntax, boundAttribute.Type, boundAttribute.ConstantValueOpt, isImplicit:=True)
+            Return New AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit)
         End Function
 
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IOperation
@@ -1677,5 +1694,4 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 End Namespace
-
 

@@ -27,6 +27,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\MakeMemberStaticTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\MakeTypeAbstractTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ArrowExpressionClausePlacement\ArrowExpressionClausePlacementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConditionalExpressionPlacement\ConditionalExpressionPlacementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConstructorInitializerPlacement\ConstructorInitializerPlacementTests.cs" />
@@ -50,7 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructFieldsWritable\MakeStructFieldsWritableTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MisplacedUsingDirectives\MisplacedUsingDirectivesCodeFixProviderTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MisplacedUsingDirectives\MisplacedUsingDirectivesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersCompilerErrorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\RemoveConfusingSuppressionTests.cs" />
@@ -69,8 +71,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyConditionalTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\SimplifyInterpolationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForIfNullStatementCheckTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTernaryConditionalCheckTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundAssignmentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundCoalesceAssignmentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForAssignmentTests.cs" />
@@ -118,11 +121,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseNullCheckOverTypeCheckDiagnosticAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\UseTupleSwapTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\UseLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseObjectInitializerTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpUseNotPatternTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzerTests.cs" />

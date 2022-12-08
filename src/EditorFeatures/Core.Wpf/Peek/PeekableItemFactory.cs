@@ -6,17 +6,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Peek;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
@@ -26,52 +30,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
+        public PeekableItemFactory(
+            IMetadataAsSourceFileService metadataAsSourceFileService,
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
         }
 
         public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
-            ISymbol symbol, Project project,
+            ISymbol symbol,
+            Project project,
             IPeekResultFactory peekResultFactory,
             CancellationToken cancellationToken)
         {
             if (symbol == null)
-            {
                 throw new ArgumentNullException(nameof(symbol));
-            }
 
             if (project == null)
-            {
                 throw new ArgumentNullException(nameof(project));
-            }
 
             if (peekResultFactory == null)
-            {
                 throw new ArgumentNullException(nameof(peekResultFactory));
-            }
-
-            var results = new List<IPeekableItem>();
 
             var solution = project.Solution;
-            var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
+            symbol = await GoToDefinitionHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            if (symbol is null)
+                return ImmutableArray<IPeekableItem>.Empty;
 
-            // And if our definition actually is from source, then let's re-figure out what project it came from
-            if (sourceDefinition != null)
-            {
-                var originatingProject = solution.GetProject(sourceDefinition.ContainingAssembly, cancellationToken);
+            // if we mapped the symbol, then get the new project it is contained in.
+            var originatingProject = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
+            project = originatingProject ?? project;
 
-                project = originatingProject ?? project;
-            }
-
-            var symbolNavigationService = solution.Services.GetService<ISymbolNavigationService>();
             var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
+            var symbolNavigationService = solution.Services.GetService<ISymbolNavigationService>();
             var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+
+            using var _ = ArrayBuilder<IPeekableItem>.GetInstance(out var results);
             if (result is var (filePath, linePosition))
             {
                 results.Add(new ExternalFilePeekableItem(new FileLinePositionSpan(filePath, linePosition, linePosition), PredefinedPeekRelationships.Definitions, peekResultFactory));
@@ -85,12 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 {
                     if (firstLocation.IsInSource || _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                     {
-                        results.Add(new DefinitionPeekableItem(solution.Workspace, project.Id, symbolKey, peekResultFactory, _metadataAsSourceFileService, _globalOptions));
+                        results.Add(new DefinitionPeekableItem(
+                            solution.Workspace, project.Id, symbolKey, peekResultFactory, _metadataAsSourceFileService, _globalOptions, _threadingContext));
                     }
                 }
             }
 
-            return results;
+            return results.ToImmutable();
         }
     }
 }

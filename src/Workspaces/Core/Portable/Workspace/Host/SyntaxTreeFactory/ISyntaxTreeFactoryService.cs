@@ -29,15 +29,10 @@ namespace Microsoft.CodeAnalysis.Host
         bool OptionsDifferOnlyByPreprocessorDirectives(ParseOptions options1, ParseOptions options2);
 
         // new tree from root node
-        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root);
+        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
 
         // new tree from text
         SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
-
-        bool CanCreateRecoverableTree(SyntaxNode root);
-
-        // new recoverable tree from root node
-        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string? filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding? encoding, SyntaxNode root);
 
         SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }

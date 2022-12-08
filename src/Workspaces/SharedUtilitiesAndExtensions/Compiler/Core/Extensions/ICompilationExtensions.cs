@@ -233,5 +233,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
+
+        public static INamedTypeSymbol? ValueTupleType(this Compilation compilation, int arity)
+            => compilation.GetTypeByMetadataName($"System.ValueTuple`{arity}");
     }
 }

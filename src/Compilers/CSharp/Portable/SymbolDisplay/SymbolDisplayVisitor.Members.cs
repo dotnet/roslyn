@@ -812,20 +812,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                AddParameterRefKindIfNeeded(symbol);
-                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
-
-                if (symbol.ScopedKind == ScopedKind.ScopedValue &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
-                    AddKeyword(SyntaxKind.ScopedKeyword);
-                    AddSpace();
+                    // Add 'scoped' unless the parameter is an out parameter or
+                    // 'this' since those cases are implicitly scoped.
+                    if (symbol.ScopedKind == ScopedKind.ScopedRef &&
+                        symbol.RefKind != RefKind.Out &&
+                        !symbol.IsThis)
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
+
+                    AddParameterRefKind(symbol.RefKind);
                 }
 
-                if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
+
+                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
-                    AddKeyword(SyntaxKind.ParamsKeyword);
-                    AddSpace();
+                    if (symbol.ScopedKind == ScopedKind.ScopedValue && symbol.RefKind == RefKind.None)
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
+
+                    if (symbol.IsParams)
+                    {
+                        AddKeyword(SyntaxKind.ParamsKeyword);
+                        AddSpace();
+                    }
                 }
 
                 symbol.Type.Accept(this.NotFirstVisitor);
@@ -1108,26 +1124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddKeyword(SyntaxKind.ReadOnlyKeyword);
                 AddSpace();
-            }
-        }
-
-        private void AddParameterRefKindIfNeeded(IParameterSymbol symbol)
-        {
-            if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
-            {
-                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
-                    !symbol.IsThis &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
-                {
-                    var parameter = (symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>();
-                    if (parameter is null || !ParameterHelpers.IsRefScopedByDefault(parameter))
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
-                }
-
-                AddParameterRefKind(symbol.RefKind);
             }
         }
 

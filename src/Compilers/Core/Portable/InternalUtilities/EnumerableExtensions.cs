@@ -341,6 +341,21 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
         /// </summary>
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var item in source)
+            {
+                builder.Add(await selector(item, cancellationToken).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
+        /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<TResult>.GetInstance();

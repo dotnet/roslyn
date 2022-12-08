@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     string fileName = PathUtilities.GetFileName(path, includeExtension: false);
                     if (fileName.EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
                     {
-                        fileName = fileName.Substring(0, fileName.Length - ".ni".Length);
+                        fileName = fileName[..^".ni".Length];
                     }
 
                     // last one wins:

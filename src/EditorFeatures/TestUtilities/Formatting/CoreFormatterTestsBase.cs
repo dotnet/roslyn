@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-            var formattingOptions = (options != null) ?
-                formattingService.GetFormattingOptions(options.ToAnalyzerConfigOptions(document.Project.Services), fallbackOptions: null) :
-                formattingService.DefaultOptions;
+            var formattingOptions = (options != null)
+                ? formattingService.GetFormattingOptions(options.ToAnalyzerConfigOptions(document.Project.Services), fallbackOptions: null)
+                : formattingService.DefaultOptions;
 
             var rules = formattingRuleProvider.CreateRule(documentSyntax, 0).Concat(Formatter.GetDefaultFormattingRules(document));
             AssertFormat(workspace, expected, formattingOptions, rules, clonedBuffer, documentSyntax.Root, spans);

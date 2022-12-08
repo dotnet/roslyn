@@ -79,7 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-
         ' moduleBeingBuilt can be Nothing in order to just analyze methods for errors.
         Private Sub New(compilation As VisualBasicCompilation,
                        moduleBeingBuiltOpt As PEModuleBuilder,
@@ -347,7 +346,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub ProcessEmbeddedMethods()
             Dim manager = _compilation.EmbeddedSymbolManager
             Dim processedSymbols As New ConcurrentSet(Of Symbol)(ReferenceEqualityComparer.Instance)
-
 
             Dim methodOrdinal = 0
 
@@ -895,7 +893,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          emittingPdb:=False,
                                                          emitTestCoverageData:=_emitTestCoverageData,
                                                          dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
-
 
                     ' error while generating IL
                     If emittedBody Is Nothing Then

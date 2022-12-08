@@ -212,10 +212,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool HasUnscopedRefAttribute => GetEarlyDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+        internal override bool HasUnscopedRefAttribute => GetEarlyDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
+
+        /// <summary>
+        /// Returns the bound default value syntax from the parameter, if it exists.
+        /// Note that this method will only return a non-null value if the
+        /// default value was supplied in syntax. If the value is supplied through the DefaultParameterValue
+        /// attribute, then ExplicitDefaultValue will be non-null but this method will return null.
+        /// However, if ExplicitDefaultValue is null, this method should always return null.
+        /// </summary>
+        public BoundParameterEqualsValue? BindParameterEqualsValue()
+        {
+            // Rebind default value expression, ignoring any diagnostics, in order to produce
+            // a bound node that can be used for passes such as definite assignment.
+            MakeDefaultExpression(BindingDiagnosticBag.Discarded, out var _, out var parameterEqualsValue);
+            return parameterEqualsValue;
+        }
 
         private ConstantValue DefaultSyntaxValue
         {
@@ -341,6 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ConstantValue.NotAvailable;
             }
+
+            MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax, defaultSyntax.EqualsToken.GetLocation());
 
             binder = GetDefaultParameterValueBinder(defaultSyntax);
             Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
@@ -572,6 +589,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyCustomAttributesBag;
         }
 
+        /// <summary>
+        /// Binds attributes applied to this parameter.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindParameterAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), WithTypeParametersBinderOpt);
+        }
+
         internal override void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)
         {
             Debug.Assert(!attributeType.IsErrorType());
@@ -789,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.MaybeNullWhenAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
             {
@@ -797,11 +822,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.NotNullWhenAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnIfAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.DoesNotReturnIfAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
             {
@@ -831,10 +856,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            return ParameterHelpers.IsRefScopedByDefault(this);
+            return UseUpdatedEscapeRules && RefKind != RefKind.None;
         }
 
-        private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute)
+        private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)
         {
             var arguments = attribute.CommonConstructorArguments;
             return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_Boolean, out bool value) ?
@@ -1271,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();
@@ -1453,7 +1478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
             => GetDecodedWellKnownAttributeData()?.MarshallingInformation;
 
-        public override bool IsParams => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0;
+        public sealed override bool IsParams => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0;
 
         internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
 

@@ -16,13 +16,12 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <Fact>
         Public Async Function ProjectContainsDocuments() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
-                            <Document Name="A.cs" FilePath="Z:\A.cs"/>
-                            <Document Name="B.cs" FilePath="Z:\B.cs"/>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
+                        <Document Name="A.cs" FilePath="Z:\A.cs"/>
+                        <Document Name="B.cs" FilePath="Z:\B.cs"/>
+                    </Project>
+                </Workspace>)
 
             Dim projectVertex = Assert.Single(lsif.Vertices.OfType(Of Graph.LsifProject))
             Dim documentVertices = lsif.GetLinkedVertices(Of Graph.LsifDocument)(projectVertex, "contains")
@@ -41,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     <Workspace>
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj" CommonReferences="true">
                         </Project>
-                    </Workspace>)
+                    </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
 
             workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(),
                                                New TestGeneratorReference(New TestSourceGenerator.HelloWorldGenerator()))
@@ -72,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj" CommonReferences="true">
                             <DocumentFromSourceGenerator></DocumentFromSourceGenerator>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
 
             Dim stringWriter = New StringWriter
             Await TestLsifOutput.GenerateForWorkspaceAsync(workspace, New LineModeLsifJsonWriter(stringWriter))

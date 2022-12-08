@@ -210,7 +210,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMarshallingInformation marshallingInformation)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public virtual void Visit(MetadataConstant constant)

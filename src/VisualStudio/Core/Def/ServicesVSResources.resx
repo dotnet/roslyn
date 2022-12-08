@@ -2026,4 +2026,7 @@ Additional information: {1}</value>
   <data name="Prefer_read_only_struct" xml:space="preserve">
     <value>Prefer read-only struct</value>
   </data>
+  <data name="Analyze_source_generated_files" xml:space="preserve">
+    <value>Analyze source generated files</value>
+  </data>
 </root>
