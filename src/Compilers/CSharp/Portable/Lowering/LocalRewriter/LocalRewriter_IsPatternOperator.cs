@@ -15,22 +15,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             BoundDecisionDag decisionDag = node.GetDecisionDagForLowering(_factory.Compilation);
-            bool negated = node.IsNegated;
             BoundExpression result;
-            if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
+            if (decisionDag.RootNode is BoundLeafDecisionDagNode l && l.Label == node.WhenFalseLabel)
+            {
+                result = _factory.Literal(false);
+            }
+            else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
             {
                 // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
                 result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
-                isPatternRewriter.Free();
-            }
-            else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel))
-            {
-                // If we can build a linear test sequence with the whenTrue and whenFalse labels swapped, then negate the
-                // result.  This would typically arise when the source contains `e is not pattern`.
-                negated = !negated;
-                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
                 isPatternRewriter.Free();
             }
             else
@@ -41,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isPatternRewriter.Free();
             }
 
-            if (negated)
+            if (node.IsNegated)
             {
                 result = this._factory.Not(result);
             }
