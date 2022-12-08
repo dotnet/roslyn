@@ -3,20 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal abstract class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
-        AbstractDiagnosticsTaggerProvider<TTag>
+    internal abstract partial class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
+        AbstractPushOrPullDiagnosticsTaggerProvider<TTag>
         where TTag : class, ITag
     {
         protected AbstractDiagnosticsAdornmentTaggerProvider(
@@ -30,10 +27,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        protected internal sealed override bool IsEnabled => true;
+        protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
 
-        protected internal sealed override ITagSpan<TTag>? CreateTagSpan(
-            Workspace workspace, SnapshotSpan span, DiagnosticData data)
+        protected sealed override bool IsEnabled => true;
+
+        protected sealed override ITagSpan<TTag>? CreateTagSpan(
+            Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(workspace, data);
             if (errorTag == null)
@@ -41,43 +40,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Ensure the diagnostic has at least length 1.  Tags must have a non-empty length in order to actually show
             // up in the editor.
-            var adjustedSpan = AdjustSnapshotSpan(span);
+            // Live update squiggles have to be at least 1 character long.
+            var minimumLength = isLiveUpdate ? 1 : 0;
+            var adjustedSpan = AdjustSnapshotSpan(span, minimumLength);
             if (adjustedSpan.Length == 0)
                 return null;
 
             return new TagSpan<TTag>(adjustedSpan, errorTag);
         }
 
-        protected static object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
-        {
-            Action? navigationAction = null;
-            string? tooltip = null;
-            if (workspace != null)
-            {
-                var helpLinkUri = diagnostic.GetValidHelpLinkUri();
-                if (helpLinkUri != null)
-                {
-                    navigationAction = new QuickInfoHyperLink(workspace, helpLinkUri).NavigationAction;
-                    tooltip = diagnostic.HelpLink;
-                }
-            }
-
-            var diagnosticIdTextRun = navigationAction is null
-                ? new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Id)
-                : new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Id, navigationAction, tooltip);
-
-            return new ContainerElement(
-                ContainerElementStyle.Wrapped,
-                new ClassifiedTextElement(
-                    diagnosticIdTextRun,
-                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
-                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Message)));
-        }
-
-        // By default, tags must have at least length '1' so that they can be visible in the UI layer.
-        protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span)
-            => AdjustSnapshotSpan(span, minimumLength: 1, maximumLength: int.MaxValue);
+        protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
+            => AdjustSnapshotSpan(span, minimumLength, maximumLength: int.MaxValue);
 
         protected static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {
@@ -92,7 +65,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // make sure length is smaller than snapshot.Length which can happen if start == 0
             return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
         }
-
-        protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
     }
 }

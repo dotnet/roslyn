@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                              .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
                     {
                         lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
-                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
+                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
                         if (symbol != null && IsCandidateSymbol(symbol))
                         {
                             builder.Add(symbol);

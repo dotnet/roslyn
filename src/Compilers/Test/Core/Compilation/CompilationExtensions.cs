@@ -306,8 +306,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(semanticModel, operation.SemanticModel);
                         Assert.NotSame(semanticModel, ((Operation)operation).OwningSemanticModel);
                         Assert.NotNull(((Operation)operation).OwningSemanticModel);
-                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingModelOrSelf);
-                        Assert.Same(semanticModel, semanticModel.ContainingModelOrSelf);
+                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingPublicModelOrSelf);
+                        Assert.Same(semanticModel, semanticModel.ContainingPublicModelOrSelf);
 
                         if (operation.Parent == null)
                         {
@@ -371,8 +371,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
 
                     case IParameterInitializerOperation parameterInitializerOperation:
-                        // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local functions.
-                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+                        // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local and anonymous functions.
+                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction))
                         {
                             ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root), associatedSymbol);
                         }
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// up <see cref="CompilationReference"/> which contains all of the well known types that were used from that
         /// reference by the compiler.
         /// </summary>
-        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference()
+        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference(TargetFramework targetFramework = TargetFramework.NetCoreApp)
         {
             var source = @"
 namespace System.Runtime.InteropServices.WindowsRuntime
@@ -434,7 +434,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             var compilation = CSharpCompilation.Create(
                 "System.Runtime.InteropServices.WindowsRuntime",
                 new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
-                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
+                references: TargetFrameworkUtil.GetReferences(targetFramework),
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.VerifyEmitDiagnostics();
             return compilation.EmitToPortableExecutableReference();

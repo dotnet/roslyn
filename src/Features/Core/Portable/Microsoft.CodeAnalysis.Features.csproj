@@ -47,6 +47,7 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.UnitTests" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.TestWindow.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -146,4 +147,25 @@
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\CodeFixes\CodeFixes.projitems" Label="Shared" />
+
+  <Target Name="GenerateRulesMissingDocumentation">
+    <PropertyGroup>
+      <AnalyzerDocumentationFileDir>$(RepoRoot)src\Features</AnalyzerDocumentationFileDir>
+      <EscapeDirectorySuffix Condition="'$(OS)' == 'Windows_NT'">\</EscapeDirectorySuffix>
+      <DotNetExecutable Condition="'$(OS)' == 'Windows_NT'">$(DotNetRoot)dotnet.exe</DotNetExecutable>
+      <DotNetExecutable Condition="'$(DotNetExecutable)' == ''">$(DotNetRoot)dotnet</DotNetExecutable>
+    </PropertyGroup>
+
+    <MSBuild Projects="$(RepoRoot)src\Tools\GenerateRulesMissingDocumentation\GenerateRulesMissingDocumentation.csproj" Targets="Build">
+      <Output TaskParameter="TargetOutputs" PropertyName="_GenerateRulesMissingDocumentationFilesPath" />
+    </MSBuild>
+
+    <MSBuild Projects="$(RepoRoot)src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
+    <MSBuild Projects="$(RepoRoot)src\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
+    <MSBuild Projects="$(RepoRoot)src\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
+
+    <!-- Only run validation in CI builds. Running them in local builds will prevent refreshing auto-generated files. -->
+    <Exec Command='"$(DotNetExecutable)" --roll-forward major "$(_GenerateRulesMissingDocumentationFilesPath)" "-validateOnly:$(ContinuousIntegrationBuild)" "$(AnalyzerDocumentationFileDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)"' />
+  </Target>
+
 </Project>

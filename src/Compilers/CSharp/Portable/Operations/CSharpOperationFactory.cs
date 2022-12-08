@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _semanticModel = semanticModel;
         }
 
-        [return: NotNullIfNotNull("boundNode")]
+        [return: NotNullIfNotNull(nameof(boundNode))]
         public IOperation? Create(BoundNode? boundNode)
         {
             if (boundNode == null)
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit);
         }
 
-        internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)
+        internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration)
         {
             switch (declaration.Kind)
             {
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
 
-            ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundIndexerAccess, isObjectOrCollectionInitializer: false);
+            ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundIndexerAccess);
             IOperation? instance = CreateReceiverOperation(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.ExpressionSymbol);
             TypeParameterSymbol? constrainedToType = GetConstrainedToType(property, boundIndexerAccess.ReceiverOpt);
             return new PropertyReferenceOperation(property.GetPublicSymbol(), constrainedToType.GetPublicSymbol(), arguments, instance, _semanticModel, syntax, type, isImplicit);
@@ -703,7 +703,9 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundObjectCreationExpression.ConstantValue;
             bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
 
-            if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor == null || constructor.OriginalDefinition is ErrorMethodSymbol)
+            Debug.Assert(constructor is not null);
+
+            if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor.OriginalDefinition is ErrorMethodSymbol)
             {
                 var children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundObjectCreationExpression).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -882,7 +884,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
                         }
 
-                        arguments = DeriveArguments(boundObjectInitializerMember, isObjectOrCollectionInitializer);
+                        arguments = DeriveArguments(boundObjectInitializerMember);
                     }
                     else
                     {
@@ -1035,6 +1037,14 @@ namespace Microsoft.CodeAnalysis.Operations
                 // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
                 // hide the resolved method.
                 IOperation target = CreateDelegateTargetOperation(boundConversion);
+
+                // If this was an explicit tuple expression conversion, such as ((Action, int))(M, 1), we will be "explicit", because the
+                // original conversion was explicit in code, but the syntax node for this delegate creation and the nested method group will
+                // be the same. We therefore need to mark this node as implicit to ensure we don't have two explicit nodes for the same syntax.
+                Debug.Assert(isImplicit || target.Syntax != syntax || target.IsImplicit || boundConversion.ConversionGroupOpt != null);
+
+                isImplicit = isImplicit || (target.Syntax == syntax && !target.IsImplicit);
+
                 return new DelegateCreationOperation(target, _semanticModel, syntax, type, isImplicit);
             }
             else
@@ -2018,7 +2028,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             bool multiVariableImplicit = boundLocalDeclaration.WasCompilerGenerated;
             ImmutableArray<IVariableDeclaratorOperation> declarators = CreateVariableDeclarator(boundLocalDeclaration, varDeclaration);
-            ImmutableArray<IOperation> ignoredDimensions = CreateIgnoredDimensions(boundLocalDeclaration, varDeclaration);
+            ImmutableArray<IOperation> ignoredDimensions = CreateIgnoredDimensions(boundLocalDeclaration);
             IVariableDeclarationOperation multiVariableDeclaration = new VariableDeclarationOperation(declarators, initializer: null, ignoredDimensions, _semanticModel, varDeclaration, multiVariableImplicit);
             // In the case of a for loop, varStatement and varDeclaration will be the same syntax node.
             // We can only have one explicit operation, so make sure this node is implicit in that scenario.
@@ -2038,7 +2048,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
             ImmutableArray<IVariableDeclaratorOperation> declarators = CreateVariableDeclarator(boundMultipleLocalDeclarations, declarationSyntax);
-            ImmutableArray<IOperation> ignoredDimensions = CreateIgnoredDimensions(boundMultipleLocalDeclarations, declarationSyntax);
+            ImmutableArray<IOperation> ignoredDimensions = CreateIgnoredDimensions(boundMultipleLocalDeclarations);
             IVariableDeclarationOperation multiVariableDeclaration = new VariableDeclarationOperation(declarators, initializer: null, ignoredDimensions, _semanticModel, declarationSyntax, declarationIsImplicit);
 
             // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the

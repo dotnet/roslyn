@@ -207,13 +207,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     string typeName = "CallConv" + specifierText;
                     var metadataName = MetadataTypeName.FromNamespaceAndTypeName("System.Runtime.CompilerServices", typeName, useCLSCompliantNameArityEncoding: true, forcedArity: 0);
-                    NamedTypeSymbol specifierType;
-                    specifierType = compilation.Assembly.CorLibrary.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
+                    NamedTypeSymbol? specifierType;
+                    specifierType = compilation.Assembly.CorLibrary.LookupDeclaredTopLevelMetadataType(ref metadataName);
+                    Debug.Assert(specifierType?.IsErrorType() != true);
+                    Debug.Assert(specifierType is null || ReferenceEquals(specifierType.ContainingAssembly, compilation.Assembly.CorLibrary));
 
-                    if (specifierType is MissingMetadataTypeSymbol)
+                    if (specifierType is null)
                     {
-                        // Replace the existing missing type symbol with one that has a better error message
-                        specifierType = new MissingMetadataTypeSymbol.TopLevel(specifierType.ContainingModule, ref metadataName, new CSDiagnosticInfo(ErrorCode.ERR_TypeNotFound, typeName));
+                        specifierType = new MissingMetadataTypeSymbol.TopLevel(compilation.Assembly.CorLibrary.Modules[0], ref metadataName, new CSDiagnosticInfo(ErrorCode.ERR_TypeNotFound, typeName));
                     }
                     else if (specifierType.DeclaredAccessibility != Accessibility.Public)
                     {

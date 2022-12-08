@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' Ref field in ref struct.
         ''' </summary>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/61463")>
+        <Fact, WorkItem(65392, "https://github.com/dotnet/roslyn/issues/65392")>
         Public Sub RefField_01()
             Dim sourceA =
 "public ref struct S<T>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     public ref T F;
     public S(ref T t) { F = ref t; }
 }"
-            Dim compA = CreateCSharpCompilation(GetUniqueName(), sourceA, parseOptions:=New CSharp.CSharpParseOptions(languageVersion:=CSharp.LanguageVersion.Preview))
+            Dim compA = CreateCSharpCompilation(GetUniqueName(), sourceA, referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70))
             compA.VerifyDiagnostics()
             Dim refA = compA.EmitToImageReference()
 
@@ -51,6 +51,33 @@ BC30656: Field 'F' is of an unsupported type.
             VerifyFieldSymbol(field, "S(Of T).F As T modreq(?)")
             Assert.NotNull(field.GetUseSiteErrorInfo())
             Assert.True(field.HasUnsupportedMetadata)
+        End Sub
+
+        <Fact, WorkItem(65392, "https://github.com/dotnet/roslyn/issues/65392")>
+        Public Sub CanUsePassThroughRefStructInstances()
+            Dim source =
+"Imports System
+Module Program
+    Sub Main()
+        Dim s = ""123"".AsSpan()
+        Dim s2 As ReadOnlySpan(Of Char) = ""123"".AsSpan()
+        Dim s3 = MemoryExtensions.AsSpan(""123"")
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.Net60)
+            comp.AssertTheseDiagnostics(<expected>
+BC30668: 'ReadOnlySpan(Of Char)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 As ReadOnlySpan(Of Char) = "123".AsSpan()
+                  ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+
+            comp = CreateCompilation(source, targetFramework:=TargetFramework.Net70)
+            comp.AssertTheseDiagnostics(<expected>
+BC30668: 'ReadOnlySpan(Of Char)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 As ReadOnlySpan(Of Char) = "123".AsSpan()
+                  ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         ''' <summary>
@@ -95,7 +122,7 @@ BC30656: Field 'F' is of an unsupported type.
             Assert.Equal(expectedDisplayString, field.ToTestDisplayString())
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/61463")>
+        <Fact>
         Public Sub MemberRefMetadataDecoder_FindFieldBySignature()
             Dim sourceA =
 ".class public sealed R<T> extends [mscorlib]System.ValueType
@@ -117,7 +144,7 @@ BC30656: Field 'F' is of an unsupported type.
     static object F2() => new R<object>().F2;
     static int F3() => new R<object>().F3;
 }"
-            Dim compB = CreateCSharpCompilation(GetUniqueName(), sourceB, parseOptions:=New CSharp.CSharpParseOptions(languageVersion:=CSharp.LanguageVersion.Preview), referencedAssemblies:={MscorlibRef, refA})
+            Dim compB = CreateCSharpCompilation(GetUniqueName(), sourceB, referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70, {refA}))
             compB.VerifyDiagnostics()
             Dim refB = compB.EmitToImageReference()
 

@@ -692,7 +692,6 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
         {{GetTestIl(attributeApplication: "")}}
         """;
 
-
         var compiledIl = CompileIL(il);
         var comp = CreateCompilation(source: GetUsage(), references: new[] { compiledIl });
 

@@ -43,6 +43,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             Assert.NotNull(service);
         }
 
+        [Fact]
+        public void FindCompletionProvider()
+        {
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(typeof(ThirdPartyCompletionProvider)));
+            var text = SourceText.From("class C { }");
+
+            var document = workspace.CurrentSolution
+                .AddProject("TestProject", "Assembly", LanguageNames.CSharp)
+                .AddDocument("TestDocument.cs", text);
+
+            var service = CompletionService.GetService(document);
+
+            // Create an item with ProvderName set to ThirdPartyCompletionProvider
+            // We should be able to find the provider object vithout calling into CompletionService for other operations.
+            var item = CompletionItem.Create("ThirdPartyCompletionProviderItem");
+            item.ProviderName = typeof(ThirdPartyCompletionProvider).FullName;
+
+            var provider = service.GetProvider(item, document.Project);
+            Assert.True(provider is ThirdPartyCompletionProvider);
+        }
+
         [ExportCompletionProvider(nameof(ThirdPartyCompletionProvider), LanguageNames.CSharp)]
         [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
         [Shared]

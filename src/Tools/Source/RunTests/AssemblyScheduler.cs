@@ -78,7 +78,7 @@ namespace RunTests
             if (testHistory.IsEmpty)
             {
                 // We didn't have any test history from azure devops, just partition by test count.
-                ConsoleUtil.WriteLine($"##[warning]Could not look up test history - partitioning based on test count instead");
+                ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
                 var workItemsByMethodCount = BuildWorkItems<int>(
                     orderedTypeInfos,
                     isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
@@ -268,7 +268,6 @@ namespace RunTests
             }
         }
 
-
         private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
         {
             ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
@@ -281,7 +280,7 @@ namespace RunTests
                 {
                     // Log a warning to the console with work item details when we were not able to partition in under our limit.
                     // This can happen when a single specific test exceeds our execution time limit.
-                    ConsoleUtil.WriteLine($"##[warning]Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
+                    ConsoleUtil.Warning($"Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
                     LogFilters(workItem, ConsoleUtil.WriteLine);
                 }
                 else

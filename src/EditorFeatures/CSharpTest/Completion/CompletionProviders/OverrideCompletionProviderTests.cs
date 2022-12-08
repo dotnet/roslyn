@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -468,11 +467,123 @@ public class a
 
 public class b : a
 {
-     internal protected override $$ 
+    internal protected override $$ 
 }";
 
             await VerifyItemIsAbsentAsync(internalprotected, "bar()");
             await VerifyItemExistsAsync(internalprotected, "goo()");
+        }
+
+        [WpfFact, WorkItem(64821, "https://github.com/dotnet/roslyn/issues/64821")]
+        public async Task FilterAccessibility1()
+        {
+            var test1 = @"
+public class a
+{
+    private protected virtual void goo() { }
+}
+
+public class b : a
+{
+    private override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    private protected virtual void goo() { }
+}
+
+public class b : a
+{
+    protected override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    private protected virtual void goo() { }
+}
+
+public class b : a
+{
+    private protected override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    private protected virtual void goo() { }
+}
+
+public class b : a
+{
+    protected private override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+        }
+
+        [WpfFact, WorkItem(64821, "https://github.com/dotnet/roslyn/issues/64821")]
+        public async Task FilterAccessibility2()
+        {
+            var test1 = @"
+public class a
+{
+    protected internal virtual void goo() { }
+}
+
+public class b : a
+{
+    protected override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    protected internal virtual void goo() { }
+}
+
+public class b : a
+{
+    internal override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    protected internal virtual void goo() { }
+}
+
+public class b : a
+{
+    protected internal override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    protected internal virtual void goo() { }
+}
+
+public class b : a
+{
+    internal protected override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
         }
 
         [WpfFact]

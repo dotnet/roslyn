@@ -341,9 +341,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             protected override string GetText(IFormatProvider? formatProvider)
             {
                 var messageFormat = _messageFormat.ToString(formatProvider);
-                return messageFormat != null ?
-                    (_formatArguments.Length > 0 ? string.Format(formatProvider, messageFormat, _formatArguments) : messageFormat) :
-                    string.Empty;
+                return messageFormat != null
+                    ? (_formatArguments.Length > 0 ? string.Format(formatProvider, messageFormat, _formatArguments) : messageFormat)
+                    : string.Empty;
             }
 
             protected override bool AreEqual(object? other)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -10,12 +11,13 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
     internal abstract partial class StringSplitter
     {
-        protected static readonly SyntaxAnnotation RightNodeAnnotation = new();
+        protected readonly SyntaxAnnotation RightNodeAnnotation = new();
 
         protected static readonly SyntaxToken PlusNewLineToken = SyntaxFactory.Token(
             leading: default,

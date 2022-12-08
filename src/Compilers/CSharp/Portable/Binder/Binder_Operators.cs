@@ -2407,6 +2407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             var expr = BindExpression(node.Operand, diagnostics);
             switch (expr.Kind)
             {
@@ -4072,6 +4074,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);

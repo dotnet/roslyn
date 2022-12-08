@@ -4009,5 +4009,30 @@ public record A(int X, int Y);";
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
         }
+
+        [Fact, WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
+        public void TestDisabledByDefaultAnalyzerEnabledForSingleFile()
+        {
+            var source1 = "class C1 { }";
+            var source2 = "class C2 { }";
+            var source3 = "class C3 { }";
+            var analyzer = new AnalyzerWithDisabledRules();
+
+            // Enable disabled by default analyzer for first source file with analyzer config options.
+            var compilation = CreateCompilation(new[] { source1, source2, source3 });
+            var tree1 = compilation.SyntaxTrees[0];
+            var options = compilation.Options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree1, (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn)));
+            compilation = compilation.WithOptions(options);
+
+            // Verify single analyzer diagnostic reported in the compilation.
+            compilation.VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer }, null, null,
+                    Diagnostic("ID1", "C1").WithLocation(1, 7));
+
+            // PERF: Verify no analyzer callbacks are made for source files where the analyzer was not enabled.
+            var symbol = Assert.Single(analyzer.CallbackSymbols);
+            Assert.Equal("C1", symbol.Name);
+        }
     }
 }

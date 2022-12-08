@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,10 +18,13 @@ namespace Microsoft.CodeAnalysis
         where TExportAttribute : Attribute
         where TExtension : class
     {
+        public record class ExtensionInfo(string[] DocumentKinds, string[]? DocumentExtensions);
+
         // Following CWTs are used to cache completion providers from projects' references,
         // so we can avoid the slow path unless there's any change to the references.
         private static readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<TExtension>>> s_referencesToExtensionsMap = new();
         private static readonly ConditionalWeakTable<AnalyzerReference, TProvider> s_referenceToProviderMap = new();
+        private static readonly ConditionalWeakTable<TExtension, ExtensionInfo?> s_extensionInfoMap = new();
 
         private AnalyzerReference Reference { get; init; } = null!;
         private ImmutableDictionary<string, ImmutableArray<TExtension>> _extensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
@@ -70,6 +74,61 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return builder.ToImmutable();
+            }
+        }
+
+        public static ImmutableArray<TExtension> GetExtensions(TextDocument document, Func<TExportAttribute, ExtensionInfo>? getExtensionInfoForFiltering)
+        {
+            var extensions = GetExtensions(document.Project);
+            return getExtensionInfoForFiltering != null
+                ? FilterExtensions(document, extensions, getExtensionInfoForFiltering)
+                : extensions;
+        }
+
+        public static ImmutableArray<TExtension> FilterExtensions(TextDocument document, ImmutableArray<TExtension> extensions, Func<TExportAttribute, ExtensionInfo> getExtensionInfoForFiltering)
+        {
+            return extensions.WhereAsArray(ShouldIncludeExtension);
+
+            bool ShouldIncludeExtension(TExtension extension)
+            {
+                if (!s_extensionInfoMap.TryGetValue(extension, out var extensionInfo))
+                {
+                    extensionInfo = s_extensionInfoMap.GetValue(extension,
+                        new ConditionalWeakTable<TExtension, ExtensionInfo?>.CreateValueCallback(ComputeExtensionInfo));
+                }
+
+                if (extensionInfo == null)
+                    return true;
+
+                if (!extensionInfo.DocumentKinds.Contains(document.Kind.ToString()))
+                    return false;
+
+                if (document.FilePath != null &&
+                    extensionInfo.DocumentExtensions != null &&
+                    !extensionInfo.DocumentExtensions.Contains(PathUtilities.GetExtension(document.FilePath)))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            ExtensionInfo? ComputeExtensionInfo(TExtension extension)
+            {
+                TExportAttribute? attribute;
+                try
+                {
+                    var typeInfo = extension.GetType().GetTypeInfo();
+                    attribute = typeInfo.GetCustomAttribute<TExportAttribute>();
+                }
+                catch
+                {
+                    attribute = null;
+                }
+
+                if (attribute == null)
+                    return null;
+                return getExtensionInfoForFiltering(attribute);
             }
         }
 

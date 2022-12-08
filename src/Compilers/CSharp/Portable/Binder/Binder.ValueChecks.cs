@@ -948,6 +948,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 { RefKind: RefKind.None } => Binder.CurrentMethodScope,
                 { EffectiveScope: DeclarationScope.RefScoped } => Binder.CurrentMethodScope,
+                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => Binder.ReturnOnlyScope,
+                { HasUnscopedRefAttribute: true, IsThis: false } => Binder.CallingMethodScope,
                 _ => Binder.ReturnOnlyScope
             };
         }
@@ -1879,7 +1881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // For consistency with C#10 implementation, we don't report an additional error
                     // for the receiver. (In both implementations, the call to Check*Escape() above
                     // will have reported a specific escape error for the receiver though.)
-                    if ((object)argument != receiver)
+                    if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != receiver)
                     {
                         ReportInvocationEscapeError(syntax, symbol, argAndParam.Parameter, checkingReceiver, diagnostics);
                     }
@@ -1899,7 +1901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// determining which arguments affect escape analysis. This method is used for method invocation
         /// analysis, regardless of whether UseUpdatedEscapeRules is set.
         /// </summary>
-        private static void GetInvocationArgumentsForEscape(
+        private void GetInvocationArgumentsForEscape(
             Symbol symbol,
             BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
@@ -1912,7 +1914,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver is { })
             {
-                var tuple = getReceiver(symbol, receiver);
+                var method = symbol switch
+                {
+                    MethodSymbol m => m,
+                    PropertySymbol p => p.GetMethod ?? p.SetMethod,
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+                };
+
+                if (receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type!.IsValueType)
+                {
+                    var receiverAddressKind = method.IsEffectivelyReadOnly ? AddressKind.ReadOnly : AddressKind.Writeable;
+
+                    if (!Binder.HasHome(receiver,
+                                        receiverAddressKind,
+                                        ContainingMemberOrLambda,
+                                        Compilation.IsPeVerifyCompatEnabled,
+                                        stackLocalsOpt: null))
+                    {
+                        // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                        receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, LocalScopeDepth, receiver.Type).MakeCompilerGenerated();
+                    }
+                }
+
+                var tuple = getReceiver(method, receiver);
                 escapeArguments.Add(tuple);
 
                 if (mixableArguments is not null && isMixableParameter(tuple.Parameter))
@@ -1975,18 +1999,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isMixableArgument(BoundExpression argument) =>
                 argument is not (BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None });
 
-            static EscapeArgument getReceiver(Symbol symbol, BoundExpression receiver)
+            static EscapeArgument getReceiver(MethodSymbol? method, BoundExpression receiver)
             {
-                if (symbol is FunctionPointerMethodSymbol)
+                if (method is FunctionPointerMethodSymbol)
                 {
                     return new EscapeArgument(parameter: null, receiver, RefKind.None);
                 }
-                var method = symbol switch
-                {
-                    MethodSymbol m => m,
-                    PropertySymbol p => p.GetMethod ?? p.SetMethod,
-                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-                };
 
                 var refKind = RefKind.None;
                 ParameterSymbol? thisParameter = null;
@@ -2026,7 +2044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// whether analysis should consider value or ref escape. Not all method arguments
         /// are included, and some arguments may be included twice - once for value, once for ref.
         /// </summary>
-        private static void GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
+        private void GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
@@ -2102,7 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Optionally this will also return all of the <see cref="MixableDestination" /> that 
         /// result from this invocation. That is useful for MAMM analysis.
         /// </summary>
-        private static void GetEscapeValuesForUpdatedRules(
+        private void GetEscapeValuesForUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
@@ -2149,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (parameter.Type.IsRefLikeType && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
+                if (parameter.Type.IsRefLikeType && parameter.RefKind != RefKind.Out && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, valEscapeLevel, isRefEscape: false));
                 }
@@ -2409,9 +2427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : GetValEscape(fromArg, scopeOfTheContainingExpression));
                 }
 
-                foreach (var (_, fromArg, _, _) in escapeValues)
+                foreach (var argument in argsOpt)
                 {
-                    if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
+                    if (ShouldInferDeclarationExpressionValEscape(argument, out var localSymbol))
                     {
                         localSymbol.SetValEscape(inferredDestinationValEscape);
                     }
@@ -2696,6 +2714,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
         {
+            // The result of escape analysis is affected by the expression's type.
+            // We can't do escape analysis on expressions which lack a type, such as 'target typed new()', until they are converted.
+            Debug.Assert(expr.Type is not null);
+
             if (isByRef)
             {
                 if (CheckRefEscape(expr.Syntax, expr, this.LocalScopeDepth, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
@@ -2773,6 +2795,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
+
+                case BoundKind.CapturedReceiverPlaceholder:
+                    // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                    return ((BoundCapturedReceiverPlaceholder)expr).LocalScopeDepth;
 
                 case BoundKind.ThisReference:
                     var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
@@ -3019,6 +3045,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     var local = (BoundLocal)expr;
                     return CheckLocalRefEscape(node, local, escapeTo, checkingReceiver, diagnostics);
+
+                case BoundKind.CapturedReceiverPlaceholder:
+                    // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                    if (((BoundCapturedReceiverPlaceholder)expr).LocalScopeDepth <= escapeTo)
+                    {
+                        return true;
+                    }
+                    break;
 
                 case BoundKind.ThisReference:
                     var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
@@ -3318,6 +3352,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.ValEscapeScope;
+
+                case BoundKind.CapturedReceiverPlaceholder:
+                    // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                    var placeholder = (BoundCapturedReceiverPlaceholder)expr;
+                    return GetValEscape(placeholder.Receiver, placeholder.LocalScopeDepth);
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
@@ -3756,6 +3795,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return inUnsafeRegion;
                     }
                     return true;
+
+                case BoundKind.CapturedReceiverPlaceholder:
+                    // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                    BoundExpression underlyingReceiver = ((BoundCapturedReceiverPlaceholder)expr).Receiver;
+                    return CheckValEscape(underlyingReceiver.Syntax, underlyingReceiver, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
@@ -4412,11 +4456,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool HasHome(
             BoundExpression expression,
             AddressKind addressKind,
-            MethodSymbol method,
+            Symbol containingSymbol,
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(method is object);
+            Debug.Assert(containingSymbol is object);
 
             switch (expression.Kind)
             {
@@ -4442,7 +4486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    if (!IsAnyReadOnly(addressKind) && method.IsEffectivelyReadOnly)
+                    if (!IsAnyReadOnly(addressKind) && containingSymbol is MethodSymbol { ContainingSymbol: NamedTypeSymbol, IsEffectivelyReadOnly: true })
                     {
                         return false;
                     }
@@ -4476,10 +4520,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (IsAnyReadOnly(addressKind) && dupRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.FieldAccess:
-                    return HasHome((BoundFieldAccess)expression, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+                    return FieldAccessHasHome((BoundFieldAccess)expression, addressKind, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
 
                 case BoundKind.Sequence:
-                    return HasHome(((BoundSequence)expression).Value, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome(((BoundSequence)expression).Value, addressKind, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expression;
@@ -4495,13 +4539,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(HasHome(
                         ((BoundComplexConditionalReceiver)expression).ValueTypeReceiver,
                         addressKind,
-                        method,
+                        containingSymbol,
                         peVerifyCompatEnabled,
                         stackLocalsOpt));
                     Debug.Assert(HasHome(
                         ((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver,
                         addressKind,
-                        method,
+                        containingSymbol,
                         peVerifyCompatEnabled,
                         stackLocalsOpt));
                     goto case BoundKind.ConditionalReceiver;
@@ -4523,8 +4567,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing
-                    return HasHome(conditional.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
-                        && HasHome(conditional.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome(conditional.Consequence, addressKind, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt)
+                        && HasHome(conditional.Alternative, addressKind, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
 
                 default:
                     return false;
@@ -4536,14 +4580,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Fields have readable homes when they are not constants.
         /// Fields have writeable homes unless they are readonly and used outside of the constructor.
         /// </summary>
-        private static bool HasHome(
+        private static bool FieldAccessHasHome(
             BoundFieldAccess fieldAccess,
             AddressKind addressKind,
-            MethodSymbol method,
+            Symbol containingSymbol,
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(method is object);
+            Debug.Assert(containingSymbol is object);
 
             FieldSymbol field = fieldAccess.FieldSymbol;
 
@@ -4594,8 +4638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // has readable home -> return false - we need to copy the field
                         // otherwise         -> return true  - the copy will be made at higher level so the leaf field can have writeable home
 
-                        return HasHome(receiver, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
-                            || !HasHome(receiver, AddressKind.ReadOnly, method, peVerifyCompatEnabled, stackLocalsOpt);
+                        return HasHome(receiver, addressKind, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt)
+                            || !HasHome(receiver, AddressKind.ReadOnly, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
                     }
                 }
 
@@ -4603,18 +4647,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // while readonly fields have home it is not valid to refer to it when not constructing.
-            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.AllIgnoreOptions))
+            if (!TypeSymbol.Equals(field.ContainingType, containingSymbol.ContainingSymbol as NamedTypeSymbol, TypeCompareKind.AllIgnoreOptions))
             {
                 return false;
             }
 
             if (field.IsStatic)
             {
-                return method.MethodKind == MethodKind.StaticConstructor;
+                return containingSymbol is MethodSymbol { MethodKind: MethodKind.StaticConstructor } or FieldSymbol { IsStatic: true };
             }
             else
             {
-                return (method.MethodKind == MethodKind.Constructor || method.IsInitOnly) &&
+                return (containingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor } or FieldSymbol { IsStatic: false } or MethodSymbol { IsInitOnly: true }) &&
                     fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
             }
         }

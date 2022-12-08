@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
                 {
-                    var documentsByProject = captureAllMatchingDocuments ?
-                        solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
-                        GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+                    var documentsByProject = captureAllMatchingDocuments
+                        ? solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values))
+                        : GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
 
                     initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
                 }

@@ -178,11 +178,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var subjectBuffer = view.GetBufferContainingCaret();
-            Assumes.Present(subjectBuffer);
-
-            var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+            var point = new SnapshotPoint(view.TextSnapshot, position);
 
             view.Caret.MoveTo(point);
         }
@@ -398,28 +394,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public async Task<string[]> GetErrorTagsAsync(CancellationToken cancellationToken)
-            => await GetTagsAsync<IErrorTag>(filter: null, cancellationToken);
-
-        private static string PrintSpan(SnapshotSpan span)
-            => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
-
-        private async Task<string[]> GetTagsAsync<TTag>(Predicate<TTag>? filter, CancellationToken cancellationToken)
-            where TTag : ITag
+        public async Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
         {
-            filter ??= _ => true;
-
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var view = await GetActiveTextViewAsync(cancellationToken);
-
             var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
-            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
+
+            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<IErrorTag>(view);
             var tags = aggregator
                 .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                .Where(t => filter(t.Tag))
                 .Cast<IMappingTagSpan<ITag>>();
-            return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
+
+            return tags.SelectAsArray(tag => (new TagSpan<IErrorTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (IErrorTag)tag.Tag)));
         }
 
         private static bool IsDebuggerTextView(ITextView textView)

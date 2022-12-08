@@ -252,9 +252,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [InlineData(LanguageNames.VisualBasic)]
         public async Task TestChecksumAlgorithm_NonDefault(string language)
         {
-            var files = language == LanguageNames.CSharp ?
-                GetSimpleCSharpSolutionFiles().WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithChecksumAlgorithm) :
-                GetSimpleVisualBasicSolutionFiles().WithFile(@"VisualBasicProject\VisualBasicProject.csproj", Resources.ProjectFiles.VisualBasic.WithChecksumAlgorithm);
+            var files = language == LanguageNames.CSharp
+                ? GetSimpleCSharpSolutionFiles().WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithChecksumAlgorithm)
+                : GetSimpleVisualBasicSolutionFiles().WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.WithChecksumAlgorithm);
 
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
@@ -962,30 +962,22 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestOpenSolution_WithLockedFile_FailsWithFailureEvent()
+        public async Task TestOpenSolution_WithLockedFile_LoadsWithEmptyText()
         {
-            // when skipped we should see a diagnostic for the invalid project
-
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+
             // open source file so it cannot be read by workspace;
             var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
-            var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
-            try
-            {
-                var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-                var doc = solution.Projects.First().Documents.First(d => d.FilePath == sourceFile);
-                var text = await doc.GetTextAsync();
-                Assert.Empty(text.ToString());
-            }
-            finally
-            {
-                file.Close();
-            }
+            using var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
 
-            Assert.Equal(WorkspaceDiagnosticKind.Failure, workspace.Diagnostics.Single().Kind);
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+            var doc = solution.Projects.First().Documents.First(d => d.FilePath == sourceFile);
+            var text = await doc.GetTextAsync();
+            Assert.Empty(text.ToString());
+            Assert.NotNull(await doc.State.GetLoadDiagnosticAsync(CancellationToken.None));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -2825,9 +2817,6 @@ class C1
 
             var compilation = document.GetObjectReference(static d => d.GetSemanticModelAsync(CancellationToken.None).Result);
             Assert.NotNull(compilation);
-
-            // MSBuildWorkspace doesn't have a cache service
-            Assert.Null(workspace.UseReference(static w => w.CurrentSolution.Services.GetService<IProjectCacheHostService>()));
 
             document.ReleaseStrongReference();
             project.ReleaseStrongReference();

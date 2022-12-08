@@ -1960,7 +1960,6 @@ Imports System
             ' Nothing reported since the namespace inherits CLSCompliant(False) from the assembly.
             CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll.WithRootNamespace("_A")).AssertNoDiagnostics()
 
-
             Dim source2 =
                 <compilation>
                     <file name="a.vb">

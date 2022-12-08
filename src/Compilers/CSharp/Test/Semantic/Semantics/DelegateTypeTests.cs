@@ -63,6 +63,8 @@ static class Utils
         private static readonly string s_expressionOfTDelegate1ArgTypeName = ExecutionConditionUtil.IsDesktop ?
             "System.Linq.Expressions.Expression`1" :
             "System.Linq.Expressions.Expression1`1";
+        private static readonly string s_libPrefix = ExecutionConditionUtil.IsDesktop ? "mscorlib" : "netstandard";
+        private static readonly string s_corePrefix = ExecutionConditionUtil.IsDesktop ? "System.Core" : "netstandard";
 
         [Fact]
         public void LanguageVersion()
@@ -4573,6 +4575,98 @@ F<T>(MyFunc<T> f, string format, params object[] args)
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_49()
+        {
+            var source = """
+class Program
+{
+    delegate void D1(int i = 1);
+    delegate void D2(int i = 2);
+    static int F(D1 d) => 1;
+    static object F(D2 d) => 2;
+    static void Main()
+    {
+        int y = F((int x = 2) => { });
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Program.D1)' and 'Program.F(Program.D2)'
+                //         int y = F((int x = 2) => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(Program.D1)", "Program.F(Program.D2)").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void OverloadResolution_50()
+        {
+
+            var source = """
+class Program
+{
+    delegate void D1(int i = 1);
+    static int F(D1 d) => 1;
+    static void Main()
+    {
+        int y = F((int x = 2) => { });
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,24): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
+                //         int y = F((int x = 2) => { });
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(7, 24));
+        }
+
+        [Fact]
+        public void OverloadResolution_51()
+        {
+            var source = """
+class Program
+{
+    delegate void D1(int i = 1);
+    delegate void D2(int i = 2);
+    static int F(D1 d) => 1;
+    static object F(D2 d) => 2;
+    static void M(int i = 2) { }
+
+    static void Main()
+    {
+        int y = F(M);
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Program.D1)' and 'Program.F(Program.D2)'
+                //         int y = F(M);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(Program.D1)", "Program.F(Program.D2)").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void OverloadResolution_52()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate void D1(int i = 1);
+    delegate int D2(int j = 1);
+
+    static void F(D1 d) { }
+    static int F(D2 d) => d();
+    static int M(int i = 2) => i;
+
+    static void Main()
+    {
+        int y = F(M);
+        Console.WriteLine(y);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
         }
 
         [Fact]
@@ -11676,6 +11770,2847 @@ class Program
   .maxstack  0
   IL_0000:  ret
 }");
+        }
+
+        [Fact, WorkItem(64656, "https://github.com/dotnet/roslyn/issues/64656")]
+        public void UsingStatic_DelegateInference()
+        {
+            var source = """
+                using static A;
+                var f = M;
+                f();
+                static class A
+                {
+                    public static void M() => System.Console.WriteLine("A.M()");
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "A.M()").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    static void Report(object d) => Console.WriteLine(d.GetType());
+    public static void Main()
+    {   
+        var lam = (int x = 30) => x;
+        Console.WriteLine(lam() + " " + lam(10));
+        Report(lam);
+    } 
+}
+""";
+
+            var expectAnonymousDelegateIL =
+$@"
+.class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance int32 Invoke (
+			[opt] int32 arg
+		) runtime managed 
+	{{
+		.param [1] = int32(30)
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
+";
+
+            var expectLoweredClosureContainerIL =
+$@"
+    .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+    extends [{s_libPrefix}]System.Object
+{{
+    .custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Fields
+    .field public static initonly class Program/'<>c' '<>9'
+    .field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+    // Methods
+    .method private hidebysig specialname rtspecialname static 
+        void .cctor () cil managed 
+    {{
+        // Method begins at RVA 0x20de
+        // Code size 11 (0xb)
+        .maxstack 8
+        IL_0000: newobj instance void Program/'<>c'::.ctor()
+        IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+        IL_000a: ret
+    }} // end of method '<>c'::.cctor
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {{
+        // Method begins at RVA 0x20d6
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
+        IL_0006: ret
+    }} // end of method '<>c'::.ctor
+    .method assembly hidebysig 
+        instance int32 '<Main>b__1_0' (
+            [opt] int32 x
+        ) cil managed 
+    {{
+        .param [1] = int32(30)
+        // Method begins at RVA 0x20ea
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: ret
+    }} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"30 10
+<>f__AnonymousDelegate0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
+        }
+
+        [Fact]
+        public void LambdaWithMultipleDefaultParameters()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static string Report(object obj) => obj.GetType().ToString();
+    public static void Main()
+    {
+        var lam = (int a = 1, int b = 2, int c = 3) => a + b + c;
+        Console.WriteLine(lam(2) + " " + Report(lam));
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "7 <>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void LambdaWithOptionalAndDefaultParameters()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static string Report(object obj) => obj.GetType().ToString();
+    public static void Main()
+    {
+        var lam = (string s1, string s2 = "b", string s3 = "c") => s1 + s2 + s3;
+        Console.WriteLine(lam("a") + " " + Report(lam));
+    }
+}
+""";
+            var expectAnonymousDelegateIL =
+$@"
+.class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance string Invoke (
+			string arg1,
+			[opt] string arg2,
+			[opt] string arg3
+		) runtime managed 
+	{{
+		.param [2] = ""b""
+		.param [3] = ""c""
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
+";
+
+            var expectLoweredClosureContainerIL =
+$@"
+    .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [{s_libPrefix}]System.Object
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{{
+		// Method begins at RVA 0x20d3
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	}} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{{
+		// Method begins at RVA 0x20cb
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
+		IL_0006: ret
+	}} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance string '<Main>b__1_0' (
+			string s1,
+			[opt] string s2,
+			[opt] string s3
+		) cil managed 
+	{{
+		.param [2] = ""b""
+		.param [3] = ""c""
+		// Method begins at RVA 0x20df
+		// Code size 9 (0x9)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: ldarg.2
+		IL_0002: ldarg.3
+		IL_0003: call string [{s_libPrefix}]System.String::Concat(string, string, string)
+		IL_0008: ret
+	}} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "abc <>f__AnonymousDelegate0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureDifferentDefaultValue()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 20) => x + x;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+");
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureIdenticalDefaultValue()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 10) => x + 1;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+ @"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureOptionalMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x) => x + 1;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+System.Func`2[System.Int32,System.Int32]
+");
+
+        }
+
+        [Fact]
+        public void LambdaIdenticalArityIdenticalDefaultParamDifferentRequiredParams()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (double d, int x = 10) => { };
+        var lam2 = (string s, int x = 10) => { };
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+
+            // Emit only one templated delegate type? https://github.com/dotnet/roslyn/issues/65213
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1");
+        }
+
+        [Fact]
+        public void LambdaConversionDefaultParameterValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 20) => x + 1;
+        lam1 = lam2;
+        lam1();
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,16): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to '<anonymous delegate>'
+                //         lam1 = lam2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "lam2").WithArguments("<anonymous delegate>", "<anonymous delegate>").WithLocation(10, 16));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameterNameMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int a = 10) => a + a;
+        lam1 = lam2;
+        Console.WriteLine(lam1());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "20");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+    public static void Main()
+    {
+        D d = (int x = 1) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+    public static void Main()
+    {
+        D d = (int x = 1000) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,20): warning CS9099: Parameter 1 has default value '1000' in lambda but '1' in the target delegate type.
+                //         D d = (int x = 1000) => x + x;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "1").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatch_WithParameterError()
+        {
+
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+    static int f(int x) => 2 * x;
+
+    public static void Main()
+    {
+        D d = (int x = f(1)) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         D d = (int x = f(1)) => x + x;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1)").WithArguments("x").WithLocation(10, 24));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_TargetMissingOptional()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    delegate int D(int x);
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        D d = (int x = 1000) => x + x;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,20): warning CS9099: Parameter 1 has default value '1000' in lambda but '<missing>' in the target delegate type.
+                //         D d = (int x = 1000) => x + x;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "<missing>").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void LambdWithDefaultNamedDelegateConversion_LambdaMissingOptional()
+        {
+            var source = """
+class Program
+{
+    delegate int D(int x = 3);
+    public static void Main()
+    {
+        D d = (int x) => x;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_TargetDelegateMissingOptionalParameter_WithParameterError()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    delegate int D(int x);
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        D d = (int x = f(1000)) => x + x;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         D d = (int x = f(1000)) => x + x;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(9, 24));
+        }
+
+        [Fact]
+        public void LambdaOptionalBeforeRequiredBadConversion()
+        {
+
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        // lambda has optional parameter y
+        var lam1 = (int x, int y = 10, int z) => x * x + y * y + z * z;
+        var lam2 = (int x, int y, int z) => x * x + y * y + z * z;
+
+        lam2 = lam1;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,45): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam1 = (int x, int y = 10, int z) => x * x + y * y + z * z;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(6, 45),
+                // (9,16): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to 'System.Func<int, int, int, int>'
+                //         lam2 = lam1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "lam1").WithArguments("<anonymous delegate>", "System.Func<int, int, int, int>").WithLocation(9, 16));
+        }
+
+        [Fact]
+        public void LambdaRequiredBetweenOptionalsParameters()
+        {
+            var source = """
+    class Program
+    {
+        public static void Main()
+        {
+            var lam = (string s1 = null, string s2, string s3, string s4, string s5 = "") => s5;
+        }
+    }
+    """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,47): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (string s1 = null, string s2, string s3, string s4, string s5 = "") => s5;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ",").WithLocation(5, 47),
+                // (5,58): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (string s1 = null, string s2, string s3, string s4, string s5 = "") => s5;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ",").WithLocation(5, 58),
+                // (5,69): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (string s1 = null, string s2, string s3, string s4, string s5 = "") => s5;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ",").WithLocation(5, 69));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultInvalidTargetTypeConversion_01()
+        {
+            var source = """
+    class Program
+    {
+        delegate double D(int x, int d = 3);
+        public static void Main()
+        {
+            D d = (int x, double d = 3.0) => x + d;
+        }
+    }
+    """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,15): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
+                //         D d = (int x, double d = 3.0) => x + d;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x, double d = 3.0) => x + d").WithArguments("lambda expression", "Program.D").WithLocation(6, 15),
+                // (6,30): error CS1678: Parameter 2 is declared as type 'double' but should be 'int'
+                //         D d = (int x, double d = 3.0) => x + d;
+                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("2", "", "double", "", "int").WithLocation(6, 30));
+        }
+
+        [Fact]
+        public void LambdaWithInvalidDefaultValidTargetTypeConversion_02()
+        {
+            var source = """
+    class A
+    { }
+
+    class B : A
+    { }
+
+    class Program
+    {
+        delegate double D(int x, B b = null);
+        public static void Main()
+        {
+            D d = (int x, A a = null) => { };
+        }
+    }
+    """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,15): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
+                //         D d = (int x, A a = null) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x, A a = null) => { }").WithArguments("lambda expression", "Program.D").WithLocation(12, 15),
+                // (12,25): error CS1678: Parameter 2 is declared as type 'A' but should be 'B'
+                //         D d = (int x, A a = null) => { };
+                Diagnostic(ErrorCode.ERR_BadParamType, "a").WithArguments("2", "", "A", "", "B").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultsAndRefParameters()
+        {
+
+            var source = """
+    using System;
+
+    class Program
+    {
+        static void Report(object d) => Console.WriteLine(d.GetType());
+        public static void Main()
+        {
+            int x = 9;
+            var lam = (ref int x, out int y, int z = 3) => { y = x + z; };
+            lam(ref x, out var y);
+            lam(ref x, out var w, 20);
+
+            Console.WriteLine(y);
+            Console.WriteLine(w);
+            Report(lam);
+        }
+    }
+    """;
+            var expectAnonymousDelegateIL =
+$@"
+    .class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance void Invoke (
+			int32& arg1,
+			[out] int32& arg2,
+			[opt] int32 arg3
+		) runtime managed 
+	{{
+		.param [3] = int32(3)
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
+";
+
+            var expectLoweredClosureContainerIL =
+$@"
+.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [{s_libPrefix}]System.Object
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{{
+		// Method begins at RVA 0x20d3
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	}} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{{
+		// Method begins at RVA 0x20cb
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
+		IL_0006: ret
+	}} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1_0' (
+			int32& x,
+			[out] int32& y,
+			[opt] int32 z
+		) cil managed 
+	{{
+		.param [3] = int32(3)
+		// Method begins at RVA 0x20df
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.2
+		IL_0001: ldarg.1
+		IL_0002: ldind.i4
+		IL_0003: ldarg.3
+		IL_0004: add
+		IL_0005: stind.i4
+		IL_0006: ret
+	}} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+ @"12
+29
+<>f__AnonymousDelegate0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
+        }
+
+        [Fact]
+        public void LambdaOutOfOrderParameterInvocation_AllParametersSpecified()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (string a, string b, string c = "c") => $"{a}{b}{c}";
+        Console.WriteLine(lam(b: "b", c: "a", a: "c"));
+    }
+ }
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,31): error CS1746: The delegate '<anonymous delegate>' does not have a parameter named 'b'
+                //         Console.WriteLine(lam(b: "b", c: "a", a: "c"));
+                Diagnostic(ErrorCode.ERR_BadNamedArgumentForDelegateInvoke, "b").WithArguments("<anonymous delegate>", "b").WithLocation(8, 31));
+        }
+
+        [Fact]
+        public void LambdaOutOfOrderParameterInvocation_MissingOptionalParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (string a, string b, string c = "c") => $"{a}{b}{c}";
+        Console.WriteLine(lam(b: "a", a: "b"));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,31): error CS1746: The delegate '<anonymous delegate>' does not have a parameter named 'b'
+                //         Console.WriteLine(lam(b: "a", a: "b"));
+                Diagnostic(ErrorCode.ERR_BadNamedArgumentForDelegateInvoke, "b").WithArguments("<anonymous delegate>", "b").WithLocation(8, 31));
+        }
+
+        [Fact]
+        public void LambdaOptionalParameterDecimalExpression()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (decimal dec =  Decimal.One / (decimal) 3) => dec; 
+        Console.WriteLine(lam());
+    }
+
+}
+""";
+            CompileAndVerify(source, expectedOutput: "0.3333333333333333333333333333");
+        }
+
+        [Fact]
+        public void CallerAttributesOnLambdaWithDefaultParam()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = ([CallerMemberName] string member = "member", [CallerFilePath] string filePath = "file", [CallerLineNumber] int lineNumber = 0) => Console.WriteLine($"{filePath}::{member}:{lineNumber}");
+        lam();
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "file::member:0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			[opt] string arg1,
+                			[opt] string arg2,
+                			[opt] int32 arg3
+                		) runtime managed 
+                	{
+                		.param [1] = "member"
+                		.param [2] = "file"
+                		.param [3] = int32(0)
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void CallerArgumentExpressionAttributeOnLambdaWithDefaultParam()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (int arg, [CallerArgumentExpression("arg")] string argExpression = "callerArgExpression") => Console.WriteLine($"{argExpression}");
+        lam(3);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net60,
+                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [System.Runtime]System.MulticastDelegate
+                {
+                	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			int32 arg1,
+                			[opt] string arg2
+                		) runtime managed 
+                	{
+                		.param [2] = "callerArgExpression"
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void CallerInfoAttributes_Lambda_NoDefaultValue()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+                var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                var lam2 = (int arg, [CallerArgumentExpression("arg")] string argExpression) => { };
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (2,14): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, "CallerMemberName").WithLocation(2, 14),
+                // (2,48): error CS4021: The CallerFilePathAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, "CallerFilePath").WithLocation(2, 48),
+                // (2,82): error CS4020: The CallerLineNumberAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerLineNumberParamWithoutDefaultValue, "CallerLineNumber").WithLocation(2, 82),
+                // (3,23): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // var lam2 = (int arg, [CallerArgumentExpression("arg")] string argExpression) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(3, 23));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameterMatchesDelegateAfterBinding()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 7);
+    const int num = 4;
+
+    public static void Main()
+    {
+        D d = (int x = num + 3) => x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "7");
+        }
+
+        [Fact]
+        public void ImplicitLambdaDefaultParameter_NamedDelegateConversion()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 3);
+    public static void Main()
+    {
+        D d = (x = 3) => x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,16): error CS9098: Implicitly typed lambda parameter 'x' cannot have a default value.
+                //         D d = (x = 3) => x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void SimpleMethodGroupInference_DefaultParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int arg = 1)
+    {
+        return arg;
+    }
+
+    public static void Main()
+    {
+        var f = M;
+        int x = f();
+        Console.WriteLine(x);
+        Report(f);
+    }
+}
+""";
+
+            CompileAndVerify(source, expectedOutput:
+@"1
+<>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void InstanceMethodGroupInference_DefaultParameter()
+        {
+            var source = """
+using System;
+
+class C
+{
+    public int Z;
+    public void SetZ(int x = 10)
+    {
+        this.Z = x;
+    }
+}
+
+class Program
+{
+    
+    public static void Main()
+    {
+        C c = new C();
+        var setZ = c.SetZ;
+        setZ();
+        Console.WriteLine(c.Z);
+        setZ(7);
+        Console.WriteLine(c.Z);
+    }
+}
+""";
+
+            CompileAndVerify(source, expectedOutput:
+@"10
+7");
+        }
+
+        [Fact]
+        public void MethodGroupInferenceMatchingSignaturesAndDefaultParameterValues()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int x = 3)
+    {
+        return x;
+    }
+
+    public static int N(int y = 3)
+    {
+        return y * 100;
+    }
+
+    public static void Main()
+    {
+        var m = M;
+        var n = N;
+
+        Report(m);
+        Report(n);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void MethodGroupInference_SignaturesMatchDefaultParameterMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int x = 3)
+    {
+        return x;
+    }
+
+    public static int N(int y = 4)
+    {
+        return y * 100;
+    }
+
+    public static void Main()
+    {
+        var m = M;
+        var n = N;
+
+        Report(m);
+        Report(n);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1");
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_DefaultValueMatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "defaultstring");
+
+    public static string M(string s = "defaultstring")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "defaultstring");
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_DefaultValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "string1");
+
+    public static string M(string s = "string2")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "string1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_ParameterOptionalInMethodGroupOnly()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s);
+
+    public static string M(string s = "a string")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d("my string"));
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "my string").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_ParameterOptionalInDelegateOnly()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "string1");
+
+    public static string M(string s) => s;
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "string1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodGroup_NamedDelegateConversion_MultipleValueMismatches()
+        {
+            var source = """
+class Program
+{
+    delegate int Del(int x, string s = "a", long l = 0L);
+    static int M(int x = 40, string s = "b", long l = 1) => x;
+
+    public static void Main()
+    {
+        Del del = M;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExtensionMethodGroup_DefaultParameters_TargetTypeConversion()
+        {
+            var source = """
+using System;
+using ProgramExtensions;
+
+namespace ProgramExtensions {
+    public static class ProgramExtensions
+    {
+        public static string M(this Program p, string s = "b", long l = 1L) => $"{p.field} {s} {l}";
+    }
+}
+
+public class Program
+{
+    public int field = 10;
+    delegate string Del(string s = "a", long l = 0L);
+    public string M1(string s = "c", long l = 2L) => $"{this.field} {s} {l}";
+
+    public static void Main()
+    {
+        Program prog = new Program();
+        Del del = prog.M;
+        Console.WriteLine(del());
+    }
+}
+""";
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main",
+@"
+ {
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  ldftn      ""string ProgramExtensions.ProgramExtensions.M(Program, string, long)""
+  IL_000b:  newobj     ""Program.Del..ctor(object, System.IntPtr)""
+  IL_0010:  ldstr      ""a""
+  IL_0015:  ldc.i4.0
+  IL_0016:  conv.i8
+  IL_0017:  callvirt   ""string Program.Del.Invoke(string, long)""
+  IL_001c:  call       ""void System.Console.WriteLine(string)""
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void ExtensionMethodGroup_DefaultParameters_TargetTypeConversion_02()
+        {
+            var source = """
+namespace ProgramExtensions {
+    public static class PExt
+    {
+        public static string M(this Program p, string s = "a", long l = 0L) => $"{p.field} {s} {l}";
+    }
+}
+
+public class Program
+{
+    public int field = 10;
+    delegate string Del(string s = "a", long l = 0L);
+
+    public static void Main()
+    {
+        Del del = ProgramExtensions.PExt.M;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (15,42): error CS0123: No overload for 'M' matches delegate 'Program.Del'
+                //         Del del = ProgramExtensions.PExt.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "Program.Del").WithLocation(15, 42));
+        }
+
+        [Fact]
+        public void ExtensionMethodGroup_DefaultParameters_TargetTypeConversion_03()
+        {
+            var source = """
+using System;
+
+namespace ProgramExtensions {
+    public static class PExt
+    {
+        public static string M(this Program p, string s = "b", long l = 1) => $"{p.Field} {s} {l}";
+    }
+}
+
+public class Program
+{
+    public int Field = 10;
+    delegate string Del(Program p, string s = "a", long l = 0L);
+
+    public static void Main()
+    {
+        Del del = ProgramExtensions.PExt.M;
+        Console.WriteLine(del(new Program() { Field = -1 }));
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "-1 a 0").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InstanceMethodGroup_DefaultParameters_TargetTypeConversion()
+        {
+            var source = """
+using System;
+
+public class Program
+{
+    public int field = 10;
+    delegate string Del(string s = "a", long l = 0L);
+    public string M1(string s = "c", long l = 2L) => $"{this.field} {s} {l}";
+
+    public static void Main()
+    {
+        Program prog = new Program();
+        Del del = prog.M1;
+        Console.WriteLine(del());
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: @"10 a 0");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExtensionMethodGroup_DefaultParameters_InferredType()
+        {
+            var source = """
+using System;
+using ProgramExtensions;
+
+namespace ProgramExtensions {
+    public static class PExt
+    {
+        public static string M(this Program p, string s = "b", long l = 1) => $"{p.Field} {s} {l}";
+    }
+}
+
+public class Program
+{
+    public int Field = 10;
+    public static void Report(object obj) => Console.WriteLine(obj.GetType());
+
+    public static void Main()
+    {
+        var m = ProgramExtensions.PExt.M;
+        var n = (new Program()).M;
+        Report(m);
+        Report(n);
+        Console.WriteLine(m(new Program() { Field = 20 }));
+        Console.WriteLine(n());
+    }
+}
+""";
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+20 b 1
+10 b 1");
+        }
+
+        [Fact]
+        public void MethodGroupInferenceCompatBreak()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int Fun(int arg = 10) => arg + 1;
+
+    public static void PrintFunResult<T>(Func<T, T> f, T input)
+    {
+        Console.WriteLine(f(input));
+    }
+
+    public static void Main()
+    {
+        var f = Fun;
+        PrintFunResult(f, 3);
+    }
+
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (15,24): error CS1503: Argument 1: cannot convert from '<anonymous delegate>' to 'System.Func<int, int>'
+                    //         PrintFunResult(f, 3);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "f").WithArguments("1", "<anonymous delegate>", "System.Func<int, int>").WithLocation(15, 24));
+        }
+
+        [Fact]
+        public void LambdaDefaultDiscardParameter_DelegateConversion_OptionalRequiredMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x, int y);
+    public static void Main()
+    {
+        D d = (int _, int _ = 3) => 10;
+        Console.WriteLine(d(4));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,27): warning CS9099: Parameter 2 has default value '3' in lambda but '<missing>' in the target delegate type.
+                //         D d = (int _, int _ = 3) => 10;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "_").WithArguments("2", "3", "<missing>").WithLocation(8, 27),
+                // (9,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
+                //         Console.WriteLine(d(4));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(9, 27));
+        }
+
+        [Fact]
+        public void LambdaDefaultDiscardParameter_DelegateConversion_DefaultValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x, int y = 7);
+    public static void Main()
+    {
+        D d = (int _, int _ = 3) => 10;
+        Console.WriteLine(d(4));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,27): warning CS9099: Parameter 2 has default value '3' in lambda but '7' in the target delegate type.
+                //         D d = (int _, int _ = 3) => 10;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "_").WithArguments("2", "3", "7").WithLocation(8, 27));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypeConversionWarning_ErrorInLambdaBody()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate void D(int x, int y);
+    public static void Main()
+    {
+        D d = (int x, int y = 4) => {
+            string s = 5;
+        };
+
+        Console.WriteLine(d(4));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,24): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //             string s = 5;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "5").WithArguments("int", "string").WithLocation(9, 24),
+                // (12,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
+                //         Console.WriteLine(d(4));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void Lambda_DiscardParameters()
+        {
+            var source = """
+                var lam1 = (string _, int _ = 1) => { };
+                lam1("s", 2);
+                var lam2 = (string _, params int[] _) => { };
+                lam2("s", 3, 4, 5);
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodGroup_LambdaAssignment_DefaultParameterMismatch_01()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int M(int i = 3) => i;
+    public static void Main()
+    {
+        var m = M;
+        m = (int i = 4) => i;
+        Console.WriteLine(m());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,18): warning CS9099: Parameter 1 has default value '4' in lambda but '3' in the target delegate type.
+                //         m = (int i = 4) => i;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "i").WithArguments("1", "4", "3").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void MethodGroup_LambdaAssignment_DefaultParameterMismatch_02()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int M(int i) => i;
+    public static void Main()
+    {
+        var m = M;
+        m = (int i = 4) => i;
+        Console.WriteLine(m());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,18): warning CS9099: Parameter 1 has default value '4' in lambda but '<missing>' in the target delegate type.
+                //         m = (int i = 4) => i;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "i").WithArguments("1", "4", "<missing>").WithLocation(9, 18),
+                // (10,27): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
+                //         Console.WriteLine(m());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "m").WithArguments("arg", "System.Func<int, int>").WithLocation(10, 27));
+        }
+
+        [Fact]
+        public void MethodGroup_LambdaAssignment_DefaultParameterValueMismatch_03()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int M(int i = 4) => i;
+    public static void Main()
+    {
+        var m = M;
+        m = (int x) => x; 
+        Console.WriteLine(m());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "4").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodGroup_LambdaAssignment_DefaultParameterValueMatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int M(int i = 3) => i;
+    public static void Main()
+    {
+        var m = M;
+        m = (int x = 3) => x; 
+        Console.WriteLine(m());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "3").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("sbyte")]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("float")]
+        [InlineData("double")]
+        [InlineData("decimal")]
+        [InlineData("E", "E.FIELD", "FIELD")]
+        [InlineData("bool", "true", "True")]
+        [InlineData("char", "'a'", "a")]
+        [InlineData("string", @"""a string""", "a string")]
+        [InlineData("C", "null", "")]
+        [InlineData("C", "default(C)", "")]
+        [InlineData("C", "default", "")]
+        [InlineData("S", "new S()", "Program+S")]
+        [InlineData("S", "default(S)", "Program+S")]
+        [InlineData("S", "default", "Program+S")]
+        public void LambdaDefaultParameter_AllConstantValueTypes(string parameterType, string defaultValue = "0", string expectedOutput = "0")
+        {
+            var source = $$"""
+using System;
+public class Program
+{
+    public enum E 
+    {
+        FIELD
+    }
+    
+    class C {}
+
+    struct S {}
+
+    public static void Main()
+    {
+        var lam = ({{parameterType}} p = {{defaultValue}}) => p;
+        Console.WriteLine(lam());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypedValidLiteralConversion()
+        {
+            var source = """
+                var lam = (short s = 1) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypeInvalidLiteralConversion()
+        {
+            var source = """
+                var lam = (short s = 32768) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,18): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'short'
+                // var lam = (short s = 32768) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(1, 18));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypedValidNonLiteralConversion()
+        {
+            var source = """
+                const float floatConst = 1f;
+                var lam = (double d = floatConst) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_InterpolatedStringHandler()
+        {
+            var source = """
+using System;
+
+public class Program
+{
+     public static void Main()
+     {
+        int i = 0;
+        var lam = (CustomHandler h = $"i: {i}") =>
+        {
+            Console.WriteLine(h.ToString());
+        };
+        lam();
+     }
+}
+""";
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            CreateCompilation(new[] { source, handler }).VerifyDiagnostics(
+                // (8,38): error CS1736: Default parameter value for 'h' must be a compile-time constant
+                //         var lam = (CustomHandler h = $"i: {i}") =>
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""i: {i}""").WithArguments("h").WithLocation(8, 38));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_InvalidConstantConversion()
+        {
+            var source = """
+                var lam = (string s = 1) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,19): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                // var lam = (string s = 1) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(1, 19));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantNonLiteral()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        var lam = (int x = f(1000)) => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         var lam = (int x = f(1000)) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        int n = 42;
+        // lambda has optional parameter x
+        var lam = (string s = $"n: {n}") => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,31): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         var lam = (string s = $"n: {n}") => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("s").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantLiteral_U8String()
+        {
+            var source = """
+                var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS0246: The type or namespace name 'ReadOnlySpan<>' could not be found (are you missing a using directive or an assembly reference?)
+                // var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ReadOnlySpan<byte>").WithArguments("ReadOnlySpan<>").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_EmbeddedType_Propagated()
+        {
+            var source1 = """
+                using System.Runtime.InteropServices;
+                [assembly: PrimaryInteropAssembly(0, 0)]
+                [assembly: Guid("863D5BC0-46A1-49AC-97AA-A5F0D441A9DA")]
+                [ComImport, Guid("863D5BC0-46A1-49AD-97AA-A5F0D441A9DA")]
+                public interface MyEmbeddedType { }
+                """;
+            var comp1 = CreateCompilation(source1);
+            var ref1 = comp1.EmitToImageReference(embedInteropTypes: true);
+
+            var source2 = """
+                var l = (MyEmbeddedType t = null) => {};
+                """;
+            var comp2 = CreateCompilation(source2, new[] { ref1 });
+            CompileAndVerify(comp2, symbolValidator: static module =>
+            {
+                Assert.Contains("MyEmbeddedType", module.TypeNames);
+            });
+        }
+
+        [Fact]
+        public void LambdaWithDefault_EmbeddedType_NotPropagated_Default()
+        {
+            var source1 = """
+                using System.Runtime.InteropServices;
+                [assembly: PrimaryInteropAssembly(0, 0)]
+                [assembly: Guid("863D5BC0-46A1-49AC-97AA-A5F0D441A9DA")]
+                [ComImport, Guid("863D5BC0-46A1-49AD-97AA-A5F0D441A9DA")]
+                public interface MyEmbeddedType { }
+                """;
+            var comp1 = CreateCompilation(source1);
+            var ref1 = comp1.EmitToImageReference(embedInteropTypes: true);
+
+            var source2 = """
+                var l = (object o = default(MyEmbeddedType)) => {};
+                """;
+            var comp2 = CreateCompilation(source2, new[] { ref1 });
+            CompileAndVerify(comp2, symbolValidator: static module =>
+            {
+                Assert.DoesNotContain("MyEmbeddedType", module.TypeNames);
+            });
+        }
+
+        [Fact]
+        public void LambdaWithParameterDefaultValueAttribute()
+        {
+            var source = """
+using System;
+using System.Runtime.InteropServices;
+
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam = ([Optional, DefaultParameterValue(3)] int x) => x;
+        int Method([Optional, DefaultParameterValue(3)] int x) => x;
+        var inferred = Method;
+        Console.WriteLine(lam());
+        Console.WriteLine(Method());
+        Console.WriteLine(inferred());
+        Report(lam);
+        Report(inferred);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"3
+3
+3
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance int32 Invoke (
+                			[opt] int32 arg
+                		) runtime managed 
+                	{
+                		.param [1] = int32(3)
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void LambdaWithParameterDefaultValueAttribute_NoOptional()
+        {
+            var source = """
+                using System;
+                using System.Runtime.InteropServices;
+
+                var lam = ([DefaultParameterValue(3)] int x) => x;
+                int Method([DefaultParameterValue(3)] int x) => x;
+                var inferred = Method;
+                AcceptFunc(lam);
+                AcceptFunc(Method);
+                AcceptFunc(inferred);
+                lam();
+                Method();
+                inferred();
+
+                void AcceptFunc(Func<int, int> f) { }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
+                // lam();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg", "System.Func<int, int>").WithLocation(10, 1),
+                // (11,1): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Method(int)'
+                // Method();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("x", "Method(int)").WithLocation(11, 1),
+                // (12,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
+                // inferred();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred").WithArguments("arg", "System.Func<int, int>").WithLocation(12, 1));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameterValueAttribute_SynthesizedDelegateTypeMatch()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                var lam1 = (int a = 1) => a;
+                var lam2 = ([Optional] int b) => b;
+                var lam3 = ([DefaultParameterValue(1)] int c) => c;
+                var lam4 = ([Optional, DefaultParameterValue(1)] int d) => d;
+                Report(lam1);
+                Report(lam2);
+                Report(lam3);
+                Report(lam4);
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0
+                System.Func`2[System.Int32,System.Int32]
+                System.Func`2[System.Int32,System.Int32]
+                <>f__AnonymousDelegate0
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_UnsafeNull()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static unsafe void Main()
+    {
+        var lam = (int *ptr = null) => ptr;
+        Console.WriteLine(lam() == (int*) null);
+    }
+}
+""";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_UnsafeSizeof()
+        {
+            var source = """
+                using System;
+                unsafe
+                {
+                    var lam = (int sz = sizeof(int)) => sz;
+                    Console.WriteLine(lam());
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "4").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_Dynamic()
+        {
+            var source = """
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var lam = (dynamic d = null) => { };
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+$$"""
+.class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{{s_libPrefix}}]System.MulticastDelegate
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{
+	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance void Invoke (
+			[opt] object arg
+		) runtime managed 
+	{
+		.param [1] = nullref
+			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+				01 00 00 00
+			)
+	} // end of method '<>f__AnonymousDelegate0'::Invoke
+} // end of class <>f__AnonymousDelegate0
+""");
+        }
+
+        [Fact]
+        public void LambdaRefParameterWithDynamicParameter()
+        {
+            var source = """
+using System;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam = (ref int i, dynamic d) => i;
+        Report(lam);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyTypeIL(
+                "<>F{00000001}`3",
+$$"""
+.class private auto ansi sealed '<>F{00000001}`3'<T1, T2, TResult>
+	extends [{{s_libPrefix}}]System.MulticastDelegate
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{
+
+	} // end of method '<>F{00000001}`3'::.ctor
+	.method public hidebysig newslot virtual 
+		instance !TResult Invoke (
+			!T1& arg1,
+			!T2 arg2
+		) runtime managed 
+	{
+	} // end of method '<>F{00000001}`3'::Invoke
+} // end of class <>F{00000001}`3
+""");
+            verifier.VerifyTypeIL("<>c",
+$$"""
+.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [{{s_libPrefix}}]System.Object
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>F{00000001}`3'<int32, object, int32> '<>9__1_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{
+		// Method begins at RVA 0x20a2
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x209a
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance int32 '<Main>b__1_0' (
+			int32& i,
+			object d
+		) cil managed 
+	{
+		.param [2]
+			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+				01 00 00 00
+			)
+		// Method begins at RVA 0x20ae
+		// Code size 3 (0x3)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: ldind.i4
+		IL_0002: ret
+	} // end of method '<>c'::'<Main>b__1_0'
+} // end of class <>c
+""");
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TypeArgumentDefaultNull()
+        {
+            var source = """
+using System;
+class C<T> where T : class
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public void Test()
+    {
+        var lam1 = (int a, T b = default) => b;
+        var lam2 = (int a, T b = null) => b;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+class Program
+{
+    public static void Main()
+    {
+        new C<string>().Test();
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0`1[System.String]
+<>f__AnonymousDelegate0`1[System.String]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_GenericDelegateDefaultNull()
+        {
+            var source = """
+delegate void D<T>(T t = default);
+class Program
+{
+    static void M<T>(D<T> p) { }
+    public static void Main()
+    {
+        M((object o = null) => {});
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_OptionalAndCustomConstantAttributes()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam1 = ([Optional, DecimalConstant(0, 0, 0, 0, 100)] decimal d) => d;
+        var lam2 = (decimal d = 100m) => d;
+        Report(lam1);
+        Report(lam2);
+        Console.WriteLine(lam1());
+        Console.WriteLine(lam2());
+        Console.WriteLine(lam1(5));
+        Console.WriteLine(lam2(5));
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+100
+100
+5
+5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_ArrayCommonType_DefaultValueMismatch()
+        {
+            var source = """
+                var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,11): error CS0826: No best type found for implicitly-typed array
+                // var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int i = 1) => { }, (int i = 2) => { } }").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_ArrayCommonType_DefaultValueMatch()
+        {
+            var source = """
+using System;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var arr = new[] { (int i = 1) => { }, (int i = 1) => { } };
+        Report(arr);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0[]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_InsideExpressionTree()
+        {
+            var source = """
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        Expression e1 = (int x = 1) => x;
+        Expression e2 = (int x) => (int y = 1) => y;
+        Report(e1);
+        Report(e2);
+    }   
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+$@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_MissingConstantValueType()
+        {
+            var source = """
+                var lam1 = (object f = 1.0) => f;
+                var lam2 = (object d = 2m) => d;
+                namespace System
+                {
+                    public class Object { }
+                    public class String { }
+                    public abstract class ValueType { }
+                    public struct Void { }
+                    public abstract class Delegate { }
+                    public abstract class MulticastDelegate : Delegate { }
+                }
+                """;
+            CreateEmptyCompilation(source).VerifyDiagnostics(
+                // (1,20): error CS1763: 'f' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                // var lam1 = (object f = 1.0) => f;
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "f").WithArguments("f", "object").WithLocation(1, 20),
+                // (1,24): error CS0518: Predefined type 'System.Double' is not defined or imported
+                // var lam1 = (object f = 1.0) => f;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1.0").WithArguments("System.Double").WithLocation(1, 24),
+                // (2,20): error CS1763: 'd' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                // var lam2 = (object d = 2m) => d;
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "d").WithArguments("d", "object").WithLocation(2, 20),
+                // (2,24): error CS0518: Predefined type 'System.Decimal' is not defined or imported
+                // var lam2 = (object d = 2m) => d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "2m").WithArguments("System.Decimal").WithLocation(2, 24));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Lambda()
+        {
+            var source = """
+                var lam = (params int[] xs) => xs.Length;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,12): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Lambda_ExplicitDelegateType()
+        {
+            var source = """
+                System.Func<int[], int> lam = (params int[] xs) => xs.Length;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,32): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // System.Func<int[], int> lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 32),
+                // (1,45): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // System.Func<int[], int> lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 45));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_LocalFunction()
+        {
+            var source = """
+                int local(params int[] xs) => xs.Length;
+                local();
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,11): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // int local(params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_ExternalMethodGroup()
+        {
+            var source1 = """
+                public class C
+                {
+                    public static void M(params int[] xs) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                var m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp2.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 9));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Method()
+        {
+            var source = """
+                class C
+                {
+                    static void M(params int[] xs) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //     static void M(params int[] xs) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(3, 19));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Property()
+        {
+            var source = """
+                class C
+                {
+                    int this[params int[] xs] { get => throw null; set => throw null; }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //     int this[params int[] xs] { get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(3, 14));
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedTypesMatch()
+        {
+            var source = """
+                static void Report(object obj1, object obj2) => System.Console.WriteLine($"{obj1.GetType() == obj2.GetType()}, {obj1.GetType()}");
+
+                var lam1 = (params int[] xs) => xs.Length;
+                int Method1(params int[] xs) => xs.Length;
+                var del1 = Method1;
+                Report(lam1, del1);
+
+                var lam2 = (params int[] ys) => ys.Length;
+                int Method2(params int[] ys) => ys.Length;
+                var del2 = Method2;
+                Report(lam2, del2);
+                Report(lam1, lam2);
+
+                var lam3 = (int[] xs) => xs.Length;
+                int Method3(int[] xs) => xs.Length;
+                var del3 = Method3;
+                Report(lam3, del3);
+
+                var lam4 = (ref int a, int b, int[] xs) => { };
+                void Method4(ref int a, int b, int[] xs) { }
+                var del4 = Method4;
+                Report(lam4, del4);
+
+                var lam5 = (ref int a, int b, params int[] xs) => { };
+                void Method5(ref int a, int b, params int[] xs) { }
+                var del5 = Method5;
+                Report(lam5, del5);
+
+                var lam6 = (int a, System.TypedReference b, params int[] xs) => { };
+                void Method6(int a, System.TypedReference b, params int[] xs) { }
+                var del6 = Method6;
+                Report(lam6, del6);
+
+                var lam7 = (int x, System.TypedReference y, params int[] ys) => { };
+                void Method7(int x, System.TypedReference y, params int[] ys) { }
+                var del7 = Method7;
+                Report(lam7, del7);
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                True, <>f__AnonymousDelegate0
+                True, <>f__AnonymousDelegate0
+                True, <>f__AnonymousDelegate0
+                True, System.Func`2[System.Int32[],System.Int32]
+                True, <>A{00000001}`3[System.Int32,System.Int32,System.Int32[]]
+                True, <>f__AnonymousDelegate1
+                True, <>f__AnonymousDelegate2
+                True, <>f__AnonymousDelegate2
+                """).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("(int x, params int[] ys) => { }", "")]
+        [InlineData("M", "static void M(int x, params int[] ys) { }")]
+        public void ParamsArray_SynthesizedDelegateIL(string variable, string method)
+        {
+            var source = $$"""
+                class C
+                {
+                    static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                    static void Main()
+                    {
+                        var m = {{variable}};
+                        Report(m);
+                    }
+                    {{method}}
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			int32 arg1,
+                			int32[] arg2
+                		) runtime managed 
+                	{
+                		.param [2]
+                			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedMethodIL_Lambda()
+        {
+            var source = """
+                var lam = (int x, params int[] ys) => { };
+                System.Console.WriteLine(lam.Method.DeclaringType!.Name);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "<>c").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x20a4
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x209c
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_0' (
+                			int32 x,
+                			int32[] ys
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x20b0
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_0'
+                } // end of class <>c
+                """);
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedMethodIL_LocalFunction()
+        {
+            var source = """
+                class C
+                {
+                    public static void M()
+                    {
+                        void local(int x, params int[] ys) { }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source).VerifyDiagnostics(
+                // (5,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local(int x, params int[] ys) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(5, 14));
+            verifier.VerifyTypeIL("C", $$"""
+                .class private auto ansi beforefieldinit C
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	// Methods
+                	.method public hidebysig static 
+                		void M () cil managed 
+                	{
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method C::M
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2069
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method C::.ctor
+                	.method assembly hidebysig static 
+                		void '<M>g__local|0_0' (
+                			int32 x,
+                			int32[] ys
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method C::'<M>g__local|0_0'
+                } // end of class C
+                """);
+        }
+
+        [Fact]
+        public void ParamsArray_DelegateConversions_Lambdas()
+        {
+            var source = """
+                var noParams = (int[] xs) => xs.Length;
+                var withParams = (params int[] xs) => xs.Length;
+                noParams = withParams; // 1
+                withParams = noParams; // 2
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,12): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to 'System.Func<int[], int>'
+                // noParams = withParams; // 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "withParams").WithArguments("<anonymous delegate>", "System.Func<int[], int>").WithLocation(3, 12),
+                // (4,14): error CS0029: Cannot implicitly convert type 'System.Func<int[], int>' to '<anonymous delegate>'
+                // withParams = noParams; // 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "noParams").WithArguments("System.Func<int[], int>", "<anonymous delegate>").WithLocation(4, 14));
+        }
+
+        [Fact]
+        public void ParamsArray_DelegateConversions_MethodGroups()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var noParams = MethodNoParams;
+                var withParams = MethodWithParams;
+                noParams = withParams; // 1
+                withParams = noParams; // 2
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,12): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to 'System.Func<int[], int>'
+                // noParams = withParams; // 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "withParams").WithArguments("<anonymous delegate>", "System.Func<int[], int>").WithLocation(5, 12),
+                // (6,14): error CS0029: Cannot implicitly convert type 'System.Func<int[], int>' to '<anonymous delegate>'
+                // withParams = noParams; // 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "noParams").WithArguments("System.Func<int[], int>", "<anonymous delegate>").WithLocation(6, 14));
+        }
+
+        [Fact]
+        public void ParamsArray_LambdaConversions()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var noParams = MethodNoParams;
+                var withParams = MethodWithParams;
+                noParams = (params int[] xs) => xs.Length; // 1
+                noParams = (int[] xs) => xs.Length;
+                withParams = (params int[] xs) => xs.Length;
+                withParams = (int[] xs) => xs.Length;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,26): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // noParams = (params int[] xs) => xs.Length; // 1
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 26));
+        }
+
+        [Fact]
+        public void ParamsArray_MethodGroupConversions()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var noParams = (int[] xs) => xs.Length;
+                var withParams = (params int[] xs) => xs.Length;
+                noParams = MethodWithParams;
+                withParams = MethodWithParams;
+                noParams = MethodNoParams;
+                withParams = MethodNoParams;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParamsArray_ConversionsToNamedDelegates()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                DelegateNoParams dNoParams;
+                DelegateWithParams dWithParams;
+                dNoParams = (params int[] xs) => xs.Length; // 1
+                dNoParams = (int[] xs) => xs.Length;
+                dNoParams = MethodNoParams;
+                dNoParams = MethodWithParams;
+                dWithParams = (params int[] xs) => xs.Length;
+                dWithParams = (int[] xs) => xs.Length;
+                dWithParams = MethodNoParams;
+                dWithParams = MethodWithParams;
+                delegate int DelegateNoParams(int[] xs);
+                delegate int DelegateWithParams(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // dNoParams = (params int[] xs) => xs.Length; // 1
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 27));
+        }
+
+        [Fact]
+        public void ParamsArray_CommonType()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var inferredNoParams = MethodNoParams;
+                var inferredWithParams = MethodWithParams;
+                var lambdaNoParams = (int[] xs) => xs.Length;
+                var lambdaWithParams = (params int[] xs) => xs.Length;
+                var a1 = new[] { MethodNoParams, MethodWithParams }; // 1
+                var a2 = new[] { inferredNoParams, inferredWithParams }; // 2
+                var a3 = new[] { lambdaNoParams, lambdaWithParams }; // 3
+                var a4 = new[] { (int[] xs) => xs.Length, (params int[] xs) => xs.Length }; // 4
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,10): error CS0826: No best type found for implicitly-typed array
+                // var a1 = new[] { MethodNoParams, MethodWithParams }; // 1
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { MethodNoParams, MethodWithParams }").WithLocation(7, 10),
+                // (8,10): error CS0826: No best type found for implicitly-typed array
+                // var a2 = new[] { inferredNoParams, inferredWithParams }; // 2
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { inferredNoParams, inferredWithParams }").WithLocation(8, 10),
+                // (9,10): error CS0826: No best type found for implicitly-typed array
+                // var a3 = new[] { lambdaNoParams, lambdaWithParams }; // 3
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { lambdaNoParams, lambdaWithParams }").WithLocation(9, 10),
+                // (10,10): error CS0826: No best type found for implicitly-typed array
+                // var a4 = new[] { (int[] xs) => xs.Length, (params int[] xs) => xs.Length }; // 4
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int[] xs) => xs.Length, (params int[] xs) => xs.Length }").WithLocation(10, 10));
+        }
+
+        [Fact]
+        public void DefaultsParamsConversion_Spec()
+        {
+            var source = """
+                int MethodNoDefault(int x) => x;
+                int MethodWithDefault(int x = 2) => x;
+                DelegateNoDefault d1 = MethodWithDefault;
+                DelegateWithDefault d2 = MethodWithDefault;
+                DelegateWithDefault d3 = MethodNoDefault;
+                DelegateNoDefault d4 = (int x = 1) => x; // 1
+                DelegateWithDefault d5 = (int x = 1) => x;
+                DelegateWithDefault d6 = (int x = 2) => x; // 2
+                DelegateWithDefault d7 = (int x) => x;
+                DelegateNoDefault d8 = (int x) => x;
+
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                DelegateNoParams p1 = MethodWithParams;
+                DelegateWithParams p2 = MethodNoParams;
+                DelegateNoParams p3 = (params int[] xs) => xs.Length; // 3
+                DelegateWithParams p4 = (params int[] xs) => xs.Length;
+                DelegateWithParams p5 = (int[] xs) => xs.Length;
+                DelegateNoParams p6 = (int[] xs) => xs.Length;
+
+                delegate int DelegateNoDefault(int x);
+                delegate int DelegateWithDefault(int x = 1);
+                delegate int DelegateNoParams(int[] xs);
+                delegate int DelegateWithParams(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,29): warning CS9099: Parameter 1 has default value '1' in lambda but '<missing>' in the target delegate type.
+                // DelegateNoDefault d4 = (int x = 1) => x; // 1
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1", "<missing>").WithLocation(6, 29),
+                // (8,31): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
+                // DelegateWithDefault d6 = (int x = 2) => x; // 2
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(8, 31),
+                // (16,37): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // DelegateNoParams p3 = (params int[] xs) => xs.Length; // 3
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(16, 37));
+        }
+
+        [Fact]
+        public void DefaultsParamsConversion_DelegateCreation()
+        {
+            var source = """
+                int MethodNoDefault(int x) => x;
+                int MethodWithDefault(int x = 2) => x;
+                var d1 = new DelegateNoDefault(MethodWithDefault);
+                var d2 = new DelegateWithDefault(MethodWithDefault);
+                var d3 = new DelegateWithDefault(MethodNoDefault);
+                var d4 = new DelegateNoDefault((int x = 1) => x); // 1
+                var d5 = new DelegateWithDefault((int x = 1) => x);
+                var d6 = new DelegateWithDefault((int x = 2) => x); // 2
+                var d7 = new DelegateWithDefault((int x) => x);
+                var d8 = new DelegateNoDefault((int x) => x);
+                
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var p1 = new DelegateNoParams(MethodWithParams);
+                var p2 = new DelegateWithParams(MethodNoParams);
+                var p3 = new DelegateNoParams((params int[] xs) => xs.Length); // 3
+                var p4 = new DelegateWithParams((params int[] xs) => xs.Length);
+                var p5 = new DelegateWithParams((int[] xs) => xs.Length);
+                var p6 = new DelegateNoParams((int[] xs) => xs.Length);
+                
+                delegate int DelegateNoDefault(int x);
+                delegate int DelegateWithDefault(int x = 1);
+                delegate int DelegateNoParams(int[] xs);
+                delegate int DelegateWithParams(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,37): warning CS9099: Parameter 1 has default value '1' in lambda but '<missing>' in the target delegate type.
+                // var d4 = new DelegateNoDefault((int x = 1) => x); // 1
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1", "<missing>").WithLocation(6, 37),
+                // (8,39): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
+                // var d6 = new DelegateWithDefault((int x = 2) => x); // 2
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(8, 39),
+                // (16,45): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var p3 = new DelegateNoParams((params int[] xs) => xs.Length); // 3
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(16, 45));
+        }
+
+        [Fact]
+        public void DefaultsParamsConversion_ExplicitConversion()
+        {
+            var source = """
+                int MethodNoDefault(int x) => x;
+                int MethodWithDefault(int x = 2) => x;
+                var d1 = (DelegateNoDefault)MethodWithDefault;
+                var d2 = (DelegateWithDefault)MethodWithDefault;
+                var d3 = (DelegateWithDefault)MethodNoDefault;
+                var d4 = (DelegateNoDefault)((int x = 1) => x); // 1
+                var d5 = (DelegateWithDefault)((int x = 1) => x);
+                var d6 = (DelegateWithDefault)((int x = 2) => x); // 2
+                var d7 = (DelegateWithDefault)((int x) => x);
+                var d8 = (DelegateNoDefault)((int x) => x);
+                
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var p1 = (DelegateNoParams)MethodWithParams;
+                var p2 = (DelegateWithParams)MethodNoParams;
+                var p3 = (DelegateNoParams)((params int[] xs) => xs.Length); // 3
+                var p4 = (DelegateWithParams)((params int[] xs) => xs.Length);
+                var p5 = (DelegateWithParams)((int[] xs) => xs.Length);
+                var p6 = (DelegateNoParams)((int[] xs) => xs.Length);
+                
+                delegate int DelegateNoDefault(int x);
+                delegate int DelegateWithDefault(int x = 1);
+                delegate int DelegateNoParams(int[] xs);
+                delegate int DelegateWithParams(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,35): warning CS9099: Parameter 1 has default value '1' in lambda but '<missing>' in the target delegate type.
+                // var d4 = (DelegateNoDefault)((int x = 1) => x); // 1
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1", "<missing>").WithLocation(6, 35),
+                // (8,37): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
+                // var d6 = (DelegateWithDefault)((int x = 2) => x); // 2
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(8, 37),
+                // (16,43): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var p3 = (DelegateNoParams)((params int[] xs) => xs.Length); // 3
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(16, 43));
+        }
+
+        [Fact]
+        public void DefaultsParamsConversion_Invocation()
+        {
+            var source = """
+                NoDefault((int x = 1) => x); // 1
+                WithDefault((int x = 1) => x);
+                WithDefault((int x = 2) => x); // 2
+                WithDefault((int x) => x);
+                NoDefault((int x) => x);
+
+                NoParams((params int[] xs) => xs.Length); // 3
+                WithParams((params int[] xs) => xs.Length);
+                WithParams((int[] xs) => xs.Length);
+                NoParams((int[] xs) => xs.Length);
+
+                static void NoDefault(DelegateNoDefault d) { }
+                static void WithDefault(DelegateWithDefault d) { }
+                static void NoParams(DelegateNoParams d) { }
+                static void WithParams(DelegateWithParams d) { }
+                
+                delegate int DelegateNoDefault(int x);
+                delegate int DelegateWithDefault(int x = 1);
+                delegate int DelegateNoParams(int[] xs);
+                delegate int DelegateWithParams(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,16): warning CS9099: Parameter 1 has default value '1' in lambda but '<missing>' in the target delegate type.
+                // NoDefault((int x = 1) => x); // 1
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1", "<missing>").WithLocation(1, 16),
+                // (3,18): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
+                // WithDefault((int x = 2) => x); // 2
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(3, 18),
+                // (7,24): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // NoParams((params int[] xs) => xs.Length); // 3
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(7, 24));
+        }
+
+        [Fact]
+        public void DefaultsParamsConversion_Mix()
+        {
+            var source = """
+                D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
+                void M(int a, int b = 2, params int[] c) { }
+                D d2 = M;
+                delegate void D(int x, int y, int[] z);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,20): warning CS9099: Parameter 2 has default value '2' in lambda but '<missing>' in the target delegate type.
+                // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "b").WithArguments("2", "2", "<missing>").WithLocation(1, 20),
+                // (1,40): warning CS9100: Parameter 3 has params modifier in lambda but not in target delegate type.
+                // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "c").WithArguments("3").WithLocation(1, 40));
         }
     }
 }

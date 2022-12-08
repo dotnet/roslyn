@@ -5,11 +5,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
@@ -249,8 +253,47 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                     if (declaredSymbol != null)
                     {
-                        var definitionResultsId = symbolResultsTracker.GetResultIdForSymbol(declaredSymbol, Methods.TextDocumentDefinitionName, () => new DefinitionResult(idFactory));
+                        var definitionResultsId = symbolResultsTracker.GetResultIdForSymbol(declaredSymbol, Methods.TextDocumentDefinitionName, static idFactory => new DefinitionResult(idFactory));
                         lsifJsonWriter.Write(new Item(definitionResultsId.As<DefinitionResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory));
+
+                        // If this declared symbol also implements an interface member, we count this as a definition of the interface member as well.
+                        // Note in C# there are estoeric cases where a method can implement an interface member even though the containing type does not
+                        // implement the interface, for example in this case:
+                        //
+                        //     interface I { void M(); }
+                        //     class Base { public void M() { } }
+                        //     class Derived : Base, I { }
+                        //
+                        // We don't worry about supporting these cases here.
+                        var implementedMembers = declaredSymbol.ExplicitOrImplicitInterfaceImplementations();
+
+                        foreach (var implementedMember in implementedMembers)
+                            MarkImplementationOfSymbol(implementedMember);
+
+                        // If this overrides a method, we'll also mark it the same way. We want to chase to the base virtual method, skipping over intermediate
+                        // methods so that way all overrides of the same method point to the same virtual method
+                        if (declaredSymbol.IsOverride)
+                        {
+                            var overridenMember = declaredSymbol.GetOverriddenMember();
+
+                            while (overridenMember?.GetOverriddenMember() != null)
+                                overridenMember = overridenMember.GetOverriddenMember();
+
+                            if (overridenMember != null)
+                                MarkImplementationOfSymbol(overridenMember);
+                        }
+
+                        void MarkImplementationOfSymbol(ISymbol baseMember)
+                        {
+                            // First we create a definition link for the reference results for the base member
+                            var referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(baseMember.OriginalDefinition);
+                            lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "definitions"));
+
+                            // Then also link the result set for the method to the moniker that it implements
+                            referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(declaredSymbol.OriginalDefinition);
+                            var implementedMemberMoniker = symbolResultsTracker.GetMoniker(baseMember.OriginalDefinition, semanticModel.Compilation);
+                            lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), implementedMemberMoniker, documentVertex.GetId(), idFactory, property: "referenceLinks"));
+                        }
                     }
 
                     if (referencedSymbol != null)
@@ -259,7 +302,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         // symbol but the range can point a different symbol's resultSet. This can happen if the token is
                         // both a definition of a symbol (where we will point to the definition) but also a reference to some
                         // other symbol.
-                        var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.GetOriginalUnreducedDefinition(), Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
+                        var referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(referencedSymbol.GetOriginalUnreducedDefinition());
                         lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "references"));
                     }
 
@@ -268,7 +311,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
-                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, LspClientCapabilities, CancellationToken.None);
+                        var hover = await HoverHandler.GetHoverAsync(
+                            semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, LspClientCapabilities, CancellationToken.None);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);

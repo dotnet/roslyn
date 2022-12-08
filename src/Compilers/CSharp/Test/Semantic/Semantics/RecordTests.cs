@@ -243,24 +243,30 @@ record class Point(int x, int y);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "record ").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,8): error CS1001: Identifier expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
+                // (2,8): error CS1002: ; expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
                 // (2,19): error CS1514: { expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
                 // (2,19): error CS1513: } expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 19),
-                // (2,19): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 19),
                 // (2,19): error CS8803: Top-level statements must precede namespace and type declarations.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 19),
-                // (2,19): error CS8805: Program using top-level statements must be an executable.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 19),
                 // (2,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 19),
@@ -10771,7 +10777,7 @@ record C(object P)
     public object get_P() => null;
     public object set_Q() => null;
 }";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 // record C(object P)
@@ -12649,7 +12655,7 @@ record B : A
 @"public record B(object N1, object N2)
 {
 }";
-            var compA = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceA : new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var compA = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceA : new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
 
             verifierA.VerifyIL("B..ctor(B)", @"
@@ -12688,7 +12694,7 @@ record B : A
         System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
     }
 }";
-            var compB = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceB : new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
+            var compB = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceB : new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetLatest);
 
             var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             // call base copy constructor B..ctor(B)
@@ -13979,7 +13985,6 @@ public class Program
         _ = c with { };
     }
 }";
-
 
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
                 ilSource: ilSource,
@@ -15848,7 +15853,7 @@ record B(int X, int Y) : A
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
@@ -21051,7 +21056,7 @@ public record C
     public int X { get; init; }
 }
 public record D(int Y) : C;";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? src : new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? src : new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics();
 
             var src2 = @"
@@ -21087,7 +21092,7 @@ class E
 1
 2
 1 2
-2 3", targetFramework: TargetFramework.StandardLatest).VerifyDiagnostics().VerifyIL("E.CHelper", @"
+2 3", targetFramework: TargetFramework.NetLatest).VerifyDiagnostics().VerifyIL("E.CHelper", @"
 {
   // Code size       14 (0xe)
   .maxstack  3
@@ -23626,7 +23631,7 @@ record B : A
 }
 record C : B;
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (4,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
                 //     protected sealed override System.Type EqualityContract => typeof(B);
@@ -25683,7 +25688,7 @@ record B
         }
     }
 }
-", targetFramework: TargetFramework.StandardLatest);
+", targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
@@ -25992,7 +25997,7 @@ public partial record C1
 {
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
@@ -30353,6 +30358,55 @@ record R1(int x);
                 // record R1(int x);
                 Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.init", "R1").WithLocation(4, 15)
                 );
+        }
+
+        [Fact]
+        public void AttributedDerivedRecord_SemanticInfoOnBaseParameter()
+        {
+            var source = """
+                public record Base(int X);
+                [Attr]
+                public record Derived(int X) : Base(X);
+
+                class Attr : System.Attribute {}
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var xReference = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+
+            AssertEx.Equal("System.Int32 X", model.GetSymbolInfo(xReference).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AttributedDerivedRecord_BaseParameterNotVisibleInBody()
+        {
+            var source = """
+                public record Base(int X);
+                [Attr()]
+                public record Derived() : Base(M(out var y))
+                {
+                    static int M(out int y) => y = 1;
+                }
+
+                class Attr : System.Attribute {}
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var mCall = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+            var attrApplication = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var mDefinition = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            Assert.Contains("System.Int32 y", model.LookupSymbols(mCall.SpanStart).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(attrApplication.ArgumentList!.OpenParenToken.SpanStart + 1).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(mDefinition.SpanStart).Select(s => s.ToTestDisplayString()));
         }
     }
 }

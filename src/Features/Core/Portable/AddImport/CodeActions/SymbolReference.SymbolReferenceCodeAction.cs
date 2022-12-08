@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -23,8 +24,9 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             protected SymbolReferenceCodeAction(
                 Document originalDocument,
-                AddImportFixData fixData)
-                : base(originalDocument, fixData)
+                AddImportFixData fixData,
+                ImmutableArray<string> additionalTags)
+                : base(originalDocument, fixData, additionalTags)
             {
             }
 

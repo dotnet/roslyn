@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetFilterAndOrderCodeFixesAsync(
             Workspace workspace,
             ICodeFixService codeFixService,
-            Document document,
+            TextDocument document,
             TextSpan selection,
             CodeActionRequestPriority priority,
             CodeActionOptionsProvider fallbackOptions,
@@ -228,12 +228,15 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 return null;
             }
 
-            var document = fixAllState.Document!;
+            var textDocument = fixAllState.Document!;
             using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
             foreach (var scope in supportedScopes)
             {
                 if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
                 {
+                    if (textDocument is not Document document)
+                        continue;
+
                     // Skip showing ContainingMember and ContainingType FixAll scopes if the language
                     // does not implement 'IFixAllSpanMappingService' langauge service or
                     // we have no mapped FixAll spans to fix.
@@ -320,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 // Wrap the suppression/configuration actions within another top level suggested action
                 // to avoid clutter in the light bulb menu.
-                var suppressOrConfigureCodeAction = NoChangeAction.Create(CodeFixesResources.Suppress_or_Configure_issues, nameof(CodeFixesResources.Suppress_or_Configure_issues));
+                var suppressOrConfigureCodeAction = NoChangeAction.Create(CodeFixesResources.Suppress_or_configure_issues, nameof(CodeFixesResources.Suppress_or_configure_issues));
                 var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                     workspace, codeAction: suppressOrConfigureCodeAction,
                     codeActionPriority: suppressOrConfigureCodeAction.Priority, provider: null,
@@ -333,7 +336,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     originalSolution,
                     category,
                     actions: ImmutableArray.Create<IUnifiedSuggestedAction>(wrappingSuggestedAction),
-                    title: CodeFixesResources.Suppress_or_Configure_issues,
+                    title: CodeFixesResources.Suppress_or_configure_issues,
                     priority: UnifiedSuggestedActionSetPriority.Lowest,
                     applicableToSpan: span);
                 sets = sets.Add(wrappingSet);
@@ -434,7 +437,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetFilterAndOrderCodeRefactoringsAsync(
             Workspace workspace,
             ICodeRefactoringService codeRefactoringService,
-            Document document,
+            TextDocument document,
             TextSpan selection,
             CodeActionRequestPriority priority,
             CodeActionOptionsProvider options,
@@ -509,7 +512,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// </remarks>
         private static async Task<UnifiedSuggestedActionSet> OrganizeRefactoringsAsync(
             Workspace workspace,
-            Document document,
+            TextDocument document,
             TextSpan selection,
             CodeRefactoring refactoring,
             CancellationToken cancellationToken)
@@ -567,7 +570,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 else
                 {
                     var fixAllSuggestedActionSet = await GetUnifiedFixAllSuggestedActionSetAsync(codeAction,
-                        refactoring.CodeActions.Length, document, selection, refactoring.Provider,
+                        refactoring.CodeActions.Length, document as Document, selection, refactoring.Provider,
                         refactoring.FixAllProviderInfo, refactoring.CodeActionOptionsProvider,
                         workspace, cancellationToken).ConfigureAwait(false);
 
@@ -583,7 +586,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static async Task<UnifiedSuggestedActionSet?> GetUnifiedFixAllSuggestedActionSetAsync(
             CodeAction action,
             int actionCount,
-            Document document,
+            Document? document,
             TextSpan selection,
             CodeRefactoringProvider provider,
             FixAllProviderInfo? fixAllProviderInfo,
@@ -591,7 +594,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Workspace workspace,
             CancellationToken cancellationToken)
         {
-            if (fixAllProviderInfo == null)
+            if (fixAllProviderInfo == null || document == null)
             {
                 return null;
             }

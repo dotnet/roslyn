@@ -189,9 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         internal static CSharpMetadataContext GetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid = default)
         {
             var assemblyContexts = appDomainContext.AssemblyContexts;
-            return assemblyContexts != null && assemblyContexts.TryGetValue(new MetadataContextId(mvid), out CSharpMetadataContext context) ?
-                context :
-                default;
+            return assemblyContexts != null && assemblyContexts.TryGetValue(new MetadataContextId(mvid), out CSharpMetadataContext context)
+                ? context
+                : default;
         }
 
         internal static MetadataContext<CSharpMetadataContext> SetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid, CSharpMetadataContext context)
@@ -437,9 +437,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var methodOrTypeName = ExpressionCompilerTestHelpers.GetMethodOrTypeSignatureParts(signature, out parameterTypeNames);
 
             var candidates = compilation.GetMembers(methodOrTypeName);
-            var methodOrType = (parameterTypeNames == null) ?
-                candidates.FirstOrDefault() :
-                candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.TypeWithAnnotations.Type.Name)));
+            var methodOrType = (parameterTypeNames == null)
+                ? candidates.FirstOrDefault()
+                : candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.TypeWithAnnotations.Type.Name)));
 
             Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
             return methodOrType;

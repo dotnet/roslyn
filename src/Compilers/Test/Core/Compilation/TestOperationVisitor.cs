@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (operation.SemanticModel != null)
                 {
-                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingModelOrSelf);
+                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingPublicModelOrSelf);
                 }
             }
             base.Visit(operation);

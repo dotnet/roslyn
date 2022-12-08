@@ -202,11 +202,6 @@
         <target state="translated">Directivas "using" globales</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Variable temporal en línea</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Conflicto(s) detectado(s).</target>
@@ -236,6 +231,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">Invertir la instrucción "for"</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="new">Selection cannot be in constructor initializer</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>

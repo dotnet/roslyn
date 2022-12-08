@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
     internal abstract class AbstractPropSnippetProvider : AbstractSnippetProvider
     {
-        public override string SnippetIdentifier => "prop";
+        public override string Identifier => "prop";
 
-        public override string SnippetDescription => FeaturesResources.property_;
+        public override string Description => FeaturesResources.property_;
 
         /// <summary>
         /// Generates the property syntax.

@@ -553,13 +553,13 @@ class C
             CreateCompilation(tree).VerifyDiagnostics(
                 // (7,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         x = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(7, 13),
                 // (10,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         z = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(10, 13),
                 // (12,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         o = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(12, 13));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(12, 13));
         }
 
         [Theory]
@@ -3178,7 +3178,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (8,26): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         ref int rl = ref P;
                 Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(8, 26));
         }
@@ -3199,7 +3199,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (8,26): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         ref int rl = ref this[0];
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(8, 26));
         }
@@ -3337,7 +3337,6 @@ class Program
     }
 }
 ";
-
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,20): error CS8157: Cannot return 'rl' by reference because it was initialized to a value that cannot be returned by reference

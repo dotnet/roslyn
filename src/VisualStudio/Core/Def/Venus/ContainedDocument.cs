@@ -559,7 +559,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(visibleFirstLineInOriginalText.EndIncludingLineBreak, spanInOriginalText.End),
-                        snippetInRightText.Substring(firstLineOfRightTextSnippet.Length));
+                        snippetInRightText[firstLineOfRightTextSnippet.Length..]);
                     return true;
                 }
 
@@ -576,7 +576,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(spanInOriginalText.Start, visibleLastLineInOriginalText.Start),
-                        snippetInRightText.Substring(0, snippetInRightText.Length - lastLineOfRightTextSnippet.Length));
+                        snippetInRightText[..^lastLineOfRightTextSnippet.Length]);
                     return true;
                 }
 

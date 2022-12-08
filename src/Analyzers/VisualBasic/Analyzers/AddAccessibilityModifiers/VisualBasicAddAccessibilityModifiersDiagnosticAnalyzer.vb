@@ -16,20 +16,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext,
-                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
+                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
+                compilationUnit As CompilationUnitSyntax)
 
             ProcessMembers(context, [option], compilationUnit.Members)
         End Sub
 
-        Private Sub ProcessMembers(context As SyntaxTreeAnalysisContext,
-                                   [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), members As SyntaxList(Of StatementSyntax))
+        Private Sub ProcessMembers(
+                context As SyntaxTreeAnalysisContext,
+                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
+                members As SyntaxList(Of StatementSyntax))
+
             For Each member In members
                 ProcessMember(context, [option], member)
             Next
         End Sub
 
-        Private Sub ProcessMember(context As SyntaxTreeAnalysisContext,
-                              [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), member As StatementSyntax)
+        Private Sub ProcessMember(
+                context As SyntaxTreeAnalysisContext,
+                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
+                member As StatementSyntax)
 
             If member.Kind() = SyntaxKind.NamespaceBlock Then
                 Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
@@ -46,7 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             End If
 
             Dim name As SyntaxToken = Nothing
-            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(VisualBasicAccessibilityFacts.Instance, member, [option].Value, name) Then
+            Dim modifiersAdded As Boolean = False
+            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(VisualBasicAccessibilityFacts.Instance, member, [option].Value, name, modifiersAdded) Then
                 Return
             End If
 
@@ -57,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 name.GetLocation(),
                 [option].Notification.Severity,
                 additionalLocations:=additionalLocations,
-                properties:=Nothing))
+                If(modifiersAdded, ModifiersAddedProperties, Nothing)))
         End Sub
     End Class
 End Namespace

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -127,13 +128,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();
                 Debug.Assert(getMethod is not null);
 
-                ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                ArrayBuilder<LocalSymbol>? temps = null;
+                ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                    ref rewrittenReceiver,
+                    captureReceiverMode: ReceiverCaptureMode.Default,
                     arguments,
                     indexer,
                     argsToParamsOpt,
                     argumentRefKindsOpt,
-                    ref rewrittenReceiver!,
-                    out ArrayBuilder<LocalSymbol>? temps);
+                    storesOpt: null,
+                    ref temps);
 
                 rewrittenArguments = MakeArguments(
                     syntax,
@@ -221,6 +225,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitIndexPatternIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
         {
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance(2);
+            var sideeffects = ArrayBuilder<BoundExpression>.GetInstance(2);
+
+            BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
+                node, isLeftOfAssignment,
+                isRegularAssignmentOrRegularCompoundAssignment: isLeftOfAssignment,
+                sideeffects, locals);
+
+            return _factory.Sequence(
+                locals.ToImmutableAndFree(),
+                sideeffects.ToImmutableAndFree(),
+                rewrittenIndexerAccess);
+        }
+
+        private BoundExpression GetUnderlyingIndexerOrSliceAccess(
+            BoundImplicitIndexerAccess node,
+            bool isLeftOfAssignment,
+            bool isRegularAssignmentOrRegularCompoundAssignment,
+            ArrayBuilder<BoundExpression> sideeffects,
+            ArrayBuilder<LocalSymbol> locals)
+        {
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             Debug.Assert(node.IndexerOrSliceAccess is BoundIndexerAccess or BoundArrayAccess);
 
@@ -230,9 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeCompareKind.ConsiderEverything));
 
             var F = _factory;
-
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance(2);
-            var sideeffects = ArrayBuilder<BoundExpression>.GetInstance(2);
+            BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
 
             var receiver = VisitExpression(node.Receiver);
 
@@ -248,6 +271,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                     receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
                 locals.Add(receiverLocal.LocalSymbol);
+
+                if (receiverLocal.LocalSymbol.IsRef &&
+                    CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
+                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
+                    ((isLeftOfAssignment && !isRegularAssignmentOrRegularCompoundAssignment) ||
+                     !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
+                {
+                    BoundAssignmentOperator? extraRefInitialization;
+                    ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, locals);
+
+                    if (extraRefInitialization is object)
+                    {
+                        sideeffects.Add(extraRefInitialization);
+                    }
+                }
+
                 sideeffects.Add(receiverStore);
 
                 receiver = receiverLocal;
@@ -255,7 +294,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AddPlaceholderReplacement(node.ReceiverPlaceholder, receiver);
 
-            BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
             BoundExpression integerArgument;
 
             switch (strategy)
@@ -289,26 +327,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             var argumentPlaceholder = node.ArgumentPlaceholders[0];
             AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+            Debug.Assert(integerArgument.Type!.SpecialType == SpecialType.System_Int32);
 
             BoundExpression rewrittenIndexerAccess;
 
             if (node.IndexerOrSliceAccess is BoundIndexerAccess indexerAccess)
             {
-                if (isLeftOfAssignment && indexerAccess.Indexer.RefKind == RefKind.None)
+                if (isLeftOfAssignment && indexerAccess.GetRefKind() == RefKind.None)
                 {
-                    ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                    ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                        ref receiver,
+                        captureReceiverMode: ReceiverCaptureMode.Default,
                         indexerAccess.Arguments,
                         indexerAccess.Indexer,
                         indexerAccess.ArgsToParamsOpt,
                         indexerAccess.ArgumentRefKindsOpt,
-                        ref receiver,
-                        out ArrayBuilder<LocalSymbol>? temps);
+                        storesOpt: null,
+                        ref locals!);
 
-                    if (temps is not null)
-                    {
-                        locals.AddRange(temps);
-                        temps.Free();
-                    }
+                    Debug.Assert(locals is not null);
 
                     rewrittenIndexerAccess = indexerAccess.Update(
                         receiver, indexerAccess.Indexer, rewrittenArguments,
@@ -331,10 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RemovePlaceholderReplacement(argumentPlaceholder);
             RemovePlaceholderReplacement(node.ReceiverPlaceholder);
 
-            return F.Sequence(
-                locals.ToImmutableAndFree(),
-                sideeffects.ToImmutableAndFree(),
-                rewrittenIndexerAccess);
+            return rewrittenIndexerAccess;
         }
 
         /// <summary>
@@ -491,6 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If length access is a local, then we are evaluating a pattern
             if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
             {
+                // The way this capture is done is likely source of https://github.com/dotnet/roslyn/issues/65586
                 var receiverLocal = F.StoreToTemp(receiver, out var receiverStore);
 
                 localsBuilder.Add(receiverLocal.LocalSymbol);

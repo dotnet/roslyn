@@ -8,7 +8,7 @@
     <MajorVersion>4</MajorVersion>
     <MinorVersion>5</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -19,13 +19,13 @@
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
-    <RoslynDiagnosticsNugetPackageVersion>3.3.4-beta1.22504.1</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>3.3.4-beta1.22579.2</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>7.0.0-preview1.22218.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22512.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.149-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.3.0-1.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.4.203-preview</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>17.5.42-preview</VisualStudioEditorPackagesVersion>
     <!-- This should generally be set to $(VisualStudioEditorPackagesVersion),
          but sometimes EditorFeatures.Cocoa specifically requires a newer editor build. -->
     <VisualStudioMacEditorPackagesVersion>17.3.133-preview</VisualStudioMacEditorPackagesVersion>
@@ -33,7 +33,7 @@
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.3.3101</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.4.1004-preview</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
-    <MicrosoftVisualStudioShellPackagesVersion>17.3.32809.331</MicrosoftVisualStudioShellPackagesVersion>
+    <MicrosoftVisualStudioShellPackagesVersion>17.4.32927.646</MicrosoftVisualStudioShellPackagesVersion>
     <RefOnlyMicrosoftBuildPackagesVersion>16.5.0</RefOnlyMicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
@@ -41,8 +41,8 @@
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>4.1.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
-    <MicrosoftServiceHubVersion>4.0.2048</MicrosoftServiceHubVersion>
-    <MicrosoftVisualStudioThreadingPackagesVersion>17.3.44</MicrosoftVisualStudioThreadingPackagesVersion>
+    <MicrosoftServiceHubVersion>4.1.1</MicrosoftServiceHubVersion>
+    <MicrosoftVisualStudioThreadingPackagesVersion>17.4.27</MicrosoftVisualStudioThreadingPackagesVersion>
     <MicrosoftTestPlatformVersion>17.4.0-preview-20220707-01</MicrosoftTestPlatformVersion>
   </PropertyGroup>
   <!--
@@ -54,6 +54,7 @@
     <BasicReferenceAssembliesNet50Version>1.2.4</BasicReferenceAssembliesNet50Version>
     <BasicReferenceAssembliesNet60Version>1.2.4</BasicReferenceAssembliesNet60Version>
     <BasicReferenceAssembliesNet70Version>1.3.0</BasicReferenceAssembliesNet70Version>
+    <BasicReferenceAssembliesNet461Version>1.3.0</BasicReferenceAssembliesNet461Version>
     <BasicReferenceAssembliesNetStandard13Version>1.2.4</BasicReferenceAssembliesNetStandard13Version>
     <BenchmarkDotNetVersion>0.13.0</BenchmarkDotNetVersion>
     <BenchmarkDotNetDiagnosticsWindowsVersion>0.13.0</BenchmarkDotNetDiagnosticsWindowsVersion>
@@ -62,7 +63,7 @@
     <HumanizerCoreVersion>2.14.1</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>7.1.0.6543</ICSharpCodeDecompilerVersion>
     <InputSimulatorPlusVersion>1.0.7</InputSimulatorPlusVersion>
-    <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildLocatorVersion>1.5.5</MicrosoftBuildLocatorVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>6.0.0</MicrosoftExtensionsDependencyInjectionVersion>
     <!--
       SourceBuild will requires that all dependencies also be source buildable. We are referencing a
@@ -96,7 +97,7 @@
     <MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
-    <MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>
+    <MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>3.3.4-beta1.22504.1</MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>
     <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.339</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
@@ -136,7 +137,7 @@
     <MicrosoftVisualStudioCacheVersion>17.3.26-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
-    <MicrosoftVisualStudioComponentModelHostVersion>17.3.198</MicrosoftVisualStudioComponentModelHostVersion>
+    <MicrosoftVisualStudioComponentModelHostVersion>17.4.248</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>16.9.20</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.4.0-beta.22368.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
@@ -184,7 +185,7 @@
     <MicrosoftVisualStudioShell150Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShell150Version>
     <MicrosoftVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellDesignVersion>
-    <MicrosoftVisualStudioTelemetryVersion>16.4.137</MicrosoftVisualStudioTelemetryVersion>
+    <MicrosoftVisualStudioTelemetryVersion>16.5.17</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
     <MicrosoftVisualStudioTextDataVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextDataVersion>
     <MicrosoftVisualStudioTextInternalVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextInternalVersion>
@@ -206,7 +207,7 @@
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
-    <NerdbankStreamsVersion>2.8.57</NerdbankStreamsVersion>
+    <NerdbankStreamsVersion>2.9.109</NerdbankStreamsVersion>
     <NuGetVisualStudioVersion>6.0.0-preview.0.15</NuGetVisualStudioVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
@@ -252,6 +253,7 @@
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextJsonVersion>6.0.0</SystemTextJsonVersion>
+    <SystemThreadingChannelsVersion>6.0.0</SystemThreadingChannelsVersion>
     <SystemThreadingTasksDataflowVersion>6.0.0</SystemThreadingTasksDataflowVersion>
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
@@ -273,6 +275,9 @@
     <xunitrunnerconsoleVersion>2.4.5</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
     <xunitrunnervisualstudioVersion>2.4.5</xunitrunnervisualstudioVersion>
+    <xunitrunnerutilityVersion>$(xunitVersion)</xunitrunnerutilityVersion>
+    <xunitextensibilityexecutionVersion>$(xunitVersion)</xunitextensibilityexecutionVersion>
+    <xunitabstractionsVersion>2.0.3</xunitabstractionsVersion>
     <xunitextensibilityexecutionVersion>$(xunitVersion)</xunitextensibilityexecutionVersion>
     <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
@@ -286,20 +291,20 @@
       create a test insertion in Visual Studio to validate.
     -->
     <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
-    <StreamJsonRpcVersion>2.12.27</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>2.13.33</StreamJsonRpcVersion>
     <!--
       When updating the S.C.I or S.R.M version please let the MSBuild team know in advance so they
       can update to the same version. Version changes require a VS test insertion for validation.
     -->
     <SystemCollectionsImmutableVersion>6.0.0</SystemCollectionsImmutableVersion>
-    <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>6.0.1</SystemReflectionMetadataVersion>
     <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <UsingToolVSSDK>true</UsingToolVSSDK>
   </PropertyGroup>
   <PropertyGroup>
-    <UsingToolPdbConverter>true</UsingToolPdbConverter>
+    <UsingToolPdbConverter>false</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
@@ -307,7 +312,6 @@
     <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
-    <DiscoverEditorConfigFiles>true</DiscoverEditorConfigFiles>
     <!--
       When using a bootstrap builder we don't want to use the Microsoft.Net.Compilers.Toolset package but
       rather explicitly override it.

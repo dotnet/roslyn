@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes);
 
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
-            bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            KnownTypes knownTypes);
+            bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes, CancellationToken cancellationToken);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, knownTypes);
+            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, knownTypes, cancellationToken);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);

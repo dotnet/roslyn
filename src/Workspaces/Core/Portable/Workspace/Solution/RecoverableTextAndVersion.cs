@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
             public ITemporaryTextStorageInternal? _storage;
 
             public RecoverableText(ITextAndVersionSource source, TextAndVersion textAndVersion, LoadTextOptions options, SolutionServices services)
-                : base(new ConstantValueSource<SourceText>(textAndVersion.Text))
+                : base(ValueSource.Constant(textAndVersion.Text))
             {
                 _storageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
 

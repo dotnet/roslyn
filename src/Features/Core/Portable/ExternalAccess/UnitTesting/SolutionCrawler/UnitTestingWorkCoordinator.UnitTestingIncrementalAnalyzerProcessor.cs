@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -33,7 +34,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly UnitTestingRegistration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IUnitTestingDocumentTrackingService _documentTracker;
-                private readonly IProjectCacheService? _cacheService;
 
 #if false // Not used in unit testing crawling
                 private readonly UnitTestingHighPriorityProcessor _highPriorityProcessor;
@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.Services.GetService<IProjectCacheService>();
 
 #if false // Not used in unit testing crawling
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     // event and worker queues
                     _documentTracker = _registration.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
 
-                    var globalNotificationService = _registration.Services.GetRequiredService<IGlobalOperationNotificationService>();
+                    var globalNotificationService = _registration.Services.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
 #if false // Not used in unit testing crawling
                     _highPriorityProcessor = new UnitTestingHighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
@@ -177,9 +176,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             _lowPriorityProcessor.AsyncProcessorTask);
                     }
                 }
-
-                private IDisposable EnableCaching(ProjectId projectId)
-                    => _cacheService?.EnableCaching(projectId) ?? UnitTestingNullDisposable.Instance;
 
 #if false // Not used in unit testing crawling
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
@@ -458,13 +454,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
                         _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
                     }
-                }
-
-                private class UnitTestingNullDisposable : IDisposable
-                {
-                    public static readonly IDisposable Instance = new UnitTestingNullDisposable();
-
-                    public void Dispose() { }
                 }
 
                 private class UnitTestingAnalyzersGetter

@@ -4302,12 +4302,24 @@ interface I1
                 // (2,1): error CS0103: The name 'local' does not exist in the current context
                 // local();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
-                // (4,6): error CS0540: '<invalid-global-code>.I1.local()': containing type does not implement interface 'I1'
+                // (4,1): error CS1547: Keyword 'void' cannot be used in this context
                 // void I1.local()
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("<invalid-global-code>.I1.local()", "I1").WithLocation(4, 6),
-                // (4,9): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 1),
+                // (4,6): warning CS0168: The variable 'I1' is declared but never used
                 // void I1.local()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 9)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "I1").WithArguments("I1").WithLocation(4, 6),
+                // (4,8): error CS1003: Syntax error, ',' expected
+                // void I1.local()
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(4, 8),
+                // (4,9): error CS1002: ; expected
+                // void I1.local()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "local").WithLocation(4, 9),
+                // (4,9): error CS0103: The name 'local' does not exist in the current context
+                // void I1.local()
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(4, 9),
+                // (4,16): error CS1002: ; expected
+                // void I1.local()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 16)
                 );
         }
 
@@ -8539,12 +8551,34 @@ catch
             var text = @"
 #nullable enable
 System.Console.WriteLine(args.Length == 0 ? 0 : -args[0].Length);
+System.Console.Write("""");
+
+System.Console.Write("""");
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics();
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             AssertEntryPointParameter(entryPoint);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            var symbols = model.LookupSymbols(invocations[0].Position, name: "args");
+            Assert.Empty(symbols);
+            symbols = model.LookupSymbols(invocations[0].SpanStart, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+
+            symbols = model.LookupSymbols(invocations[1].Position, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            symbols = model.LookupSymbols(invocations[1].SpanStart, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+
+            symbols = model.LookupSymbols(invocations[2].Position, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            symbols = model.LookupSymbols(invocations[2].SpanStart, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
         }
 
         [Fact]
@@ -8589,6 +8623,70 @@ lambda();
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             CompileAndVerify(comp, expectedOutput: "Args_04", args: new[] { "Args_04" }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Args_05()
+        {
+            var text = @"
+ar
+";
+
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var id = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+
+            for (int i = id.SpanStart; i <= id.Span.End; i++)
+            {
+                var symbols = model.LookupSymbols(i, name: "args");
+                Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Args_06()
+        {
+            var text = @"
+ar
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");
+";
+
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var id = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ar").Single();
+
+            for (int i = id.SpanStart; i <= id.Span.End; i++)
+            {
+                var symbols = model.LookupSymbols(i, name: "args");
+                Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Args_07()
+        {
+            var text =
+@"// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");
+ar
+";
+
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var id = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ar").Single();
+
+            for (int i = id.SpanStart; i <= id.Span.End; i++)
+            {
+                var symbols = model.LookupSymbols(i, name: "args");
+                Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            }
         }
 
         [Fact]

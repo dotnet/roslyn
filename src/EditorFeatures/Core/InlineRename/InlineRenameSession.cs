@@ -38,8 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly Workspace _workspace;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly ITextBufferCloneService _textBufferCloneService;
+
         private readonly IFeatureService _featureService;
         private readonly IFeatureDisableToken _completionDisabledToken;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
@@ -134,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
+            ITextBufferCloneService textBufferCloneService,
             IFeatureServiceFactory featureServiceFactory,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListener asyncListener)
@@ -155,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _textBufferFactoryService = textBufferFactoryService;
+            _textBufferCloneService = textBufferCloneService;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferAssociatedViewService.SubjectBuffersConnected += OnSubjectBuffersConnected;
 
@@ -273,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (!_openTextBuffers.ContainsKey(buffer) && buffer.SupportsRename())
             {
-                _openTextBuffers[buffer] = new OpenTextBufferManager(this, buffer, _workspace, _textBufferFactoryService);
+                _openTextBuffers[buffer] = new OpenTextBufferManager(this, _workspace, _textBufferFactoryService, _textBufferCloneService, buffer);
                 return true;
             }
 

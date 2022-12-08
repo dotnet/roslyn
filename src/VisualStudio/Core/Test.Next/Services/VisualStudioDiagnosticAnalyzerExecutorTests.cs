@@ -270,9 +270,9 @@ End Class";
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
-            var workspace = (language == LanguageNames.CSharp) ?
-                TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :
-                TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
+            var workspace = (language == LanguageNames.CSharp)
+                ? TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition)
+                : TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
 
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), BackgroundAnalysisScope.FullSolution);

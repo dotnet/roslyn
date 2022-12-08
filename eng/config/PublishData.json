@@ -42,6 +42,8 @@
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
+      "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol": "vs-impl",
+      "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.Lsif.Generator": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Apex": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.CodeLens": "vs-impl",
@@ -62,17 +64,7 @@
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl",
-      "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl",
-      "Microsoft.VisualStudio.LanguageServices.Implementation": "none",
-      "Microsoft.VisualStudio.LanguageServices.CSharp": "none",
-      "Microsoft.VisualStudio.LanguageServices.VisualBasic": "none",
-      "Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler": "none",
-      "Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider": "none",
-      "Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver": "none",
-      "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler": "none",
-      "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider": "none",
-      "Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler": "none",
-      "Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider": "none"
+      "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl"
     }
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
@@ -135,6 +127,16 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.4]"
     },
+    "release/dev17.5-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.5",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.5p2]"
+    },
     "main": {
       "nugetKind": [
         "Shipping",
@@ -152,8 +154,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.5]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.5p3]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

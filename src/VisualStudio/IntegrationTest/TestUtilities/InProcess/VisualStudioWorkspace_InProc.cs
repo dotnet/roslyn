@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 LoadRoslynPackage();
 
-                var hook = (VisualStudioWorkpacePartialSolutionsTestHook)_visualStudioWorkspace.Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
+                var hook = _visualStudioWorkspace.Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
                 hook.IsPartialSolutionDisabled = true;
             });
 

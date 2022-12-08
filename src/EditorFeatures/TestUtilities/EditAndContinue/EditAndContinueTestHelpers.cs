@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var allEdits = new List<SemanticEditInfo>();
 
             // include Baseline by default, unless no capabilities are explicitly specified:
-            var requiredCapabilities = capabilities.HasValue ?
-                (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline) :
-                expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
+            var requiredCapabilities = capabilities.HasValue
+                ? (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline)
+                : expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
 
             var lazyCapabilities = AsyncLazy.Create(requiredCapabilities);
             var actualRequiredCapabilities = EditAndContinueCapabilities.None;

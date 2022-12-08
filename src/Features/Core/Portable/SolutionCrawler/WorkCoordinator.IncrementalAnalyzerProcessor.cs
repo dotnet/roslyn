@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IDocumentTrackingService _documentTracker;
-                private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
@@ -80,7 +78,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // event and worker queues
                     _documentTracker = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-                    var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+                    var globalNotificationService = _registration.Workspace.Services.SolutionServices.ExportProvider
+                        .GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
                     _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
@@ -146,9 +145,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             _lowPriorityProcessor.AsyncProcessorTask);
                     }
                 }
-
-                private IDisposable EnableCaching(ProjectId projectId)
-                    => _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                     => _registration.Workspace.GetOpenDocumentIds();
@@ -386,13 +382,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
                         _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
                     }
-                }
-
-                private class NullDisposable : IDisposable
-                {
-                    public static readonly IDisposable Instance = new NullDisposable();
-
-                    public void Dispose() { }
                 }
 
                 private class AnalyzersGetter

@@ -587,11 +587,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return null; }
         }
 
-        internal override SemanticModel ContainingModelOrSelf
-        {
-            get { return this; }
-        }
-
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
@@ -1033,7 +1028,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-
             return containing;
         }
 
@@ -1145,8 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.Parameter:
                             {
                                 // NOTE: we don't need to create a member model for lambda parameter default value
-                                // (which is bad code anyway) because lambdas only appear in code with associated
-                                // member models.
+                                // because lambdas only appear in code with associated member models.
                                 ParameterSyntax parameterDecl = (ParameterSyntax)node.Parent;
                                 ParameterSymbol parameterSymbol = GetDeclaredNonLambdaParameterSymbol(parameterDecl);
                                 if ((object)parameterSymbol == null)

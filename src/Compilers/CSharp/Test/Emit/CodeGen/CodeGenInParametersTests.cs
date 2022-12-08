@@ -897,7 +897,6 @@ class Program
   IL_0010:  ret
 }");
 
-
             comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
@@ -957,7 +956,6 @@ class Program
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  ret
 }");
-
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -1985,7 +1983,6 @@ public struct S1
 3");
         }
 
-
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
         public void InParamAsyncSpillStructField()
@@ -2923,7 +2920,6 @@ class Program
   IL_0009:  ret
 }");
 
-
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test()')
   Instance Receiver: 
@@ -2966,7 +2962,6 @@ class Program
   IL_0005:  call       ""void Program.Test(in int)""
   IL_000a:  ret
 }");
-
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(10)')

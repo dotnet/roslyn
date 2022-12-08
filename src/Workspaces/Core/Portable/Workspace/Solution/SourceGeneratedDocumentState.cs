@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis
             var treeSource = CreateLazyFullyParsedTree(
                 textSource,
                 loadTextOptions,
-                documentIdentity.DocumentId.ProjectId,
                 documentIdentity.FilePath,
                 parseOptions,
                 languageServices);

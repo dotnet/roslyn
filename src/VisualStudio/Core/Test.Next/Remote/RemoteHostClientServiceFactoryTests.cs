@@ -5,15 +5,15 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;

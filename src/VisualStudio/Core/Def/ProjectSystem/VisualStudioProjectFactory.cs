@@ -81,8 +81,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(false);
 
-            // Following can be off the UI thread.
-            await TaskScheduler.Default;
+            // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
+            // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
+            // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
+            // rules to apply.
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+            if (!_threadingContext.JoinableTaskContext.IsMainThreadBlocked())
+            {
+                await TaskScheduler.Default;
+            }
 
             // From this point on, we start mutating the solution.  So make us non cancellable.
             cancellationToken = CancellationToken.None;
@@ -144,13 +151,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     w.OnProjectAdded(projectInfo);
                 }
-            }).ConfigureAwait(false);
+            });
 
             // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
             // This is not cancellable as we have already mutated the solution.
-            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, CancellationToken.None).ConfigureAwait(false);
+            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, CancellationToken.None);
 
             return project;
+
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             static Guid GetSolutionSessionId()
             {

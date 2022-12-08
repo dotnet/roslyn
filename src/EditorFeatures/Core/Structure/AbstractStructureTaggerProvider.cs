@@ -224,6 +224,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
         }
 
+        protected override bool TagEquals(IStructureTag tag1, IStructureTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 is StructureTag);
+            Contract.ThrowIfFalse(tag2 is StructureTag);
+            return tag1.Equals(tag2);
+        }
+
         internal abstract object? GetCollapsedHintForm(StructureTag structureTag);
 
         private static bool s_exceptionReported = false;
