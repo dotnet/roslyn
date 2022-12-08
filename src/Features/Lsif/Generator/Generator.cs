@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             GeneratorOptions options,
             CancellationToken cancellationToken)
         {
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken);
             var projectPath = project.FilePath;
             Contract.ThrowIfNull(projectPath);
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             };
 
             var tasks = new List<Task>();
-            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync().ConfigureAwait(false))
+            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync())
             {
                 tasks.Add(Task.Run(async () =>
                 {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // is preserved.
                     var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
                     var documentId = await GenerateForDocumentAsync(
-                        document, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory, cancellationToken).ConfigureAwait(false);
+                        document, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory, cancellationToken);
                     topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
                     documentWriter.FlushToUnderlyingAndEmpty();
 
@@ -161,16 +161,16 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             IdFactory idFactory,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document).ConfigureAwait(false);
+            var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document);
 
             var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
-            await GenerateDocumentSymbolsAsync(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, cancellationToken).ConfigureAwait(false);
-            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken).ConfigureAwait(false);
+            await GenerateDocumentSymbolsAsync(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, cancellationToken);
+            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken);
 
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
             GC.KeepAlive(semanticModel);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             CancellationToken cancellationToken)
         {
             var foldingRanges = await FoldingRangesHandler.GetFoldingRangesAsync(
-                document, options.BlockStructureOptions, cancellationToken).ConfigureAwait(false);
+                document, options.BlockStructureOptions, cancellationToken);
             var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
             lsifJsonWriter.Write(foldingRangeResult);
             lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             var languageServices = document.Project.Services;
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
 
             var syntaxTree = semanticModel.SyntaxTree;
             var sourceText = semanticModel.SyntaxTree.GetText();
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // this is a source generated file.
             if (!PathUtilities.IsAbsolute(uri))
             {
-                var text = await document.GetTextAsync().ConfigureAwait(false);
+                var text = await document.GetTextAsync();
 
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?

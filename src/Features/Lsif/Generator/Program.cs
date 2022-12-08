@@ -89,22 +89,22 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 if (solution != null)
                 {
-                    await LocateAndRegisterMSBuild(logFile).ConfigureAwait(false);
-                    await GenerateFromSolutionAsync(solution, lsifWriter, logFile, cancellationToken).ConfigureAwait(false);
+                    await LocateAndRegisterMSBuild(logFile);
+                    await GenerateFromSolutionAsync(solution, lsifWriter, logFile, cancellationToken);
                 }
                 else if (project != null)
                 {
-                    await LocateAndRegisterMSBuild(logFile).ConfigureAwait(false);
-                    await GenerateFromProjectAsync(project, lsifWriter, logFile, cancellationToken).ConfigureAwait(false);
+                    await LocateAndRegisterMSBuild(logFile);
+                    await GenerateFromProjectAsync(project, lsifWriter, logFile, cancellationToken);
                 }
                 else if (compilerInvocation != null)
                 {
-                    await GenerateFromCompilerInvocationAsync(compilerInvocation, lsifWriter, logFile, cancellationToken).ConfigureAwait(false);
+                    await GenerateFromCompilerInvocationAsync(compilerInvocation, lsifWriter, logFile, cancellationToken);
                 }
                 else
                 {
-                    await LocateAndRegisterMSBuild(logFile).ConfigureAwait(false);
-                    await GenerateFromBinaryLogAsync(binLog!, lsifWriter, logFile, cancellationToken).ConfigureAwait(false);
+                    await LocateAndRegisterMSBuild(logFile);
+                    await GenerateFromBinaryLogAsync(binLog!, lsifWriter, logFile, cancellationToken);
                 }
             }
             catch (Exception e)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 projectFile, lsifWriter, logFile,
                 async w =>
                 {
-                    var project = await w.OpenProjectAsync(projectFile.FullName).ConfigureAwait(false);
+                    var project = await w.OpenProjectAsync(projectFile.FullName);
                     return project.Solution;
                 },
                 cancellationToken);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await GenerateWithMSBuildWorkspaceAsync(
                 solutionFile, lsifWriter, logFile,
                 w => w.OpenSolutionAsync(solutionFile.FullName),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
         // This method can't be loaded until we've registered MSBuild with MSBuildLocator, as otherwise
@@ -190,12 +190,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 if (project.SupportsCompilation && project.FilePath != null)
                 {
                     var compilationCreationStopwatch = Stopwatch.StartNew();
-                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken);
 
                     await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
-                    await lsifGenerator.GenerateForProjectAsync(project, options, cancellationToken).ConfigureAwait(false);
+                    await lsifGenerator.GenerateForProjectAsync(project, options, cancellationToken);
                     generationForProjectStopwatch.Stop();
 
                     totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var generationStopwatch = Stopwatch.StartNew();
             var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter);
 
-            await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken).ConfigureAwait(false);
+            await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken);
             await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
         }
 
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 var project = await CompilerInvocation.CreateFromInvocationInfoAsync(invocationInfo);
 
                 var generationStopwatch = Stopwatch.StartNew();
-                await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken).ConfigureAwait(false);
+                await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken);
                 await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
             }
         }
