@@ -15,8 +15,13 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
         }
 
-        public override string Language => throw ExceptionUtilities.Unreachable();
-        protected override int ConditionalDirectiveKind => throw ExceptionUtilities.Unreachable();
+        public override string Language
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
 
         // https://github.com/dotnet/roslyn/issues/40733
         protected override SyntaxTree SyntaxTreeCore => this.Parent!.SyntaxTree;
