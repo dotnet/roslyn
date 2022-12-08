@@ -13,20 +13,21 @@ string configuration = args[3];
 string[] tfms = args[4].Split(';');
 var metadataList = args[5].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 var fileList = args[6].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var folderList = args[7].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var assemblyList = args[8].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var dependencyList = args[9].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var libraryList = args[10].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var rulesetsDir = args[11];
-var editorconfigsDir = args[12];
-var artifactsBinDir = args[13];
-var analyzerDocumentationFileDir = args[14];
-var analyzerDocumentationFileName = args[15];
-var analyzerSarifFileDir = args[16];
-var analyzerSarifFileName = args[17];
-var analyzerConfigurationFileDir = args[18];
-var analyzerConfigurationFileName = args[19];
-var globalAnalyzerConfigsDir = args[20];
+var readmeFile = args[7];
+var folderList = args[8].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var assemblyList = args[9].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var dependencyList = args[10].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var libraryList = args[11].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var rulesetsDir = args[12];
+var editorconfigsDir = args[13];
+var artifactsBinDir = args[14];
+var analyzerDocumentationFileDir = args[15];
+var analyzerDocumentationFileName = args[16];
+var analyzerSarifFileDir = args[17];
+var analyzerSarifFileName = args[18];
+var analyzerConfigurationFileDir = args[19];
+var analyzerConfigurationFileName = args[20];
+var globalAnalyzerConfigsDir = args[21];
 
 var result = new StringBuilder();
 
@@ -38,6 +39,7 @@ string version = string.Empty;
 string repositoryType = string.Empty;
 string repositoryUrl = string.Empty;
 string repositoryCommit = string.Empty;
+string readmePackageLocation = string.Empty;
 
 foreach (string entry in metadataList)
 {
@@ -50,6 +52,7 @@ foreach (string entry in metadataList)
         case "repositoryUrl": repositoryUrl = value; continue;
         case "repositoryCommit": repositoryCommit = value; continue;
         case "license": result.AppendLine($"    <license type=\"expression\">{value}</license>"); continue;
+        case "readme": readmePackageLocation = value; break;
     }
 
     if (value.Length > 0)
@@ -87,7 +90,7 @@ result.AppendLine(@"  </metadata>");
 result.AppendLine(@"  <files>");
 result.AppendLine(@"    $CommonFileElements$");
 
-if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || folderList.Length > 0)
+if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || folderList.Length > 0 || readmePackageLocation.Length > 0)
 {
     const string csName = "CSharp";
     const string vbName = "VisualBasic";
@@ -133,7 +136,7 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
         foreach (var tfm in tfms)
         {
             string assemblyFolder = Path.Combine(artifactsBinDir, assemblyNameWithoutExtension, configuration, tfm);
-            string assemblyPathForNuspec = Path.Combine(assemblyNameWithoutExtension, configuration, tfm, assembly);
+            string assemblyPathForNuspec = Path.Combine(assemblyFolder, assembly);
 
             foreach (string target in targets)
             {
@@ -148,7 +151,7 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
                         if (File.Exists(resourceAssemblyFullPath))
                         {
                             var directoryName = Path.GetFileName(directory);
-                            string resourceAssemblyPathForNuspec = Path.Combine(assemblyNameWithoutExtension, configuration, tfm, directoryName, resourceAssemblyName);
+                            string resourceAssemblyPathForNuspec = Path.Combine(artifactsBinDir, assemblyNameWithoutExtension, configuration, tfm, directoryName, resourceAssemblyName);
                             string targetForNuspec = Path.Combine(target, directoryName);
                             result.AppendLine(FileElement(resourceAssemblyPathForNuspec, targetForNuspec));
                         }
@@ -162,6 +165,13 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
     {
         var fileWithPath = Path.IsPathRooted(file) ? file : Path.Combine(projectDir, file);
         result.AppendLine(FileElement(fileWithPath, "build"));
+    }
+
+    if (readmePackageLocation.Length > 0)
+    {
+        readmeFile = Path.IsPathRooted(readmeFile) ? readmeFile : Path.GetFullPath(Path.Combine(projectDir, readmeFile));
+        var directoryName = Path.GetDirectoryName(readmePackageLocation) ?? string.Empty;
+        result.AppendLine(FileElement(readmeFile, directoryName));
     }
 
     foreach (string file in libraryList)
