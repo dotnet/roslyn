@@ -552,9 +552,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void SetLocalScopes(BoundPattern pattern)
+        private void SetLocalScopes(BoundObjectPattern pattern)
         {
-            if (pattern is BoundObjectPattern { Variable: LocalSymbol local })
+            if (pattern.Variable is LocalSymbol local)
             {
                 SetLocalScopes(local, _localScopeDepth, _patternInputValEscape);
             }
@@ -677,6 +677,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
                     node.ArgsToParamsOpt,
+                    _localScopeDepth,
+                    _diagnostics);
+            }
+
+            return null;
+        }
+
+        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            base.VisitFunctionPointerInvocation(node);
+
+            if (!node.HasErrors)
+            {
+                var method = node.FunctionPointer.Signature;
+                CheckInvocationArgMixing(
+                    node.Syntax,
+                    method,
+                    receiverOpt: null,
+                    method.Parameters,
+                    node.Arguments,
+                    node.ArgumentRefKindsOpt,
+                    argsToParamsOpt: default,
                     _localScopeDepth,
                     _diagnostics);
             }

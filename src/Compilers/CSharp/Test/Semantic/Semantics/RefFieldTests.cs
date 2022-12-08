@@ -15947,7 +15947,6 @@ class Program
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            // PROTOTYPE: Is ErrorCode.ERR_AmbigCall for // 2 correct?
             comp.VerifyDiagnostics(
                 // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(D1)' and 'C.M2(D2)'
                 //         M2(r => r); // 1
@@ -16232,7 +16231,6 @@ class C
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
-            // PROTOTYPE: Is ErrorCode.ERR_AmbigCall for // 8 correct?
             comp.VerifyDiagnostics(
                 // (10,17): error CS8986: The 'scoped' modifier of parameter 'r1' doesn't match target 'D1'.
                 //         D1 d1 = r1 => r1; // 1
@@ -16292,10 +16290,9 @@ class C
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Previously, M(D1) was not applicable because of the ref safety error.
             comp.VerifyDiagnostics(
                 // (16,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
-                //         M(x => { int i = 0; return F(x, ref i); });
+                //         M(x =>
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(16, 9));
         }
 
@@ -16332,7 +16329,6 @@ class C
                 }
                 """;
             var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            // PROTOTYPE: Previously, M(D1) was not applicable because of the ref safety error.
             comp.VerifyDiagnostics(
                 // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
                 //         M(x =>
@@ -27378,6 +27374,128 @@ Block[B2] - Exit
         }
 
         [Fact]
+        public void PatternIndex_01()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R
+                {
+                    public int Length => 0;
+                    [UnscopedRef] public ref int this[int i] => throw null;
+                }
+                class Program
+                {
+                    static ref int F1(ref R r1)
+                    {
+                        ref int i1 = ref r1[^1];
+                        return ref i1;
+                    }
+                    static ref int F2(ref R r2, Index i)
+                    {
+                        ref int i2 = ref r2[i];
+                        return ref i2;
+                    }
+                    static ref int F3()
+                    {
+                        R r3 = new R();
+                        ref int i3 = ref r3[^3];
+                        return ref i3; // 1
+                    }
+                    static ref int F4(Index i)
+                    {
+                        R r4 = new R();
+                        ref int i4 = ref r4[i];
+                        return ref i4; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (24,20): error CS8157: Cannot return 'i3' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref i3; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "i3").WithArguments("i3").WithLocation(24, 20),
+                // (30,20): error CS8157: Cannot return 'i4' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref i4; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "i4").WithArguments("i4").WithLocation(30, 20));
+        }
+
+        [Fact]
+        public void PatternIndex_02()
+        {
+            string source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                    public int Length => 0;
+                    public R this[int i] => throw null;
+                }
+                class Program
+                {
+                    static R F1()
+                    {
+                        R r1 = new R();
+                        if (r1 is [.., var r]) return r;
+                        return r1;
+                    }
+                    static R F2()
+                    {
+                        int i2 = 2;
+                        R r2 = new R(ref i2);
+                        if (r2 is [.., var r]) return r; // 1
+                        return r2; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (19,39): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (r2 is [.., var r]) return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(19, 39),
+                // (20,16): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("r2").WithLocation(20, 16));
+        }
+
+        [Fact]
+        public void PatternIndex_03()
+        {
+            string source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                    public int Length => 0;
+                    public int this[int i] => 0;
+                    public R Slice(int x, int y) => this;
+                }
+                class Program
+                {
+                    static R F1()
+                    {
+                        R r1 = new R();
+                        if (r1 is [.. [> 0] r]) return r;
+                        return r1;
+                    }
+                    static R F2()
+                    {
+                        int i2 = 2;
+                        R r2 = new R(ref i2);
+                        if (r2 is [.. [> 0] r]) return r; // 1
+                        return r2; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (20,40): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (r2 is [.. [> 0] r]) return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(20, 40),
+                // (21,16): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("r2").WithLocation(21, 16));
+        }
+
+        [Fact]
         public void TopLevelStatementLocal()
         {
             var source = """
@@ -27399,7 +27517,6 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r").WithArguments("r").WithLocation(5, 31));
         }
 
-        // PROTOTYPE: Are the Discard_0* tests redundant?
         [Fact]
         public void Discard_01()
         {

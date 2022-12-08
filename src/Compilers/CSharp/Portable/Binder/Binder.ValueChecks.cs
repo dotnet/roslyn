@@ -3395,9 +3395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Binder.CallingMethodScope;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                case BoundKind.ImplicitIndexerReceiverPlaceholder: // PROTOTYPE: Is this code path hit?
-                case BoundKind.ListPatternReceiverPlaceholder: // PROTOTYPE: Is this code path hit?
-                case BoundKind.SlicePatternReceiverPlaceholder: // PROTOTYPE: Is this code path hit?
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
                     return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
@@ -3802,9 +3799,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
-                case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                case BoundKind.ListPatternReceiverPlaceholder:
-                case BoundKind.SlicePatternReceiverPlaceholder:
                     if (GetPlaceholderScope((BoundValuePlaceholderBase)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
