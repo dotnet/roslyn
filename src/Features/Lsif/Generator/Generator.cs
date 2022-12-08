@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             };
 
             var tasks = new List<Task>();
-            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync())
+            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
             {
                 tasks.Add(Task.Run(async () =>
                 {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     documentIds.Add(documentId);
 
                     GC.KeepAlive(semanticModel);
-                }));
+                }, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
 
             var syntaxTree = semanticModel.SyntaxTree;
-            var sourceText = semanticModel.SyntaxTree.GetText();
+            var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // We will walk the file token-by-token, making a range for each one and then attaching information for it
             var rangeVertices = new List<Id<Graph.Range>>();
 
-            foreach (var syntaxToken in syntaxTree.GetRoot().DescendantTokens(descendIntoTrivia: true))
+            foreach (var syntaxToken in syntaxTree.GetRoot(cancellationToken).DescendantTokens(descendIntoTrivia: true))
             {
                 // We'll only create the Range vertex once it's needed, but any number of bits of code might create it first,
                 // so we'll just make it Lazy.
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                     if (bindableParent != null)
                     {
-                        var symbolInfo = semanticModel.GetSymbolInfo(bindableParent);
+                        var symbolInfo = semanticModel.GetSymbolInfo(bindableParent, cancellationToken);
                         if (symbolInfo.Symbol != null && IncludeSymbolInReferences(symbolInfo.Symbol))
                         {
                             referencedSymbol = symbolInfo.Symbol;
