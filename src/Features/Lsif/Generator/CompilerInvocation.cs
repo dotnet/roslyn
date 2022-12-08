@@ -21,12 +21,18 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
     internal class CompilerInvocation
     {
         public Compilation Compilation { get; }
+
         public LanguageServices LanguageServices { get; }
+
         public string ProjectFilePath { get; }
+
         public GeneratorOptions Options { get; }
 
-        public CompilerInvocation(Compilation compilation, LanguageServices languageServices, string projectFilePath, GeneratorOptions options)
+        public Project Project { get; }
+
+        private CompilerInvocation(Project project, Compilation compilation, LanguageServices languageServices, string projectFilePath, GeneratorOptions options)
         {
+            Project = project;
             Compilation = compilation;
             LanguageServices = languageServices;
             ProjectFilePath = projectFilePath;
@@ -113,10 +119,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 hostObjectType: null);
 
             var solution = workspace.CurrentSolution.AddProject(projectInfo);
-            var compilation = await solution.GetRequiredProject(projectId).GetRequiredCompilationAsync(CancellationToken.None);
+            var project = solution.GetRequiredProject(projectId);
+            var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             var options = GeneratorOptions.Default;
 
-            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, options);
+            return new CompilerInvocation(project, compilation, languageServices, invocationInfo.ProjectFilePath, options);
 
             // Local methods:
             DocumentInfo CreateDocumentInfo(string unmappedPath)
