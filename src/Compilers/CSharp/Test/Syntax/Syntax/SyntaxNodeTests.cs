@@ -375,16 +375,6 @@ class C {
 
             return;
 
-            void TestContainsHelper2(string directive, SyntaxKind directiveKind, CompilationUnitSyntax compilationUnit)
-            {
-                Assert.True(compilationUnit.ContainsDirective(directiveKind));
-                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
-                {
-                    if (kind != directiveKind)
-                        Assert.False(compilationUnit.ContainsDirective(kind));
-                }
-            }
-
             void TestContainsHelper1(string directive, SyntaxKind directiveKind, SourceCodeKind kind = SourceCodeKind.Regular)
             {
                 var options = kind == SourceCodeKind.Regular ? TestOptions.Regular : TestOptions.Script;
@@ -431,6 +421,17 @@ class C {
                         }
                     }
                     """));
+                }
+            }
+
+            void TestContainsHelper2(string directive, SyntaxKind directiveKind, CompilationUnitSyntax compilationUnit)
+            {
+                Assert.True(compilationUnit.ContainsDirectives);
+                Assert.True(compilationUnit.ContainsDirective(directiveKind));
+                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+                {
+                    if (kind != directiveKind)
+                        Assert.False(compilationUnit.ContainsDirective(kind));
                 }
             }
         }
