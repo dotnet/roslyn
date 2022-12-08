@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigSet: ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates));
         }
 
-        public ProjectState UpdateDocument(DocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
+        public ProjectState UpdateDocument(DocumentState newDocument, bool contentChanged)
         {
             var oldDocument = DocumentStates.GetRequiredState(newDocument.Id);
             if (oldDocument == newDocument)
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis
 
             var newDocumentStates = DocumentStates.SetState(newDocument.Id, newDocument);
             GetLatestDependentVersions(
-                newDocumentStates, AdditionalDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
+                newDocumentStates, AdditionalDocumentStates, oldDocument, newDocument, contentChanged,
                 out var dependentDocumentVersion, out var dependentSemanticVersion);
 
             return With(
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
         }
 
-        public ProjectState UpdateAdditionalDocument(AdditionalDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
+        public ProjectState UpdateAdditionalDocument(AdditionalDocumentState newDocument, bool contentChanged)
         {
             var oldDocument = AdditionalDocumentStates.GetRequiredState(newDocument.Id);
             if (oldDocument == newDocument)
@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis
 
             var newDocumentStates = AdditionalDocumentStates.SetState(newDocument.Id, newDocument);
             GetLatestDependentVersions(
-                DocumentStates, newDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
+                DocumentStates, newDocumentStates, oldDocument, newDocument, contentChanged,
                 out var dependentDocumentVersion, out var dependentSemanticVersion);
 
             return this.With(
@@ -938,13 +938,13 @@ namespace Microsoft.CodeAnalysis
             TextDocumentStates<DocumentState> newDocumentStates,
             TextDocumentStates<AdditionalDocumentState> newAdditionalDocumentStates,
             TextDocumentState oldDocument, TextDocumentState newDocument,
-            bool recalculateDependentVersions, bool textChanged,
+            bool contentChanged,
             out AsyncLazy<VersionStamp> dependentDocumentVersion, out AsyncLazy<VersionStamp> dependentSemanticVersion)
         {
             var recalculateDocumentVersion = false;
             var recalculateSemanticVersion = false;
 
-            if (recalculateDependentVersions)
+            if (contentChanged)
             {
                 if (oldDocument.TryGetTextVersion(out var oldVersion))
                 {
@@ -962,13 +962,13 @@ namespace Microsoft.CodeAnalysis
 
             dependentDocumentVersion = recalculateDocumentVersion
                 ? AsyncLazy.Create(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c))
-                : textChanged
+                : contentChanged
                     ? AsyncLazy.Create(newDocument.GetTextVersionAsync)
                     : _lazyLatestDocumentVersion;
 
             dependentSemanticVersion = recalculateSemanticVersion
                 ? AsyncLazy.Create(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c))
-                : textChanged
+                : contentChanged
                     ? CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates)
                     : _lazyLatestDocumentTopLevelChangeVersion;
         }

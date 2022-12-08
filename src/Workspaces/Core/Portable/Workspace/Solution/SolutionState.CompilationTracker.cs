@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
                         var oldTree = oldState.GetSyntaxTree(cancellationToken);
 
                         compilationPair = compilationPair.ReplaceSyntaxTree(oldTree, tree);
-                        inProgressProject = inProgressProject.UpdateDocument(docState, textChanged: false, recalculateDependentVersions: false);
+                        inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
                     {
@@ -418,49 +418,6 @@ namespace Microsoft.CodeAnalysis
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.Compilation;
-            }
-
-            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(CancellationToken cancellationToken)
-            {
-                try
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                    {
-                        var state = ReadState();
-
-                        // we are already in the final stage. just return it.
-                        var compilation = state.FinalCompilationWithGeneratedDocuments;
-                        if (compilation != null)
-                        {
-                            return compilation;
-                        }
-
-                        compilation = state.CompilationWithoutGeneratedDocuments;
-                        if (compilation == null)
-                        {
-                            // We've got nothing.  Build it from scratch :(
-                            return await BuildDeclarationCompilationFromScratchAsync(
-                                state.GeneratorInfo, cancellationToken).ConfigureAwait(false);
-                        }
-
-                        if (state is AllSyntaxTreesParsedState or FinalState)
-                        {
-                            // we have full declaration, just use it.
-                            return compilation;
-                        }
-
-                        (compilation, _, _) = await BuildDeclarationCompilationFromInProgressAsync((InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
-
-                        // We must have an in progress compilation. Build off of that.
-                        return compilation;
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
             }
 
             private async Task<CompilationInfo> GetOrBuildCompilationInfoAsync(
