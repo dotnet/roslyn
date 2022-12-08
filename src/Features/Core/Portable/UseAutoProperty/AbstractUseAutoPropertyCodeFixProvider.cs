@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);
 
-            solution = resolution.NewSolution;
+            solution = resolution.NewSolutionWithoutRenamedDocument;
 
             // Now find the field and property again post rename.
             fieldDocument = solution.GetRequiredDocument(fieldDocument.Id);

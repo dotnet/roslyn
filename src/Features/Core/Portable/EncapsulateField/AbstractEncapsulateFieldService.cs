@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);
 
-            return resolution.NewSolution;
+            return resolution.NewSolutionWithoutRenamedDocument;
         }
 
         private static bool IntersectsWithAny(DocumentId documentId, TextSpan span, ISet<(DocumentId documentId, TextSpan span)> constructorLocations)

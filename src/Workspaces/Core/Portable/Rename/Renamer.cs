@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (resolution.IsSuccessful)
             {
-                return resolution.NewSolution;
+                return resolution.NewSolutionWithRenamedDocument;
             }
             else
             {

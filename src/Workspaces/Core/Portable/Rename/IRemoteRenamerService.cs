@@ -320,12 +320,12 @@ namespace Microsoft.CodeAnalysis.Rename
             if (!IsSuccessful)
                 return new SerializableConflictResolution(ErrorMessage, resolution: null);
 
-            var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(OldSolution, _newSolutionWithoutRenamedDocument, cancellationToken).ConfigureAwait(false);
+            var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(OldSolution, NewSolutionWithoutRenamedDocument, cancellationToken).ConfigureAwait(false);
             return new SerializableConflictResolution(
                 errorMessage: null,
                 new SuccessfulConflictResolution(
                     ReplacementTextValid,
-                    _renamedDocument.Value,
+                    RenamedDocument.Value,
                     DocumentIds,
                     RelatedLocations,
                     documentTextChanges,

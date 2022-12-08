@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var renamedSolution = renameReplacementInfo.NewSolution;
+            var renamedSolution = renameReplacementInfo.NewSolutionWithRenamedDocument;
             var solutionChanges = renamedSolution.GetChanges(oldSolution);
 
             // Linked files can correspond to multiple roslyn documents each with changes.  Merge the changes in the linked files so that all linked documents have the same text.

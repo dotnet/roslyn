@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
                 Dim newLocation = ConflictResolution.GetResolutionTextSpan(location.SourceSpan, documentId)
 
-                Dim newTree = ConflictResolution.NewSolution.GetDocument(documentId).GetSyntaxTreeAsync().Result
+                Dim newTree = ConflictResolution.NewSolutionWithRenamedDocument.GetDocument(documentId).GetSyntaxTreeAsync().Result
                 Dim newToken = newTree.GetRoot.FindToken(newLocation.Start, findInsideTrivia:=True)
                 Dim newText As String
                 If newToken.Span = newLocation Then

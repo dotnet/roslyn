@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public IEnumerable<DocumentId> DocumentIds => _conflicts.DocumentIds;
 
-            public Solution NewSolution => _conflicts.NewSolution!;
+            public Solution NewSolution => _conflicts.NewSolutionWithRenamedDocument!;
 
             public bool ReplacementTextValid => _conflicts.ReplacementTextValid;
 
