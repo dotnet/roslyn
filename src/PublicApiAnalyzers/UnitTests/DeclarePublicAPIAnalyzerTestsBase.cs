@@ -48,28 +48,28 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Helpers
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(path, line, column)
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 .WithArguments(arguments);
         }
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, params object[] arguments)
         {
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(line, column)
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 .WithArguments(arguments);
         }
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, params object[] arguments)
         {
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(line, column)
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 .WithArguments(arguments);
         }
 
@@ -820,13 +820,13 @@ C.Property.get -> int
 
             var unshippedText = @"";
 
-#pragma warning disable RS0030 // Do not used banned APIs
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             var expected = new DiagnosticResult(DuplicateSymbolInApiFiles)
                 .WithLocation(ShippedFileName, 6, 1)
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 .WithLocation(ShippedFileName, 4, 1)
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 .WithArguments("C.Property.get -> int");
             await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
@@ -856,13 +856,13 @@ C.Property.set -> void
             var unshippedText = @"
 C.Property.get -> int";
 
-#pragma warning disable RS0030 // Do not used banned APIs
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             var expected = new DiagnosticResult(DuplicateSymbolInApiFiles)
                 .WithLocation(UnshippedFileName, 2, 1)
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 .WithLocation(ShippedFileName, 5, 1)
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 .WithArguments("C.Property.get -> int");
             await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }

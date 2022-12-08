@@ -133,7 +133,7 @@
     <value>The symbol '{0}' is banned in this project{1}</value>
   </data>
   <data name="SymbolIsBannedTitle" xml:space="preserve">
-    <value>Do not used banned APIs</value>
+    <value>Do not use banned APIs</value>
   </data>
   <data name="RestrictedInternalsVisibleToDescription" xml:space="preserve">
     <value>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</value>
