@@ -746,8 +746,9 @@ namespace Analyzer.Utilities.Extensions
             var thrownObject = operation.Exception;
 
             // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
+            // We also want to walk down explicit conversions such as "throw (Exception)new ArgumentNullException())".
             if (thrownObject is IConversionOperation conversion &&
-                conversion.IsImplicit)
+                conversion.Conversion.Exists)
             {
                 thrownObject = conversion.Operand;
             }
