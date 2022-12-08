@@ -701,11 +701,6 @@ namespace Microsoft.CodeAnalysis
             return id;
         }
 
-        public DocumentState WithTextAndTree(ITextAndVersionSource textSource, ValueSource<TreeAndVersion>? treeSource)
-        {
-            return new DocumentState(this.LanguageServices, this.solutionServices, this.Services, this.Attributes, this._options, textSource, this.LoadTextOptions, treeSource);
-        }
-
         private static void CheckTree(
             SyntaxTree newTree,
             SourceText newText,
