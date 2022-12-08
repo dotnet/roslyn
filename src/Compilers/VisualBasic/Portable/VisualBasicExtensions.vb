@@ -63,6 +63,11 @@ Namespace Microsoft.CodeAnalysis
             Return nodeOrToken.RawKind = kind
         End Function
 
+        <Extension>
+        Public Function ContainsDirective(node As SyntaxNode, kind As SyntaxKind) As Boolean
+            Return node.ContainsDirective(CType(kind, Integer))
+        End Function
+
         ''' <summary>
         ''' Returns the index of the first node of a specified kind in the node list.
         ''' </summary>

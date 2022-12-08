@@ -448,14 +448,11 @@ namespace Microsoft.CodeAnalysis
         public bool ContainsDirectives => this.Green.ContainsDirectives;
 
         /// <summary>
-        /// Returns true if this node contains any conditional directives (<c>#if</c> in C# and <c>#If</c> in Visual
-        /// Basic) within it.  This is similar to <see cref="ContainsDiagnostics"/> except that where that returns true
-        /// if there are any preprocessor directives whatsoever, this is only true for for <c>if</c> directives.
+        /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with the same
+        /// <see cref="RawKind"/> as <paramref name="rawKind"/>.
         /// </summary>
-        public bool ContainsConditionalDirectives()
+        public bool ContainsDirective(int rawKind)
         {
-            var conditionalDirectiveKind = this.ConditionalDirectiveKind;
-
             var stack = PooledObjects.ArrayBuilder<GreenNode?>.GetInstance();
             stack.Push(this.Green);
 
@@ -484,11 +481,11 @@ namespace Microsoft.CodeAnalysis
                             {
                                 for (int i = 0, n = leadingTriviaNode.SlotCount; i < n; i++)
                                 {
-                                    if (leadingTriviaNode.GetSlot(i)?.RawKind == conditionalDirectiveKind)
+                                    if (leadingTriviaNode.GetSlot(i)?.RawKind == rawKind)
                                         return true;
                                 }
                             }
-                            else if (leadingTriviaNode.RawKind == conditionalDirectiveKind)
+                            else if (leadingTriviaNode.RawKind == rawKind)
                             {
                                 return true;
                             }
