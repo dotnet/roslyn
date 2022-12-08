@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
                         var hover = await HoverHandler.GetHoverAsync(
-                            semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, LspClientCapabilities, CancellationToken.None);
+                            document, syntaxToken.SpanStart, options.SymbolDescriptionOptions, LspClientCapabilities, CancellationToken.None);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);
