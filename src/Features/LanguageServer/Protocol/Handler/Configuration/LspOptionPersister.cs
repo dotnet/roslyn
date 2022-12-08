@@ -12,22 +12,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
-    [Export(typeof(IOptionPersister)), Shared]
     internal class LspOptionPersister : IOptionPersister
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LspOptionPersister() { }
 
         public bool TryFetch(OptionKey optionKey, out object? value)
         {
-            // Whenever a service try to read a option, it should hit the cache.
-            throw ExceptionUtilities.Unreachable();
+            value = null;
+            return false;
         }
 
         public bool TryPersist(OptionKey optionKey, object? value)
         {
-            throw new NotImplementedException("LSP doesn't support write option from server to client");
+            value = null;
+            return false;
         }
     }
 }

@@ -19,13 +19,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     [Method(LSP.Methods.WorkspaceDidChangeConfigurationName)]
     internal class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>
     {
-        private readonly IGlobalOptionService _globalOptionService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DidChangeConfigurationNotificationHandler(IGlobalOptionService globalOptionService)
+        public DidChangeConfigurationNotificationHandler()
         {
-            _globalOptionService = globalOptionService;
         }
 
         public bool MutatesSolutionState => false;
