@@ -64,12 +64,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string Language { get; }
 
-        /// <summary>
-        /// The raw <c>SyntaxKind</c> for this language corresponding to a conditional directive (<c>#if</c> in C# and
-        /// <c>#If</c> in Visual Basic).
-        /// </summary>
-        protected abstract int ConditionalDirectiveKind { get; }
-
         internal GreenNode Green { get; }
 
         internal int Position { get; }
