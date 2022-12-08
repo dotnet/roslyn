@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
         public new ParseOptions ParseOptions => base.ParseOptions!;
 
-        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
+        protected sealed override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
             => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
 
         public SourceGeneratedDocumentState WithUpdatedGeneratedContent(SourceText sourceText, ParseOptions parseOptions)

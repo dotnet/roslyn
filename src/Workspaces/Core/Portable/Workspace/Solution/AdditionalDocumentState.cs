@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         public new AdditionalDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
             => (AdditionalDocumentState)base.UpdateText(newTextAndVersion, mode);
 
-        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
+        protected sealed override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         {
             return new AdditionalDocumentState(
                 this.solutionServices,

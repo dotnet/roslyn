@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         public new AnalyzerConfigDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
             => (AnalyzerConfigDocumentState)base.UpdateText(newTextAndVersion, mode);
 
-        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
+        protected sealed override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         {
             return new AnalyzerConfigDocumentState(
                 this.solutionServices,

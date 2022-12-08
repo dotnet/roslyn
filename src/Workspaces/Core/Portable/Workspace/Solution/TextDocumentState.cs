@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,13 +57,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         public TextDocumentState(DocumentInfo info, LoadTextOptions loadTextOptions, HostWorkspaceServices services)
-            : this(services,
-                   info.DocumentServiceProvider,
-                   info.Attributes,
-                   textAndVersionSource: info.TextLoader != null
-                    ? CreateRecoverableText(info.TextLoader, services.SolutionServices)
-                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
-                   loadTextOptions)
+            : this(
+                services,
+                info.DocumentServiceProvider,
+                info.Attributes,
+                textAndVersionSource: info.TextLoader != null
+                    ? GetOrCreateRecoverableText(info.TextLoader, services.SolutionServices)
+                    : GetOrCreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
+                loadTextOptions)
         {
         }
 
@@ -71,15 +73,32 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<string> Folders => Attributes.Folders;
         public string Name => Attributes.Name;
 
-        private static ITextAndVersionSource CreateStrongText(TextAndVersion text)
-            => new ConstantTextAndVersionSource(text);
+        private static readonly ConditionalWeakTable<SourceText, ITextAndVersionSource> s_textToStrongTextAndVersionSource = new();
+        private static readonly ConditionalWeakTable<TextLoader, ITextAndVersionSource> s_textLoaderToStrongTextAndVersionSource = new();
+        private static readonly ConditionalWeakTable<SourceText, ITextAndVersionSource> s_textToRecoverableTextAndVersionSource = new();
+        private static readonly ConditionalWeakTable<TextLoader, ITextAndVersionSource> s_textLoaderToRecoverableTextAndVersionSource = new();
 
-        private static ITextAndVersionSource CreateStrongText(TextLoader loader)
-            => new LoadableTextAndVersionSource(loader, cacheResult: true);
-
-        private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, LoadTextOptions loadTextOptions, SolutionServices services)
+        private static ITextAndVersionSource GetOrCreateStrongText(TextAndVersion textAndVersion)
         {
-            var result = new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
+            // Note: it is intentional that we discard the version of textAndVersion when looking to see if we can find
+            // an existing cached ITextAndVersionSource.  The version effectively corresponds to what version the *text*
+            // is at, so if we have two cases pointing at the exact same SourceText, then it is appropriate that the
+            // versions stay the same.
+            return s_textToStrongTextAndVersionSource.GetValue(textAndVersion.Text, _ => new ConstantTextAndVersionSource(textAndVersion));
+        }
+
+        private static ITextAndVersionSource GetOrCreateStrongText(TextLoader loader)
+            => s_textLoaderToStrongTextAndVersionSource.GetValue(loader, static loader => new LoadableTextAndVersionSource(loader, cacheResult: true));
+
+        private static ITextAndVersionSource GetOrCreateRecoverableText(TextAndVersion textAndVersion, LoadTextOptions loadTextOptions, SolutionServices services)
+        {
+            // Note: it is intentional that we discard the version of textAndVersion when looking to see if we can find
+            // an existing cached ITextAndVersionSource.  The version effectively corresponds to what version the *text*
+            // is at, so if we have two cases pointing at the exact same SourceText, then it is appropriate that the
+            // versions stay the same.
+            var result = s_textToRecoverableTextAndVersionSource.GetValue(
+                textAndVersion.Text,
+                _ => new RecoverableTextAndVersion(new ConstantTextAndVersionSource(textAndVersion), services));
 
             // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
             // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
@@ -92,8 +111,10 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private static ITextAndVersionSource CreateRecoverableText(TextLoader loader, SolutionServices services)
-            => new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services);
+        private static ITextAndVersionSource GetOrCreateRecoverableText(TextLoader loader, SolutionServices services)
+            => s_textLoaderToRecoverableTextAndVersionSource.GetValue(
+                loader,
+                loader => new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services));
 
         public ITemporaryTextStorageInternal? Storage
             => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
@@ -176,8 +197,8 @@ namespace Microsoft.CodeAnalysis
         public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
         {
             var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(newTextAndVersion)
-                : CreateRecoverableText(newTextAndVersion, LoadTextOptions, solutionServices.SolutionServices);
+                ? GetOrCreateStrongText(newTextAndVersion)
+                : GetOrCreateRecoverableText(newTextAndVersion, LoadTextOptions, solutionServices.SolutionServices);
 
             return UpdateText(newTextSource, mode, incremental: true);
         }
@@ -194,8 +215,8 @@ namespace Microsoft.CodeAnalysis
         {
             // don't blow up on non-text documents.
             var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(loader)
-                : CreateRecoverableText(loader, solutionServices.SolutionServices);
+                ? GetOrCreateStrongText(loader)
+                : GetOrCreateRecoverableText(loader, solutionServices.SolutionServices);
 
             return UpdateText(newTextSource, mode, incremental: false);
         }
