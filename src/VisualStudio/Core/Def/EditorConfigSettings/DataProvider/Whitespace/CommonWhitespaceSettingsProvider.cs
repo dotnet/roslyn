@@ -4,9 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Formatting;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whites
             Update();
         }
 
-        protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project>  projectsInScope)
+        protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
         {
             var defaultOptions = GetDefaultOptions(options, SettingsUpdater);
             AddRange(defaultOptions);
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whites
             yield return Setting.Create(FormattingOptions2.IndentationSize, EditorFeaturesResources.Indentation_Size, options, updater);
             yield return Setting.Create(FormattingOptions2.NewLine, EditorFeaturesResources.New_Line, options, updater);
             yield return Setting.Create(FormattingOptions2.InsertFinalNewLine, EditorFeaturesResources.Insert_Final_Newline, options, updater);
-            yield return Setting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, ServicesVSResources.Operator_placement_when_wrapping,  options, updater);
+            yield return Setting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, ServicesVSResources.Operator_placement_when_wrapping, options, updater);
         }
     }
 }
