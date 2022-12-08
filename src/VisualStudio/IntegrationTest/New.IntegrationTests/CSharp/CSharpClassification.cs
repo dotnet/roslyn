@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -134,13 +135,13 @@ namespace ClassLibrary1
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Debug", HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SolutionCfg, argument: "Debug", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Goo", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "method name", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Bar", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "excluded code", HangMitigatingCancellationToken);
             await TestServices.Editor.MoveCaretAsync(0, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Release", HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SolutionCfg, argument: "Release", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Goo", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "excluded code", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Bar", charsOffset: 0, HangMitigatingCancellationToken);

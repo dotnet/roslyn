@@ -72,5 +72,12 @@ namespace Microsoft.CodeAnalysis
         /// Display `MyType@File.cs` instead of `MyType`.
         /// </summary>
         IncludeContainingFileForFileTypes = 1 << 9,
+
+        /// <summary>
+        /// Equivalent to <see cref="SymbolDisplayParameterOptions.IncludeName"/>
+        /// but only if the parameter is displayed on its own
+        /// (i.e., not as part of a method, delegate, or indexer).
+        /// </summary>
+        IncludeParameterNameIfStandalone = 1 << 10,
     }
 }

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 var backgroundAnalysisScope = GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language);
-                var compilerDiagnosticsScope = GlobalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, document.Project.Language);
+                var compilerDiagnosticsScope = GlobalOptions.GetBackgroundCompilerAnalysisScope(document.Project.Language);
 
                 // TODO: Switch to a more reliable service to determine visible documents.
                 //       DocumentTrackingService is known be unreliable at times.

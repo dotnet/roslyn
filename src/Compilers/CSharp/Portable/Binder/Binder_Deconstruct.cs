@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
-                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type.SkipScoped(out _).SkipRef(out _), ref isConst, out isVar, out alias);
+                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type.SkipScoped(out _).SkipRef(), ref isConst, out isVar, out alias);
                         Debug.Assert(isVar == !declType.HasType);
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
                         {

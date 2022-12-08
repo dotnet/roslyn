@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestTypeFromMultipleNamespaces1(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestTypeFromMultipleNamespaces2(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 index: 1, testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenericWithNoArgs(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -93,7 +93,7 @@ index: 1, testHost: testHost);
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenericWithCorrectArgs(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -113,7 +113,7 @@ index: 1, testHost: testHost);
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestSmartTagDisplayText(TestHost testHost)
         {
             await TestSmartTagTextAsync(
@@ -127,7 +127,7 @@ index: 1, testHost: testHost);
 "System.Collections.Generic.List", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenericWithWrongArgs(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -140,7 +140,7 @@ index: 1, testHost: testHost);
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestNotOnVar1(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -159,7 +159,7 @@ class C
 ", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestNotOnVar2(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -178,7 +178,7 @@ class C
 ", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenericInLocalDeclaration(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -198,7 +198,7 @@ class C
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenericItemType(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -216,7 +216,7 @@ class Class
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenerateWithExistingUsings(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -240,7 +240,7 @@ class Class
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenerateInNamespace(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -266,7 +266,7 @@ class Class
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenerateInNamespaceWithUsings(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -296,7 +296,7 @@ class Class
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestExistingUsing(TestHost testHost)
         {
             await TestActionCountAsync(
@@ -332,7 +332,7 @@ class Class
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestMissingIfUniquelyBound(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -347,7 +347,7 @@ class Class
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestMissingIfUniquelyBoundGeneric(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -362,7 +362,7 @@ class Class
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestOnEnum(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -402,7 +402,7 @@ namespace A
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestOnClassInheritance(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -428,7 +428,7 @@ namespace A
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestOnImplementedInterface(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -454,7 +454,7 @@ namespace A
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestAllInBaseList(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -530,7 +530,7 @@ namespace B
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestAttributeUnexpanded(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -544,7 +544,7 @@ class Class
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestAttributeExpanded(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -558,7 +558,7 @@ class Class
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
         public async Task TestExtensionMethods(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -574,7 +574,7 @@ class Goo
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
         public async Task TestAfterNew(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -596,7 +596,7 @@ class Goo
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestArgumentsInMethodCall(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -616,7 +616,7 @@ class Goo
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestCallSiteArgs(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -634,7 +634,7 @@ class Goo
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestUsePartialClass(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -668,7 +668,7 @@ namespace B
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestGenericClassInNestedNamespace(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -708,7 +708,7 @@ namespace C
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestBeforeStaticMethod(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -726,7 +726,7 @@ namespace C
     }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
         public async Task TestBeforeNamespace(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -766,7 +766,7 @@ namespace B
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
         public async Task TestSimpleNameWithLeadingTrivia(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -774,7 +774,7 @@ namespace B
 @"class Class { void Test() { /*goo*/System.Int32 i; } }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
         public async Task TestGenericNameWithLeadingTrivia(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -782,7 +782,7 @@ namespace B
 @"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
         public async Task TestFullyQualifyTypeName(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -810,7 +810,7 @@ class Test
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
         public async Task TestFullyQualifyUnboundIdentifier3(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -838,7 +838,7 @@ class Test
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
         public async Task TestFullyQualifyTypeName_NotForGenericType(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -855,7 +855,7 @@ class Test
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
         public async Task TestFullyQualifyThroughAlias(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -873,7 +873,7 @@ class C
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -907,7 +907,7 @@ class Test
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -942,7 +942,7 @@ class Test
 index: 1, testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
         public async Task BugFix5950(TestHost testHost)
         {
             await TestAsync(
@@ -951,7 +951,7 @@ index: 1, testHost: testHost);
 parseOptions: GetScriptOptions(), testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
         public async Task TestAfterAlias(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -968,7 +968,7 @@ class Program
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
         public async Task TestMissingOnIncompleteStatement(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -983,7 +983,7 @@ class C
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
         public async Task TestAssemblyAttribute(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -991,7 +991,7 @@ class C
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
         public async Task TestMissingOnAliasName(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1013,7 +1013,7 @@ namespace Goo
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TestMissingOnAttributeOverloadResolutionError(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1026,7 +1026,7 @@ class M
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
         public async Task TestNotOnAbstractConstructor(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1041,13 +1041,13 @@ class Program
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         public async Task TestAttributeCount(TestHost testHost)
         {
             await TestActionCountAsync(@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", 2, new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         public async Task TestAttribute(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1055,7 +1055,7 @@ class Program
 @"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
         public async Task TestGeneratePropertyFromAttribute(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1072,7 +1072,7 @@ class D
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
         public async Task ShouldTriggerOnCS0308(TestHost testHost)
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
@@ -1097,7 +1097,7 @@ class Test
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
         public async Task AmbiguousTypeFix(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1151,7 +1151,7 @@ namespace n2
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
         public async Task NonPublicNamespaces(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1243,7 +1243,7 @@ public class Program
 }", index: 1, testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
         public async Task AmbiguousFixOrdering(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1297,7 +1297,7 @@ namespace n2
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TupleTest(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1317,7 +1317,7 @@ namespace n2
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData]
         public async Task TupleWithOneName(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1337,7 +1337,7 @@ namespace n2
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
         public async Task TestContextualKeyword1(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1358,7 +1358,7 @@ class C
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
         public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1370,7 +1370,7 @@ class Program : [|IReadOnlyCollection|]
 }", new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
         public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression(TestHost testHost)
         {
             var code = @"
@@ -1397,7 +1397,7 @@ class C
 }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
         public async Task TestInUsingContext_Type(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1419,7 +1419,7 @@ class Class
     }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
         public async Task TestInUsingContext_Namespace(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1441,7 +1441,7 @@ class Class
     }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
         public async Task TestInUsingContext_UsingStatic(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1463,7 +1463,7 @@ class Class
     }", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
         public async Task TestInUsingContext_UsingAlias(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1471,7 +1471,7 @@ class Class
 @"using M = System.Math", testHost: testHost);
         }
 
-        [Theory, CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -1512,7 +1512,7 @@ class Program
             await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -1543,7 +1543,7 @@ class Program
             await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -1584,7 +1584,7 @@ class Program
             await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
         }
 
-        [Theory, CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [ConditionalTheory(typeof(IsNot32BitDebug), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
         {
             var initialWorkspace = @"
