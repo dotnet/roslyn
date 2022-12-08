@@ -23,5 +23,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             return ExecuteCommandAsync(commandGuid, Convert.ToUInt32(command), cancellationToken);
         }
+
+        public Task ExecuteCommandAsync<TEnum>(TEnum command, string argument, CancellationToken cancellationToken)
+            where TEnum : struct, Enum
+        {
+            var commandGuid = command switch
+            {
+                EditorConstants.EditorCommandID => EditorConstants.EditorCommandSet,
+                _ => typeof(TEnum).GUID,
+            };
+
+            return ExecuteCommandAsync(commandGuid, Convert.ToUInt32(command), argument, cancellationToken);
+        }
     }
 }
