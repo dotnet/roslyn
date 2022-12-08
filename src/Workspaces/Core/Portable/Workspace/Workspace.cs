@@ -871,25 +871,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            //OnAnyDocumentTextChanged(
-            //    documentId,
-            //    newText,
-            //    mode,
-            //    CheckDocumentIsInSolution,
-            //    (solution, docId) => solution.GetRelatedDocumentIds(docId),
-            //    (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
-            //    WorkspaceChangeKind.DocumentChanged,
-            //    isCodeDocument: true);
-
-
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.DocumentChanged, documentId: documentId,
-                onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)));
+            OnAnyDocumentTextChanged(
+                documentId,
+                loader,
+                CheckDocumentIsInSolution,
+                (solution, docId) => solution.GetRelatedDocumentIds(docId),
+                (solution, docId, loader) => solution.WithDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
+                WorkspaceChangeKind.DocumentChanged,
+                isCodeDocument: true);
         }
 
         /// <summary>
@@ -897,13 +886,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.AdditionalDocumentChanged, documentId: documentId);
+            OnAnyDocumentTextChanged(
+                documentId,
+                loader,
+                CheckAdditionalDocumentIsInSolution,
+                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
+                (solution, docId, loader) => solution.WithAdditionalDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
+                WorkspaceChangeKind.AdditionalDocumentChanged,
+                isCodeDocument: false);
         }
 
         /// <summary>
@@ -911,13 +901,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckAnalyzerConfigDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.AnalyzerConfigDocumentChanged, documentId: documentId);
+            OnAnyDocumentTextChanged(
+                documentId,
+                loader,
+                CheckAnalyzerConfigDocumentIsInSolution,
+                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
+                (solution, docId, loader) => solution.WithAnalyzerConfigDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
+                WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
+                isCodeDocument: false);
         }
 
         /// <summary>
