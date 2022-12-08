@@ -335,8 +335,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
         /// If this document has related documents (see <see cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in its
-        /// containing <see cref="Solution"/>, then all related documents will be updated with the new <paramref
-        /// name="root"/>.
+        /// containing <see cref="Solution"/>, they will not be updated with the new <paramref name="root"/>.
         /// </summary>
         public Document WithSyntaxRoot(SyntaxNode root)
             => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;

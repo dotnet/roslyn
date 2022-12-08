@@ -1512,8 +1512,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new solution instance with the document specified updated to have a syntax tree
-        /// rooted by the specified syntax node.
+        /// Creates a new solution instance with the document specified updated to have a syntax tree rooted by the
+        /// specified syntax node.  If this <paramref name="documentId"/> has related documents (see <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> in this containing <see cref="Solution"/>, they will not
+        /// be updated with the new <paramref name="textAndVersion"/>.
         /// </summary>
         public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
         {
@@ -1529,7 +1531,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentSyntaxRoot(this.GetRelatedDocumentIds(documentId), root, mode);
+            // Only update this document, not any linked versions.
+            var newState = _state.WithDocumentSyntaxRoot(ImmutableArray.Create(documentId), root, mode);
             if (newState == _state)
             {
                 return this;
