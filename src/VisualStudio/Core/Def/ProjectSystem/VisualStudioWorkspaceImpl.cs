@@ -1594,7 +1594,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             using (_gate.DisposableWait())
             {
-                SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
+                SetCurrentSolutionAndUnifyLinkedDocumentContents(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
             }
         }
 
@@ -1633,7 +1633,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!solutionChanges.HasChange)
                 return;
 
-            this.SetCurrentSolution(
+            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
                 _ => solutionChanges.Solution,
                 solutionChanges.WorkspaceChangeKind,
                 solutionChanges.WorkspaceChangeProjectId,
@@ -1730,7 +1730,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
             ClearOpenDocuments();
 
-            SetCurrentSolution(
+            SetCurrentSolutionAndUnifyLinkedDocumentContents(
                 solution => CreateSolution(
                     SolutionInfo.Create(
                         SolutionId.CreateNewId(),

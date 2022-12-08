@@ -171,7 +171,7 @@ namespace N
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("Document1.cs", sourceMarkup, filePath: "Document1.cs").Project;
 
-            Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var completionService = document.GetLanguageService<CompletionService>();

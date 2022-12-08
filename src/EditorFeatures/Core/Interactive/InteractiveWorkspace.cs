@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             ClearOpenDocuments();
 
             var emptySolution = CreateSolution(SolutionId.CreateNewId("InteractiveSolution"));
-            SetCurrentSolution(solution => emptySolution.WithAnalyzerReferences(solution.AnalyzerReferences), WorkspaceChangeKind.SolutionCleared);
+            SetCurrentSolutionAndUnifyLinkedDocumentContents(solution => emptySolution.WithAnalyzerReferences(solution.AnalyzerReferences), WorkspaceChangeKind.SolutionCleared);
         }
     }
 }

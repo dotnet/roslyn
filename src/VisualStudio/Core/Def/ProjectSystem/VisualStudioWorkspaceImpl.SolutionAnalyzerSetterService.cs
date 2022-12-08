@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 => _workspace = workspace;
 
             public void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references)
-                => _workspace.ApplyChangeToWorkspace(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
+                => _workspace.ApplyChangeToWorkspace(w => w.SetCurrentSolutionAndUnifyLinkedDocumentContents(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
         }
     }
 }

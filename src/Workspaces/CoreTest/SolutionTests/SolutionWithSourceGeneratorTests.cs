@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
 
-            Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
             var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// Open Text").Container;
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
 
-            Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
             var generatedDocument = Assert.Single(await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// StaticContent", Encoding.UTF8).Container;
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", SourceText.From(""));
 
-            Assert.True(workspace.SetCurrentSolution(_ => originalAdditionalFile.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(_ => originalAdditionalFile.Project.Solution, WorkspaceChangeKind.SolutionChanged));
 
             var generatedDocument = Assert.Single(await originalAdditionalFile.Project.GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// Open Text").Container;
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = AddEmptyProject(solution).AddProjectReference(
                 new ProjectReference(projectIdWithGenerator)).Solution;
 
-            Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionChanged));
+            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(_ => solution, WorkspaceChangeKind.SolutionChanged));
 
             var generatedDocument = Assert.Single(await workspace.CurrentSolution.GetRequiredProject(projectIdWithGenerator).GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// Open Text").Container;
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
 
-            Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
             var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// Open Text").Container;
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
 
-            Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
             var documentToFreeze = workspace.CurrentSolution.Projects.Single().Documents.Single();
 

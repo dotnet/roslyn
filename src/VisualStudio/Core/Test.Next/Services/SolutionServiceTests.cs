@@ -192,7 +192,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal((version % 2) != 0, project.State.RunAnalyzers);
             }
 
-            Assert.True(workspace.SetCurrentSolution(s => SetProjectProperties(s, version: 0), WorkspaceChangeKind.SolutionChanged));
+            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(s => SetProjectProperties(s, version: 0), WorkspaceChangeKind.SolutionChanged));
 
             await VerifySolutionUpdate(workspace,
                 newSolutionGetter: s => SetProjectProperties(s, version: 1),
