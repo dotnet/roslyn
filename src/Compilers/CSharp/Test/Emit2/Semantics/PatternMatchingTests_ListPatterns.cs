@@ -3090,6 +3090,43 @@ class X
             );
     }
 
+    [Fact, WorkItem(65876, "https://github.com/dotnet/roslyn/issues/65876")]
+    public void ListPattern_Negated_03()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}));
+        Console.WriteLine(M1(new[]{2,1}));
+        Console.WriteLine(M1(new[]{1}));
+        
+        Console.WriteLine(M2(new[]{1,2}));
+        Console.WriteLine(M2(new[]{2,1}));
+        Console.WriteLine(M2(new[]{1}));
+    }
+    
+    public static bool M1(int[] a) {
+        return a is not ([1,2,..] or [..,2,1] or [1]);
+    }
+    public static bool M2(int[] a) {
+        return !(a is ([1,2,..] or [..,2,1] or [1]));
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+False
+False
+False
+False
+False
+False
+");
+    }
+    
     [Fact]
     public void ListPattern_UseSiteErrorOnIndexerAndSlice()
     {
