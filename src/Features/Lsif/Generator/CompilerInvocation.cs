@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             Options = options;
         }
 
-        public static async Task<CompilerInvocation> CreateFromJsonAsync(string jsonContents)
+        public static async Task<Project> CreateFromJsonAsync(string jsonContents)
         {
             var invocationInfo = JsonConvert.DeserializeObject<CompilerInvocationInfo>(jsonContents);
             Assumes.Present(invocationInfo);
             return await CreateFromInvocationInfoAsync(invocationInfo);
         }
 
-        public static async Task<CompilerInvocation> CreateFromInvocationInfoAsync(CompilerInvocationInfo invocationInfo)
+        public static async Task<Project> CreateFromInvocationInfoAsync(CompilerInvocationInfo invocationInfo)
         {
             // We will use a Workspace to simplify the creation of the compilation, but will be careful not to return the Workspace instance from this class.
             // We will still provide the language services which are used by the generator itself, but we don't tie it to a Workspace object so we can
@@ -113,10 +113,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 hostObjectType: null);
 
             var solution = workspace.CurrentSolution.AddProject(projectInfo);
-            var compilation = await solution.GetRequiredProject(projectId).GetRequiredCompilationAsync(CancellationToken.None);
-            var options = GeneratorOptions.Default;
+            //var compilation = await solution.GetRequiredProject(projectId).GetRequiredCompilationAsync(CancellationToken.None);
+            //var options = GeneratorOptions.Default;
 
-            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, options);
+            //return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, options);
+
+            return solution.GetRequiredProject(projectId);
 
             // Local methods:
             DocumentInfo CreateDocumentInfo(string unmappedPath)

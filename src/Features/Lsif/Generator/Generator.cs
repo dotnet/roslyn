@@ -71,8 +71,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             return generator;
         }
 
-        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, LanguageServices languageServices, GeneratorOptions options)
+        public async Task GenerateForProjectAsync(Project project, GeneratorOptions options)
         {
+            var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+            var projectPath = project.FilePath;
+            Contract.ThrowIfNull(projectPath);
+
             var projectVertex = new Graph.LsifProject(
                 kind: GetLanguageKind(compilation.Language),
                 new Uri(projectPath),
@@ -104,11 +108,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             };
 
             var tasks = new List<Task>();
-            foreach (var syntaxTree in compilation.SyntaxTrees)
+            foreach (var document in project.Documents)
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                    var semanticModel = document.GetSemanticModelAsync();
 
                     // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
                     // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
@@ -117,11 +121,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
                     // is preserved.
                     var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                    var documentId = await GenerateForDocumentAsync(semanticModel, languageServices, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
+                    var documentId = await GenerateForDocumentAsync(document, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
                     topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
                     documentWriter.FlushToUnderlyingAndEmpty();
 
                     documentIds.Add(documentId);
+
+                    GC.KeepAlive(semanticModel);
                 }));
             }
 
@@ -144,13 +150,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// leak outside a file.
         /// </remarks>
         private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
-            SemanticModel semanticModel,
-            LanguageServices languageServices,
+            Document document,
             GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory)
         {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+            var languageServices = document.Project.Services;
             var syntaxTree = semanticModel.SyntaxTree;
             var sourceText = semanticModel.SyntaxTree.GetText();
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
