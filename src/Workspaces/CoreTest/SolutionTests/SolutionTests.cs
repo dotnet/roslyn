@@ -386,8 +386,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(new[] { documentId }, text, (PreservationMode)(-1)));
         }
 
-        [Fact]
-        public async Task WithDocumentText_SourceText_LinkedFiles()
+        public enum TextUpdateType
+        {
+            SourceText,
+            TextLoader,
+            TextAndVersion,
+        }
+
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_SourceText_LinkedFiles(
+            PreservationMode mode,
+            TextUpdateType updateType)
         {
             using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments();
             var solution = workspace.CurrentSolution;
@@ -413,8 +422,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(root1.IsIncrementallyIdenticalTo(root2));
 
             var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
-
-            solution = solution.WithDocumentText(documentId1, text, PreservationMode.PreserveIdentity);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = updateType switch
+            {
+                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
+                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
+                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
+                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
+            };
 
             // because we only forked one doc, the text/versions should be different in this interim solution.
 
@@ -455,113 +470,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We get different red nodes, but they should be backed by the same green nodes.
             Assert.NotEqual(root1, root2);
             Assert.True(root1.IsIncrementallyIdenticalTo(root2));
-        }
-
-        [Fact]
-        public async Task WithDocumentText_TextAndVersion_LinkedFiles()
-        {
-            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments();
-            var solution = workspace.CurrentSolution;
-
-            var documentId1 = solution.Projects.First().DocumentIds.Single();
-            var documentId2 = solution.Projects.Last().DocumentIds.Single();
-
-            var document1 = solution.GetRequiredDocument(documentId1);
-            var document2 = solution.GetRequiredDocument(documentId2);
-
-            var text1 = await document1.GetTextAsync();
-            var text2 = await document2.GetTextAsync();
-            var version1 = await document1.GetTextVersionAsync();
-            var version2 = await document2.GetTextVersionAsync();
-
-            Assert.Equal(text1.ToString(), text2.ToString());
-            Assert.Equal(version1, version2);
-
-            var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
-            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
-
-            solution = solution.WithDocumentText(documentId1, textAndVersion, PreservationMode.PreserveIdentity);
-
-            // because we only forked one doc, the text/versions should be different in this interim solution.
-
-            document1 = solution.GetRequiredDocument(documentId1);
-            document2 = solution.GetRequiredDocument(documentId2);
-
-            text1 = await document1.GetTextAsync();
-            text2 = await document2.GetTextAsync();
-            version1 = await document1.GetTextVersionAsync();
-            version2 = await document2.GetTextVersionAsync();
-
-            Assert.NotEqual(text1.ToString(), text2.ToString());
-            Assert.NotEqual(version1, version2);
-
-            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
-            workspace.TryApplyChanges(solution);
-            solution = workspace.CurrentSolution;
-
-            document1 = solution.GetRequiredDocument(documentId1);
-            document2 = solution.GetRequiredDocument(documentId2);
-
-            text1 = await document1.GetTextAsync();
-            text2 = await document2.GetTextAsync();
-            version1 = await document1.GetTextVersionAsync();
-            version2 = await document2.GetTextVersionAsync();
-
-            Assert.Equal(text1.ToString(), text2.ToString());
-            Assert.Equal(version1, version2);
-        }
-
-        [Fact]
-        public async Task WithDocumentTextLoader_LinkedFiles()
-        {
-            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments();
-            var solution = workspace.CurrentSolution;
-
-            var documentId1 = solution.Projects.First().DocumentIds.Single();
-            var documentId2 = solution.Projects.Last().DocumentIds.Single();
-
-            var document1 = solution.GetRequiredDocument(documentId1);
-            var document2 = solution.GetRequiredDocument(documentId2);
-
-            var text1 = await document1.GetTextAsync();
-            var text2 = await document2.GetTextAsync();
-            var version1 = await document1.GetTextVersionAsync();
-            var version2 = await document2.GetTextVersionAsync();
-
-            Assert.Equal(text1.ToString(), text2.ToString());
-            Assert.Equal(version1, version2);
-
-            var text = TextLoader.From(TextAndVersion.Create(SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1), VersionStamp.Create()));
-
-            solution = solution.WithDocumentTextLoader(documentId1, text, PreservationMode.PreserveIdentity);
-
-            // because we only forked one doc, the text/versions should be different in this interim solution.
-
-            document1 = solution.GetRequiredDocument(documentId1);
-            document2 = solution.GetRequiredDocument(documentId2);
-
-            text1 = await document1.GetTextAsync();
-            text2 = await document2.GetTextAsync();
-            version1 = await document1.GetTextVersionAsync();
-            version2 = await document2.GetTextVersionAsync();
-
-            Assert.NotEqual(text1.ToString(), text2.ToString());
-            Assert.NotEqual(version1, version2);
-
-            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
-            workspace.TryApplyChanges(solution);
-            solution = workspace.CurrentSolution;
-
-            document1 = solution.GetRequiredDocument(documentId1);
-            document2 = solution.GetRequiredDocument(documentId2);
-
-            text1 = await document1.GetTextAsync();
-            text2 = await document2.GetTextAsync();
-            version1 = await document1.GetTextVersionAsync();
-            version2 = await document2.GetTextVersionAsync();
-
-            Assert.Equal(text1.ToString(), text2.ToString());
-            Assert.Equal(version1, version2);
         }
 
         [Fact]
