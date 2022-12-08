@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return new ValueTask<IOptionPersister>(new LspOptionPersister());
         }
     }
 }
