@@ -54,15 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         internal static CodeStyleSetting Create(
             Option2<CodeStyleOption2<bool>> option,
             string description,
-            AnalyzerConfigOptions editorConfigOptions,
-            OptionSet visualStudioOptions,
+            TieredAnalyzerConfigOptions options,
             OptionUpdater updater,
-            string fileName,
             string? trueValueDescription = null,
             string? falseValueDescription = null)
         {
             var optionKey = new OptionKey2(option);
-            GetInitialLocationAndValue<CodeStyleOption2<bool>>(option, optionKey, editorConfigOptions, visualStudioOptions, fileName, out var initialLocation, out var initialValue);
+            options.GetInitialLocationAndValue<CodeStyleOption2<bool>>(option, out var initialLocation, out var initialValue);
 
             var valueDescriptions = new[]
             {
@@ -76,16 +74,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         internal static CodeStyleSetting Create(
             PerLanguageOption2<CodeStyleOption2<bool>> option,
             string description,
-            AnalyzerConfigOptions editorConfigOptions,
-            OptionSet visualStudioOptions,
+            TieredAnalyzerConfigOptions options,
             OptionUpdater updater,
-            string fileName,
             string? trueValueDescription = null,
             string? falseValueDescription = null)
         {
-            // TODO: Support for other languages https://github.com/dotnet/roslyn/issues/65859
-            var optionKey = new OptionKey2(option, LanguageNames.CSharp);
-            GetInitialLocationAndValue<CodeStyleOption2<bool>>(option, optionKey, editorConfigOptions, visualStudioOptions, fileName, out var initialLocation, out var initialValue);
+            var optionKey = new OptionKey2(option, options.Language);
+            options.GetInitialLocationAndValue<CodeStyleOption2<bool>>(option, out var initialLocation, out var initialValue);
 
             var valueDescriptions = new[]
             {
@@ -99,33 +94,28 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         internal static CodeStyleSetting Create<T>(
             Option2<CodeStyleOption2<T>> option,
             string description,
-            T[] enumValues,
-            string[] valueDescriptions,
-            AnalyzerConfigOptions editorConfigOptions,
-            OptionSet visualStudioOptions,
+            TieredAnalyzerConfigOptions options,
             OptionUpdater updater,
-            string fileName)
+            T[] enumValues,
+            string[] valueDescriptions)
             where T : Enum
         {
             var optionKey = new OptionKey2(option);
-            GetInitialLocationAndValue<CodeStyleOption2<T>>(option, optionKey, editorConfigOptions, visualStudioOptions, fileName, out var initialLocation, out var initialValue);
+            options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
             return new CodeStyleSetting<T>(option, optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
         }
 
         internal static CodeStyleSetting Create<T>(
             PerLanguageOption2<CodeStyleOption2<T>> option,
             string description,
-            T[] enumValues,
-            string[] valueDescriptions,
-            AnalyzerConfigOptions editorConfigOptions,
-            OptionSet visualStudioOptions,
+            TieredAnalyzerConfigOptions options,
             OptionUpdater updater,
-            string fileName)
+            T[] enumValues,
+            string[] valueDescriptions)
             where T : Enum
         {
-            // TODO: Support for other languages https://github.com/dotnet/roslyn/issues/65859
-            var optionKey = new OptionKey2(option, LanguageNames.CSharp);
-            GetInitialLocationAndValue<CodeStyleOption2<T>>(option, optionKey, editorConfigOptions, visualStudioOptions, fileName, out var initialLocation, out var initialValue);
+            var optionKey = new OptionKey2(option, options.Language);
+            options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
             return new CodeStyleSetting<T>(option, optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
         }
     }
