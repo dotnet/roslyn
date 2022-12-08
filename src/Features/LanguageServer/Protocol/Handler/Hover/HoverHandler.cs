@@ -49,17 +49,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
             var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
             return await GetHoverAsync(document, position, options, clientCapabilities, cancellationToken).ConfigureAwait(false);
-
-            //var quickInfoService = document.Project.Services.GetRequiredService<QuickInfoService>();
-            //
-            //var info = await quickInfoService.GetQuickInfoAsync(document, position, options, cancellationToken).ConfigureAwait(false);
-            //if (info == null)
-            //    return null;
-
-            //var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            //return await GetHoverAsync(
-            //    document.Project.Solution.Services, info, text, document.Project.Language,
-            //    document, clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<Hover?> GetHoverAsync(
