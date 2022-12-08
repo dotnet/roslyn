@@ -491,8 +491,34 @@ namespace Microsoft.CodeAnalysis
                 treeSource: newTreeSource);
         }
 
-        internal DocumentState UpdateTextAndTreeSource(ITextAndVersionSource textSource, ValueSource<TreeAndVersion>? treeSource)
+        internal DocumentState UpdateTextAndTreeContents(ITextAndVersionSource textSource, ValueSource<TreeAndVersion>? treeSource)
         {
+            // if a tree source is provided, then we'll want to use the tree it creates, to share as much memory as
+            // possible with linked files.  However, we can't point at that source directly.  If we did, we'd produce
+            // the *exact* same tree-reference as another file.  That would be bad as it would break the invariant that
+            // each document gets a unique SyntaxTree.  So, instead, we produce a ValueSource that defers to the
+            // provided source, gets the tree from it, and then wraps its root in a new tree for us.
+            var newTreeSource = treeSource == null
+                ? null
+                : AsyncLazy.Create(async cancellationToken =>
+                {
+                    var originalTreeAndVersion = await treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var originalTree = originalTreeAndVersion.Tree;
+
+                    var root = await originalTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    var treeFactory = this.LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+
+                    Contract.ThrowIfNull(_options);
+                    var newTree = treeFactory.CreateSyntaxTree(
+                        this.Attributes.SyntaxTreeFilePath,
+                        _options,
+                        originalTree.Encoding,
+                        LoadTextOptions.ChecksumAlgorithm,
+                        root);
+
+                    return new TreeAndVersion(newTree, originalTreeAndVersion.Version);
+                }, cacheResult: true);
+
             return new DocumentState(
                 LanguageServices,
                 solutionServices,
@@ -501,7 +527,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 textSource,
                 LoadTextOptions,
-                treeSource);
+                newTreeSource);
         }
 
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)

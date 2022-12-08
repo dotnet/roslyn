@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UpdateDocumentState(
-                oldDocument.UpdateTextAndTreeSource(documentState.TextAndVersionSource, documentState.TreeSource),
+                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource),
                 contentChanged: true);
         }
 
