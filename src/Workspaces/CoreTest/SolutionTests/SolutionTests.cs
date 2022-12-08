@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace;
         }
 
-        private static Workspace CreateWorkspaceWithProjectAndLinkedDocuments()
+        private static Workspace CreateWorkspaceWithProjectAndLinkedDocuments(string docContents)
         {
             var projectId1 = ProjectId.CreateNewId();
             var projectId2 = ProjectId.CreateNewId();
@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // docs.
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
                 .AddProject(projectId1, "proj1", "proj1.dll", LanguageNames.CSharp)
-                .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
+                .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId1), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId1), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")
                 .AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp)
-                .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
+                .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId2), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId2), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")));
 
@@ -394,11 +394,175 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Theory, CombinatorialData]
-        public async Task WithDocumentText_SourceText_LinkedFiles(
+        public async Task WithDocumentText_LinkedFiles(
             PreservationMode mode,
             TextUpdateType updateType)
         {
-            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments();
+            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("public class Goo { }");
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We get different red nodes, but they should be backed by the same green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+
+            var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = updateType switch
+            {
+                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
+                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
+                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
+                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
+            };
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+            Assert.NotEqual(version1, version2);
+
+            // We get different red and green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We get different red nodes, but they should be backed by the same green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles_PPConditionalDirective(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("""
+                #if NETSTANDARD
+                public class Goo { }
+                """);
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We can never reuse trees with conditional directives.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = updateType switch
+            {
+                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
+                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
+                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
+                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
+            };
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+            Assert.NotEqual(version1, version2);
+
+            // We get different red and green nodes entirely
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We can never reuse trees with conditional directives.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles_NonConditionalDirective(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("""
+                #nullable enable // should not impact being able to reuse.
+                public class Goo { }
+                """);
             var solution = workspace.CurrentSolution;
 
             var documentId1 = solution.Projects.First().DocumentIds.Single();
