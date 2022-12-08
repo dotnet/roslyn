@@ -23,11 +23,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task Verify_Color_Of_Some_Tokens([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task Verify_Color_Of_Some_Tokens()
         {
-            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"Imports System
 Imports MathAlias = System.Math
 Namespace Acme
@@ -71,11 +69,9 @@ End Namespace", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "comment", HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task Semantic_Classification([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task Semantic_Classification()
         {
-            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"
 Imports System
 Class Goo
