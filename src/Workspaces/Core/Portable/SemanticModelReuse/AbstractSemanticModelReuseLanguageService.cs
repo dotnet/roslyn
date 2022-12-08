@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
@@ -14,15 +14,12 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
     internal abstract class AbstractSemanticModelReuseLanguageService<
         TMemberDeclarationSyntax,
         TBasePropertyDeclarationSyntax,
-        TAccessorDeclarationSyntax> : ISemanticModelReuseLanguageService
+        TAccessorDeclarationSyntax> : ISemanticModelReuseLanguageService, IDisposable
         where TMemberDeclarationSyntax : SyntaxNode
         where TBasePropertyDeclarationSyntax : TMemberDeclarationSyntax
         where TAccessorDeclarationSyntax : SyntaxNode
     {
-        /// <summary>
-        /// Used to make sure we only report one watson per sessoin here.
-        /// </summary>
-        private static bool s_watsonReported;
+        private readonly CountLogAggregator<bool> _logAggregator = new();
 
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
@@ -32,6 +29,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
         protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TBasePropertyDeclarationSyntax baseProperty);
         protected abstract TBasePropertyDeclarationSyntax GetBasePropertyDeclaration(TAccessorDeclarationSyntax accessor);
 
+        public void Dispose()
+        {
+            Logger.Log(FunctionId.SemanticModelReuseLanguageService_TryGetSpeculativeSemanticModelAsync_Equivalent, KeyValueLogMessage.Create(m =>
+            {
+                foreach (var kv in _logAggregator)
+                    m[kv.Key.ToString()] = kv.Value.GetCount();
+            }));
+        }
+
         public async Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
         {
             var previousSyntaxTree = previousSemanticModel.SyntaxTree;
@@ -39,37 +45,18 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
             // This operation is only valid if top-level equivalent trees were passed in.  If they're not equivalent
             // then something very bad happened as we did that document.Project.GetDependentSemanticVersionAsync was
-            // still the same.  So somehow we don't have top-level equivalence, but we do have the same semantic version.
-            //
-            // log a NFW to help diagnose what the source looks like as it may help us determine what sort of edit is
-            // causing this.
-            if (!previousSyntaxTree.IsEquivalentTo(currentSyntaxTree, topLevel: true))
-            {
-                if (!s_watsonReported)
-                {
-                    s_watsonReported = true;
+            // still the same.  Log information so we can be alerted if this isn't being as successful as we expect.
+            var isEquivalentTo = previousSyntaxTree.IsEquivalentTo(currentSyntaxTree, topLevel: true);
+            _logAggregator.IncreaseCount(isEquivalentTo);
 
-                    try
-                    {
-                        // Avoid including tree contents in exception message for privacy compliance. Instead, include
-                        // in exception type for dump analysis.
-                        throw new NonEquivalentTreeException(
-                            "Syntax trees should have been equivalent.", previousSyntaxTree, currentSyntaxTree);
-
-                    }
-                    catch (Exception e) when (FatalError.ReportAndCatch(e))
-                    {
-                    }
-                }
-
+            if (!isEquivalentTo)
                 return null;
-            }
 
             var previousRoot = await previousSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await currentBodyNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var previousBodyNode = GetPreviousBodyNode(previousRoot, currentRoot, currentBodyNode);
 
-            // Trivia is ignore when comparing two trees for quivalence at top level, since it has no effect to API shape
+            // Trivia is ignore when comparing two trees for equivalence at top level, since it has no effect to API shape
             // and it'd be safe to drop in the new method body as long as the shape doesn't change. However, trivia changes
             // around the method do make it tricky to decide whether a position is safe for speculation.
 
@@ -81,8 +68,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             //                                 method body and after OriginalPositionForSpeculation. 
 
             // Given that the common use case for us is continuously editing/typing inside a method body, we believe we can be conservative
-            // in creating speculative model with those kind of trivia change, by requring the method body block not to shift position,
-            // w/o sacrificing performance in those common sceanrios.
+            // in creating speculative model with those kind of trivia change, by requiring the method body block not to shift position,
+            // w/o sacrificing performance in those common scenarios.
             if (previousBodyNode.SpanStart != currentBodyNode.SpanStart)
                 return null;
 
