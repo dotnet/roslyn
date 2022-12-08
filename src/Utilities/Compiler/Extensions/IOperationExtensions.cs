@@ -741,7 +741,7 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        public static ITypeSymbol? GetThrownExceptionType(this IThrowOperation operation)
+        public static IOperation? GetThrownException(this IThrowOperation operation)
         {
             var thrownObject = operation.Exception;
 
@@ -752,8 +752,11 @@ namespace Analyzer.Utilities.Extensions
                 thrownObject = conversion.Operand;
             }
 
-            return thrownObject?.Type;
+            return thrownObject;
         }
+
+        public static ITypeSymbol? GetThrownExceptionType(this IThrowOperation operation)
+            => operation.GetThrownException()?.Type;
 
         /// <summary>
         /// Determines if the one of the invocation's arguments' values is an argument of the specified type, and if so, find
