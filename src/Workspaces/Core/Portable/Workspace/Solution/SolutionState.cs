@@ -1373,6 +1373,9 @@ namespace Microsoft.CodeAnalysis
         public SolutionState WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
+            if (oldDocument == documentState)
+                return this;
+
             if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
                 oldDocument.TreeSource == documentState.TreeSource)
             {

@@ -896,7 +896,6 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 (newText, mode),
                 CheckDocumentIsInSolution,
-                (solution, docId) => solution.GetRelatedDocumentIds(docId),
                 (solution, docId, newTextAndMode) => solution.WithDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.DocumentChanged,
                 isCodeDocument: true);
@@ -911,7 +910,6 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 (newText, mode),
                 CheckAdditionalDocumentIsInSolution,
-                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, newTextAndMode) => solution.WithAdditionalDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
                 isCodeDocument: false);
@@ -926,7 +924,6 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 (newText, mode),
                 CheckAnalyzerConfigDocumentIsInSolution,
-                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, newTextAndMode) => solution.WithAnalyzerConfigDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 isCodeDocument: false);
@@ -941,7 +938,6 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 loader,
                 CheckDocumentIsInSolution,
-                (solution, docId) => solution.GetRelatedDocumentIds(docId),
                 (solution, docId, loader) => solution.WithDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
                 WorkspaceChangeKind.DocumentChanged,
                 isCodeDocument: true);
@@ -956,7 +952,6 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 loader,
                 CheckAdditionalDocumentIsInSolution,
-                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, loader) => solution.WithAdditionalDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
                 isCodeDocument: false);
@@ -971,7 +966,6 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 loader,
                 CheckAnalyzerConfigDocumentIsInSolution,
-                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, loader) => solution.WithAnalyzerConfigDocumentTextLoader(docId, loader, PreservationMode.PreserveValue),
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 isCodeDocument: false);
@@ -987,7 +981,6 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId,
             TArg arg,
             Action<Solution, DocumentId> checkIsInSolution,
-            Func<Solution, DocumentId, ImmutableArray<DocumentId>> getRelatedDocuments,
             Func<Solution, DocumentId, TArg, Solution> updateSolutionWithText,
             WorkspaceChangeKind changeKind,
             bool isCodeDocument)
@@ -1004,20 +997,33 @@ namespace Microsoft.CodeAnalysis
 
                     data.checkIsInSolution(oldSolution, data.documentId);
 
+                    // First, just update the text for the document passed in.
                     var newSolution = oldSolution;
+                    var previousSolution = newSolution;
+                    newSolution = data.updateSolutionWithText(newSolution, data.documentId, data.arg);
+                    if (previousSolution != newSolution)
+                        updatedDocumentIds.Add(data.documentId);
 
-                    var linkedDocuments = data.getRelatedDocuments(oldSolution, data.documentId);
-                    foreach (var linkedDocument in linkedDocuments)
+                    // Now, see if that document is linked to anything else. If so, update their document-state to point
+                    // at the exact text/tree-source as the doc we just made.  This way we can share text/trees and not
+                    // allocate for them unnecessarily. This is only for regular documents, not additional-docs or
+                    // analyzer config, as those don't support links).  If so
+                    var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(data.documentId);
+                    if (linkedDocumentIds.Length > 0)
                     {
-                        var previousSolution = newSolution;
-                        newSolution = data.updateSolutionWithText(newSolution, linkedDocument, data.arg);
-                        if (previousSolution != newSolution)
-                            updatedDocumentIds.Add(linkedDocument);
+                        var newDocument = newSolution.GetRequiredDocument(data.documentId);
+                        foreach (var linkedDocumentId in linkedDocumentIds)
+                        {
+                            previousSolution = newSolution;
+                            newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
+                            if (previousSolution != newSolution)
+                                updatedDocumentIds.Add(linkedDocumentId);
+                        }
                     }
 
                     return newSolution;
                 },
-                data: (@this: this, documentId, arg, checkIsInSolution, getRelatedDocuments, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
+                data: (@this: this, documentId, arg, checkIsInSolution, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     if (data.isCodeDocument)
