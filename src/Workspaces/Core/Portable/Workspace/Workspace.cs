@@ -781,49 +781,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when the text of a document is changed on disk.
-        /// </summary>
-        protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
-        {
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.DocumentChanged, documentId: documentId,
-                onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)));
-        }
-
-        /// <summary>
-        /// Call this method when the text of a additional document is changed on disk.
-        /// </summary>
-        protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
-        {
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.AdditionalDocumentChanged, documentId: documentId);
-        }
-
-        /// <summary>
-        /// Call this method when the text of a analyzer config document is changed on disk.
-        /// </summary>
-        protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
-        {
-            SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckAnalyzerConfigDocumentIsInSolution(oldSolution, documentId);
-                    return oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
-                },
-                WorkspaceChangeKind.AnalyzerConfigDocumentChanged, documentId: documentId);
-        }
-
-        /// <summary>
         /// Call this method when the document info changes, such as the name, folders or file path.
         /// </summary>
         protected internal void OnDocumentInfoChanged(DocumentId documentId, DocumentInfo newInfo)
@@ -871,11 +828,10 @@ namespace Microsoft.CodeAnalysis
         {
             OnAnyDocumentTextChanged(
                 documentId,
-                newText,
-                mode,
+                (newText, mode),
                 CheckDocumentIsInSolution,
                 (solution, docId) => solution.GetRelatedDocumentIds(docId),
-                (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
+                (solution, docId, newTextAndMode) => solution.WithDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.DocumentChanged,
                 isCodeDocument: true);
         }
@@ -887,11 +843,10 @@ namespace Microsoft.CodeAnalysis
         {
             OnAnyDocumentTextChanged(
                 documentId,
-                newText,
-                mode,
+                (newText, mode),
                 CheckAdditionalDocumentIsInSolution,
                 (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
-                (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
+                (solution, docId, newTextAndMode) => solution.WithAdditionalDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
                 isCodeDocument: false);
         }
@@ -903,13 +858,66 @@ namespace Microsoft.CodeAnalysis
         {
             OnAnyDocumentTextChanged(
                 documentId,
-                newText,
-                mode,
+                (newText, mode),
                 CheckAnalyzerConfigDocumentIsInSolution,
                 (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
-                (solution, docId, text, preservationMode) => solution.WithAnalyzerConfigDocumentText(docId, text, preservationMode),
+                (solution, docId, newTextAndMode) => solution.WithAnalyzerConfigDocumentText(docId, newTextAndMode.newText, newTextAndMode.mode),
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 isCodeDocument: false);
+        }
+
+        /// <summary>
+        /// Call this method when the text of a document is changed on disk.
+        /// </summary>
+        protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        {
+            //OnAnyDocumentTextChanged(
+            //    documentId,
+            //    newText,
+            //    mode,
+            //    CheckDocumentIsInSolution,
+            //    (solution, docId) => solution.GetRelatedDocumentIds(docId),
+            //    (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
+            //    WorkspaceChangeKind.DocumentChanged,
+            //    isCodeDocument: true);
+
+
+            SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckDocumentIsInSolution(oldSolution, documentId);
+                    return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                },
+                WorkspaceChangeKind.DocumentChanged, documentId: documentId,
+                onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)));
+        }
+
+        /// <summary>
+        /// Call this method when the text of a additional document is changed on disk.
+        /// </summary>
+        protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        {
+            SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
+                    return oldSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                },
+                WorkspaceChangeKind.AdditionalDocumentChanged, documentId: documentId);
+        }
+
+        /// <summary>
+        /// Call this method when the text of a analyzer config document is changed on disk.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        {
+            SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckAnalyzerConfigDocumentIsInSolution(oldSolution, documentId);
+                    return oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                },
+                WorkspaceChangeKind.AnalyzerConfigDocumentChanged, documentId: documentId);
         }
 
         /// <summary>
@@ -918,13 +926,12 @@ namespace Microsoft.CodeAnalysis
         /// workspace to avoid the workspace having solutions with linked files where the contents
         /// do not match.
         /// </summary>
-        private void OnAnyDocumentTextChanged(
+        private void OnAnyDocumentTextChanged<TArg>(
             DocumentId documentId,
-            SourceText newText,
-            PreservationMode mode,
+            TArg arg,
             Action<Solution, DocumentId> checkIsInSolution,
             Func<Solution, DocumentId, ImmutableArray<DocumentId>> getRelatedDocuments,
-            Func<Solution, DocumentId, SourceText, PreservationMode, Solution> updateSolutionWithText,
+            Func<Solution, DocumentId, TArg, Solution> updateSolutionWithText,
             WorkspaceChangeKind changeKind,
             bool isCodeDocument)
         {
@@ -946,14 +953,14 @@ namespace Microsoft.CodeAnalysis
                     foreach (var linkedDocument in linkedDocuments)
                     {
                         var previousSolution = newSolution;
-                        newSolution = data.updateSolutionWithText(newSolution, linkedDocument, data.newText, data.mode);
+                        newSolution = data.updateSolutionWithText(newSolution, linkedDocument, data.arg);
                         if (previousSolution != newSolution)
                             updatedDocumentIds.Add(linkedDocument);
                     }
 
                     return newSolution;
                 },
-                data: (@this: this, documentId, newText, mode, checkIsInSolution, getRelatedDocuments, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
+                data: (@this: this, documentId, arg, checkIsInSolution, getRelatedDocuments, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     if (data.isCodeDocument)
