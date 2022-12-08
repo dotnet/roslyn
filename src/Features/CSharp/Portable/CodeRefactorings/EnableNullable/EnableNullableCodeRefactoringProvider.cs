@@ -11,11 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 {
@@ -32,17 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
         {
         }
 
+        internal override FixAllProvider GetFixAllProvider()
+            => CustomFixAllProvider.Instance;
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
             if (!textSpan.IsEmpty)
                 return;
 
-            if (document.Project is not
-                {
-                    ParseOptions: CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 },
-                    CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
-                })
+            if (!CanEnableNullableInProject(document.Project))
             {
                 return;
             }
@@ -60,6 +59,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 
             context.RegisterRefactoring(
                 new CustomCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, context.Options, cancellationToken)));
+        }
+
+        private static bool CanEnableNullableInProject(Project project)
+            => project is
+            {
+                ParseOptions: CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 },
+                CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
+            };
+
+        private static async Task<Solution> EnableNullableReferenceTypesAsync(Solution solution, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        {
+            foreach (var projectId in solution.ProjectIds)
+            {
+                var project = solution.GetRequiredProject(projectId);
+                if (!CanEnableNullableInProject(project))
+                    continue;
+
+                solution = await EnableNullableReferenceTypesAsync(project, purpose, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            }
+
+            return solution;
         }
 
         private static async Task<Solution> EnableNullableReferenceTypesAsync(Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
@@ -250,6 +270,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
         {
             Preview,
             Apply,
+        }
+
+        private sealed class CustomFixAllProvider : FixAllProvider
+        {
+            public static readonly CustomFixAllProvider Instance = new();
+
+            public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+            {
+                yield return FixAllScope.Project;
+                yield return FixAllScope.Solution;
+            }
+
+            public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            {
+                if (fixAllContext.Scope == FixAllScope.Project)
+                {
+                    if (!CanEnableNullableInProject(fixAllContext.Project))
+                    {
+                        return SpecializedTasks.Null<CodeAction>();
+                    }
+
+                    return Task.FromResult<CodeAction?>(new CustomCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(fixAllContext.Project, purpose, fixAllContext.GetOptionsProvider(), cancellationToken)));
+                }
+
+                Contract.ThrowIfFalse(fixAllContext.Scope == FixAllScope.Solution);
+                return Task.FromResult<CodeAction?>(new CustomCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(fixAllContext.Solution, purpose, fixAllContext.GetOptionsProvider(), cancellationToken)));
+            }
         }
 
         private sealed class CustomCodeAction : CodeAction.SolutionChangeAction
