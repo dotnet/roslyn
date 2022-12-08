@@ -172,8 +172,6 @@ namespace Microsoft.CodeAnalysis
                 Diagnostic.Create(WorkspaceDiagnosticDescriptors.ErrorReadingFileContent, location, new[] { display, message }));
         }
 
-        private static readonly ConditionalWeakTable<SourceText, TextLoader> s_textToLoader = new();
-
         /// <summary>
         /// Creates a new <see cref="TextLoader"/> from an already existing source text and version.
         /// </summary>
@@ -184,7 +182,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(textAndVersion));
             }
 
-            return s_textToLoader.GetValue(textAndVersion.Text, _ => new TextDocumentLoader(textAndVersion));
+            return new TextDocumentLoader(textAndVersion);
         }
 
         /// <summary>
