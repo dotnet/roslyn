@@ -154,9 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The language name that this node is syntax of.
         /// </summary>
-        public override string Language => LanguageNames.CSharp;
-
-        protected override int ConditionalDirectiveKind => (int)SyntaxKind.IfDirectiveTrivia;
+        public override string Language
+        {
+            get { return LanguageNames.CSharp; }
+        }
 
         /// <summary>
         /// The list of trivia that appears before this node in the source code.
