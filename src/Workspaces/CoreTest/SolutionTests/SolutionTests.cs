@@ -70,18 +70,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // note: despite teh additional-doc and analyzer-config doc being at the same path in multiple projects,
             // they will still be treated as unique as the workspace only has the concept of linked docs for normal
             // docs.
-            var docSourceText = SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default);
-            var additionalDocSourceText = SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default);
-            var editorConfigSourceText = SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default);
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
                 .AddProject(projectId1, "proj1", "proj1.dll", LanguageNames.CSharp)
-                .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", docSourceText, filePath: "goo.cs")
-                .AddAdditionalDocument(DocumentId.CreateNewId(projectId1), "add.txt", additionalDocSourceText, filePath: "add.txt")
+                .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
+                .AddAdditionalDocument(DocumentId.CreateNewId(projectId1), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId1), "editorcfg", editorConfigSourceText, filePath: "/a/b")
                 .AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp)
-                .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", docSourceText, filePath: "goo.cs")
-                .AddAdditionalDocument(DocumentId.CreateNewId(projectId2), "add.txt", additionalDocSourceText, filePath: "add.txt")
-                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId2), "editorcfg", editorConfigSourceText, filePath: "/a/b")));
+                .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
+                .AddAdditionalDocument(DocumentId.CreateNewId(projectId2), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId2), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")));
 
             return workspace;
         }
