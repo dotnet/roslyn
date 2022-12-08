@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             };
 
             var tasks = new List<Task>();
-            foreach (var document in project.Documents)
+            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync().ConfigureAwait(false))
             {
                 tasks.Add(Task.Run(async () =>
                 {
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(Document document)
         {
             string? contentBase64Encoded = null;
-            var uri = document.FilePath;
+            var uri = document.FilePath ?? "";
 
             // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
             // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
