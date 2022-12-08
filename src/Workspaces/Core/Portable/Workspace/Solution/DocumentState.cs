@@ -83,7 +83,9 @@ namespace Microsoft.CodeAnalysis
         public ValueSource<TreeAndVersion>? TreeSource => _treeSource;
 
         [MemberNotNullWhen(true, nameof(_treeSource))]
+        [MemberNotNullWhen(true, nameof(TreeSource))]
         [MemberNotNullWhen(true, nameof(_options))]
+        [MemberNotNullWhen(true, nameof(ParseOptions))]
         internal bool SupportsSyntaxTree
             => _treeSource != null;
 
@@ -491,33 +493,30 @@ namespace Microsoft.CodeAnalysis
                 treeSource: newTreeSource);
         }
 
-        internal DocumentState UpdateTextAndTreeContents(ITextAndVersionSource textSource, ValueSource<TreeAndVersion>? treeSource)
+        internal DocumentState UpdateTextAndTreeContents(ITextAndVersionSource siblingTextSource, ValueSource<TreeAndVersion>? siblingTreeSource)
         {
+            if (!SupportsSyntaxTree)
+            {
+                return new DocumentState(
+                    LanguageServices,
+                    solutionServices,
+                    Services,
+                    Attributes,
+                    _options,
+                    siblingTextSource,
+                    LoadTextOptions,
+                    treeSource: null);
+            }
+
+            Contract.ThrowIfNull(siblingTreeSource);
+
             // if a tree source is provided, then we'll want to use the tree it creates, to share as much memory as
             // possible with linked files.  However, we can't point at that source directly.  If we did, we'd produce
             // the *exact* same tree-reference as another file.  That would be bad as it would break the invariant that
             // each document gets a unique SyntaxTree.  So, instead, we produce a ValueSource that defers to the
             // provided source, gets the tree from it, and then wraps its root in a new tree for us.
-            var newTreeSource = treeSource == null
-                ? null
-                : AsyncLazy.Create(async cancellationToken =>
-                {
-                    var originalTreeAndVersion = await treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                    var originalTree = originalTreeAndVersion.Tree;
 
-                    var root = await originalTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    var treeFactory = this.LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
-
-                    Contract.ThrowIfNull(_options);
-                    var newTree = treeFactory.CreateSyntaxTree(
-                        this.Attributes.SyntaxTreeFilePath,
-                        _options,
-                        originalTree.Encoding,
-                        LoadTextOptions.ChecksumAlgorithm,
-                        root);
-
-                    return new TreeAndVersion(newTree, originalTreeAndVersion.Version);
-                }, cacheResult: true);
+            var newTreeSource = GetReuseTreeSource(this, siblingTextSource, siblingTreeSource);
 
             return new DocumentState(
                 LanguageServices,
@@ -525,10 +524,240 @@ namespace Microsoft.CodeAnalysis
                 Services,
                 Attributes,
                 _options,
-                textSource,
+                siblingTextSource,
                 LoadTextOptions,
-                newTreeSource);
+                treeSource: newTreeSource);
         }
+
+        // Static so we don't accidentally capture "this" green documentstate node in the async lazy.
+
+        private static AsyncLazy<TreeAndVersion> GetReuseTreeSource(
+            DocumentState documentState,
+            ITextAndVersionSource siblingTextSource,
+            ValueSource<TreeAndVersion> siblingTreeSource)
+        {
+            // copy data from this entity, so we don't keep this green node alive.
+            Contract.ThrowIfFalse(documentState.SupportsSyntaxTree);
+
+            var filePath = documentState.Attributes.SyntaxTreeFilePath;
+            var languageServices = documentState.LanguageServices;
+            var loadTextOptions = documentState.LoadTextOptions;
+            var parseOptions = documentState.ParseOptions;
+            var textAndVersionSource = documentState.TextAndVersionSource;
+            var treeSource = documentState.TreeSource;
+
+            return new AsyncLazy<TreeAndVersion>(
+                cancellationToken => TryReuseSiblingTreeAsync(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
+                cancellationToken => TryReuseSiblingTree(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
+                cacheResult: true);
+        }
+
+        private static async Task<TreeAndVersion> TryReuseSiblingTreeAsync(
+            string filePath,
+            HostLanguageServices languageServices,
+            LoadTextOptions options,
+            ParseOptions parseOptions,
+            ValueSource<TreeAndVersion> treeSource,
+            ITextAndVersionSource siblingTextSource,
+            ValueSource<TreeAndVersion> siblingTreeSource,
+            CancellationToken cancellationToken)
+        {
+            var siblingTreeAndVersion = await siblingTreeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var siblingTree = siblingTreeAndVersion.Tree;
+
+            var siblingRoot = await siblingTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            if (CanReuseSiblingRoot(parseOptions, siblingTree.Options, siblingRoot))
+            {
+                var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+
+                var newTree = treeFactory.CreateSyntaxTree(
+                    filePath,
+                    parseOptions,
+                    siblingTree.Encoding,
+                    options.ChecksumAlgorithm,
+                    siblingRoot);
+
+                return new TreeAndVersion(newTree, siblingTreeAndVersion.Version);
+            }
+            else
+            {
+                // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.
+                return await IncrementallyParseTreeAsync(treeSource, siblingTextSource, options, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static TreeAndVersion TryReuseSiblingTree(
+            string filePath,
+            HostLanguageServices languageServices,
+            LoadTextOptions options,
+            ParseOptions parseOptions,
+            ValueSource<TreeAndVersion> treeSource,
+            ITextAndVersionSource siblingTextSource,
+            ValueSource<TreeAndVersion> siblingTreeSource,
+            CancellationToken cancellationToken)
+        {
+            var siblingTreeAndVersion = siblingTreeSource.GetValue(cancellationToken);
+            var siblingTree = siblingTreeAndVersion.Tree;
+
+            var siblingRoot = siblingTree.GetRoot(cancellationToken);
+
+            if (CanReuseSiblingRoot(parseOptions, siblingTree.Options, siblingRoot))
+            {
+                var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+
+                var newTree = treeFactory.CreateSyntaxTree(
+                    filePath,
+                    parseOptions,
+                    siblingTree.Encoding,
+                    options.ChecksumAlgorithm,
+                    siblingRoot);
+
+                return new TreeAndVersion(newTree, siblingTreeAndVersion.Version);
+            }
+            else
+            {
+                // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.
+                return IncrementallyParseTree(treeSource, siblingTextSource, options, cancellationToken);
+            }
+        }
+
+        private static bool CanReuseSiblingRoot(
+            ParseOptions parseOptions,
+            ParseOptions siblingParseOptions,
+            SyntaxNode siblingRoot)
+        {
+            var ppSymbolsNames1 = parseOptions.PreprocessorSymbolNames;
+            var ppSymbolsNames2 = siblingParseOptions.PreprocessorSymbolNames;
+
+            // If both documents have the same preprocessor directives defined, then they'll always produce the
+            // same trees.  So we can trivially reuse the tree from one for the other.
+            if (ppSymbolsNames1.SetEquals(ppSymbolsNames2))
+                return true;
+
+            // If the tree contains no `#` directives whatsoever, then you'll parse out the same tree and can reuse it.
+            if (!siblingRoot.ContainsDirectives)
+                return true;
+
+#if false
+            // It's ok to contain directives like #nullable, or #region.  They don't affect parsing.
+            if (!siblingRoot.ContainsConditionalDirectives())
+                return true;
+#endif
+
+            // If the tree contains a #if directive, and the pp-symbol-names are different, then the files
+            // absolutely may be parsed differently, and so they should not be shared.
+            return false;
+        }
+
+#if false
+        private static void TryInitializeTreeSourceFromRelatedDocument(
+            SolutionState solution, DocumentState document, ValueSource<TreeAndVersion> treeSource)
+        {
+            s_tryShareSyntaxTreeCount++;
+            if (document.FilePath == null)
+                return;
+
+            var relatedDocumentIds = solution.GetDocumentIdsWithFilePath(document.FilePath);
+            foreach (var docId in relatedDocumentIds)
+            {
+                // ignore this document when looking at siblings.  We can't initialize ourself with ourself.
+                if (docId == document.Id)
+                    continue;
+
+                var otherProject = solution.GetProjectState(docId.ProjectId);
+                if (otherProject == null)
+                    continue;
+
+                var otherDocument = otherProject.DocumentStates.GetState(docId);
+                if (otherDocument == null)
+                    continue;
+
+                // Now, see if the linked doc actually has its tree readily available.
+                if (otherDocument._treeSource == null || !otherDocument._treeSource.TryGetValue(out var otherTreeAndVersion))
+                    continue;
+
+                // And see if its root is there as well.  Note: we only need the root to determine if the tree contains
+                // pp directives. If this could be stored on the tree itself, that would remove the need for having to have
+                // the actual root available.
+
+                var otherTree = otherTreeAndVersion.Tree;
+                if (!otherTree.TryGetRoot(out var otherRoot))
+                    continue;
+
+                // If the processor directives are not compatible between the other document and this one, we definitely
+                // can't reuse the tree.
+                if (!HasCompatiblePreprocessorDirectives(document, otherDocument, otherRoot))
+                    continue;
+
+                // Note: even if the pp directives are compatible, it may *technically* not be safe to reuse the tree.
+                // For example, C# parses some things differently across language version.  like `record Goo() { }` is a
+                // method prior to 9.0, and a record from 9.0 onwards.  *However*, code that actually contains
+                // constructs that would be parsed differently is considered pathological by us.  e.g. we do not believe
+                // it is a realistic scenario that users would genuinely write such a construct and need it to have
+                // different syntactic meaning like this across versions.  So we allow for this reuse even though the
+                // above it a possibility, since we do not consider it important or relevant to support.
+
+#if false
+
+                // Want to make sure that these two docs are pointing at the same text.  Technically it's possible
+                // (though unpleasant) to have linked docs pointing to different text.  This is because our in-memory
+                // model doesn't enforce any invariants here.  So it's trivially possible to take two linked documents
+                // and do things like `doc1.WithSomeText(text1)` and `doc2.WithSomeText(text2)` and now have them be
+                // inconsistent in that regard.  They will eventually become consistent, but there can be periods when
+                // they are not.  In this case, we don't want a forked doc to grab a tree from another doc that may be
+                // looking at some different text.  So we conservatively only allow for the case where we are certain
+                // things are ok.
+                //
+                //  https://github.com/dotnet/roslyn/issues/65797 tracks a cleaner model where the workspace would
+                // enforce that all linked docs would share the same source and we would not need this conservative
+                // check here.
+                var textsAreEquivalent = (document.TextAndVersionSource, otherDocument.TextAndVersionSource) switch
+                {
+                    // For constant sources (like what we have that wraps open documents, or explicitly forked docs) we
+                    // can reuse if the SourceTexts are clearly identical.
+                    (ConstantTextAndVersionSource constant1, ConstantTextAndVersionSource constant2) => constant1.Value.Text == constant2.Value.Text,
+                    // For loadable sources (like what we have for docs loaded from disk) we know they should have the
+                    // same text since they correspond to the same final physical entity on the machine.  Note: this is
+                    // not strictly true as technically it's possible to race here with event notifications where a file
+                    // changes, one doc sees it and updates its text loader, and the other linked doc hasn't done this
+                    // yet.  However, this race has always existed and we accept that it could cause inconsistencies
+                    // anyways.
+                    (LoadableTextAndVersionSource loadable1, LoadableTextAndVersionSource loadable2) => loadable1.Loader.FilePath == loadable2.Loader.FilePath,
+
+                    // Anything else, and we presume we can't share this root.
+                    _ => false,
+                };
+
+                if (!textsAreEquivalent)
+                {
+                    Console.WriteLine($"Texts are not equivalent: {document.TextAndVersionSource.GetType().Name}-{otherDocument.TextAndVersionSource.GetType().Name}");
+                    continue;
+                }
+
+                // Console.WriteLine("Texts are equivalent");
+
+#endif
+
+                var factory = document.LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                var newTree = factory.CreateSyntaxTree(
+                    document.FilePath, otherTree.Options, otherTree.Encoding, document.LoadTextOptions.ChecksumAlgorithm, otherRoot);
+
+                // Ok, now try to set out value-source to this newly created tree.  This may fail if some other thread
+                // beat us here. That's ok, our caller (GetSyntaxTreeAsync) will read the source itself.  So we'll only 
+                // ever have one source of truth here.
+                treeSource.TrySetValue(new TreeAndVersion(newTree, otherTreeAndVersion.Version));
+                s_successfullySharedSyntaxTreeCount++;
+                return;
+            }
+
+            return;
+
+            static bool HasCompatiblePreprocessorDirectives(DocumentState document1, DocumentState document2, SyntaxNode root)
+            {
+            }
+        }
+#endif
 
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
         {
