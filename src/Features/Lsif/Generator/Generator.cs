@@ -333,7 +333,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
 
             // Write the folding ranges for the document.
-            var foldingRanges = FoldingRangesHandler.GetFoldingRanges(syntaxTree, languageServices, options.BlockStructureOptions, CancellationToken.None);
+            var foldingRanges = await FoldingRangesHandler.GetFoldingRangesAsync(
+                document, options.BlockStructureOptions, CancellationToken.None).ConfigureAwait(false);
             var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
             lsifJsonWriter.Write(foldingRangeResult);
             lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
