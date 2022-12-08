@@ -113,11 +113,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 hostObjectType: null);
 
             var solution = workspace.CurrentSolution.AddProject(projectInfo);
-            //var compilation = await solution.GetRequiredProject(projectId).GetRequiredCompilationAsync(CancellationToken.None);
-            //var options = GeneratorOptions.Default;
-
-            //return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, options);
-
             return solution.GetRequiredProject(projectId);
 
             // Local methods:
