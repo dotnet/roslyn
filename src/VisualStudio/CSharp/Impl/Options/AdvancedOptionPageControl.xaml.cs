@@ -35,7 +35,6 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -185,9 +184,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Stack Trace Explorer
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsMetadata.OpenOnFocus);
-
-            // Document Outline
-            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsMetadata.EnableDocumentOutline);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
