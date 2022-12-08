@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddProject(projectId1, "proj1", "proj1.dll", LanguageNames.CSharp)
                 .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId1), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
-                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId1), "editorcfg", editorConfigSourceText, filePath: "/a/b")
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId1), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")
                 .AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp)
                 .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId2), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
@@ -402,9 +402,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text2 = await document2.GetTextAsync();
             var version1 = await document1.GetTextVersionAsync();
             var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
 
             Assert.Equal(text1.ToString(), text2.ToString());
             Assert.Equal(version1, version2);
+
+            // We get different red nodes, but they should be backed by the same green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
 
             var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
 
@@ -419,9 +425,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             text2 = await document2.GetTextAsync();
             version1 = await document1.GetTextVersionAsync();
             version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
 
             Assert.NotEqual(text1.ToString(), text2.ToString());
             Assert.NotEqual(version1, version2);
+
+            // We get different red and green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
 
             // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
             workspace.TryApplyChanges(solution);
@@ -434,9 +446,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             text2 = await document2.GetTextAsync();
             version1 = await document1.GetTextVersionAsync();
             version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
 
             Assert.Equal(text1.ToString(), text2.ToString());
             Assert.Equal(version1, version2);
+
+            // We get different red nodes, but they should be backed by the same green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
         }
 
         [Fact]
