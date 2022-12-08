@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -67,7 +65,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (info == null)
                 return null;
 
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var hoverService = document.Project.Solution.Services.GetRequiredService<ILspHoverResultCreationService>();
             return await hoverService.CreateHoverAsync(document, info, clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
