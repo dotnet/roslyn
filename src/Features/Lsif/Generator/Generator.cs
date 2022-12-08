@@ -157,36 +157,52 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             IdFactory idFactory)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+
+            var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document).ConfigureAwait(false);
+
+            var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
+            lsifJsonWriter.Write(documentVertex);
+            lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
+
+            await GenerateDocumentSymbolsAsync(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory).ConfigureAwait(false);
+            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory).ConfigureAwait(false);
+
+            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
+            GC.KeepAlive(semanticModel);
+
+            return documentVertex.GetId();
+        }
+
+        private static async Task GenerateDocumentFoldingRangesAsync(
+            Document document,
+            LsifDocument documentVertex,
+            GeneratorOptions options,
+            ILsifJsonWriter lsifJsonWriter,
+            IdFactory idFactory)
+        {
+            var foldingRanges = await FoldingRangesHandler.GetFoldingRangesAsync(
+                document, options.BlockStructureOptions, CancellationToken.None).ConfigureAwait(false);
+            var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
+            lsifJsonWriter.Write(foldingRangeResult);
+            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
+        }
+
+        private static async Task GenerateDocumentSymbolsAsync(
+            Document document,
+            LsifDocument documentVertex,
+            GeneratorOptions options,
+            IResultSetTracker topLevelSymbolsResultSetTracker,
+            ILsifJsonWriter lsifJsonWriter,
+            IdFactory idFactory)
+        {
             var languageServices = document.Project.Services;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+
             var syntaxTree = semanticModel.SyntaxTree;
             var sourceText = semanticModel.SyntaxTree.GetText();
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
-
-            string? contentBase64Encoded = null;
-
-            var uri = syntaxTree.FilePath;
-
-            // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
-            // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
-            // this is a source generated file.
-            if (!PathUtilities.IsAbsolute(syntaxTree.FilePath))
-            {
-                var text = semanticModel.SyntaxTree.GetText();
-
-                // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
-                // TODO: when we move to .NET Core, is there a way to reduce allocations here?
-                contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
-
-                // There is a triple slash here, so the "host" portion of the URI is empty, similar to
-                // how file URIs work.
-                uri = "source-generated:///" + syntaxTree.FilePath.Replace('\\', '/');
-            }
-
-            var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
-
-            lsifJsonWriter.Write(documentVertex);
-            lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
             // As we are processing this file, we are going to encounter symbols that have a shared resultSet with other documents like types
             // or methods. We're also going to encounter locals that never leave this document. We don't want those locals being held by
@@ -331,16 +347,30 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
 
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
+        }
 
-            // Write the folding ranges for the document.
-            var foldingRanges = await FoldingRangesHandler.GetFoldingRangesAsync(
-                document, options.BlockStructureOptions, CancellationToken.None).ConfigureAwait(false);
-            var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
-            lsifJsonWriter.Write(foldingRangeResult);
-            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
+        private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(Document document)
+        {
+            string? contentBase64Encoded = null;
+            var uri = document.FilePath;
 
-            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
-            return documentVertex.GetId();
+            // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
+            // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
+            // this is a source generated file.
+            if (!PathUtilities.IsAbsolute(uri))
+            {
+                var text = await document.GetTextAsync().ConfigureAwait(false);
+
+                // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
+                // TODO: when we move to .NET Core, is there a way to reduce allocations here?
+                contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
+
+                // There is a triple slash here, so the "host" portion of the URI is empty, similar to
+                // how file URIs work.
+                uri = "source-generated:///" + uri.Replace('\\', '/');
+            }
+
+            return (uri, contentBase64Encoded);
         }
 
         private static bool IncludeSymbolInReferences(ISymbol symbol)
