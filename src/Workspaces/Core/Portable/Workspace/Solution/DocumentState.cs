@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public ValueSource<TreeAndVersion>? TreeSource => _treeSource;
+
         [MemberNotNullWhen(true, nameof(_treeSource))]
         [MemberNotNullWhen(true, nameof(_options))]
         internal bool SupportsSyntaxTree
@@ -490,6 +492,19 @@ namespace Microsoft.CodeAnalysis
                 treeSource: newTreeSource);
         }
 
+        internal DocumentState UpdateTextAndTreeSource(ITextAndVersionSource textSource, ValueSource<TreeAndVersion>? treeSource)
+        {
+            return new DocumentState(
+                LanguageServices,
+                solutionServices,
+                Services,
+                Attributes,
+                _options,
+                textSource,
+                LoadTextOptions,
+                treeSource);
+        }
+
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
         {
             if (!SupportsSyntaxTree)
@@ -684,6 +699,11 @@ namespace Microsoft.CodeAnalysis
         {
             s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
             return id;
+        }
+
+        public DocumentState WithTextAndTree(ITextAndVersionSource textSource, ValueSource<TreeAndVersion>? treeSource)
+        {
+            return new DocumentState(this.LanguageServices, this.solutionServices, this.Services, this.Attributes, this._options, textSource, this.LoadTextOptions, treeSource);
         }
 
         private static void CheckTree(

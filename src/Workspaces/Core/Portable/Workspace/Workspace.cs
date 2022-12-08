@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -203,7 +204,11 @@ namespace Microsoft.CodeAnalysis
             Action<Solution, Solution>? onAfterUpdate = null)
         {
             var (oldSolution, newSolution) = SetCurrentSolution(
-                transformation: static (oldSolution, data) => data.transformation(oldSolution),
+                transformation: static (oldSolution, data) =>
+                {
+                    var newSolution = data.transformation(oldSolution);
+                    return UnifyLinkedDocumentContents(oldSolution, newSolution);
+                },
                 data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, kind, projectId, documentId),
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
@@ -220,6 +225,67 @@ namespace Microsoft.CodeAnalysis
                 });
 
             return oldSolution != newSolution;
+
+            static Solution UnifyLinkedDocumentContents(Solution oldSolution, Solution newSolution)
+            {
+                // note: if it turns out this is too expensive, we could consider using the passed in projectId/document
+                // to limit the set of changes we look at.  However, GetChanges *should* be fairly fast as it does
+                // workspace-green-node identity checks to quickly narrow down what changed.
+
+                var changes = newSolution.GetChanges(oldSolution);
+
+                // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
+                foreach (var addedProject in changes.GetAddedProjects())
+                {
+                    foreach (var addedDocument in addedProject.Documents)
+                        newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id);
+                }
+
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenChangedDocuments);
+
+                foreach (var projectChanges in changes.GetProjectChanges())
+                {
+                    // Now do the same for all added documents in a project.
+                    foreach (var addedDocument in projectChanges.GetAddedDocuments())
+                        newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument);
+
+                    // now, for any changed document, ensure we go and make all links to it have the same text/tree.
+                    foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
+                        newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentId, seenChangedDocuments);
+                }
+
+                return newSolution;
+            }
+
+            static Solution UpdateAddedDocumentToExistingContentsInSolution(Solution solution, DocumentId addedDocumentId)
+            {
+                var relatedDocumentIds = solution.GetRelatedDocumentIds(addedDocumentId);
+                foreach (var relatedDocumentId in relatedDocumentIds)
+                {
+                    var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                    return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState);
+                }
+
+                return solution;
+            }
+
+            static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, DocumentId changedDocumentId, HashSet<DocumentId> processedDocuments)
+            {
+                // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
+                // process that chain once.
+                if (processedDocuments.Add(changedDocumentId))
+                {
+                    var changedDocument = solution.GetRequiredDocument(changedDocumentId);
+                    var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
+                    foreach (var relatedDocumentId in relatedDocumentIds)
+                    {
+                        if (processedDocuments.Add(relatedDocumentId))
+                            solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState);
+                    }
+                }
+
+                return solution;
+            }
         }
 
         /// <summary>
