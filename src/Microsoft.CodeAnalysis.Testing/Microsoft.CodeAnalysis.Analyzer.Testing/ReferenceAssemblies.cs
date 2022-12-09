@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -995,7 +995,31 @@ namespace Microsoft.CodeAnalysis.Testing
                 new Lazy<ReferenceAssemblies>(() =>
                     Net70.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "7.0.0-preview.7.22377.1"))));
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "7.0.0"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70MacOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.macOS.Ref", "12.3.2372"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70iOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.iOS.Ref", "16.0.1478"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70MacCatalyst =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.4.2372"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70TvOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.tvOS.Ref", "16.0.1478"))));
 
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
@@ -1016,6 +1040,14 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies Net70 => _lazyNet70.Value;
 
             public static ReferenceAssemblies Net70Windows => _lazyNet70Windows.Value;
+
+            public static ReferenceAssemblies Net70iOS => _lazyNet70iOS.Value;
+
+            public static ReferenceAssemblies Net70MacOS => _lazyNet70MacOS.Value;
+
+            public static ReferenceAssemblies Net70MacCatalyst => _lazyNet70MacCatalyst.Value;
+
+            public static ReferenceAssemblies Net70TvOS => _lazyNet70TvOS.Value;
         }
 
         public static class NetStandard
