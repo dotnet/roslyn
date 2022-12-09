@@ -14000,7 +14000,7 @@ class Program
         }
 
         [Fact]
-        public void LocalScope_01_Foreach()
+        public void LocalScope_01_Foreach_01()
         {
             var source =
 @"#pragma warning disable 219
@@ -14093,6 +14093,53 @@ class Enumerator2
                     Assert.Equal("R", model.GetTypeInfo(type).Type.ToTestDisplayString());
                 }
             }
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void LocalScope_01_Foreach_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"#pragma warning disable 219
+ref struct R { }
+class Program
+{
+    static void F(ref R r)
+    {
+        foreach (var _ in new Enumerable1()) break;
+        foreach (R _ in new Enumerable1()) break;
+        foreach (ref var _ in new Enumerable2(ref r)) break;
+        foreach (ref readonly var _ in new Enumerable2(ref r)) break;
+        foreach (ref R _ in new Enumerable2(ref r)) break;
+    }
+}
+
+class Enumerable1
+{
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public R Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2
+{
+    public Enumerable2(ref R x) {}
+    public Enumerator2 GetEnumerator() => default;
+}
+
+class Enumerator2
+{
+    public ref R Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
