@@ -5,15 +5,13 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 {
     // TODO: Remove. This is only needed to support Solution Explorer Analyzer node population. 
     // Analyzers should not be loaded in devenv process (see https://github.com/dotnet/roslyn/issues/43008).
-    internal sealed class VisualStudioAnalyzer : IDisposable
+    internal sealed class ProjectAnalyzerReference : IDisposable
     {
         // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
         // NOTE: It is important that we share the same shadow copy assembly loader for all VisualStudioAnalyzer instances.
@@ -30,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private AnalyzerReference? _analyzerReference;
         private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
 
-        public VisualStudioAnalyzer(string fullPath, IProjectSystemDiagnosticSource projectSystemDiagnosticSource, ProjectId projectId, string language)
+        public ProjectAnalyzerReference(string fullPath, IProjectSystemDiagnosticSource projectSystemDiagnosticSource, ProjectId projectId, string language)
         {
             FullPath = fullPath;
             _projectSystemDiagnosticSource = projectSystemDiagnosticSource;
@@ -58,9 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void OnAnalyzerLoadError(object sender, AnalyzerLoadFailureEventArgs e)
+        private void OnAnalyzerLoadError(object? sender, AnalyzerLoadFailureEventArgs e)
         {
-            var data = DocumentAnalysisExecutor.CreateAnalyzerLoadFailureDiagnostic(e, FullPath, _projectId, _language);
+            var data = _projectSystemDiagnosticSource.CreateAnalyzerLoadFailureDiagnostic(e, FullPath, _projectId, _language);
 
             lock (_gate)
             {

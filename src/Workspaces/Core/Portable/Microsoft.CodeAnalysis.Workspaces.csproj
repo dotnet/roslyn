@@ -148,6 +148,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Workspace\ProjectSystem\Readme.md" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Update="WorkspacesResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>

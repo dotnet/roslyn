@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -183,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
 #nullable enable
 
-        public VisualStudioProject? VisualStudioProject { get; internal set; }
+        public ProjectSystemProject? VisualStudioProject { get; internal set; }
 
 #nullable disable
 
