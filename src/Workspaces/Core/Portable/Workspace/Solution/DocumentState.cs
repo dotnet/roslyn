@@ -511,13 +511,15 @@ namespace Microsoft.CodeAnalysis
 
             Contract.ThrowIfNull(siblingTreeSource);
 
-            // if a tree source is provided, then we'll want to use the tree it creates, to share as much memory as
-            // possible with linked files.  However, we can't point at that source directly.  If we did, we'd produce
-            // the *exact* same tree-reference as another file.  That would be bad as it would break the invariant that
-            // each document gets a unique SyntaxTree.  So, instead, we produce a ValueSource that defers to the
-            // provided source, gets the tree from it, and then wraps its root in a new tree for us.
+            // Always pass along the sibling text.  We will always be in sync with that.
 
-            // copy data from this entity, so we don't keep this green node alive.
+            // if a sibling tree source is provided, then we'll want to attempt to use the tree it creates, to share as
+            // much memory as possible with linked files.  However, we can't point at that source directly.  If we did,
+            // we'd produce the *exact* same tree-reference as another file.  That would be bad as it would break the
+            // invariant that each document gets a unique SyntaxTree.  So, instead, we produce a ValueSource that defers
+            // to the provided source, gets the tree from it, and then wraps its root in a new tree for us.
+
+            // copy data from this entity, and pass to static helper, so we don't keep this green node alive.
 
             var filePath = this.Attributes.SyntaxTreeFilePath;
             var languageServices = this.LanguageServices;
@@ -537,9 +539,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 siblingTextSource,
                 LoadTextOptions,
-                treeSource: newTreeSource);
-
-            // Static so we don't accidentally capture "this" green documentstate node in the async lazy.
+                newTreeSource);
 
             static AsyncLazy<TreeAndVersion> GetReuseTreeSource(
                 string filePath,
@@ -557,10 +557,68 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        private static bool TryReuseSiblingRoot(
+            string filePath,
+            HostLanguageServices languageServices,
+            LoadTextOptions loadTextOptions,
+            ParseOptions parseOptions,
+            SyntaxNode siblingRoot,
+            VersionStamp siblingVersion,
+            [NotNullWhen(true)] out TreeAndVersion? newTreeAndVersion)
+        {
+            var siblingTree = siblingRoot.SyntaxTree;
+
+            // Look for things that disqualify us from being able to use our sibling's root.
+            if (!CanReuseSiblingRoot())
+            {
+                newTreeAndVersion = null;
+                return false;
+            }
+
+            var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+
+            var newTree = treeFactory.CreateSyntaxTree(
+                filePath,
+                parseOptions,
+                siblingTree.Encoding,
+                loadTextOptions.ChecksumAlgorithm,
+                siblingRoot);
+
+            newTreeAndVersion = new TreeAndVersion(newTree, siblingVersion);
+            return true;
+
+            bool CanReuseSiblingRoot()
+            {
+                var siblingParseOptions = siblingTree.Options;
+
+                var ppSymbolsNames1 = parseOptions.PreprocessorSymbolNames;
+                var ppSymbolsNames2 = siblingParseOptions.PreprocessorSymbolNames;
+
+                // If both documents have the same preprocessor directives defined, then they'll always produce the
+                // same trees.  So we can trivially reuse the tree from one for the other.
+                if (ppSymbolsNames1.SetEquals(ppSymbolsNames2))
+                    return true;
+
+                // If the tree contains no `#` directives whatsoever, then you'll parse out the same tree and can reuse it.
+                if (!siblingRoot.ContainsDirectives)
+                    return true;
+
+                // It's ok to contain directives like #nullable, or #region.  They don't affect parsing.  But if we have a
+                // `#if` we can't share as each side might parse this differently.
+                var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
+                if (!siblingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
+                    return true;
+
+                // If the tree contains a #if directive, and the pp-symbol-names are different, then the files
+                // absolutely may be parsed differently, and so they should not be shared.
+                return false;
+            }
+        }
+
         private static async Task<TreeAndVersion> TryReuseSiblingTreeAsync(
             string filePath,
             HostLanguageServices languageServices,
-            LoadTextOptions options,
+            LoadTextOptions loadTextOptions,
             ParseOptions parseOptions,
             ValueSource<TreeAndVersion> treeSource,
             ITextAndVersionSource siblingTextSource,
@@ -572,31 +630,17 @@ namespace Microsoft.CodeAnalysis
 
             var siblingRoot = await siblingTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
-            if (CanReuseSiblingRoot(syntaxKinds.IfDirectiveTrivia, parseOptions, siblingTree.Options, siblingRoot))
-            {
-                var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+            if (TryReuseSiblingRoot(filePath, languageServices, loadTextOptions, parseOptions, siblingRoot, siblingTreeAndVersion.Version, out var newTreeAndVersion))
+                return newTreeAndVersion;
 
-                var newTree = treeFactory.CreateSyntaxTree(
-                    filePath,
-                    parseOptions,
-                    siblingTree.Encoding,
-                    options.ChecksumAlgorithm,
-                    siblingRoot);
-
-                return new TreeAndVersion(newTree, siblingTreeAndVersion.Version);
-            }
-            else
-            {
-                // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.
-                return await IncrementallyParseTreeAsync(treeSource, siblingTextSource, options, cancellationToken).ConfigureAwait(false);
-            }
+            // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.
+            return await IncrementallyParseTreeAsync(treeSource, siblingTextSource, loadTextOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static TreeAndVersion TryReuseSiblingTree(
             string filePath,
             HostLanguageServices languageServices,
-            LoadTextOptions options,
+            LoadTextOptions loadTextOptions,
             ParseOptions parseOptions,
             ValueSource<TreeAndVersion> treeSource,
             ITextAndVersionSource siblingTextSource,
@@ -608,53 +652,11 @@ namespace Microsoft.CodeAnalysis
 
             var siblingRoot = siblingTree.GetRoot(cancellationToken);
 
-            var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
-            if (CanReuseSiblingRoot(syntaxKinds.IfDirectiveTrivia, parseOptions, siblingTree.Options, siblingRoot))
-            {
-                var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+            if (TryReuseSiblingRoot(filePath, languageServices, loadTextOptions, parseOptions, siblingRoot, siblingTreeAndVersion.Version, out var newTreeAndVersion))
+                return newTreeAndVersion;
 
-                var newTree = treeFactory.CreateSyntaxTree(
-                    filePath,
-                    parseOptions,
-                    siblingTree.Encoding,
-                    options.ChecksumAlgorithm,
-                    siblingRoot);
-
-                return new TreeAndVersion(newTree, siblingTreeAndVersion.Version);
-            }
-            else
-            {
-                // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.
-                return IncrementallyParseTree(treeSource, siblingTextSource, options, cancellationToken);
-            }
-        }
-
-        private static bool CanReuseSiblingRoot(
-            int ifDirectiveKind,
-            ParseOptions parseOptions,
-            ParseOptions siblingParseOptions,
-            SyntaxNode siblingRoot)
-        {
-            var ppSymbolsNames1 = parseOptions.PreprocessorSymbolNames;
-            var ppSymbolsNames2 = siblingParseOptions.PreprocessorSymbolNames;
-
-            // If both documents have the same preprocessor directives defined, then they'll always produce the
-            // same trees.  So we can trivially reuse the tree from one for the other.
-            if (ppSymbolsNames1.SetEquals(ppSymbolsNames2))
-                return true;
-
-            // If the tree contains no `#` directives whatsoever, then you'll parse out the same tree and can reuse it.
-            if (!siblingRoot.ContainsDirectives)
-                return true;
-
-            // It's ok to contain directives like #nullable, or #region.  They don't affect parsing.  But if we have a
-            // `#if` we can't share as each side might parse this differently.
-            if (!siblingRoot.ContainsDirective(ifDirectiveKind))
-                return true;
-
-            // If the tree contains a #if directive, and the pp-symbol-names are different, then the files
-            // absolutely may be parsed differently, and so they should not be shared.
-            return false;
+            // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.
+            return IncrementallyParseTree(treeSource, siblingTextSource, loadTextOptions, cancellationToken);
         }
 
 #if false
