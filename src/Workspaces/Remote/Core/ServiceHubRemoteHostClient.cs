@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public readonly RemoteProcessConfiguration Configuration;
 
         private Process? _remoteProcess;
-        private int? _remoteProcessId;
 
         private ServiceHubRemoteHostClient(
             SolutionServices services,
@@ -90,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     try
                     {
-                        client._remoteProcessId = remoteProcessId.Value;
                         client._remoteProcess = Process.GetProcessById(remoteProcessId.Value);
                     }
                     catch (Exception e)
