@@ -356,14 +356,14 @@ class C {
 
             TestContainsHelper1("#define x", SyntaxKind.DefineDirectiveTrivia);
             TestContainsHelper1("#if true\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
-            TestContainsHelper1("#if false\r\n#elif true", SyntaxKind.ElifDirectiveTrivia);
-            TestContainsHelper1("#if false\r\n#elif false", SyntaxKind.ElifDirectiveTrivia);
+            TestContainsHelper1("#if false\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            TestContainsHelper1("#if false\r\n#elif false", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
             TestContainsHelper1("#elif true", SyntaxKind.BadDirectiveTrivia);
-            TestContainsHelper1("#if true\r\n#else", SyntaxKind.ElseDirectiveTrivia);
+            TestContainsHelper1("#if true\r\n#else", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia);
             TestContainsHelper1("#else", SyntaxKind.BadDirectiveTrivia);
-            TestContainsHelper1("#if true\r\n#endif", SyntaxKind.EndIfDirectiveTrivia);
+            TestContainsHelper1("#if true\r\n#endif", SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
             TestContainsHelper1("#endif", SyntaxKind.BadDirectiveTrivia);
-            TestContainsHelper1("#region\r\n#endregion", SyntaxKind.EndRegionDirectiveTrivia);
+            TestContainsHelper1("#region\r\n#endregion", SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
             TestContainsHelper1("#endregion", SyntaxKind.BadDirectiveTrivia);
             TestContainsHelper1("#error", SyntaxKind.ErrorDirectiveTrivia);
             TestContainsHelper1("#if true", SyntaxKind.IfDirectiveTrivia);
