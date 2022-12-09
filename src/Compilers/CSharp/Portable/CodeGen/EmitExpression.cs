@@ -1574,6 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var receiver = call.ReceiverOpt;
             var arguments = call.Arguments;
             LocalDefinition tempOpt = null;
+            LocalDefinition cloneTemp = null;
 
             Debug.Assert(!method.IsStatic && method.RequiresInstanceReceiver);
 
@@ -1655,6 +1656,51 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             CallKind.ConstrainedCallVirt;
 
                 tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
+
+                if (callKind == CallKind.ConstrainedCallVirt && tempOpt is null && !receiverType.IsValueType &&
+                    !ReceiverIsKnownToReferToTempIfReferenceType(call.ReceiverOpt) &&
+                    !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
+                {
+                    // A case where T is actually a class must be handled specially.
+                    // Taking a reference to a class instance is fragile because the value behind the 
+                    // reference might change while arguments are evaluated. However, the call should be
+                    // performed on the instance that is behind reference at the time we push the
+                    // reference to the stack. So, for a class we need to emit a reference to a temporary
+                    // location, rather than to the original location
+
+                    // Struct values are never nulls.
+                    // We will emit a check for such case, but the check is really a JIT-time 
+                    // constant since JIT will know if T is a struct or not.
+
+                    // if ((object)default(T) == null) 
+                    // {
+                    //     temp = receiverRef
+                    //     receiverRef = ref temp
+                    // }
+
+                    object whenNotNullLabel = null;
+
+                    if (!receiverType.IsReferenceType)
+                    {
+                        // if ((object)default(T) == null) 
+                        EmitDefaultValue(receiverType, true, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                        whenNotNullLabel = new object();
+                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
+                    }
+
+                    //     temp = receiverRef
+                    //     receiverRef = ref temp
+                    EmitLoadIndirect(receiverType, receiver.Syntax);
+                    cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
+                    _builder.EmitLocalStore(cloneTemp);
+                    _builder.EmitLocalAddress(cloneTemp);
+
+                    if (whenNotNullLabel is not null)
+                    {
+                        _builder.MarkLabel(whenNotNullLabel);
+                    }
+                }
             }
 
             // When emitting a callvirt to a virtual method we always emit the method info of the
@@ -1730,6 +1776,104 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCallCleanup(call.Syntax, useKind, method);
 
             FreeOptTemp(tempOpt);
+            FreeOptTemp(cloneTemp);
+        }
+
+        internal static bool IsPossibleReferenceTypeReceiverOfConstrainedCall(BoundExpression receiver)
+        {
+            var receiverType = receiver.Type;
+
+            if (receiverType.IsVerifierReference() || receiverType.IsVerifierValue())
+            {
+                return false;
+            }
+
+            return !receiverType.IsValueType;
+        }
+
+        internal static bool ReceiverIsKnownToReferToTempIfReferenceType(BoundExpression receiver)
+        {
+            while (receiver is BoundSequence sequence)
+            {
+                receiver = sequence.Value;
+            }
+
+            if (receiver is
+                    BoundLocal { LocalSymbol.IsKnownToReferToTempIfReferenceType: true } or
+                    BoundComplexConditionalReceiver)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray<BoundExpression> arguments)
+        {
+            return arguments.All(isSafeToDereferenceReceiverRefAfterEvaluatingArgument);
+
+            static bool isSafeToDereferenceReceiverRefAfterEvaluatingArgument(BoundExpression expression)
+            {
+                var current = expression;
+                while (true)
+                {
+                    if (current.ConstantValue != null)
+                    {
+                        return true;
+                    }
+
+                    switch (current.Kind)
+                    {
+                        default:
+                            return false;
+                        case BoundKind.TypeExpression:
+                        case BoundKind.Parameter:
+                        case BoundKind.Local:
+                        case BoundKind.ThisReference:
+                            return true;
+                        case BoundKind.FieldAccess:
+                            {
+                                var field = (BoundFieldAccess)current;
+                                current = field.ReceiverOpt;
+                                if (current is null)
+                                {
+                                    return true;
+                                }
+
+                                break;
+                            }
+                        case BoundKind.PassByCopy:
+                            current = ((BoundPassByCopy)current).Expression;
+                            break;
+                        case BoundKind.BinaryOperator:
+                            {
+                                BoundBinaryOperator b = (BoundBinaryOperator)current;
+                                Debug.Assert(!b.OperatorKind.IsUserDefined());
+
+                                if (b.OperatorKind.IsUserDefined() || !isSafeToDereferenceReceiverRefAfterEvaluatingArgument(b.Right))
+                                {
+                                    return false;
+                                }
+
+                                current = b.Left;
+                                break;
+                            }
+                        case BoundKind.Conversion:
+                            {
+                                BoundConversion conv = (BoundConversion)current;
+                                Debug.Assert(!conv.ConversionKind.IsUserDefinedConversion());
+
+                                if (conv.ConversionKind.IsUserDefinedConversion())
+                                {
+                                    return false;
+                                }
+
+                                current = conv.Operand;
+                                break;
+                            }
+                    }
+                }
+            }
         }
 
         private bool IsReadOnlyCall(MethodSymbol method, NamedTypeSymbol methodContainingType)
@@ -1759,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // returns true when receiver is already a ref.
         // in such cases calling through a ref could be preferred over 
         // calling through indirectly loaded value.
-        private bool IsRef(BoundExpression receiver)
+        internal static bool IsRef(BoundExpression receiver)
         {
             switch (receiver.Kind)
             {

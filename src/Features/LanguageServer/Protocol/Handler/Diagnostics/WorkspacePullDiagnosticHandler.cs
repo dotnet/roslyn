@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Each handler treats those as separate worlds that they are responsible for.
                     if (context.IsTracking(document.GetURI()))
                     {
-                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        context.TraceDebug($"Skipping tracked document: {document.GetURI()}");
                         continue;
                     }
 
