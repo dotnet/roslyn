@@ -123,44 +123,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             analyzerConfig.AppendLine();
             analyzerConfig.AppendLine($"[*.{defaultFileExtension}]");
 
-#if CODE_STYLE
-            var optionSet = new DummyAnalyzerConfigOptions();
-#else
-            var optionSet = options.ToOptionSet();
-#endif
-
-            foreach (var (key, value) in options)
+            foreach (var (optionKey, value) in options)
             {
                 if (value is NamingStylePreferences namingStylePreferences)
                 {
-                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, key.Language!, analyzerConfig);
+                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, optionKey.Language!, analyzerConfig);
                     continue;
                 }
 
-                var editorConfigStorageLocation = key.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
+                var editorConfigStorageLocation = optionKey.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
                 if (editorConfigStorageLocation is null)
                 {
-                    remainingOptions.Add(KeyValuePairUtil.Create(key, value));
+                    remainingOptions.Add(KeyValuePairUtil.Create(optionKey, value));
                     continue;
                 }
 
-#if CODE_STYLE
                 var line = editorConfigStorageLocation.GetEditorConfigString(value);
-#else
-                var line = editorConfigStorageLocation.GetEditorConfigString((OptionKey)key, optionSet);
-#endif
                 analyzerConfig.AppendLine(line);
             }
 
             return (SourceText.From(analyzerConfig.ToString(), Encoding.UTF8), remainingOptions);
         }
-
-#if CODE_STYLE
-        internal sealed class DummyAnalyzerConfigOptions : AnalyzerConfigOptions
-        {
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-                => throw new NotImplementedException();
-        }
-#endif
     }
 }

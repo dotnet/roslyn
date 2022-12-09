@@ -198,9 +198,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
+            var dataSnapshot = settingsProvider.GetCurrentDataSnapshot();
+
+            // multiple settings may share the same option (e.g. settings representing flags of an enum):
+            var optionsForSettings = dataSnapshot.GroupBy(s => s.Option).Select(g => g.Key).ToArray();
+
             var optionsCount = CSharpFormattingOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count();
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+            Assert.Equal(optionsCount, optionsForSettings.Length);
         }
 
         [Fact]

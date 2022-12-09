@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly Func<T, string> _serializeValue;
 
 #if !CODE_STYLE
-        private readonly Func<OptionSet, string>? _serializeValueFromOptionSet;
+        private readonly Func<OptionSet, T>? _getValueFromOptionSet;
 
         public EditorConfigStorageLocation(
             string keyName,
             Func<string, Optional<T>> parseValue,
             Func<T, string> serializeValue,
-            Func<OptionSet, string>? serializeValueFromOptionSet)
+            Func<OptionSet, T>? getValueFromOptionSet)
             : this(keyName, parseValue, serializeValue)
         {
-            _serializeValueFromOptionSet = serializeValueFromOptionSet;
+            _getValueFromOptionSet = getValueFromOptionSet;
         }
 #endif
         public EditorConfigStorageLocation(
@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Options
 #if !CODE_STYLE
         public string GetEditorConfigStringValue(OptionKey optionKey, OptionSet optionSet)
         {
-            if (_serializeValueFromOptionSet != null)
+            if (_getValueFromOptionSet != null)
             {
-                var editorConfigStringForValue = _serializeValueFromOptionSet(optionSet);
+                var editorConfigStringForValue = _serializeValue(_getValueFromOptionSet(optionSet));
                 Contract.ThrowIfTrue(RoslynString.IsNullOrEmpty(editorConfigStringForValue));
                 return editorConfigStringForValue;
             }
