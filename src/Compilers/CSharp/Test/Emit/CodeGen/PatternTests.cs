@@ -5496,7 +5496,7 @@ class B
 
         #region Pattern Combinators
 
-        [Fact]
+        [Fact(Skip = "is-expressions with 'or' patterns use switch dispatch")]
         public void IsPatternDisjunct_01()
         {
             var source = @"
@@ -5559,7 +5559,7 @@ class C
             compVerifier.VerifyIL("C.M2", code);
         }
 
-        [Fact]
+        [Fact(Skip = "is-expressions with 'or' patterns use switch dispatch")]
         public void IsPatternDisjunct_02()
         {
             var source = @"
