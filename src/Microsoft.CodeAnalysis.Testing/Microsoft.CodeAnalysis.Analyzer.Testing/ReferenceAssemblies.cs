@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -954,25 +954,25 @@ namespace Microsoft.CodeAnalysis.Testing
                 new Lazy<ReferenceAssemblies>(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.iOS.Ref", "15.0.100-rc.1.1534"))));
+                            new PackageIdentity("Microsoft.iOS.Ref", "16.0.527"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacOS =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.macOS.Ref", "12.0.100-rc.1.1534"))));
+                            new PackageIdentity("Microsoft.macOS.Ref", "12.3.471"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacCatalyst =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.0.100-rc.1.1534"))));
+                            new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.4.471"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60TvOS =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.tvOS.Ref", "15.0.100-rc.1.1534"))));
+                            new PackageIdentity("Microsoft.tvOS.Ref", "16.0.527"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70 =
                 new Lazy<ReferenceAssemblies>(() =>
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net7.0",
                         new PackageIdentity(
                             "Microsoft.NETCore.App.Ref",
-                            "7.0.0-preview.7.22375.6"),
+                            "7.0.0"),
                         Path.Combine("ref", "net7.0"));
                 });
 
