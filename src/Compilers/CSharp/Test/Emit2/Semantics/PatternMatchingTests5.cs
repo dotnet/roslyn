@@ -3155,13 +3155,27 @@ class N
             var source = """
 class C
 {
+    public static void Main()
+    {
+        System.Console.Write(
+              Test(0) == false
+            & Test(1)
+            & Test(2)
+            & Test(3)
+            & Test(4)
+            & Test(5)
+            & Test(6)
+            & Test(7)
+            & Test(8)
+        );
+    }  
     public static bool Test(int a)
     {
         return (a is 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8);
     }
 }
 """;
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
             compilation.VerifyIL("C.Test", """
 {
   // Code size       14 (0xe)
@@ -3182,20 +3196,102 @@ class C
 }
 """);
         }
-        
+
+        [Fact, WorkItem(45679, "https://github.com/dotnet/roslyn/issues/45679")]
+        public void IsExpression_SwitchDispatch_SwitchIL()
+        {
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(
+              Test(1, null) == false
+            & Test(1, default(int))
+            & Test(2, default(bool))
+            & Test(3, default(double))
+            & Test(4, default(long))
+            & Test(5, default(long)) == false
+        );
+    }
+    public static bool Test(int a, object b)
+    {
+        return (a, b) is 
+                (1, int) or
+                (2, bool) or
+                (3, double) or
+                (4, long);
+    }
+}
+""";
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
+            compilation.VerifyIL("C.Test", """
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  switch    (
+        IL_001a,
+        IL_0024,
+        IL_002e,
+        IL_0038)
+  IL_0018:  br.s       IL_0044
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     "int"
+  IL_0020:  brtrue.s   IL_0040
+  IL_0022:  br.s       IL_0044
+  IL_0024:  ldarg.1
+  IL_0025:  isinst     "bool"
+  IL_002a:  brtrue.s   IL_0040
+  IL_002c:  br.s       IL_0044
+  IL_002e:  ldarg.1
+  IL_002f:  isinst     "double"
+  IL_0034:  brtrue.s   IL_0040
+  IL_0036:  br.s       IL_0044
+  IL_0038:  ldarg.1
+  IL_0039:  isinst     "long"
+  IL_003e:  brfalse.s  IL_0044
+  IL_0040:  ldc.i4.1
+  IL_0041:  stloc.0
+  IL_0042:  br.s       IL_0046
+  IL_0044:  ldc.i4.0
+  IL_0045:  stloc.0
+  IL_0046:  ldloc.0
+  IL_0047:  ret
+}
+""");
+        }
+
         [Fact, WorkItem(45679, "https://github.com/dotnet/roslyn/issues/45679")]
         public void IsExpression_SwitchDispatch_String()
         {
             var source = """
 class C
 {
+    public static void Main()
+    {
+        System.Console.Write(
+              Test("0") == false
+            & Test("1")
+            & Test("2")
+            & Test("3")
+            & Test("4")
+            & Test("5")
+            & Test("6")
+            & Test("7")
+            & Test("8")
+        );
+    }  
     public static bool Test(string a)
     {
         return (a is "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8");
     }
 }
 """;
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
             compilation.VerifyIL("C.Test", """
 {
   // Code size      244 (0xf4)
