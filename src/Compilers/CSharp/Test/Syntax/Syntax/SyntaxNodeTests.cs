@@ -355,7 +355,7 @@ class C {
                 Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { }").ContainsDirective(kind));
 
             TestContainsHelper1("#define x", SyntaxKind.DefineDirectiveTrivia);
-            TestContainsHelper1("#if true\r\n#elif true", SyntaxKind.ElifDirectiveTrivia);
+            TestContainsHelper1("#if true\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
             TestContainsHelper1("#if false\r\n#elif true", SyntaxKind.ElifDirectiveTrivia);
             TestContainsHelper1("#if false\r\n#elif false", SyntaxKind.ElifDirectiveTrivia);
             TestContainsHelper1("#elif true", SyntaxKind.BadDirectiveTrivia);
@@ -369,37 +369,38 @@ class C {
             TestContainsHelper1("#if true", SyntaxKind.IfDirectiveTrivia);
             TestContainsHelper1("#nullable enable", SyntaxKind.NullableDirectiveTrivia);
             TestContainsHelper1("#region enable", SyntaxKind.RegionDirectiveTrivia);
-            TestContainsHelper1("#!command", SyntaxKind.ShebangDirectiveTrivia, SourceCodeKind.Script);
             TestContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
             TestContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
 
+            TestContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
+            TestContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
+            TestContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+
             return;
 
-            void TestContainsHelper1(string directive, SyntaxKind directiveKind, SourceCodeKind kind = SourceCodeKind.Regular)
+            void TestContainsHelper1(string directive, params SyntaxKind[] directiveKinds)
             {
-                var options = kind == SourceCodeKind.Regular ? TestOptions.Regular : TestOptions.Script;
+                Assert.True(directiveKinds.Length > 0);
 
                 // directive on its own.
-                TestContainsHelper2(directive, directiveKind, SyntaxFactory.ParseCompilationUnit(directive, options: options));
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive));
 
                 // Two of the same directive back to back.
-                TestContainsHelper2(directive, directiveKind, SyntaxFactory.ParseCompilationUnit($$"""
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
                     {{directive}}
                     {{directive}}
-                    """, options: options));
+                    """));
 
-                if (kind == SourceCodeKind.Regular)
-                {
-                    // Directive inside a namespace
-                    TestContainsHelper2(directive, directiveKind, SyntaxFactory.ParseCompilationUnit($$"""
+                // Directive inside a namespace
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
                     namespace N
                     {
 {{directive}}
                     }
                     """));
 
-                    // Multiple Directive inside a namespace
-                    TestContainsHelper2(directive, directiveKind, SyntaxFactory.ParseCompilationUnit($$"""
+                // Multiple Directive inside a namespace
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
                     namespace N
                     {
                     {{directive}}
@@ -407,8 +408,8 @@ class C {
                     }
                     """));
 
-                    // Directives on different elements in a namespace
-                    TestContainsHelper2(directive, directiveKind, SyntaxFactory.ParseCompilationUnit($$"""
+                // Directives on different elements in a namespace
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
                     namespace N
                     {
                     {{directive}}
@@ -421,16 +422,17 @@ class C {
                         }
                     }
                     """));
-                }
             }
 
-            void TestContainsHelper2(string directive, SyntaxKind directiveKind, CompilationUnitSyntax compilationUnit)
+            void TestContainsHelper2(SyntaxKind[] directiveKinds, CompilationUnitSyntax compilationUnit)
             {
                 Assert.True(compilationUnit.ContainsDirectives);
-                Assert.True(compilationUnit.ContainsDirective(directiveKind));
-                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+                foreach (var directiveKind in directiveKinds)
+                    Assert.True(compilationUnit.ContainsDirective(directiveKind));
+
+                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedType; kind++)
                 {
-                    if (kind != directiveKind)
+                    if (!directiveKinds.Contains(kind))
                         Assert.False(compilationUnit.ContainsDirective(kind));
                 }
             }

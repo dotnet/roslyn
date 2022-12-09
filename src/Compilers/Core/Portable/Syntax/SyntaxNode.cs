@@ -475,11 +475,12 @@ namespace Microsoft.CodeAnalysis
                             {
                                 for (int i = 0, n = leadingTriviaNode.SlotCount; i < n; i++)
                                 {
-                                    if (leadingTriviaNode.GetSlot(i)?.RawKind == rawKind)
+                                    var child = leadingTriviaNode.GetSlot(i);
+                                    if (child != null && child.IsDirective && child.RawKind == rawKind)
                                         return true;
                                 }
                             }
-                            else if (leadingTriviaNode.RawKind == rawKind)
+                            else if (leadingTriviaNode.IsDirective && leadingTriviaNode.RawKind == rawKind)
                             {
                                 return true;
                             }
