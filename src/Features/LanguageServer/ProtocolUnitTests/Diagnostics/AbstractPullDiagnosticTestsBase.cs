@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             string? category = null)
         {
             var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
-            optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTaskListItems);
+            optionService.SetGlobalOption(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles, includeTaskListItems);
             await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
@@ -284,11 +284,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 ClientCapabilities = useVSDiagnostics ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities(),
                 OptionUpdater = (globalOptions) =>
                 {
-                    globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), scope);
-                    globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), scope);
-                    globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript), scope);
-                    globalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), mode);
-                    globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles), true);
+                    globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
+                    globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
+                    globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript, scope);
+                    globalOptions.SetGlobalOption(InternalDiagnosticsOptions.NormalDiagnosticMode, mode);
+                    globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, true);
                 },
                 ServerKind = serverKind,
                 SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>()
