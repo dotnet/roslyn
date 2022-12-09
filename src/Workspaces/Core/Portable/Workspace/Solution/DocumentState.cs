@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -567,7 +568,8 @@ namespace Microsoft.CodeAnalysis
 
             var siblingRoot = await siblingTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (CanReuseSiblingRoot(parseOptions, siblingTree.Options, siblingRoot))
+            var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
+            if (CanReuseSiblingRoot(syntaxKinds.IfDirectiveTrivia, parseOptions, siblingTree.Options, siblingRoot))
             {
                 var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
@@ -602,7 +604,8 @@ namespace Microsoft.CodeAnalysis
 
             var siblingRoot = siblingTree.GetRoot(cancellationToken);
 
-            if (CanReuseSiblingRoot(parseOptions, siblingTree.Options, siblingRoot))
+            var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
+            if (CanReuseSiblingRoot(syntaxKinds.IfDirectiveTrivia, parseOptions, siblingTree.Options, siblingRoot))
             {
                 var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
@@ -623,6 +626,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static bool CanReuseSiblingRoot(
+            int ifDirectiveKind,
             ParseOptions parseOptions,
             ParseOptions siblingParseOptions,
             SyntaxNode siblingRoot)
@@ -639,11 +643,10 @@ namespace Microsoft.CodeAnalysis
             if (!siblingRoot.ContainsDirectives)
                 return true;
 
-#if false
-            // It's ok to contain directives like #nullable, or #region.  They don't affect parsing.
-            if (!siblingRoot.ContainsConditionalDirectives())
+            // It's ok to contain directives like #nullable, or #region.  They don't affect parsing.  But if we have a
+            // `#if` we can't share as each side might parse this differently.
+            if (!siblingRoot.ContainsDirective(ifDirectiveKind))
                 return true;
-#endif
 
             // If the tree contains a #if directive, and the pp-symbol-names are different, then the files
             // absolutely may be parsed differently, and so they should not be shared.
