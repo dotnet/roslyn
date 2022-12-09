@@ -8,14 +8,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordConstructor : SourceConstructorSymbolBase
+    internal sealed class SynthesizedPrimaryConstructor : SourceConstructorSymbolBase
     {
-        public SynthesizedRecordConstructor(
+        // PROTOTYPE(PrimaryConstructors): rename file
+        public SynthesizedPrimaryConstructor(
              SourceMemberContainerTypeSymbol containingType,
              TypeDeclarationSyntax syntax) :
              base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
         {
-            Debug.Assert(syntax.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration);
+            Debug.Assert(syntax.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
 
             this.MakeFlags(
                 MethodKind.Constructor,
@@ -25,25 +26,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 
-        internal RecordDeclarationSyntax GetSyntax()
+        internal TypeDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
-            return (RecordDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+            return (TypeDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
         protected override ParameterListSyntax GetParameterList()
         {
-            var record = GetSyntax();
-            return record.ParameterList!;
+            return GetSyntax().ParameterList!;
         }
 
         protected override CSharpSyntaxNode? GetInitializer()
         {
-            var record = GetSyntax();
-            return record.PrimaryConstructorBaseTypeIfClass;
+            return GetSyntax().PrimaryConstructorBaseTypeIfClass;
         }
 
-        protected override bool AllowRefOrOut => false;
+        protected override bool AllowRefOrOut => !(ContainingType is { IsRecord: true } or { IsRecordStruct: true });
 
         internal override bool IsExpressionBodied => false;
 
@@ -61,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
             TypeDeclarationSyntax typeDecl = GetSyntax();
-            Debug.Assert(typeDecl is RecordDeclarationSyntax);
-            InMethodBinder result = (binderFactoryOpt ?? this.DeclaringCompilation.GetBinderFactory(typeDecl.SyntaxTree)).GetRecordConstructorInMethodBinder(this);
+            Debug.Assert(typeDecl.ParameterList is not null);
+            InMethodBinder result = (binderFactoryOpt ?? this.DeclaringCompilation.GetBinderFactory(typeDecl.SyntaxTree)).GetPrimaryConstructorInMethodBinder(this);
             return new ExecutableCodeBinder(SyntaxNode, this, result.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None));
         }
     }

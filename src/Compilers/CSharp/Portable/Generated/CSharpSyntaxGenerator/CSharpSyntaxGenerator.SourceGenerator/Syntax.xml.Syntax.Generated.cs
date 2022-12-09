@@ -10152,7 +10152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
-        public ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 5);
+        public new ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 5);
 
         public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 6);
 
@@ -10316,7 +10316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
-        public ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 5);
+        public new ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 5);
 
         public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 6);
 
@@ -10627,7 +10627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 5);
 
-        public ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 6);
+        public new ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 6);
 
         public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 7);
 

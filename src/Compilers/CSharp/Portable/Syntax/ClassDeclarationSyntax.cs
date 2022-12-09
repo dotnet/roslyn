@@ -10,5 +10,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return Update(attributeLists, modifiers, keyword, identifier, typeParameterList, ParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
         }
+
+        protected override ParameterListSyntax? ParameterListCore => ParameterList;
+    }
+}
+
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+{
+    partial class ClassDeclarationSyntax
+    {
+        protected override ParameterListSyntax? ParameterListCore => ParameterList;
     }
 }

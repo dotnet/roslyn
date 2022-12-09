@@ -646,12 +646,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 diagnostics.AddRange(this.Diagnostics);
 
-                if (CurrentSymbol is SynthesizedRecordConstructor)
+                if (CurrentSymbol is SynthesizedPrimaryConstructor)
                 {
                     foreach (ParameterSymbol parameter in MethodParameters)
                     {
                         if (_readParameters?.Contains(parameter) != true)
                         {
+                            // PROTOTYPE(PrimaryConstructors): Adjust message?
                             diagnostics.Add(ErrorCode.WRN_UnreadRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
                         }
                     }
@@ -702,9 +703,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Tracking reads/writes of variables for warnings
 
-        private void NoteRecordParameterReadIfNeeded(Symbol symbol)
+        private void NotePrimaryConstructorParameterReadIfNeeded(Symbol symbol)
         {
-            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedRecordConstructor } parameter)
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor } parameter)
             {
                 _readParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
                 _readParameters.Add(parameter);
@@ -720,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _usedVariables.Add(local);
             }
 
-            NoteRecordParameterReadIfNeeded(variable);
+            NotePrimaryConstructorParameterReadIfNeeded(variable);
 
             var localFunction = variable as LocalFunctionSymbol;
             if ((object)localFunction != null)
@@ -2209,7 +2210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                NoteRecordParameterReadIfNeeded(node.ParameterSymbol);
+                NotePrimaryConstructorParameterReadIfNeeded(node.ParameterSymbol);
             }
 
             return null;

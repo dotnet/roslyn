@@ -4281,7 +4281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return constructor.ContainingType is SourceNamedTypeSymbol sourceType &&
                 sourceType.IsRecord &&
-                constructor is not SynthesizedRecordConstructor &&
+                constructor is not SynthesizedPrimaryConstructor &&
                 SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor);
         }
 

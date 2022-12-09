@@ -1186,11 +1186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
 
-                if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
+                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
                 {
                     Binder outerBinder = VisitCore(memberSyntax);
-                    SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
-                    var primaryConstructor = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
+                    SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
+                    var primaryConstructor = type.GetMembersUnordered().OfType<SynthesizedPrimaryConstructor>().SingleOrDefault();
 
                     if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
                         primaryConstructor.GetSyntax() == memberSyntax)
@@ -1322,9 +1322,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder getBinder(BaseTypeDeclarationSyntax baseTypeDeclaration)
             {
-                if (baseTypeDeclaration is RecordDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken } } recordDeclaration)
+                if (baseTypeDeclaration is TypeDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken }, OpenBraceToken: { RawKind: (int)SyntaxKind.None } } noBlockBodyTypeDeclarationWithSemicolon)
                 {
-                    return factory.GetInRecordBodyBinder(recordDeclaration);
+                    return factory.GetInTypeBodyBinder(noBlockBodyTypeDeclarationWithSemicolon);
                 }
 
                 return factory.GetBinder(baseTypeDeclaration, baseTypeDeclaration.OpenBraceToken.SpanStart);

@@ -158,10 +158,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.ExpressionBody, enclosing);
         }
 
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
+        {
+            VisitTypeDeclaration(node);
+        }
+
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
+            VisitTypeDeclaration(node);
+        }
+
+        private void VisitTypeDeclaration(TypeDeclarationSyntax node)
+        {
             Debug.Assert(node.ParameterList is object);
-            Debug.Assert(node.IsKind(SyntaxKind.RecordDeclaration));
+            Debug.Assert(node.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration);
 
             Visit(node.PrimaryConstructorBaseTypeIfClass);
         }
