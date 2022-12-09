@@ -2127,11 +2127,17 @@ End Module
                                           ' Two of the same directive back to back.
                                           TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive & vbCrLf & directive))
 
+                                          ' Two of the same directive back to back with additional trivia
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("   " & directive & vbCrLf & "   " & directive))
+
                                           ' Directive inside a namespace
                                           TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & "end namespace"))
 
                                           ' Multiple Directive inside a namespace
                                           TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & directive & vbCrLf & "end namespace"))
+
+                                          ' Multiple Directive inside a namespace with additional trivia
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "   " & directive & vbCrLf & "   " & directive & vbCrLf & "end namespace"))
 
                                           ' Directives on different elements in a namespace
                                           TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & "class C" & vbCrLf & "end class" & directive & vbCrLf & "class D" & vbCrLf & "end class" & vbCrLf & "end namespace"))

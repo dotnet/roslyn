@@ -372,6 +372,7 @@ class C {
             TestContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
             TestContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
 
+            // !# is special and is only recognized at start of a script file and nowhere else.
             TestContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
             TestContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
             TestContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
@@ -391,6 +392,12 @@ class C {
                     {{directive}}
                     """));
 
+                // Two of the same directive back to back with additional trivia
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                       {{directive}}
+                       {{directive}}
+                    """));
+
                 // Directive inside a namespace
                 TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
                     namespace N
@@ -408,6 +415,15 @@ class C {
                     }
                     """));
 
+                // Multiple Directive inside a namespace with additional trivia
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                       {{directive}}
+                       {{directive}}
+                    }
+                    """));
+
                 // Directives on different elements in a namespace
                 TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
                     namespace N
@@ -417,6 +433,21 @@ class C {
                         {
                         }
                     {{directive}}
+                        class D
+                        {
+                        }
+                    }
+                    """));
+
+                // Directives on different elements in a namespace with additional trivia
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                        {{directive}}
+                        class C
+                        {
+                        }
+                        {{directive}}
                         class D
                         {
                         }
