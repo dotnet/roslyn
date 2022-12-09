@@ -426,17 +426,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether this node has any descendant preprocessor directives.
-        /// </summary>
-        public bool ContainsDirectives
-        {
-            get
-            {
-                return this.Green.ContainsDirectives;
-            }
-        }
-
-        /// <summary>
         /// Determines whether this node or any of its descendant nodes, tokens or trivia have any diagnostics on them. 
         /// </summary>
         public bool ContainsDiagnostics
@@ -444,6 +433,71 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return this.Green.ContainsDiagnostics;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether this node has any descendant preprocessor directives.
+        /// </summary>
+        public bool ContainsDirectives => this.Green.ContainsDirectives;
+
+        /// <summary>
+        /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with a matching kind.
+        /// </summary>
+        public bool ContainsDirective(int rawKind)
+        {
+            var stack = PooledObjects.ArrayBuilder<GreenNode?>.GetInstance();
+            stack.Push(this.Green);
+
+            try
+            {
+                while (stack.Count > 0)
+                {
+                    var current = stack.Pop();
+                    if (current is null)
+                        continue;
+
+                    // Don't bother looking further down this portion of the tree if it clearly doesn't contain directives.
+                    if (!current.ContainsDirectives)
+                        continue;
+
+                    if (current.IsToken)
+                    {
+                        // no need to look within if this token doesn't even have leading trivia.
+                        if (current.HasLeadingTrivia)
+                        {
+                            var leadingTriviaNode = current.GetLeadingTriviaCore();
+                            Debug.Assert(leadingTriviaNode != null);
+
+                            // Will either have one or many trivia nodes.
+                            if (leadingTriviaNode.IsList)
+                            {
+                                for (int i = 0, n = leadingTriviaNode.SlotCount; i < n; i++)
+                                {
+                                    var child = leadingTriviaNode.GetSlot(i);
+                                    if (child != null && child.IsDirective && child.RawKind == rawKind)
+                                        return true;
+                                }
+                            }
+                            else if (leadingTriviaNode.IsDirective && leadingTriviaNode.RawKind == rawKind)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // nodes and lists.  Push children backwards so we walk the tree in lexical order.
+                        for (int i = current.SlotCount - 1; i >= 0; i--)
+                            stack.Push(current.GetSlot(i));
+                    }
+                }
+
+                return false;
+            }
+            finally
+            {
+                stack.Free();
             }
         }
 

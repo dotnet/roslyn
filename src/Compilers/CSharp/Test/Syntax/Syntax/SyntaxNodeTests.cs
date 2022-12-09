@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -339,6 +340,132 @@ class C {
             for (int i = 0; i < directives.Count; i++)
             {
                 Assert.Equal(directives[i], descendantDirectives[i]);
+            }
+        }
+
+        [Fact]
+        public void TestContainsDirective()
+        {
+            // Empty compilation unit shouldn't have any directives in it.
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+                Assert.False(SyntaxFactory.ParseCompilationUnit("").ContainsDirective(kind));
+
+            // basic file shouldn't have any directives in it.
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { }").ContainsDirective(kind));
+
+            TestContainsHelper1("#define x", SyntaxKind.DefineDirectiveTrivia);
+            TestContainsHelper1("#if true\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            TestContainsHelper1("#if false\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            TestContainsHelper1("#if false\r\n#elif false", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            TestContainsHelper1("#elif true", SyntaxKind.BadDirectiveTrivia);
+            TestContainsHelper1("#if true\r\n#else", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia);
+            TestContainsHelper1("#else", SyntaxKind.BadDirectiveTrivia);
+            TestContainsHelper1("#if true\r\n#endif", SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+            TestContainsHelper1("#endif", SyntaxKind.BadDirectiveTrivia);
+            TestContainsHelper1("#region\r\n#endregion", SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+            TestContainsHelper1("#endregion", SyntaxKind.BadDirectiveTrivia);
+            TestContainsHelper1("#error", SyntaxKind.ErrorDirectiveTrivia);
+            TestContainsHelper1("#if true", SyntaxKind.IfDirectiveTrivia);
+            TestContainsHelper1("#nullable enable", SyntaxKind.NullableDirectiveTrivia);
+            TestContainsHelper1("#region enable", SyntaxKind.RegionDirectiveTrivia);
+            TestContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
+            TestContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
+
+            // !# is special and is only recognized at start of a script file and nowhere else.
+            TestContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
+            TestContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
+            TestContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+
+            return;
+
+            void TestContainsHelper1(string directive, params SyntaxKind[] directiveKinds)
+            {
+                Assert.True(directiveKinds.Length > 0);
+
+                // directive on its own.
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive));
+
+                // Two of the same directive back to back.
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    {{directive}}
+                    {{directive}}
+                    """));
+
+                // Two of the same directive back to back with additional trivia
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                       {{directive}}
+                       {{directive}}
+                    """));
+
+                // Directive inside a namespace
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+{{directive}}
+                    }
+                    """));
+
+                // Multiple Directive inside a namespace
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                    {{directive}}
+                    {{directive}}
+                    }
+                    """));
+
+                // Multiple Directive inside a namespace with additional trivia
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                       {{directive}}
+                       {{directive}}
+                    }
+                    """));
+
+                // Directives on different elements in a namespace
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                    {{directive}}
+                        class C
+                        {
+                        }
+                    {{directive}}
+                        class D
+                        {
+                        }
+                    }
+                    """));
+
+                // Directives on different elements in a namespace with additional trivia
+                TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                        {{directive}}
+                        class C
+                        {
+                        }
+                        {{directive}}
+                        class D
+                        {
+                        }
+                    }
+                    """));
+            }
+
+            void TestContainsHelper2(SyntaxKind[] directiveKinds, CompilationUnitSyntax compilationUnit)
+            {
+                Assert.True(compilationUnit.ContainsDirectives);
+                foreach (var directiveKind in directiveKinds)
+                    Assert.True(compilationUnit.ContainsDirective(directiveKind));
+
+                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedType; kind++)
+                {
+                    if (!directiveKinds.Contains(kind))
+                        Assert.False(compilationUnit.ContainsDirective(kind));
+                }
             }
         }
 

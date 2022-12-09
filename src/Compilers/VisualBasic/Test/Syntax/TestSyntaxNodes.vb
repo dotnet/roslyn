@@ -2095,6 +2095,65 @@ End Module
 
         End Sub
 
+        <Fact>
+        Public Sub TestContainsDirective()
+            ' Empty compilation unit shouldn't have any directives in it.
+            For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
+                Assert.False(SyntaxFactory.ParseCompilationUnit("").ContainsDirective(currentKind))
+            Next
+
+            ' basic file shouldn't have any directives in it.
+            For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
+                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "end namespace").ContainsDirective(currentKind))
+            Next
+
+            Dim TestContainsHelper2 = Sub(directiveKinds As SyntaxKind(), compilationUnit As CompilationUnitSyntax)
+                                          Assert.True(compilationUnit.ContainsDirectives)
+                                          For Each currentKind In directiveKinds
+                                              Assert.True(compilationUnit.ContainsDirective(currentKind))
+                                          Next
+
+                                          For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
+                                              If Not directiveKinds.Contains(currentKind) Then
+                                                  Assert.False(compilationUnit.ContainsDirective(currentKind))
+                                              End If
+                                          Next
+                                      End Sub
+
+            Dim TestContainsHelper1 = Sub(directive As String, directiveKinds As SyntaxKind())
+                                          ' directive on its own.
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive))
+
+                                          ' Two of the same directive back to back.
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive & vbCrLf & directive))
+
+                                          ' Two of the same directive back to back with additional trivia
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("   " & directive & vbCrLf & "   " & directive))
+
+                                          ' Directive inside a namespace
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & "end namespace"))
+
+                                          ' Multiple Directive inside a namespace
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & directive & vbCrLf & "end namespace"))
+
+                                          ' Multiple Directive inside a namespace with additional trivia
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "   " & directive & vbCrLf & "   " & directive & vbCrLf & "end namespace"))
+
+                                          ' Directives on different elements in a namespace
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & "class C" & vbCrLf & "end class" & directive & vbCrLf & "class D" & vbCrLf & "end class" & vbCrLf & "end namespace"))
+                                      End Sub
+
+            TestContainsHelper1("#const x", {SyntaxKind.ConstDirectiveTrivia})
+            TestContainsHelper1("#if true" & vbCrLf & "#else", {SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia})
+            TestContainsHelper1("#else", {SyntaxKind.ElseDirectiveTrivia})
+            TestContainsHelper1("#if true" & vbCrLf & "#end if", {SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia})
+            TestContainsHelper1("#end if", {SyntaxKind.EndIfDirectiveTrivia})
+            TestContainsHelper1("#region" & vbCrLf & "#end region", {SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia})
+            TestContainsHelper1("#end region", {SyntaxKind.EndRegionDirectiveTrivia})
+            TestContainsHelper1("#if true", {SyntaxKind.IfDirectiveTrivia})
+            TestContainsHelper1("#region", {SyntaxKind.RegionDirectiveTrivia})
+        End Sub
+
         <WorkItem(537404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537404")>
         <Fact>
         Public Sub TestNodeTokenConversion01()

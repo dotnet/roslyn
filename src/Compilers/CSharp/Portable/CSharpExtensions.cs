@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis
             return nodeOrToken.RawKind == (int)kind;
         }
 
+        /// <inheritdoc cref="SyntaxNode.ContainsDirective"/>
+        public static bool ContainsDirective(this SyntaxNode node, SyntaxKind kind)
+            => node.ContainsDirective((int)kind);
+
         internal static SyntaxKind ContextualKind(this SyntaxToken token)
         {
             return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
