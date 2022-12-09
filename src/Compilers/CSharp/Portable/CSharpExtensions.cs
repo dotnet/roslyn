@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis
             return nodeOrToken.RawKind == (int)kind;
         }
 
+        /// <inheritdoc cref="SyntaxNode.ContainsDirective"/>
         public static bool ContainsDirective(this SyntaxNode node, SyntaxKind kind)
             => node.ContainsDirective((int)kind);
 

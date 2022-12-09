@@ -442,8 +442,7 @@ namespace Microsoft.CodeAnalysis
         public bool ContainsDirectives => this.Green.ContainsDirectives;
 
         /// <summary>
-        /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with the same
-        /// <see cref="RawKind"/> as <paramref name="rawKind"/>.
+        /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with a matching kind.
         /// </summary>
         public bool ContainsDirective(int rawKind)
         {

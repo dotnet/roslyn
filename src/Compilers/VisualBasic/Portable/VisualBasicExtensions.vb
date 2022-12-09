@@ -63,6 +63,7 @@ Namespace Microsoft.CodeAnalysis
             Return nodeOrToken.RawKind = kind
         End Function
 
+        ''' <inheritdoc cref="SyntaxNode.ContainsDirective"/>
         <Extension>
         Public Function ContainsDirective(node As SyntaxNode, kind As SyntaxKind) As Boolean
             Return node.ContainsDirective(CType(kind, Integer))
