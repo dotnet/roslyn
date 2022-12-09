@@ -14331,7 +14331,7 @@ class Enumerator2
 
 class Program
 {
-    static void F(ref R r)
+    static void F0(ref R r)
     {
         foreach ((R r0, _) in new Enumerable1()) break;
 
@@ -14342,6 +14342,15 @@ class Program
         foreach ((var r11, R _) in new Enumerable1()) break;
         foreach ((ref var r21, ref R _) in new Enumerable2(ref r)) break;
         foreach ((ref readonly var r51, ref readonly R _) in new Enumerable2(ref r)) break;
+    }
+
+    static void F1()
+    {
+        var e1 = new Enumerable1().GetEnumerator();
+        e1.MoveNext();
+        e1.Current.Deconstruct(out R r0, out _);
+        e1.Current.Deconstruct(out R r1, out var _);
+        e1.Current.Deconstruct(out var r11, out R _);
     }
 }
 
