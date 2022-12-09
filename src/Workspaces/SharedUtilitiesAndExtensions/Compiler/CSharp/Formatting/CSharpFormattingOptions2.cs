@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.WrappingKeepStatementsOnSingleLine"));
 
         // Legacy options, only to be used in OptionSets and global options.
-        
+
         public static Option2<bool> NewLinesForBracesInTypes { get; } = CreateNewLineForBracesLegacyOption(
             "NewLinesForBracesInTypes",
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes));
