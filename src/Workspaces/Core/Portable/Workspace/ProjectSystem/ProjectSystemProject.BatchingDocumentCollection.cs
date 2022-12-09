@@ -17,19 +17,19 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 {
-    internal sealed partial class VisualStudioProject
+    internal sealed partial class ProjectSystemProject
     {
         /// <summary>
         /// Helper class to manage collections of source-file like things; this exists just to avoid duplicating all the logic for regular source files
         /// and additional files.
         /// </summary>
-        /// <remarks>This class should be free-threaded, and any synchronization is done via <see cref="VisualStudioProject._gate"/>.
+        /// <remarks>This class should be free-threaded, and any synchronization is done via <see cref="ProjectSystemProject._gate"/>.
         /// This class is otherwise free to operate on private members of <see cref="_project"/> if needed.</remarks>
         private sealed class BatchingDocumentCollection
         {
-            private readonly VisualStudioProject _project;
+            private readonly ProjectSystemProject _project;
 
             /// <summary>
             /// The map of file paths to the underlying <see cref="DocumentId"/>. This document may exist in <see cref="_documentsAddedInBatch"/> or has been
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly Func<Solution, DocumentId, TextLoader, Solution> _documentTextLoaderChangedAction;
             private readonly WorkspaceChangeKind _documentChangedWorkspaceKind;
 
-            public BatchingDocumentCollection(VisualStudioProject project,
+            public BatchingDocumentCollection(ProjectSystemProject project,
                 Func<Solution, DocumentId, bool> documentAlreadyInWorkspace,
                 Action<Workspace, DocumentInfo> documentAddAction,
                 Action<Workspace, DocumentId> documentRemoveAction,
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-                var textLoader = new WorkspaceFileTextLoader(_project._workspace.Services.SolutionServices, fullPath, defaultEncoding: null);
+                var textLoader = new WorkspaceFileTextLoader(_project._projectSystemProjectFactory.Workspace.Services.SolutionServices, fullPath, defaultEncoding: null);
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     name: FileNameUtilities.GetFileName(fullPath),
@@ -120,8 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                        _project._workspace.QueueCheckForFilesBeingOpen(ImmutableArray.Create(fullPath));
+                        _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
+                        _project._projectSystemProjectFactory.RaiseOnDocumentsAdded(ImmutableArray.Create(fullPath));
                     }
                 }
 
@@ -178,9 +178,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _project._workspace.ApplyChangeToWorkspace(w =>
+                        _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                         {
-                            _project._workspace.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
+                            _project._projectSystemProjectFactory.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
                             _documentAddAction(w, documentInfo);
                             w.OnDocumentOpened(documentInfo.Id, textContainer);
                         });
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 else
                 {
                     // right now, assumption is dynamically generated file can never be opened in editor
-                    _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
+                    _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
                 }
             }
 
@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // 1. This file is actually been pushed to the workspace, and we need to remove it (either
                 //    as a part of the active batch or immediately)
                 // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
-                if (_documentAlreadyInWorkspace(_project._workspace.CurrentSolution, documentId))
+                if (_documentAlreadyInWorkspace(_project._projectSystemProjectFactory.Workspace.CurrentSolution, documentId))
                 {
                     if (_project._activeBatchScopes > 0)
                     {
@@ -291,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _project._workspace.ApplyChangeToWorkspace(w => _documentRemoveAction(w, documentId));
+                        _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w => _documentRemoveAction(w, documentId));
                     }
                 }
                 else
@@ -335,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // 1. This file is actually been pushed to the workspace, and we need to remove it (either
                     //    as a part of the active batch or immediately)
                     // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
-                    if (_project._workspace.CurrentSolution.GetDocument(documentId) != null)
+                    if (_project._projectSystemProjectFactory.Workspace.CurrentSolution.GetDocument(documentId) != null)
                     {
                         if (_project._activeBatchScopes > 0)
                         {
@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                         else
                         {
-                            _project._workspace.ApplyChangeToWorkspace(w =>
+                            _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                             {
                                 // Just pass null for the filePath, since this document is immediately being removed
                                 // anyways -- whatever we set won't really be read since the next change will
@@ -351,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 // TODO: Can't we just remove the document without closing it?
                                 w.OnDocumentClosed(documentId, new SourceTextLoader(textContainer, filePath: null));
                                 _documentRemoveAction(w, documentId);
-                                _project._workspace.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
+                                _project._projectSystemProjectFactory.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
                             });
                         }
                     }
@@ -405,7 +405,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // the batch, since those have already been removed out of _documentPathsToDocumentIds.
                             if (!_documentsAddedInBatch.Any(d => d.Id == documentId))
                             {
-                                documentsToChange.Add((documentId, new WorkspaceFileTextLoader(_project._workspace.Services.SolutionServices, filePath, defaultEncoding: null)));
+                                documentsToChange.Add((documentId, new WorkspaceFileTextLoader(_project._projectSystemProjectFactory.Workspace.Services.SolutionServices, filePath, defaultEncoding: null)));
                             }
                         }
                     }
@@ -416,11 +416,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    await _project._workspace.ApplyBatchChangeToWorkspaceAsync(solutionChanges =>
+                    await _project._projectSystemProjectFactory.ApplyBatchChangeToWorkspaceAsync(solutionChanges =>
                     {
                         foreach (var (documentId, textLoader) in documentsToChange)
                         {
-                            if (!_project._workspace.IsDocumentOpen(documentId))
+                            if (!_project._projectSystemProjectFactory.Workspace.IsDocumentOpen(documentId))
                             {
                                 solutionChanges.UpdateSolutionForDocumentAction(
                                     _documentTextLoaderChangedAction(solutionChanges.Solution, documentId, textLoader),
@@ -463,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         Contract.ThrowIfFalse(_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider));
 
-                        _project._workspace.ApplyChangeToWorkspace(w =>
+                        _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                         {
                             if (w.IsDocumentOpen(documentId))
                             {
@@ -521,7 +521,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _project._workspace.ApplyChangeToWorkspace(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
+                        _project._projectSystemProjectFactory.ApplyChangeToWorkspace(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
                     }
                 }
             }
