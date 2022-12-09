@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             public object? GetOption(OptionKey key)
                 => GlobalOptions.GetOption(key);
 
-            public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
-                => GlobalOptions.SetOptions(optionSet, optionKeys);
+            public void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
+                => GlobalOptions.SetOptions(options);
 
             public void RegisterWorkspace(Workspace workspace)
                 => throw new NotImplementedException();
@@ -132,9 +132,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(1, values[0]);
             Assert.Equal(2, values[1]);
 
-            globalOptions.SetGlobalOptions(
-                ImmutableArray.Create<OptionKey>(new OptionKey(option1), new OptionKey(option2), new OptionKey(option3)),
-                ImmutableArray.Create<object?>(5, 6, 3));
+            globalOptions.SetGlobalOptions(ImmutableArray.Create(
+                KeyValuePairUtil.Create(new OptionKey(option1), (object?)5),
+                KeyValuePairUtil.Create(new OptionKey(option2), (object?)6),
+                KeyValuePairUtil.Create(new OptionKey(option3), (object?)3)));
 
             AssertEx.Equal(new[]
             {
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
             var optionKey = new OptionKey(option);
             var newOptionSet = optionSet.WithChangedOption(optionKey, false);
-            optionService.GlobalOptions.SetOptions(newOptionSet, ((SolutionOptionSet)newOptionSet).GetChangedOptions());
+            optionService.GlobalOptions.SetOptions(((SolutionOptionSet)newOptionSet).GetChangedOptions());
             var isOptionSet = (bool?)new SolutionOptionSet(optionService).GetOption(optionKey);
             Assert.False(isOptionSet);
         }
@@ -286,7 +287,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             //  3. IOptionService validation
 
-            optionService.GlobalOptions.SetOptions(newOptionSet, ((SolutionOptionSet)newOptionSet).GetChangedOptions());
+            optionService.GlobalOptions.SetOptions(((SolutionOptionSet)newOptionSet).GetChangedOptions());
             Assert.Equal(newValueCodeStyleOption2, optionService.GlobalOptions.GetOption(perLanguageOption2, LanguageNames.CSharp));
         }
 
@@ -332,7 +333,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(newValueCodeStyleOption2, newOptionSet.GetOption(option2));
 
             //  3. IOptionService validation
-            optionService.GlobalOptions.SetOptions(newOptionSet, ((SolutionOptionSet)newOptionSet).GetChangedOptions());
+            optionService.GlobalOptions.SetOptions(((SolutionOptionSet)newOptionSet).GetChangedOptions());
             Assert.Equal(newValueCodeStyleOption2, optionService.GlobalOptions.GetOption(option2));
         }
 
@@ -387,7 +388,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey2));
 
             //  5. IOptionService.GetOption(OptionKey)
-            optionService.GlobalOptions.SetOptions(newOptionSet, ((SolutionOptionSet)newOptionSet).GetChangedOptions());
+            optionService.GlobalOptions.SetOptions(((SolutionOptionSet)newOptionSet).GetChangedOptions());
             Assert.Equal(newPublicValue, optionService.GetOption(optionKey));
         }
     }

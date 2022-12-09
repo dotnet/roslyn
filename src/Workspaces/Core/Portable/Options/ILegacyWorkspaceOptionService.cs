@@ -24,5 +24,5 @@ internal interface ILegacyWorkspaceOptionService : IWorkspaceService
     void UnregisterWorkspace(Workspace workspace);
 
     object? GetOption(OptionKey key);
-    void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys);
+    void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options);
 }

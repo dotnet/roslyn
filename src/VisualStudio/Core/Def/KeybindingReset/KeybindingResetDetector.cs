@@ -217,7 +217,9 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
                     break;
             }
 
-            _globalOptions.SetGlobalOptions(s_statusOptions, ImmutableArray.Create<object>(currentStatus, needsReset));
+            _globalOptions.SetGlobalOptions(ImmutableArray.Create(
+                KeyValuePairUtil.Create(new OptionKey(KeybindingResetOptions.ReSharperStatus), (object)currentStatus),
+                KeyValuePairUtil.Create(new OptionKey(KeybindingResetOptions.NeedsReset), (object)needsReset)));
 
             if (needsReset)
             {

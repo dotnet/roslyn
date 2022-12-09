@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -28,6 +29,6 @@ internal sealed class LegacyWorkspaceOptionService : ILegacyWorkspaceOptionServi
     public object? GetOption(OptionKey key)
         => GlobalOptions.GetOption(key);
 
-    public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
-        => GlobalOptions.SetOptions(optionSet, optionKeys);
+    public void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
+        => GlobalOptions.SetOptions(options);
 }

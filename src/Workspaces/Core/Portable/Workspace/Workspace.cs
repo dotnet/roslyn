@@ -299,14 +299,14 @@ namespace Microsoft.CodeAnalysis
             [Obsolete(@"Workspace options should be set by invoking 'workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptionSet))'")]
             set
             {
-                var changedOptionKeys = value switch
+                var changedOptions = value switch
                 {
                     null => throw new ArgumentNullException(nameof(value)),
                     SolutionOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
                     _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(value))
                 };
 
-                _legacyOptions.SetOptions(value, changedOptionKeys);
+                _legacyOptions.SetOptions(changedOptions);
             }
         }
 
@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.CurrentSolution.Options != newSolution.Options)
                 {
-                    _legacyOptions.SetOptions(newSolution.State.Options, newSolution.State.Options.GetChangedOptions());
+                    _legacyOptions.SetOptions(newSolution.State.Options.GetChangedOptions());
                 }
 
                 if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))

@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // Must log the option change before setting the new option values via s_optionService,
             // otherwise oldOptions and newOptions would be identical and nothing will be logged.
             OptionLogger.Log(oldOptions, newOptions);
-            s_optionService.SetOptions(newOptions, newOptions.GetChangedOptions());
+            s_optionService.SetOptions(newOptions.GetChangedOptions());
 
             // Make sure we load the next time a page is activated, in case that options changed
             // programmatically between now and the next time the page is activated

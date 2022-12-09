@@ -84,8 +84,11 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets a list of all the options that were changed.
         /// </summary>
-        internal IEnumerable<OptionKey> GetChangedOptions()
+        internal IEnumerable<OptionKey> GetChangedOptionKeys()
             => _changedOptionKeys;
+
+        internal ImmutableArray<KeyValuePair<OptionKey, object?>> GetChangedOptions()
+            => _changedOptionKeys.SelectAsArray(key => KeyValuePairUtil.Create(key, GetOption(key)));
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
         {
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Options
                 yield break;
             }
 
-            foreach (var key in GetChangedOptions())
+            foreach (var key in GetChangedOptionKeys())
             {
                 var currentValue = optionSet?.GetOption(key);
                 var changedValue = this.GetOption(key);

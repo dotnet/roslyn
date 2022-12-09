@@ -39,10 +39,12 @@ namespace Microsoft.CodeAnalysis.Options
         ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys);
 
         /// <summary>
-        /// Applies a set of options.
-        /// If any option changed its value invokes registered option persisters, updates current solutions of all registered workspaces and triggers <see cref="OptionChanged"/>.
+        /// Sets values of options that may be stored in <see cref="Solution.Options"/> (public options).
+        /// Clears <see cref="SolutionOptionSet"/> of registered workspaces so that next time
+        /// <see cref="Solution.Options"/> are queried for the options new values are fetched from 
+        /// <see cref="GlobalOptionService"/>.
         /// </summary>
-        void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys);
+        void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options);
 
         /// <summary>
         /// Sets and persists the value of a global option.
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// Triggers <see cref="OptionChanged"/>.
         /// Does not update any workspace (since this option is not a solution option).
         /// </summary>
-        void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
+        void SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options);
 
         event EventHandler<OptionChangedEventArgs>? OptionChanged;
 

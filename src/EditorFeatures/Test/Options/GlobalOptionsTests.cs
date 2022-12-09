@@ -94,10 +94,10 @@ public class GlobalOptionsTests
         public void SetGlobalOption(OptionKey optionKey, object? value)
             => throw new NotImplementedException();
 
-        public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values)
+        public void SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
             => throw new NotImplementedException();
 
-        public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
+        public void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
             => throw new NotImplementedException();
 
         #endregion
