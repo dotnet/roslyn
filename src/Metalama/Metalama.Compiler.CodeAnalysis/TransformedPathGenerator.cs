@@ -14,10 +14,12 @@ internal class TransformedPathGenerator
     private readonly string _workingDirectory;
     private readonly string? _projectDirectory;
 
-    public TransformedPathGenerator(string? projectDirectory, string outputDirectory, string workingDirectory)
+    public TransformedPathGenerator(string? projectDirectory, string? outputDirectory, string workingDirectory)
     {
         _projectDirectory = projectDirectory;
-        _outputDirectory = outputDirectory;
+        
+        // The outputDirectory variable may be null if the code is not to be written to disk.
+        _outputDirectory = outputDirectory ?? "(Transformed)";
         _workingDirectory = workingDirectory;
     }
 

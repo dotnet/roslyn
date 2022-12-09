@@ -353,7 +353,7 @@
 
   <!--
     ========================
-    MetalamaMetalamaCompilerTransformedFilesOutputPath
+    SetMetalamaCompilerProperties
     ========================
     
     Controls output of files transformed by the Metalama compiler.
@@ -364,19 +364,19 @@
     When MetalamaEmitCompilerTransformedFiles is true, we ensure that MetalamaCompilerTransformedFilesOutputPath has a value and issue a warning if not.
     We will create MetalamaCompilerTransformedFilesOutputPath if it does not exist.
     -->
-  <PropertyGroup>
-    <MetalamaEmitCompilerTransformedFiles Condition="'$(MetalamaEmitCompilerTransformedFiles)' == '' and '$(MetalamaDebugTransformedCode)' == 'true'">true</MetalamaEmitCompilerTransformedFiles>
-    <MetalamaEmitCompilerTransformedFiles Condition="'$(MetalamaEmitCompilerTransformedFiles)' == ''">false</MetalamaEmitCompilerTransformedFiles>
-    <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' != 'true'"></MetalamaCompilerTransformedFilesOutputPath>
-    <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' == 'true' and '$(MetalamaCompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)metalama</MetalamaCompilerTransformedFilesOutputPath>
-  </PropertyGroup>
+  
 
-  <Target Name="CreateMetalamaCompilerTransformedFilesOutputPath"
-        BeforeTargets="CoreCompile"
-        Condition="'$(MetalamaEmitCompilerTransformedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
+  <Target Name="SetMetalamaCompilerProperties"
+          BeforeTargets="PrepareForBuild"
+          Condition="('$(MetalamaEmitCompilerTransformedFiles)' == 'true' OR '$(MetalamaDebugTransformedCode)' == 'true'  )and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
 
-    <Warning Condition="'$(MetalamaCompilerTransformedFilesOutputPath)' == ''"
-             Text="MetalamaEmitCompilerTransformedFiles was true, but no MetalamaCompilerTransformedFilesOutputPath was provided. MetalamaCompilerTransformedFilesOutputPath must be set in order to emit transformed files." />
+
+    <PropertyGroup>
+      <MetalamaEmitCompilerTransformedFiles Condition="'$(MetalamaEmitCompilerTransformedFiles)' == '' and '$(MetalamaDebugTransformedCode)' == 'true'">true</MetalamaEmitCompilerTransformedFiles>
+      <MetalamaEmitCompilerTransformedFiles Condition="'$(MetalamaEmitCompilerTransformedFiles)' == ''">false</MetalamaEmitCompilerTransformedFiles>
+      <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' != 'true'"></MetalamaCompilerTransformedFilesOutputPath>
+      <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' == 'true' and '$(MetalamaCompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)metalama</MetalamaCompilerTransformedFilesOutputPath>
+    </PropertyGroup>
 
     <MakeDir Condition="'$(MetalamaCompilerTransformedFilesOutputPath)' != ''"
              Directories="$(MetalamaCompilerTransformedFilesOutputPath)"  />
