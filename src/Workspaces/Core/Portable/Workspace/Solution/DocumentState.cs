@@ -517,7 +517,17 @@ namespace Microsoft.CodeAnalysis
             // each document gets a unique SyntaxTree.  So, instead, we produce a ValueSource that defers to the
             // provided source, gets the tree from it, and then wraps its root in a new tree for us.
 
-            var newTreeSource = GetReuseTreeSource(this, siblingTextSource, siblingTreeSource);
+            // copy data from this entity, so we don't keep this green node alive.
+
+            var filePath = this.Attributes.SyntaxTreeFilePath;
+            var languageServices = this.LanguageServices;
+            var loadTextOptions = this.LoadTextOptions;
+            var parseOptions = this.ParseOptions;
+            var textAndVersionSource = this.TextAndVersionSource;
+            var treeSource = this.TreeSource;
+
+            var newTreeSource = GetReuseTreeSource(
+                filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource);
 
             return new DocumentState(
                 LanguageServices,
@@ -528,29 +538,23 @@ namespace Microsoft.CodeAnalysis
                 siblingTextSource,
                 LoadTextOptions,
                 treeSource: newTreeSource);
-        }
 
-        // Static so we don't accidentally capture "this" green documentstate node in the async lazy.
+            // Static so we don't accidentally capture "this" green documentstate node in the async lazy.
 
-        private static AsyncLazy<TreeAndVersion> GetReuseTreeSource(
-            DocumentState documentState,
-            ITextAndVersionSource siblingTextSource,
-            ValueSource<TreeAndVersion> siblingTreeSource)
-        {
-            // copy data from this entity, so we don't keep this green node alive.
-            Contract.ThrowIfFalse(documentState.SupportsSyntaxTree);
-
-            var filePath = documentState.Attributes.SyntaxTreeFilePath;
-            var languageServices = documentState.LanguageServices;
-            var loadTextOptions = documentState.LoadTextOptions;
-            var parseOptions = documentState.ParseOptions;
-            var textAndVersionSource = documentState.TextAndVersionSource;
-            var treeSource = documentState.TreeSource;
-
-            return new AsyncLazy<TreeAndVersion>(
-                cancellationToken => TryReuseSiblingTreeAsync(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
-                cancellationToken => TryReuseSiblingTree(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
-                cacheResult: true);
+            static AsyncLazy<TreeAndVersion> GetReuseTreeSource(
+                string filePath,
+                HostLanguageServices languageServices,
+                LoadTextOptions loadTextOptions,
+                ParseOptions parseOptions,
+                ValueSource<TreeAndVersion> treeSource,
+                ITextAndVersionSource siblingTextSource,
+                ValueSource<TreeAndVersion> siblingTreeSource)
+            {
+                return new AsyncLazy<TreeAndVersion>(
+                    cancellationToken => TryReuseSiblingTreeAsync(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
+                    cancellationToken => TryReuseSiblingTree(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
+                    cacheResult: true);
+            }
         }
 
         private static async Task<TreeAndVersion> TryReuseSiblingTreeAsync(
