@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.Utilities;
@@ -37,7 +38,13 @@ namespace Build
             argsBuilder.Append(args);
 
             // The DOTNET_ROOT_X64 environment variable is used by Arcade.
-            var toolOptions = new ToolInvocationOptions() { BlockedEnvironmentVariables = ImmutableArray.Create("MSBuildSDKsPath", "MSBUILD_EXE_PATH") };
+            var toolOptions = new ToolInvocationOptions()
+            {
+                BlockedEnvironmentVariables = ImmutableArray.Create("MSBuildSDKsPath", "MSBUILD_EXE_PATH"),
+                // Retry build when the file is locked by another process.
+                Retry = new ToolInvocationRetry(
+                    new Regex(".+The process cannot access the file.+because it is being used by another process."), 1 )
+            };
 
             return ToolInvocationHelper.InvokePowershell(
                            context.Console,
