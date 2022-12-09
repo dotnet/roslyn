@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQ
             Return FlattenActions(actions)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestParameterType(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -36,7 +36,7 @@ End Module",
 End Module", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestSimpleQualifyFromSameFile(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Class1
@@ -55,7 +55,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestOrdering(testHost As TestHost) As Task
             Dim code = "
 namespace System.Windows.Controls
@@ -85,7 +85,7 @@ End Class"
                  "System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox"}, New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestSimpleQualifyFromReference(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Class1
@@ -96,7 +96,7 @@ End Class",
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericClassDefinitionAsClause(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Namespace SomeNamespace
@@ -113,7 +113,7 @@ Class SomeClass(Of x As SomeNamespace.Base)
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericClassInstantiationOfClause(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Namespace SomeNamespace
@@ -140,7 +140,7 @@ Class Goo
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericMethodDefinitionAsClause(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Namespace SomeNamespace
@@ -161,7 +161,7 @@ Class Goo
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericMethodInvocationOfClause(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Namespace SomeNamespace
@@ -188,7 +188,7 @@ Class Goo
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestAttributeApplication(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "<[|Something|]()>
@@ -209,7 +209,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestMultipleAttributeApplicationBelow(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -240,7 +240,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestMultipleAttributeApplicationAbove(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "<[|Something|]()>
@@ -269,7 +269,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestQualifierIsEscapedWhenNamespaceMatchesKeyword(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -288,7 +288,7 @@ Namespace [Namespace]
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestQualifierIsNOTEscapedWhenNamespaceMatchesKeywordButIsNested(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -311,7 +311,7 @@ Namespace Outer
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         Public Async Function TestFullyQualifyInImportsStatement(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -330,7 +330,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersOfClause(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -343,7 +343,7 @@ Namespace SomeNamespace
 End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersAsClause(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -356,7 +356,7 @@ Namespace SomeNamespace
 End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         Public Async Function TestCaseSensitivityForNestedNamespace(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -383,7 +383,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         Public Async Function TestCaseSensitivity1(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -402,7 +402,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestTypeFromMultipleNamespaces1(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -415,7 +415,7 @@ End Class",
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestTypeFromMultipleNamespaces2(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -429,7 +429,7 @@ End Class",
 index:=1, testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericWithNoArgs(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -442,7 +442,7 @@ End Class",
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericWithCorrectArgs(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -455,7 +455,7 @@ End Class",
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericWithWrongArgs(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Goo
@@ -464,7 +464,7 @@ End Class", testHost:=testHost)
 End Class", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericInLocalDeclaration(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -479,7 +479,7 @@ End Class",
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenericItemType(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -494,7 +494,7 @@ End Class",
 End Class", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestGenerateInNamespace(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -515,7 +515,7 @@ Namespace NS
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestMinimalQualify(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -528,7 +528,7 @@ Module Program
 End Module", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping1(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -551,7 +551,7 @@ Namespace Outer
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping2(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -574,7 +574,7 @@ Namespace [Namespace]
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping3(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -597,7 +597,7 @@ Namespace Outer
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         Public Async Function TestInImport(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -616,7 +616,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         Public Async Function TestCaseInsensitivity(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class GOo
@@ -643,7 +643,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
         Public Async Function TestStandaloneMethod(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "'Class [Class] 
@@ -658,7 +658,7 @@ End Sub
 End Class")
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         Public Async Function TestMissingOnBoundFieldType(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -670,7 +670,7 @@ Class A
 End Class", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         Public Async Function TestMissingOnBoundLocalType(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -682,7 +682,7 @@ Class A
 End Class", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         Public Async Function TestCaseSensitivity2(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -709,7 +709,7 @@ Namespace OUTER
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
         Public Async Function TestCaseSensitivity3(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -726,7 +726,7 @@ Module Program
 End Module", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
         Public Async Function TestNotOnNamedArgument(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -736,7 +736,7 @@ End Module", testHost:=testHost)
 End Module", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
         Public Async Function TestDoNotQualifyNestedTypeOfGenericType(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -753,7 +753,7 @@ Class Program
 End Class", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData>
         Public Async Function TestFormattingInFullyQualify(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 <Text>Module Program
@@ -768,7 +768,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
 End Module</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         Public Async Function TestShouldTriggerOnBC32045(testHost As TestHost) As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
             Await TestInRegularAndScriptAsync(
@@ -788,7 +788,7 @@ Module Program
 End Module</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
+        <ConditionalTheory(GetType(IsNot32BitDebug), Reason:=ConditionalSkipReason.TestIsTriggeringMessagePackIssue), CombinatorialData, WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
         Public Async Function TestAmbiguousTypeFix(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 <Text>Imports N1
