@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
-            await GenerateDocumentSymbolsAsync(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory).ConfigureAwait(false);
+            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory).ConfigureAwait(false);
             await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory).ConfigureAwait(false);
 
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
         }
 
-        private static async Task GenerateDocumentSymbolsAsync(
+        private static async Task GenerateDocumentRangesAndLinks(
             Document document,
             LsifDocument documentVertex,
             GeneratorOptions options,
