@@ -10,22 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpUpgradeMSBuildWorkspaceAnalyzer : UpgradeMSBuildWorkspaceAnalyzer
     {
-        private protected CSharpUpgradeMSBuildWorkspaceAnalyzer(bool performAssemblyChecks)
-            : base(performAssemblyChecks)
-        {
-        }
-
-        public CSharpUpgradeMSBuildWorkspaceAnalyzer()
-            : this(performAssemblyChecks: true)
-        {
-        }
-
         protected override void RegisterIdentifierAnalysis(CompilationStartAnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(AnalyzeIdentifier, SyntaxKind.IdentifierName);
-        }
-
-        protected override void RegisterIdentifierAnalysis(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(AnalyzeIdentifier, SyntaxKind.IdentifierName);
         }

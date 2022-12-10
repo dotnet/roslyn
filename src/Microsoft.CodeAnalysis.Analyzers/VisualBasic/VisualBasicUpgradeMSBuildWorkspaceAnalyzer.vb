@@ -10,19 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
     Public Class VisualBasicUpgradeMSBuildWorkspaceAnalyzer
         Inherits UpgradeMSBuildWorkspaceAnalyzer
 
-        Private Protected Sub New(performAssemblyChecks As Boolean)
-            MyBase.New(performAssemblyChecks)
-        End Sub
-
-        Public Sub New()
-            Me.New(performAssemblyChecks:=True)
-        End Sub
-
         Protected Overrides Sub RegisterIdentifierAnalysis(context As CompilationStartAnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzeIdentifier, SyntaxKind.IdentifierName)
-        End Sub
-
-        Protected Overrides Sub RegisterIdentifierAnalysis(context As AnalysisContext)
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeIdentifier, SyntaxKind.IdentifierName)
         End Sub
 
