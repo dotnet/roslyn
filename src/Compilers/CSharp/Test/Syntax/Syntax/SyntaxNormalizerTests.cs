@@ -1702,6 +1702,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   } = 1;
                 }
                 """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;}public void Foo(){}}", """
+                class A
+                {
+                  public string Prop { get; }
+
+                  public void Foo()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;}=\"xyz\";public void Foo(){}}", """
+                class A
+                {
+                  public string Prop { get; } = "xyz";
+
+                  public void Foo()
+                  {
+                  }
+                }
+                """);
 
             // indexers
             TestNormalizeDeclaration(

@@ -425,6 +425,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return 0;
             }
+            else if (currentToken.Parent.IsKind(SyntaxKind.PropertyDeclaration))
+            {
+                return 2;
+            }
             else
             {
                 return 1;
