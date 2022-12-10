@@ -136,6 +136,10 @@ namespace Microsoft.CodeAnalysis
 
                 // If the tree contains a #if directive, and the pp-symbol-names are different, then the files
                 // absolutely may be parsed differently, and so they should not be shared.
+                //
+                // TODO(cyrusn): We could potentially be smarter here as well.  We can check what pp-symbols the file
+                // actually uses. (e.g. 'DEBUG'/'NETCORE'/etc.) and see if the project parse options actually differ
+                // for these values.  If not, we could reuse the trees even then.
                 return false;
             }
         }
