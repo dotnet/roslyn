@@ -1002,22 +1002,24 @@ namespace Microsoft.CodeAnalysis
                     var previousSolution = newSolution;
                     newSolution = data.updateSolutionWithText(newSolution, data.documentId, data.arg);
                     if (previousSolution != newSolution)
+                    {
                         updatedDocumentIds.Add(data.documentId);
 
-                    // Now, see if that document is linked to anything else. If so, update their document-state to point
-                    // at the exact text/tree-source as the doc we just made.  This way we can share text/trees and not
-                    // allocate for them unnecessarily. This is only for regular documents, not additional-docs or
-                    // analyzer config, as those don't support links).  If so
-                    var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(data.documentId);
-                    if (linkedDocumentIds.Length > 0)
-                    {
-                        var newDocument = newSolution.GetRequiredDocument(data.documentId);
-                        foreach (var linkedDocumentId in linkedDocumentIds)
+                        // Now, see if that document is linked to anything else. If so, update their document-state to point
+                        // at the exact text/tree-source as the doc we just made.  This way we can share text/trees and not
+                        // allocate for them unnecessarily. This is only for regular documents, not additional-docs or
+                        // analyzer config, as those don't support links).  If so
+                        var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(data.documentId);
+                        if (linkedDocumentIds.Length > 0)
                         {
-                            previousSolution = newSolution;
-                            newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
-                            if (previousSolution != newSolution)
-                                updatedDocumentIds.Add(linkedDocumentId);
+                            var newDocument = newSolution.GetRequiredDocument(data.documentId);
+                            foreach (var linkedDocumentId in linkedDocumentIds)
+                            {
+                                previousSolution = newSolution;
+                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
+                                if (previousSolution != newSolution)
+                                    updatedDocumentIds.Add(linkedDocumentId);
+                            }
                         }
                     }
 
