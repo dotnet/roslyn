@@ -112,8 +112,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var semanticModel = document.GetSemanticModelAsync();
-
                     // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
                     // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
                     // LSIF file. Because of the rule that vertices must be written before they're used by an edge, we'll flush any top-
@@ -126,8 +124,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     documentWriter.FlushToUnderlyingAndEmpty();
 
                     documentIds.Add(documentId);
-
-                    GC.KeepAlive(semanticModel);
                 }));
             }
 
@@ -156,6 +152,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory)
         {
+            // Create and keep the semantic model alive for this document.  That way all work/services we kick off that
+            // use this document can benefit from that single shared model.
             var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
 
             var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document).ConfigureAwait(false);
@@ -168,6 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory).ConfigureAwait(false);
 
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
+
             GC.KeepAlive(semanticModel);
 
             return documentVertex.GetId();
