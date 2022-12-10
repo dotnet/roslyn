@@ -115,8 +115,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var semanticModel = document.GetSemanticModelAsync();
-
                     // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
                     // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
                     // LSIF file. Because of the rule that vertices must be written before they're used by an edge, we'll flush any top-
@@ -130,8 +128,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     documentWriter.FlushToUnderlyingAndEmpty();
 
                     documentIds.Add(documentId);
-
-                    GC.KeepAlive(semanticModel);
                 }, cancellationToken));
             }
 
@@ -161,6 +157,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             IdFactory idFactory,
             CancellationToken cancellationToken)
         {
+            // Create and keep the semantic model alive for this document.  That way all work/services we kick off that
+            // use this document can benefit from that single shared model.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
 
             var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document);
@@ -169,10 +167,15 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
-            await GenerateDocumentSymbolsAsync(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, cancellationToken);
-            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken);
+            // We will walk the file token-by-token, making a range for each one and then attaching information for it
+            var rangeVertices = new List<Id<Graph.Range>>();
 
+            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, rangeVertices, cancellationToken).ConfigureAwait(false);
+            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken).ConfigureAwait(false);
+
+            lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
+
             GC.KeepAlive(semanticModel);
 
             return documentVertex.GetId();
@@ -193,13 +196,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
         }
 
-        private static async Task GenerateDocumentSymbolsAsync(
+        private static async Task GenerateDocumentRangesAndLinks(
             Document document,
             LsifDocument documentVertex,
             GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory,
+            List<Id<Graph.Range>> rangeVertices,
             CancellationToken cancellationToken)
         {
             var languageServices = document.Project.Services;
@@ -235,9 +239,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     return topLevelSymbolsResultSetTracker;
                 }
             });
-
-            // We will walk the file token-by-token, making a range for each one and then attaching information for it
-            var rangeVertices = new List<Id<Graph.Range>>();
 
             foreach (var syntaxToken in syntaxTree.GetRoot(cancellationToken).DescendantTokens(descendIntoTrivia: true))
             {
@@ -352,8 +353,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     }
                 }
             }
-
-            lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
         }
 
         private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(Document document)
@@ -361,10 +360,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             string? contentBase64Encoded = null;
             var uri = document.FilePath ?? "";
 
-            // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
-            // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
-            // this is a source generated file.
-            if (!PathUtilities.IsAbsolute(uri))
+            if (document is SourceGeneratedDocument)
             {
                 var text = await document.GetTextAsync();
 
