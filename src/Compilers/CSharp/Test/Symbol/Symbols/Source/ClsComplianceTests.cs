@@ -3651,5 +3651,24 @@ namespace N1
     Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)
                 );
         }
+
+        [Fact]
+        public void ObjectAndDynamicDifference()
+        {
+            var source = @"
+[assembly: System.CLSCompliant(true)]
+
+public class C<T>
+{
+    protected class N { }
+}
+
+public class D : C<object>
+{
+    protected void M4(C<dynamic>.N n) { }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }

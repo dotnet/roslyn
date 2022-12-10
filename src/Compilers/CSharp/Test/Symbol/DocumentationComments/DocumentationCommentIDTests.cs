@@ -416,5 +416,25 @@ internal interface ICloneable<T>
             var method = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<MethodSymbol>("Clone").ReturnType;
             Assert.Equal("T:Test`1", method.GetDocumentationCommentId());
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void Generic2(NullableContextOptions nullableContextOptions)
+        {
+            var source = @"
+internal class Test<T> : ICloneable<Test<T?>>
+{
+    public Test<T?> Clone() => new();
+}
+
+internal interface ICloneable<T>
+{
+    T Clone();
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(nullableContextOptions));
+            var method = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<MethodSymbol>("Clone").ReturnType;
+            Assert.Equal("T:Test`1", method.GetDocumentationCommentId());
+        }
     }
 }
