@@ -22,4 +22,5 @@ internal interface IVSMacLspLogger
     void TraceException(Exception exception);
     void TraceStart(string message);
     void TraceStop(string message);
+    void TraceDebug(string message);
 }
