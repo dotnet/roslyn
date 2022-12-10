@@ -4196,6 +4196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                     if (!hasErrors)
                     {
+#if false
                         hasErrors = !CheckInvocationArgMixing(
                             nonNullSyntax,
                             resultMember,
@@ -4206,6 +4207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             argsToParamsOpt,
                             this.LocalScopeDepth,
                             diagnostics);
+#endif
                     }
 
                     if (resultMember.HasSetsRequiredMembers && !constructor.HasSetsRequiredMembers)
