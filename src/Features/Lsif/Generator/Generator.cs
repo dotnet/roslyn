@@ -169,10 +169,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             // We will walk the file token-by-token, making a range for each one and then attaching information for it
             var rangeVertices = new List<Id<Graph.Range>>();
-            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, rangeVertices, cancellationToken).ConfigureAwait(false);
+            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, rangeVertices, cancellationToken);
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
 
-            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken).ConfigureAwait(false);
+            await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken);
 
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
 
