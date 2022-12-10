@@ -141,9 +141,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             await GenerateWithMSBuildWorkspaceAsync(
                 projectFile, lsifWriter, logFile,
-                async w =>
+                async (workspace, cancellationToken) =>
                 {
-                    var project = await w.OpenProjectAsync(projectFile.FullName, cancellationToken: cancellationToken);
+                    var project = await workspace.OpenProjectAsync(projectFile.FullName, cancellationToken: cancellationToken);
                     return project.Solution;
                 },
                 cancellationToken);
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             await GenerateWithMSBuildWorkspaceAsync(
                 solutionFile, lsifWriter, logFile,
-                w => w.OpenSolutionAsync(solutionFile.FullName),
+                (workspace, cancellationToken) => workspace.OpenSolutionAsync(solutionFile.FullName, cancellationToken: cancellationToken),
                 cancellationToken);
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             FileInfo solutionOrProjectFile,
             ILsifJsonWriter lsifWriter,
             TextWriter logFile,
-            Func<MSBuildWorkspace, Task<Solution>> openAsync,
+            Func<MSBuildWorkspace, CancellationToken, Task<Solution>> openAsync,
             CancellationToken cancellationToken)
         {
             await logFile.WriteLineAsync($"Loading {solutionOrProjectFile.FullName}...");
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var msbuildWorkspace = MSBuildWorkspace.Create(await Composition.CreateHostServicesAsync());
             msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading: " + e.Diagnostic.Message);
 
-            var solution = await openAsync(msbuildWorkspace);
+            var solution = await openAsync(msbuildWorkspace, cancellationToken);
 
             var options = GeneratorOptions.Default;
 
