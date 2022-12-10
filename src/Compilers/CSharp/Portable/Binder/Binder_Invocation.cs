@@ -2053,7 +2053,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
             if (!hasErrors)
             {
-#if false
                 hasErrors = !CheckInvocationArgMixing(
                     node,
                     funcPtr.Signature,
@@ -2064,7 +2063,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodResult.Result.ArgsToParamsOpt,
                     LocalScopeDepth,
                     diagnostics);
-#endif
             }
 
             return new BoundFunctionPointerInvocation(
