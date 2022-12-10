@@ -162,9 +162,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
-            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory).ConfigureAwait(false);
+            // We will walk the file token-by-token, making a range for each one and then attaching information for it
+            var rangeVertices = new List<Id<Graph.Range>>();
+
+            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, rangeVertices).ConfigureAwait(false);
             await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory).ConfigureAwait(false);
 
+            lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
 
             GC.KeepAlive(semanticModel);
@@ -192,7 +196,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
-            IdFactory idFactory)
+            IdFactory idFactory,
+            List<Id<Graph.Range>> rangeVertices)
         {
             var languageServices = document.Project.Services;
 
@@ -227,9 +232,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     return topLevelSymbolsResultSetTracker;
                 }
             });
-
-            // We will walk the file token-by-token, making a range for each one and then attaching information for it
-            var rangeVertices = new List<Id<Graph.Range>>();
 
             foreach (var syntaxToken in syntaxTree.GetRoot().DescendantTokens(descendIntoTrivia: true))
             {
@@ -344,8 +346,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     }
                 }
             }
-
-            lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
         }
 
         private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(Document document)
