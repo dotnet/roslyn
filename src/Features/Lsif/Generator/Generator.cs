@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // use this document can benefit from that single shared model.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document);
+            var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document, cancellationToken);
 
             var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
             lsifJsonWriter.Write(documentVertex);
@@ -355,14 +355,15 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
         }
 
-        private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(Document document)
+        private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(
+            Document document, CancellationToken cancellationToken)
         {
             string? contentBase64Encoded = null;
             var uri = document.FilePath ?? "";
 
             if (document is SourceGeneratedDocument)
             {
-                var text = await document.GetTextAsync();
+                var text = await document.GetTextAsync(cancellationToken);
 
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?
