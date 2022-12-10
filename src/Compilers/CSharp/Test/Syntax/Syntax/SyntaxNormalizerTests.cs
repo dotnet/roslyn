@@ -1714,7 +1714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             TestNormalizeDeclaration(
-                "class A{public string Prop{get;}=\"xyz\";public void Foo(){}}", """
+                """class A{public string Prop{get;}="xyz";public void Foo(){}}""", """
                 class A
                 {
                   public string Prop { get; } = "xyz";
