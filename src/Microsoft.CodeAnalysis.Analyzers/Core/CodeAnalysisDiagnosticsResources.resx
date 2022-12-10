@@ -269,7 +269,7 @@
     <value>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</value>
   </data>
   <data name="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle" xml:space="preserve">
-    <value>Do not ignore values returned by methods on immutable objects.</value>
+    <value>Do not ignore values returned by methods on immutable objects</value>
   </data>
   <data name="DiagnosticIdMustBeAConstantTitle" xml:space="preserve">
     <value>DiagnosticId for analyzers must be a non-null constant</value>

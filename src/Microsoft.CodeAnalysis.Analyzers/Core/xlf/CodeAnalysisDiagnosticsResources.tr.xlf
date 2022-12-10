@@ -571,8 +571,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
-        <source>Do not ignore values returned by methods on immutable objects.</source>
-        <target state="translated">Sabit nesneler üzerinde yöntemler tarafından döndürülen değerleri yoksaymayın.</target>
+        <source>Do not ignore values returned by methods on immutable objects</source>
+        <target state="needs-review-translation">Sabit nesneler üzerinde yöntemler tarafından döndürülen değerleri yoksaymayın.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
