@@ -23,24 +23,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeStateme
         {
             await new VerifyCS.Test()
             {
-                TestCode = @"
-class Program
-{
-    async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
-    {
-        foreach (var i in {|CS8414:collection|}) { }
-        foreach (var j in {|CS8414:collection|}) { }
-    }
-}",
-                FixedCode = @"
-class Program
-{
-    async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
-    {
-        await foreach (var i in collection) { }
-        await foreach (var j in collection) { }
-    }
-}",
+                TestCode = """
+                    class Program
+                    {
+                        async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+                        {
+                            foreach (var i in {|CS8414:collection|}) { }
+                            foreach (var j in {|CS8414:collection|}) { }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class Program
+                    {
+                        async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+                        {
+                            await foreach (var i in collection) { }
+                            await foreach (var j in collection) { }
+                        }
+                    }
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
@@ -50,24 +52,26 @@ class Program
         {
             await new VerifyCS.Test()
             {
-                TestCode = @"
-class Program
-{
-    async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
-    {
-        foreach (var ({|CS8130:i|}, {|CS8130:j|}) in {|CS8414:collection|}) { }
-        foreach (var ({|CS8130:k|}, {|CS8130:l|}) in {|CS8414:collection|}) { }
-    }
-}",
-                FixedCode = @"
-class Program
-{
-    async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
-    {
-        await foreach (var (i, j) in collection) { }
-        await foreach (var (k, l) in collection) { }
-    }
-}",
+                TestCode = """
+                    class Program
+                    {
+                        async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+                        {
+                            foreach (var ({|CS8130:i|}, {|CS8130:j|}) in {|CS8414:collection|}) { }
+                            foreach (var ({|CS8130:k|}, {|CS8130:l|}) in {|CS8414:collection|}) { }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class Program
+                    {
+                        async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+                        {
+                            await foreach (var (i, j) in collection) { }
+                            await foreach (var (k, l) in collection) { }
+                        }
+                    }
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
@@ -77,24 +81,26 @@ class Program
         {
             await new VerifyCS.Test()
             {
-                TestCode = @"
-class Program
-{
-    async void M(System.IAsyncDisposable disposable)
-    {
-        using ({|CS8418:var i = disposable|}) { }
-        using ({|CS8418:var j = disposable|}) { }
-    }
-}",
-                FixedCode = @"
-class Program
-{
-    async void M(System.IAsyncDisposable disposable)
-    {
-        await using (var i = disposable) { }
-        await using (var j = disposable) { }
-    }
-}",
+                TestCode = """
+                    class Program
+                    {
+                        async void M(System.IAsyncDisposable disposable)
+                        {
+                            using ({|CS8418:var i = disposable|}) { }
+                            using ({|CS8418:var j = disposable|}) { }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class Program
+                    {
+                        async void M(System.IAsyncDisposable disposable)
+                        {
+                            await using (var i = disposable) { }
+                            await using (var j = disposable) { }
+                        }
+                    }
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
@@ -104,24 +110,26 @@ class Program
         {
             await new VerifyCS.Test()
             {
-                TestCode = @"
-class Program
-{
-    async void M(System.IAsyncDisposable disposable)
-    {
-        {|CS8418:using var i = disposable;|}
-        {|CS8418:using var j = disposable;|}
-    }
-}",
-                FixedCode = @"
-class Program
-{
-    async void M(System.IAsyncDisposable disposable)
-    {
-        await using var i = disposable;
-        await using var j = disposable;
-    }
-}",
+                TestCode = """
+                    class Program
+                    {
+                        async void M(System.IAsyncDisposable disposable)
+                        {
+                            {|CS8418:using var i = disposable;|}
+                            {|CS8418:using var j = disposable;|}
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class Program
+                    {
+                        async void M(System.IAsyncDisposable disposable)
+                        {
+                            await using var i = disposable;
+                            await using var j = disposable;
+                        }
+                    }
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
@@ -131,26 +139,28 @@ class Program
         {
             await new VerifyCS.Test()
             {
-                TestCode = @"
-class Program
-{
-    async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
-    {
-        foreach (var i in {|CS8414:collection|})
-        {
-        }
-    }
-}",
-                FixedCode = @"
-class Program
-{
-    async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
-    {
-        await foreach (var i in collection)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class Program
+                    {
+                        async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+                        {
+                            foreach (var i in {|CS8414:collection|})
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class Program
+                    {
+                        async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+                        {
+                            await foreach (var i in collection)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
@@ -160,26 +170,28 @@ class Program
         {
             await new VerifyCS.Test()
             {
-                TestCode = @"
-class Program
-{
-    async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
-    {
-        foreach (var ({|CS8130:i|}, {|CS8130:j|}) in {|CS8414:collection|})
-        {
-        }
-    }
-}",
-                FixedCode = @"
-class Program
-{
-    async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
-    {
-        await foreach (var (i, j) in collection)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class Program
+                    {
+                        async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+                        {
+                            foreach (var ({|CS8130:i|}, {|CS8130:j|}) in {|CS8414:collection|})
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class Program
+                    {
+                        async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+                        {
+                            await foreach (var (i, j) in collection)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
@@ -189,26 +201,28 @@ class Program
         {
             await new VerifyCS.Test()
             {
-                TestCode = @"
-class Program
-{
-    async void M(System.IAsyncDisposable disposable)
-    {
-        using ({|CS8418:var i = disposable|})
-        {
-        }
-    }
-}",
-                FixedCode = @"
-class Program
-{
-    async void M(System.IAsyncDisposable disposable)
-    {
-        await using (var i = disposable)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class Program
+                    {
+                        async void M(System.IAsyncDisposable disposable)
+                        {
+                            using ({|CS8418:var i = disposable|})
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class Program
+                    {
+                        async void M(System.IAsyncDisposable disposable)
+                        {
+                            await using (var i = disposable)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
@@ -218,22 +232,24 @@ class Program
         {
             await new VerifyCS.Test()
             {
-                TestCode = @"
-class Program
-{
-    async void M(System.IAsyncDisposable disposable)
-    {
-        {|CS8418:using var i = disposable;|}
-    }
-}",
-                FixedCode = @"
-class Program
-{
-    async void M(System.IAsyncDisposable disposable)
-    {
-        await using var i = disposable;
-    }
-}",
+                TestCode = """
+                    class Program
+                    {
+                        async void M(System.IAsyncDisposable disposable)
+                        {
+                            {|CS8418:using var i = disposable;|}
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class Program
+                    {
+                        async void M(System.IAsyncDisposable disposable)
+                        {
+                            await using var i = disposable;
+                        }
+                    }
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
