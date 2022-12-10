@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
 
             // Sort proxy types.
-            _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).Select(kvp => kvp.Value).AsImmutable();
+            _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).AsImmutable();
         }
 
         private bool IsFrozen => _frozen != 0;
@@ -210,10 +210,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 ((uint)data.Length, Alignment: alignment), key =>
                 key.Size switch
                 {
+                    // We need a type with the same size as the data.  If the size of the data is
+                    // 2, 4, or 8 bytes, we can use short, int, or long rather than creating a custom
+                    // type, but we can only do so if the required alignment is also 1, as these types
+                    // have a .pack value of 1.
                     1 when _systemInt8Type is not null => _systemInt8Type,
-                    2 when _systemInt16Type is not null => _systemInt16Type,
-                    4 when _systemInt32Type is not null => _systemInt32Type,
-                    8 when _systemInt64Type is not null => _systemInt64Type,
+                    2 when key.Alignment == 1 && _systemInt16Type is not null => _systemInt16Type,
+                    4 when key.Alignment == 1 && _systemInt32Type is not null => _systemInt32Type,
+                    8 when key.Alignment == 1 && _systemInt64Type is not null => _systemInt64Type,
                     _ => new ExplicitSizeStruct(key.Size, key.Alignment, this, _systemValueType)
                 });
 
@@ -433,7 +437,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             visitor.Visit(this);
         }
 
-        public string Name => "__StaticArrayInitTypeSize=" + _size;
+        public string Name => _alignment == 1 ?
+            $"__StaticArrayInitTypeSize={_size}" :
+            $"__StaticArrayInitTypeSize={_size}_Align={_alignment}";
 
         public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
 
