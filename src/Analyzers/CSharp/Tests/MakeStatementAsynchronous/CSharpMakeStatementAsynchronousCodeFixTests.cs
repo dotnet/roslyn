@@ -2,226 +2,240 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeStatementAsynchronous
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        EmptyDiagnosticAnalyzer,
+        CSharpMakeStatementAsynchronousCodeFixProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStatementAsynchronous)]
-    public class CSharpMakeStatementAsynchronousCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class CSharpMakeStatementAsynchronousCodeFixTests
     {
-        public CSharpMakeStatementAsynchronousCodeFixTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpMakeStatementAsynchronousCodeFixProvider());
-
-        private static readonly TestParameters s_asyncStreamsFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-
         [Fact]
         public async Task FixAllForeach()
         {
-            await TestInRegularAndScript1Async(
-IAsyncEnumerable + @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 class Program
 {
-    void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+    async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
-        foreach (var i in {|FixAllInDocument:collection|}) { }
-        foreach (var j in collection) { }
+        foreach (var i in {|CS8414:collection|}) { }
+        foreach (var j in {|CS8414:collection|}) { }
     }
 }",
-IAsyncEnumerable + @"
+                FixedCode = @"
 class Program
 {
-    void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+    async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
         await foreach (var i in collection) { }
         await foreach (var j in collection) { }
     }
-}", parameters: s_asyncStreamsFeature);
+}",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
 
         [Fact]
         public async Task FixAllForeachDeconstruction()
         {
-            await TestInRegularAndScript1Async(
-IAsyncEnumerable + @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 class Program
 {
-    void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+    async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
     {
-        foreach (var (i, j) in {|FixAllInDocument:collection|}) { }
-        foreach (var (k, l) in collection) { }
+        foreach (var ({|CS8130:i|}, {|CS8130:j|}) in {|CS8414:collection|}) { }
+        foreach (var ({|CS8130:k|}, {|CS8130:l|}) in {|CS8414:collection|}) { }
     }
 }",
-IAsyncEnumerable + @"
+                FixedCode = @"
 class Program
 {
-    void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+    async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
     {
         await foreach (var (i, j) in collection) { }
         await foreach (var (k, l) in collection) { }
     }
-}", parameters: s_asyncStreamsFeature);
+}",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
 
         [Fact]
         public async Task FixAllUsingStatement()
         {
-            await TestInRegularAndScript1Async(
-IAsyncEnumerable + @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 class Program
 {
-    void M(System.IAsyncDisposable disposable)
+    async void M(System.IAsyncDisposable disposable)
     {
-        using (var i = {|FixAllInDocument:disposable|}) { }
-        using (var j = disposable) { }
+        using ({|CS8418:var i = disposable|}) { }
+        using ({|CS8418:var j = disposable|}) { }
     }
 }",
-IAsyncEnumerable + @"
+                FixedCode = @"
 class Program
 {
-    void M(System.IAsyncDisposable disposable)
+    async void M(System.IAsyncDisposable disposable)
     {
         await using (var i = disposable) { }
         await using (var j = disposable) { }
     }
-}", parameters: s_asyncStreamsFeature);
+}",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
 
         [Fact]
         public async Task FixAllUsingDeclaration()
         {
-            await TestInRegularAndScript1Async(
-IAsyncEnumerable + @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 class Program
 {
-    void M(System.IAsyncDisposable disposable)
+    async void M(System.IAsyncDisposable disposable)
     {
-        using var i = {|FixAllInDocument:disposable|};
-        using var j = disposable;
+        {|CS8418:using var i = disposable;|}
+        {|CS8418:using var j = disposable;|}
     }
 }",
-IAsyncEnumerable + @"
+                FixedCode = @"
 class Program
 {
-    void M(System.IAsyncDisposable disposable)
+    async void M(System.IAsyncDisposable disposable)
     {
         await using var i = disposable;
         await using var j = disposable;
     }
-}", parameters: s_asyncStreamsFeature);
+}",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
 
         [Fact]
         public async Task FixForeach()
         {
-            await TestInRegularAndScript1Async(
-IAsyncEnumerable + @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 class Program
 {
-    void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+    async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
-        foreach (var i in [|collection|])
+        foreach (var i in {|CS8414:collection|})
         {
         }
     }
 }",
-IAsyncEnumerable + @"
+                FixedCode = @"
 class Program
 {
-    void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
+    async void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
         await foreach (var i in collection)
         {
         }
     }
-}", parameters: s_asyncStreamsFeature);
+}",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
 
         [Fact]
         public async Task FixForeachDeconstruction()
         {
-            await TestInRegularAndScript1Async(
-IAsyncEnumerable + @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 class Program
 {
-    void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+    async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
     {
-        foreach (var (i, j) in collection[||])
+        foreach (var ({|CS8130:i|}, {|CS8130:j|}) in {|CS8414:collection|})
         {
         }
     }
 }",
-IAsyncEnumerable + @"
+                FixedCode = @"
 class Program
 {
-    void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+    async void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
     {
         await foreach (var (i, j) in collection)
         {
         }
     }
-}", parameters: s_asyncStreamsFeature);
+}",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
 
         [Fact]
         public async Task FixUsingStatement()
         {
-            await TestInRegularAndScript1Async(
-IAsyncEnumerable + @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 class Program
 {
-    void M(System.IAsyncDisposable disposable)
+    async void M(System.IAsyncDisposable disposable)
     {
-        using (var i = disposable[||])
+        using ({|CS8418:var i = disposable|})
         {
         }
     }
 }",
-IAsyncEnumerable + @"
+                FixedCode = @"
 class Program
 {
-    void M(System.IAsyncDisposable disposable)
+    async void M(System.IAsyncDisposable disposable)
     {
         await using (var i = disposable)
         {
         }
     }
-}", parameters: s_asyncStreamsFeature);
+}",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
 
         [Fact]
         public async Task FixUsingDeclaration()
         {
-            await TestInRegularAndScript1Async(
-IAsyncEnumerable + @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 class Program
 {
-    void M(System.IAsyncDisposable disposable)
+    async void M(System.IAsyncDisposable disposable)
     {
-        using var i = disposable[||];
+        {|CS8418:using var i = disposable;|}
     }
 }",
-IAsyncEnumerable + @"
+                FixedCode = @"
 class Program
 {
-    void M(System.IAsyncDisposable disposable)
+    async void M(System.IAsyncDisposable disposable)
     {
         await using var i = disposable;
     }
-}", parameters: s_asyncStreamsFeature);
+}",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
     }
 }
