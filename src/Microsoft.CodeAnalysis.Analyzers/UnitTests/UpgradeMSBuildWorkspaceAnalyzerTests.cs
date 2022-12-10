@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers;
@@ -17,34 +18,35 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
     public class UpgradeMSBuildWorkspaceAnalyzerTests
     {
-        [Fact]
-        public async Task CSharp_VerifyWithMSBuildWorkspaceAsync()
+        private static readonly ReferenceAssemblies s_withDesktopWorkspaces = ReferenceAssemblies.NetFramework.Net46.Default.AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis.Workspaces.Common", "2.9.0")));
+
+        private static readonly ReferenceAssemblies s_withMSBuildWorkspaces = ReferenceAssemblies.NetFramework.Net461.Default.AddPackages(ImmutableArray.Create(
+            new PackageIdentity("Microsoft.CodeAnalysis.Workspaces.MSBuild", "2.9.0"),
+            new PackageIdentity("Microsoft.CodeAnalysis.CSharp.Workspaces", "2.9.0"),
+            new PackageIdentity("Microsoft.Build.Locator", "1.0.18")));
+
+        private static async Task VerifyCSharpAsync(string source, ReferenceAssemblies referenceAssemblies)
         {
-            const string source1 = @"
-namespace Microsoft.CodeAnalysis.MSBuild
-{
-    public class MSBuildWorkspace
-    {
-        public static MSBuildWorkspace Create() => null;
-    }
-}";
+            await new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                ReferenceAssemblies = referenceAssemblies,
+            }.RunAsync();
+        }
 
-            const string source2 = @"
-using Microsoft.CodeAnalysis.MSBuild;
-
-class Usage
-{
-    void M()
-    {
-        var workspace = MSBuildWorkspace.Create();
-    }
-}";
-
-            await new VerifyCS.Test { TestState = { Sources = { source1, source2 } } }.RunAsync();
+        private static async Task VerifyVisualBasicAsync(string source, ReferenceAssemblies referenceAssemblies)
+        {
+            await new VerifyVB.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                ReferenceAssemblies = referenceAssemblies,
+            }.RunAsync();
         }
 
         [Fact]
-        public async Task CSharp_VerifyWithoutMSBuildWorkspaceAsync()
+        public async Task CSharp_VerifyWithMSBuildWorkspaceAsync()
         {
             const string source = @"
 using Microsoft.CodeAnalysis.MSBuild;
@@ -57,27 +59,29 @@ class Usage
     }
 }";
 
-            await VerifyCS.VerifyAnalyzerAsync(
-                source,
-                // Test0.cs(2,30): error CS0234: The type or namespace name 'MSBuild' does not exist in the namespace 'Microsoft.CodeAnalysis' (are you missing an assembly reference?)
-                DiagnosticResult.CompilerError("CS0234").WithSpan(2, 30, 2, 37).WithArguments("MSBuild", "Microsoft.CodeAnalysis"),
-                // Test0.cs(8,25): error CS0103: The name 'MSBuildWorkspace' does not exist in the current context
-                DiagnosticResult.CompilerError("CS0103").WithSpan(8, 25, 8, 41).WithArguments("MSBuildWorkspace"));
+            await VerifyCSharpAsync(source, s_withMSBuildWorkspaces);
+        }
+
+        [Fact]
+        public async Task CSharp_VerifyWithoutMSBuildWorkspaceAsync()
+        {
+            const string source = @"
+using Microsoft.CodeAnalysis.{|CS0234:MSBuild|};
+
+class Usage
+{
+    void M()
+    {
+        var workspace = [|{|CS0103:MSBuildWorkspace|}|].Create();
+    }
+}";
+            await VerifyCSharpAsync(source, s_withDesktopWorkspaces);
         }
 
         [Fact]
         public async Task VisualBasic_VerifyWithMSBuildWorkspaceAsync()
         {
-            const string source1 = @"
-Namespace Microsoft.CodeAnalysis.MSBuild
-    Public Class MSBuildWorkspace
-        Public Shared Function Create() As MSBuildWorkspace
-            Return Nothing
-        End Function
-    End Class
-End Namespace";
-
-            const string source2 = @"
+            const string source = @"
 Imports Microsoft.CodeAnalysis.MSBuild
 
 Class Usage
@@ -85,8 +89,7 @@ Class Usage
         Dim workspace = MSBuildWorkspace.Create()
     End Sub
 End Class";
-
-            await new VerifyVB.Test { TestState = { Sources = { source1, source2 } } }.RunAsync();
+            await VerifyVisualBasicAsync(source, s_withMSBuildWorkspaces);
         }
 
         [Fact]
@@ -97,14 +100,10 @@ Imports Microsoft.CodeAnalysis.MSBuild
 
 Class Usage
     Sub M()
-        Dim workspace = MSBuildWorkspace.Create()
+        Dim workspace = [|{|BC30451:MSBuildWorkspace|}|].Create()
     End Sub
 End Class";
-
-            await VerifyVB.VerifyAnalyzerAsync(
-                source,
-                // Test0.vb(6) : error BC30451: 'MSBuildWorkspace' is not declared. It may be inaccessible due to its protection level.
-                DiagnosticResult.CompilerError("BC30451").WithSpan(6, 25, 6, 41).WithArguments("MSBuildWorkspace"));
+            await VerifyVisualBasicAsync(source, s_withDesktopWorkspaces);
         }
     }
 }
