@@ -188,13 +188,19 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to
-        /// the new value and raises a workspace change event of the specified kind.
+        /// the new value and raises a workspace change event of the specified kind.  All linked documents in the
+        /// solution (which normally will have the same content values) will be updated to to have the same content
+        /// *identity*.  In other words, they will point at the same <see cref="ITextAndVersionSource"/> instances,
+        /// allowing that memory to be shared.
         /// </summary>
         /// <param name="transformation">Solution transformation.</param>
         /// <param name="kind">The kind of workspace change event to raise.</param>
-        /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
-        /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
-        /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the transformation did not change the solution.</returns>
+        /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to
+        /// the workspace change event.</param>
+        /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to
+        /// the workspace change event.</param>
+        /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the
+        /// transformation did not change the solution.</returns>
         internal bool SetCurrentSolutionAndUnifyLinkedDocumentContents(
             Func<Solution, Solution> transformation,
             WorkspaceChangeKind kind,
