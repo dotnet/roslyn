@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild MakeStructReadOnly = /*IDE0250*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UsePatternMatchingAsAndMemberAccess = /*IDE0260*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseCoalesceExpressionForIfNullCheck = /*IDE0270*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseNameofInAttribute = /*IDE0280*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
