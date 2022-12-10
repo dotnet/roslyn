@@ -2658,179 +2658,32 @@ class Test
 ";
             var compilation = CreateCompilation(csharp, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseDll);
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
-            verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
-.class private auto ansi sealed '<PrivateImplementationDetails>'
-    extends [System.Runtime]System.Object
-{
-    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-    	01 00 00 00
-    )
-    // Nested Types
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=8_Align=2'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 2
-    	.size 8
-    } // end of class __StaticArrayInitTypeSize=8_Align=2
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=8_Align=4'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 4
-    	.size 8
-    } // end of class __StaticArrayInitTypeSize=8_Align=4
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=8_Align=8'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 8
-    	.size 8
-    } // end of class __StaticArrayInitTypeSize=8_Align=8
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=16'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 1
-    	.size 16
-    } // end of class __StaticArrayInitTypeSize=16
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=16_Align=2'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 2
-    	.size 16
-    } // end of class __StaticArrayInitTypeSize=16_Align=2
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=16_Align=4'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 4
-    	.size 16
-    } // end of class __StaticArrayInitTypeSize=16_Align=4
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=16_Align=8'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 8
-    	.size 16
-    } // end of class __StaticArrayInitTypeSize=16_Align=8
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=24'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 1
-    	.size 24
-    } // end of class __StaticArrayInitTypeSize=24
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=24_Align=2'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 2
-    	.size 24
-    } // end of class __StaticArrayInitTypeSize=24_Align=2
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=24_Align=4'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 4
-    	.size 24
-    } // end of class __StaticArrayInitTypeSize=24_Align=4
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=24_Align=8'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 8
-    	.size 24
-    } // end of class __StaticArrayInitTypeSize=24_Align=8
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=32'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 1
-    	.size 32
-    } // end of class __StaticArrayInitTypeSize=32
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=32_Align=2'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 2
-    	.size 32
-    } // end of class __StaticArrayInitTypeSize=32_Align=2
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=32_Align=4'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 4
-    	.size 32
-    } // end of class __StaticArrayInitTypeSize=32_Align=4
-    .class nested private explicit ansi sealed '__StaticArrayInitTypeSize=32_Align=8'
-    	extends [System.Runtime]System.ValueType
-    {
-    	.pack 8
-    	.size 32
-    } // end of class __StaticArrayInitTypeSize=32_Align=8
-    // Fields
-    .field assembly static initonly int64 '12A3AE445661CE5DEE78D0650D33362DEC29C4F82AF05E7E57FB595BBBACF0CA' at I_00003358
-    .data cil I_00003358 = bytearray (
-    	ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=8_Align=2' '12A3AE445661CE5DEE78D0650D33362DEC29C4F82AF05E7E57FB595BBBACF0CA2' at I_00003360
-    .data cil I_00003360 = bytearray (
-    	ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=8_Align=4' '12A3AE445661CE5DEE78D0650D33362DEC29C4F82AF05E7E57FB595BBBACF0CA4' at I_00003368
-    .data cil I_00003368 = bytearray (
-    	ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=8_Align=8' '12A3AE445661CE5DEE78D0650D33362DEC29C4F82AF05E7E57FB595BBBACF0CA8' at I_00003370
-    .data cil I_00003370 = bytearray (
-    	ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=24' '44A5F7891570E5631E8C91C85186E6633F4AB5364F644040B2A00126A07985B6' at I_00003378
-    .data cil I_00003378 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    	ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=24_Align=2' '44A5F7891570E5631E8C91C85186E6633F4AB5364F644040B2A00126A07985B62' at I_00003390
-    .data cil I_00003390 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    	ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=24_Align=4' '44A5F7891570E5631E8C91C85186E6633F4AB5364F644040B2A00126A07985B64' at I_000033A8
-    .data cil I_000033A8 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    	ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=24_Align=8' '44A5F7891570E5631E8C91C85186E6633F4AB5364F644040B2A00126A07985B68' at I_000033C0
-    .data cil I_000033C0 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    	ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=16' '5AC6A5945F16500911219129984BA8B387A06F24FE383CE4E81A73294065461B' at I_000033D8
-    .data cil I_000033D8 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=16_Align=2' '5AC6A5945F16500911219129984BA8B387A06F24FE383CE4E81A73294065461B2' at I_000033E8
-    .data cil I_000033E8 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=16_Align=4' '5AC6A5945F16500911219129984BA8B387A06F24FE383CE4E81A73294065461B4' at I_000033F8
-    .data cil I_000033F8 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=16_Align=8' '5AC6A5945F16500911219129984BA8B387A06F24FE383CE4E81A73294065461B8' at I_00003408
-    .data cil I_00003408 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=32' AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051 at I_00003418
-    .data cil I_00003418 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=32_Align=2' AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512 at I_00003438
-    .data cil I_00003438 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=32_Align=4' AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40514 at I_00003458
-    .data cil I_00003458 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    )
-    .field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=32_Align=8' AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40518 at I_00003478
-    .data cil I_00003478 = bytearray (
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-    )
-} // end of class <PrivateImplementationDetails>
-            ");
+            verifier.VerifyTypeIL("<PrivateImplementationDetails>", il =>
+            {
+                string[] expected = new[]
+                {
+                    "__StaticArrayInitTypeSize=8_Align=2",
+                    "__StaticArrayInitTypeSize=8_Align=4",
+                    "__StaticArrayInitTypeSize=8_Align=8",
+                    "__StaticArrayInitTypeSize=16",
+                    "__StaticArrayInitTypeSize=16_Align=2",
+                    "__StaticArrayInitTypeSize=16_Align=4",
+                    "__StaticArrayInitTypeSize=16_Align=8",
+                    "__StaticArrayInitTypeSize=24",
+                    "__StaticArrayInitTypeSize=24_Align=2",
+                    "__StaticArrayInitTypeSize=24_Align=4",
+                    "__StaticArrayInitTypeSize=24_Align=8",
+                    "__StaticArrayInitTypeSize=32",
+                    "__StaticArrayInitTypeSize=32_Align=2",
+                    "__StaticArrayInitTypeSize=32_Align=4",
+                    "__StaticArrayInitTypeSize=32_Align=8",
+                };
+
+                // .class nested private explicit ansi sealed 'TYPENAME'
+                string[] actual = Regex.Matches(il, @"\.class nested private explicit ansi sealed '([^']*?)'").Cast<Match>().Select(m => m.Groups[1].Value).ToArray();
+
+                Assert.Equal(expected, actual);
+            });
         }
     }
 }

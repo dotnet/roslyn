@@ -203,30 +203,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data, ushort alignment)
         {
             Debug.Assert(!IsFrozen);
+            Debug.Assert(alignment is 1 or 2 or 4 or 8);
+            Debug.Assert(data.Length != 1 || alignment == 1);
 
             Cci.ITypeReference type = _proxyTypes.GetOrAdd(
                 ((uint)data.Length, Alignment: alignment), key =>
                 {
                     // We need a type that's both the same size as the data and that has a .pack
-                    // that matches the data's alignment requirements.
-
-                    if (key.Size == 1)
+                    // that matches the data's alignment requirements. If the size of the data
+                    // is 1 byte, then the alignment will also be 1, and we can use byte as the type.
+                    // If the size of the data is 2, 4, or 8 bytes, we can use short, int, or long rather than
+                    // creating a custom type, but we can only do so if the required alignment is also 1, as
+                    // these types have a .pack value of 1.
+                    if (key.Alignment == 1)
                     {
-                        // Data of size 1 must be a single element of one-byte-sized type,
-                        // which has no alignment requirements.
-                        Debug.Assert(alignment == 1);
-                        if (_systemInt8Type is not null)
-                        {
-                            return _systemInt8Type;
-                        }
-                    }
-                    else if (key.Alignment == 1)
-                    {
-                        // If the size of the data is 2, 4, or 8 bytes, we can use short, int, or long rather than
-                        // creating a custom type, but we can only do so if the required alignment is also 1, as
-                        // these types have a .pack value of 1.
                         switch (key.Size)
                         {
+                            case 1 when _systemInt8Type is not null: return _systemInt8Type;
                             case 2 when _systemInt16Type is not null: return _systemInt16Type;
                             case 4 when _systemInt32Type is not null: return _systemInt32Type;
                             case 8 when _systemInt64Type is not null: return _systemInt64Type;
