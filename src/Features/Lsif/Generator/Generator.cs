@@ -354,10 +354,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             string? contentBase64Encoded = null;
             var uri = document.FilePath ?? "";
 
-            // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
-            // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
-            // this is a source generated file.
-            if (!PathUtilities.IsAbsolute(uri))
+            if (document is SourceGeneratedDocument)
             {
                 var text = await document.GetTextAsync().ConfigureAwait(false);
 
