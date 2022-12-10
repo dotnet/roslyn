@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 projectFile, lsifWriter, logFile,
                 async w =>
                 {
-                    var project = await w.OpenProjectAsync(projectFile.FullName);
+                    var project = await w.OpenProjectAsync(projectFile.FullName, cancellationToken: cancellationToken);
                     return project.Solution;
                 },
                 cancellationToken);
