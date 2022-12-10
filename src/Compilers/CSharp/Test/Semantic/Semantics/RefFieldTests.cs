@@ -27263,6 +27263,120 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i4").WithArguments("i4").WithLocation(14, 31));
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ConstructorInitializer_01(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+                class A
+                {
+                    public A(ref Span<int> x, Span<int> y) { }
+                    A(ref Span<int> s) : this(ref s, new Span<int>()) { }
+                    A(ref Span<int> s, int i) : this(ref s, stackalloc int[1]) { } // 1
+                }
+                class B : A
+                {
+                    B(ref Span<int> s) : base(ref s, new Span<int>()) { }
+                    B(ref Span<int> s, int i) : base(ref s, stackalloc int[2]) { } // 2
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,31): error CS8350: This combination of arguments to 'A.A(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //     A(ref Span<int> s, int i) : this(ref s, stackalloc int[1]) { } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ": this(ref s, stackalloc int[1])").WithArguments("A.A(ref System.Span<int>, System.Span<int>)", "y").WithLocation(6, 31),
+                // (6,45): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     A(ref Span<int> s, int i) : this(ref s, stackalloc int[1]) { } // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(6, 45),
+                // (11,31): error CS8350: This combination of arguments to 'A.A(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //     B(ref Span<int> s, int i) : base(ref s, stackalloc int[2]) { } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ": base(ref s, stackalloc int[2])").WithArguments("A.A(ref System.Span<int>, System.Span<int>)", "y").WithLocation(11, 31),
+                // (11,45): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     B(ref Span<int> s, int i) : base(ref s, stackalloc int[2]) { } // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[2]").WithArguments("System.Span<int>").WithLocation(11, 45));
+        }
+
+        [Fact]
+        public void ConstructorInitializer_02()
+        {
+            var source = """
+                ref struct R
+                {
+                    R(in int i) { }
+                    R(int x, int y) : this(x) { } // 1
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS8350: This combination of arguments to 'R.R(in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //     R(int x, int y) : this(x) { } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ": this(x)").WithArguments("R.R(in int)", "i").WithLocation(4, 21),
+                // (4,28): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     R(int x, int y) : this(x) { } // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 28));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void FunctionPointerInvocation_01(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void F0(ref Span<int> x, Span<int> y)
+                    {
+                    }
+                    static unsafe void F1(ref Span<int> s)
+                    {
+                        delegate*<ref Span<int>, Span<int>, void> f = &F0;
+                        f(ref s, new Span<int>());
+                        f(ref s, stackalloc int[1]); // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,18): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                //         f(ref s, stackalloc int[1]); // 1
+                Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(11, 18));
+        }
+
+        [Fact]
+        public void FunctionPointerInvocation_02()
+        {
+            var source = """
+                ref struct R
+                {
+                }
+                class Program
+                {
+                    static void F0(out R r, in int i)
+                    {
+                        r = default;
+                    }
+                    static unsafe void F1(out R r1, in int i1)
+                    {
+                        delegate*<out R, in int, void> f = &F0;
+                        f(out r1, i1);
+                    }
+                    static unsafe void F2(out R r1, int i2)
+                    {
+                        delegate*<out R, in int, void> f = &F0;
+                        f(out r1, i2); // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (18,19): warning CS9087: This returns a parameter by reference 'i2' but it is not a ref parameter
+                //         f(out r1, i2); // 1
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "i2").WithArguments("i2").WithLocation(18, 19));
+        }
+
         [Fact]
         public void TopLevelStatementLocal()
         {
