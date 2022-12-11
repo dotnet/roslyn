@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     if (!isLocalFunction || !parameter.CanBeCapturedByLocalFunction)
                     {
                         var refKind = GetRefKind(parameter.ParameterModifier);
-                        var type = parameter.GetVariableType();
+                        var type = parameter.GetVariableType(SemanticDocument);
 
                         parameters.Add(
                             CodeGenerationSymbolFactory.CreateParameterSymbol(

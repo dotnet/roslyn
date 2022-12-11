@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var parameters = MarkVariableInfoToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap.Values));
                     var variableToUseAsReturnValue = parameters.FirstOrDefault(v => v.UseAsReturnValue);
                     var returnType = variableToUseAsReturnValue != null
-                        ? variableToUseAsReturnValue.GetVariableType()
+                        ? variableToUseAsReturnValue.GetVariableType(_semanticDocument)
                         : compilation.GetSpecialType(SpecialType.System_Void);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);

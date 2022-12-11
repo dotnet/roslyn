@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 ExpressionSyntax initialValue,
                 CancellationToken cancellationToken)
             {
-                var type = variable.GetVariableType();
+                var type = variable.GetVariableType(SemanticDocument);
                 var typeNode = type.GenerateTypeSyntax();
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);

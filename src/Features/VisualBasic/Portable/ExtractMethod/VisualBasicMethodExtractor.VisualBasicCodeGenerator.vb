@@ -401,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Dim initializer = If(givenInitializer, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
 
-                Dim variableType = variable.GetVariableType()
+                Dim variableType = variable.GetVariableType(Me.SemanticDocument)
                 Dim typeNode = variableType.GenerateTypeSyntax()
 
                 Dim names = SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(variable.Name)))

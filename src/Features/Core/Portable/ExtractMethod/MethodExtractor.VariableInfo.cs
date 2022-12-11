@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
 
-            public ITypeSymbol GetVariableType()
+            public ITypeSymbol GetVariableType(SemanticDocument document)
                 => _variableSymbol.OriginalType;
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)

@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             foreach (var variable in variables)
             {
-                var originalType = variable.GetVariableType();
+                var originalType = variable.GetVariableType(document);
                 var result = await CheckTypeAsync(document.Document, contextNode, location, originalType, cancellationToken).ConfigureAwait(false);
                 if (result.FailedWithNoBestEffortSuggestion())
                 {
