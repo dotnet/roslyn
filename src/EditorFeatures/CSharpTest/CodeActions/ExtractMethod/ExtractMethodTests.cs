@@ -3410,7 +3410,7 @@ class C
         return x;
     }
 
-    private async Task<string> NewMethod()
+    private async Task<string?> NewMethod()
     {
         return await DoSomethingAsync();
     }
