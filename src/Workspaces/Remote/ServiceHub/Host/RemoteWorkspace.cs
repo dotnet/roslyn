@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     _ => newSolution,
                     changeKind: static (oldSolution, newSolution) => IsAddingSolution(oldSolution, newSolution)
                         ? WorkspaceChangeKind.SolutionAdded
-                        : WorkspaceChangeKind.SolutionChanged
+                        : WorkspaceChangeKind.SolutionChanged,
                     onBeforeUpdate: (oldSolution, newSolution) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))
