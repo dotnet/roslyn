@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 ImmutableArray<byte> data = this.GetRawData(initExprs);
                 if (data.All(datum => datum == data[0]))
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics);
+                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics.DiagnosticBag);
 
                     if (initializationStyle == ArrayInitializerStyle.Mixed)
                     {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else if (elementType.SpecialType.SizeInBytes() == 1)
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: false, _diagnostics);
+                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: false, _diagnostics.DiagnosticBag);
 
                     if (initializationStyle == ArrayInitializerStyle.Mixed)
                     {
