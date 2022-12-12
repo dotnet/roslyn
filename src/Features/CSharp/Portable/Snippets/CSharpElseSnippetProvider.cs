@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        private static string GetIndentation(Document document, ElseClauseSyntax elseClauseSyntax, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        private static string GetIndentationString(Document document, ElseClauseSyntax elseClauseSyntax, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(elseClauseSyntax.Statement.SpanStart).LineNumber;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var elseClauseSyntax = (ElseClauseSyntax)snippet;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, elseClauseSyntax, syntaxFormattingOptions, cancellationToken);
+            var indentationString = GetIndentationString(document, elseClauseSyntax, syntaxFormattingOptions, cancellationToken);
 
             var blockStatement = (BlockSyntax)elseClauseSyntax.Statement;
             blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));

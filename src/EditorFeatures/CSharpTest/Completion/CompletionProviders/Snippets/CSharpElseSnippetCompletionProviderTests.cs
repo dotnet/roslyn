@@ -210,5 +210,71 @@ class Program
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact]
+        public async Task InsertElseSnippetSingleLineIfTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        if (true) {}
+        $$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"class Program
+{
+    public void Method()
+    {
+        if (true) {}
+        else
+        {
+            $$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task InsertElseSnippetNestedIfTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        if (true)
+        {
+            if (true)
+            {
+            }
+        }   
+        $$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"class Program
+{
+    public void Method()
+    {
+        if (true)
+        {
+            if (true)
+            {
+            }
+        }
+        else
+        {
+            $$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }
