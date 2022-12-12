@@ -10991,23 +10991,20 @@ class Program
     {
         int i = 42;
         var r1 = new R(ref i);
-        return ref ReturnRef(ref r1); // 1
+        return ref ReturnRef(ref r1);
     }
     static ref R F2(ref int i)
     {
         var r2 = new R(ref i);
         return ref ReturnRef(ref r2);
     }
+    
+    // NB: there is actually no valid implementation here except to throw.
+    // With this signature, we will never be able to return any ref struct by reference.
     static ref R ReturnRef(scoped ref R r) => throw null;
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(
-                // (12,20): error CS8347: Cannot use a result of 'Program.ReturnRef(scoped ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
-                //         return ref ReturnRef(ref r1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnRef(ref r1)").WithArguments("Program.ReturnRef(scoped ref R)", "r").WithLocation(12, 20),
-                // (12,34): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
-                //         return ref ReturnRef(ref r1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 34));
+            comp.VerifyDiagnostics();
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.ReturnRef").Parameters[0], "scoped ref R r", RefKind.Ref, DeclarationScope.RefScoped);
         }
@@ -27084,7 +27081,7 @@ Block[B2] - Exit
         }
 
         [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
-        public void UnscopedRefProperty_ValEscape_01()
+        public void ReturnRefToRefStruct_ValEscape_01()
         {
             var source = """
                 using System.Diagnostics.CodeAnalysis;
@@ -27131,7 +27128,7 @@ Block[B2] - Exit
         }
 
         [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
-        public void UnscopedRefProperty_ValEscape_02()
+        public void ReturnRefToRefStruct_ValEscape_02()
         {
             var source = """
                 using System.Diagnostics.CodeAnalysis;
@@ -27172,6 +27169,138 @@ Block[B2] - Exit
                 // (17,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
                 //         s1.RefMethod().RefField = ref value; // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(17, 9));
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_ValEscape_03()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Repro
+                {
+                    private static void Bad1(ref RefStruct s1, int value)
+                    {
+                        s1 = new RefStruct(ref value); // 1
+                    }
+
+                    private static void Bad2(scoped ref RefStruct s1, int value)
+                    {
+                        s1.RefProperty = new RefStruct(ref value); // 2
+                    }
+
+                    private static void Bad3(scoped ref RefStruct s1, int value)
+                    {
+                        s1.RefMethod() = new RefStruct(ref value); // 3
+                    }
+
+                    private ref struct RefStruct
+                    {
+                        public RefStruct(ref int i) => RefField = ref i;
+                        public ref int RefField;
+                        [UnscopedRef] public ref RefStruct RefProperty => ref this;
+                        [UnscopedRef] public ref RefStruct RefMethod() => ref this;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8347: Cannot use a result of 'Repro.RefStruct.RefStruct(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1 = new RefStruct(ref value); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(7, 14),
+                // (7,32): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1 = new RefStruct(ref value); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(7, 32),
+                // (12,26): error CS8347: Cannot use a result of 'Repro.RefStruct.RefStruct(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1.RefProperty = new RefStruct(ref value); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(12, 26),
+                // (12,44): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1.RefProperty = new RefStruct(ref value); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(12, 44),
+                // (17,26): error CS8347: Cannot use a result of 'Repro.RefStruct.RefStruct(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1.RefMethod() = new RefStruct(ref value); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(17, 26),
+                // (17,44): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1.RefMethod() = new RefStruct(ref value); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(17, 44));
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_ValEscape_04()
+        {
+            // test that the appropriate filtering of escape-values is occurring when the RTRS expression is on the RHS of an an assignment.
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Repro
+                {
+                    private static void M1(ref RefStruct s1, int value)
+                    {
+                        // 's2' only contributes STE, not RSTE, to the STE of 'RefMethod()' invocation.
+                        // STE is equal to RSTE for 's2', so it doesn't matter.
+                        var s2 = new RefStruct(ref value);
+                        s1 = s2.RefMethod(); // 1
+                    }
+                    
+                    private static void M2(ref RefStruct s1, ref RefStruct s2)
+                    {
+                        // 's2' only contributes STE, not RSTE, to the STE of 'RefMethod()' invocation.
+                        // RSTE of `s2` is narrower than STE of 's1', but STE of 's2' equals STE of 's1', so we expect no error here.
+                        s1 = s2.RefMethod();
+                    }
+
+                    private ref struct RefStruct
+                    {
+                        public RefStruct(ref int i) => RefField = ref i;
+                        public ref int RefField;
+                        [UnscopedRef] public ref RefStruct RefMethod() => ref this;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         s1 = s2.RefMethod(); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(10, 14));
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_RefEscape_01()
+        {
+            var source = """
+                public class Repro
+                {
+                    private static ref RefStruct M1(ref RefStruct s1, ref RefStruct s2)
+                    {
+                        bool b = false;
+                        return ref b ? ref s1 : ref s2;
+                    }
+
+                    private static ref RefStruct M2(ref RefStruct s1)
+                    {
+                        RefStruct s2 = default;
+                        // RSTE of s1 is ReturnOnly
+                        // RSTE of s2 is CurrentMethod
+                        return ref M1(ref s1, ref s2); // 1
+                    }
+                    
+                    private static ref RefStruct M3(ref RefStruct s1)
+                    {
+                        return ref M1(ref s1, ref s1);
+                    }
+
+                    private ref struct RefStruct { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (14,20): error CS8347: Cannot use a result of 'Repro.M1(ref Repro.RefStruct, ref Repro.RefStruct)' in this context because it may expose variables referenced by parameter 's2' outside of their declaration scope
+                //         return ref M1(ref s1, ref s2); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M1(ref s1, ref s2)").WithArguments("Repro.M1(ref Repro.RefStruct, ref Repro.RefStruct)", "s2").WithLocation(14, 20),
+                // (14,35): error CS8168: Cannot return local 's2' by reference because it is not a ref local
+                //         return ref M1(ref s1, ref s2); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s2").WithArguments("s2").WithLocation(14, 35)
+                );
         }
     }
 }
