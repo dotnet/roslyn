@@ -570,27 +570,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitCall(BoundCall node)
+        private PlaceholderRegion GetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments)
         {
-            var method = node.Method;
-            // PROTOTYPE: Need placeholder substitution whenever we visit any call,
-            // and regardless of whether it's Get, Check, Val, Ref, or ArgMixing.
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            foreach (var arg in node.Arguments)
+            foreach (var arg in arguments)
             {
                 if (arg is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
                 {
                     var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
-                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, node.ReceiverOpt, node.Arguments);
+                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, arguments);
                 }
             }
-            using var _ = new PlaceholderRegion(this, placeholders);
+            var placeholderRegion = new PlaceholderRegion(this, placeholders);
             placeholders.Free();
+            return placeholderRegion;
+        }
 
+        public override BoundNode? VisitCall(BoundCall node)
+        {
+            using var _ = GetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
             base.VisitCall(node);
 
             if (!node.HasErrors)
             {
+                var method = node.Method;
                 CheckInvocationArgMixing(
                     node.Syntax,
                     method,
@@ -642,6 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
+            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
             base.VisitObjectCreationExpression(node);
 
             if (!node.HasErrors)
@@ -664,6 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
+            using var _ = GetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
             base.VisitIndexerAccess(node);
 
             if (!node.HasErrors)
@@ -686,6 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
+            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
             base.VisitFunctionPointerInvocation(node);
 
             if (!node.HasErrors)
