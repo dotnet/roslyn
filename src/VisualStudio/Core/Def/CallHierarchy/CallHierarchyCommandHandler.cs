@@ -60,45 +60,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public bool ExecuteCommand(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                context.OperationContext, _threadingContext);
-            if (document == null)
-            {
-                return true;
-            }
-
-            var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
             var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            ExecuteCommandAsync(document, caretPosition)
+            ExecuteCommandAsync(args, context)
                 .ReportNonFatalErrorAsync()
                 .CompletesAsyncOperation(token);
 
             return true;
         }
 
-        private async Task ExecuteCommandAsync(Document document, int caretPosition)
+        private async Task ExecuteCommandAsync(ViewCallHierarchyCommandArgs args, CommandExecutionContext commandExecutionContext)
         {
+            Document document;
+
             using (var context = _threadOperationExecutor.BeginExecute(
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
             {
+                document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    commandExecutionContext.OperationContext).ConfigureAwait(true);
+                if (document == null)
+                {
+                    return;
+                }
+
+                var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
                 var cancellationToken = context.UserCancellationToken;
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
-                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(true);
+                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
 
                 if (symbolUnderCaret != null)
                 {
                     // Map symbols so that Call Hierarchy works from metadata-as-source
                     var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(true);
+                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
 
                     if (mapping.Symbol != null)
                     {
-                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(true);
+                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
 
                         if (node != null)
                         {

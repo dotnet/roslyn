@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             serverCapabilities.ProjectContextProvider = true;
 
-            var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var isPullDiagnostics = GlobalOptions.IsLspPullDiagnostics();
             if (isPullDiagnostics)
             {
                 serverCapabilities.SupportsDiagnosticRequests = true;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         /// they will get no diagnostics.  When not enabled we don't show the failure box (failure will still be recorded in the task status center)
         /// as the failure is not catastrophic.
         /// </summary>
-        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsLspPullDiagnostics();
 
         public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RoslynTypeScriptLspServer;
 

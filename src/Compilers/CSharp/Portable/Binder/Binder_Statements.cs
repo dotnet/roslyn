@@ -713,7 +713,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeSyntax = scopedType.Type;
             }
 
-            typeSyntax = typeSyntax.SkipRef(out _);
+            // Slightly odd, but we unwrap ref here (and report a lang-version diagnostic when appropriate).  Ideally,
+            // this would be in the constructor of SourceLocalSymbol, but it lacks a diagnostics bag passed to it to add
+            // this diagnostic.
+            typeSyntax = typeSyntax.SkipRefInLocalOrReturn(diagnostics, out _);
 
             bool isVar;
             AliasSymbol alias;
@@ -795,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we want to treat the declaration as an explicitly typed declaration.
 
             Debug.Assert(typeSyntax is not ScopedTypeSyntax);
-            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar, out alias);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 
             if (isVar)
@@ -1450,23 +1453,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDeconstruction(node, diagnostics);
             }
 
-            BindValueKind lhsKind;
-            ExpressionSyntax rhsExpr;
-            bool isRef = false;
+            var rhsExpr = node.Right.CheckAndUnwrapRefExpression(diagnostics, out var refKind);
+            var isRef = refKind == RefKind.Ref;
+            var lhsKind = isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable;
 
-            if (node.Right is RefExpressionSyntax refExpression)
-            {
-                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
-
-                isRef = true;
-                lhsKind = BindValueKind.RefAssignable;
-                rhsExpr = refExpression.Expression;
-            }
-            else
-            {
-                lhsKind = BindValueKind.Assignable;
-                rhsExpr = node.Right;
-            }
+            if (isRef)
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right, node.Right.GetFirstToken().GetLocation());
 
             var op1 = BindValue(node.Left, diagnostics, lhsKind);
             ReportSuppressionIfNeeded(op1, diagnostics);
@@ -1796,7 +1788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (object)sourceProperty != null &&
                     sourceProperty.IsAutoPropertyWithGetAccessor &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
         }
@@ -2737,7 +2729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Fixed and using variables are not allowed to be ref-like, but regular variables are
             if (localKind == LocalDeclarationKind.RegularVariable)
             {
-                typeSyntax = typeSyntax.SkipRef(out _);
+                typeSyntax = typeSyntax.SkipRef();
             }
 
             AliasSymbol alias;
@@ -3466,9 +3458,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
         /// </summary>
-        internal virtual BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
-                                                      BindingDiagnosticBag diagnostics)
+        internal virtual BoundBlock BindExpressionBodyAsBlock(
+            ArrowExpressionClauseSyntax expressionBody,
+            BindingDiagnosticBag diagnostics)
         {
+            var messageId = expressionBody.Parent switch
+            {
+                ConstructorDeclarationSyntax or DestructorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedDeOrConstructor,
+                AccessorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedAccessor,
+                BaseMethodDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedMethod,
+                IndexerDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedIndexer,
+                PropertyDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedProperty,
+                // No need to check if expression bodies are allowed if we have a local function. Local functions
+                // themselves are checked for availability, and if they are available then expression bodies must 
+                // also be available.
+                LocalFunctionStatementSyntax => (MessageID?)null,
+                // null in speculative scenarios.
+                null => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(expressionBody.Parent.Kind()),
+            };
+
+            messageId?.CheckFeatureAvailability(diagnostics, expressionBody, expressionBody.ArrowToken.GetLocation());
+
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
 
@@ -3560,10 +3571,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, BindingDiagnosticBag diagnostics)
         {
             ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
+            var first = true;
             foreach (var statement in compilationUnit.Members)
             {
                 if (statement is GlobalStatementSyntax topLevelStatement)
                 {
+                    if (first)
+                    {
+                        first = false;
+                        MessageID.IDS_TopLevelStatements.CheckFeatureAvailability(diagnostics, topLevelStatement);
+                    }
+
                     var boundStatement = BindStatement(topLevelStatement.Statement, diagnostics);
                     boundStatements.Add(boundStatement);
                 }

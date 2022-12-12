@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
                 }
 
-                [return: NotNullIfNotNull("containerName")]
+                [return: NotNullIfNotNull(nameof(containerName))]
                 static string? Concat(string? containerName, string name)
                 {
                     if (containerName == null)

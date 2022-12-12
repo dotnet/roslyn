@@ -141,6 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property TypeArgumentList As Integer = SyntaxKind.TypeArgumentList Implements ISyntaxKinds.TypeArgumentList
         Public ReadOnly Property GlobalStatement As Integer? Implements ISyntaxKinds.GlobalStatement
 
+        Public ReadOnly Property ElseClause As Integer = SyntaxKind.ElseBlock Implements ISyntaxKinds.ElseClause
         Public ReadOnly Property EqualsValueClause As Integer = SyntaxKind.EqualsValue Implements ISyntaxKinds.EqualsValueClause
 
         Public ReadOnly Property ImplicitElementAccess As Integer? Implements ISyntaxKinds.ImplicitElementAccess

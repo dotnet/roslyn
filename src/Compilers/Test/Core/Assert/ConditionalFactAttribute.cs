@@ -262,6 +262,17 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported in DEBUG";
     }
 
+    public class IsNot32BitDebug : ExecutionCondition
+    {
+#if DEBUG
+        public override bool ShouldSkip => !Environment.Is64BitProcess;
+#else
+        public override bool ShouldSkip => false;
+#endif
+
+        public override string SkipReason => "Test not supported in 32bit DEBUG";
+    }
+
     public class IsDebug : ExecutionCondition
     {
 #if DEBUG

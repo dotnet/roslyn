@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
 
         /// <summary>
+        /// Whether or not events from the <see cref="ITaggerEventSource"/> should cancel in-flight tag-computation.
+        /// </summary>
+        protected virtual bool CancelOnNewWork { get; }
+
+        /// <summary>
         /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
         /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
         /// <para>
@@ -120,8 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
             _visibilityTracker = visibilityTracker;
-
-            Contract.ThrowIfTrue(this.Options.Any(o => o is not Option2<bool> and not PerLanguageOption2<bool>), "All options must be Option2<bool> or PerLanguageOption2<bool>");
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();

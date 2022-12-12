@@ -357,6 +357,11 @@
         <target state="translated">Использовать локальную функцию</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_nameof">
+        <source>Use 'nameof'</source>
+        <target state="new">Use 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_new">
         <source>Use 'new(...)'</source>
         <target state="translated">Используйте "new(...)".</target>

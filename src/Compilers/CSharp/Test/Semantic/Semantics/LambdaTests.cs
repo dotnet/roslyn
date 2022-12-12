@@ -16,11 +16,12 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class LambdaTests : CSharpTestBase
+    public class LambdaTests : SemanticModelTestBase
     {
         [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()
@@ -6666,11 +6667,6 @@ class C
 
     void M2(string parameter = nameof(parameter)) => throw null;
 }
-
-public class MyAttribute : System.Attribute
-{
-    public MyAttribute(string name1) { }
-}
 ");
             comp.VerifyDiagnostics(
                 // (6,49): error CS0103: The name 'parameter' does not exist in the current context
@@ -7725,7 +7721,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(8, 31));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultLocalConstantSameScope_PreDefinition()
         {
             var source = """
@@ -7742,7 +7738,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultLocalConstantSameScope_PostDefinition()
         {
             var source = """
@@ -7765,7 +7761,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "s").WithArguments("s").WithLocation(5, 33));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultSelfReference()
         {
             var source = """
@@ -7789,7 +7785,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "lam").WithArguments("lam").WithLocation(7, 33));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultSelfReference_ParameterBefore()
         {
             var source = """
@@ -7813,7 +7809,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "lam").WithArguments("lam").WithLocation(7, 40));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultSelfReference_ParameterAfter()
         {
             var source = """
@@ -7901,6 +7897,32 @@ class Program
                 // (6,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
                 //         var lam = (string s = 1) => s;
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(6, 27));
+        }
+
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("out")]
+        public void LambdaDefault_RefOut(string modifier)
+        {
+            var source = $$"""
+                var lam = void ({{modifier}} int x = 1) => throw null;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,17): error CS1741: A ref or out parameter cannot have a default value
+                // var lam = void (ref int x = 1) => throw null;
+                Diagnostic(ErrorCode.ERR_RefOutDefaultValue, modifier).WithLocation(1, 17));
+        }
+
+        [Fact]
+        public void LambdaDefault_ThisModifier()
+        {
+            var source = """
+                var lam = void (this int x = 1) => throw null;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,17): error CS1041: Identifier expected; 'this' is a keyword
+                // var lam = void (this int x = 1) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this").WithLocation(1, 17));
         }
 
         [Fact]
@@ -8107,11 +8129,11 @@ class Program
             var methodSyntax = (MethodDeclarationSyntax)comp.GetMember<MethodSymbol>("C.M").GetNonNullSyntaxNode();
             var methodModel = model.GetMemberModel(methodSyntax.Body);
             Assert.NotNull(methodModel);
-            var methodBinder = GetBinder<BlockBinder>(methodModel.GetEnclosingBinder(methodSyntax.Body.SpanStart));
-            var defaultValueBinder = GetBinder<BlockBinder>(defaultValueModel.GetEnclosingBinder(defaultValue.SpanStart));
+            var methodBinder = getBinder<BlockBinder>(methodModel.GetEnclosingBinder(methodSyntax.Body.SpanStart));
+            var defaultValueBinder = getBinder<BlockBinder>(defaultValueModel.GetEnclosingBinder(defaultValue.SpanStart));
             Assert.Same(methodBinder, defaultValueBinder);
 
-            static T GetBinder<T>(Binder binder) where T : Binder
+            static T getBinder<T>(Binder binder) where T : Binder
             {
                 while (true)
                 {
@@ -8122,6 +8144,69 @@ class Program
                     binder = binder.NextRequired;
                 }
             }
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_BindingScope()
+        {
+            var source = """
+                #nullable enable
+                class C<T> {
+                    public static void M() {
+                        var lam = (int a,
+                            string b = nameof(a), // 1
+                            string c = nameof(lam), // 2
+                            string d = nameof(M),
+                            string e = nameof(C<T>),
+                            T? f = default(T),
+                            C<T>? g = default(C<T>)
+                            ) => { };
+                        lam(1);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,31): error CS0103: The name 'a' does not exist in the current context
+                //             string b = nameof(a), // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(5, 31),
+                // (6,31): error CS0841: Cannot use local variable 'lam' before it is declared
+                //             string c = nameof(lam), // 2
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "lam").WithArguments("lam").WithLocation(6, 31));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_LookupNames()
+        {
+            var source = """
+                class C<T1> {
+                    private const int N1 = 10;
+                    private int x;
+                    private void M1() { }
+                    public static void M2<T2>() {
+                        const int N2 = 20;
+                        int y = 2;
+                        var lam = (int a, int b = /*pos*/5, int c = 6) => { };
+                        lam(1);
+                    }
+                }
+                """;
+            var tree = Parse(source);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var names = model.LookupNames(GetPositionForBinding(source));
+            Assert.Contains("C", names);
+            Assert.Contains("x", names);
+            Assert.Contains("y", names);
+            Assert.Contains("N1", names);
+            Assert.Contains("N2", names);
+            Assert.Contains("T1", names);
+            Assert.Contains("T2", names);
+            Assert.Contains("M1", names);
+            Assert.Contains("M2", names);
+            Assert.Contains("lam", names);
+            Assert.DoesNotContain("a", names);
+            Assert.DoesNotContain("b", names);
+            Assert.DoesNotContain("c", names);
         }
 
         [Fact]
@@ -8158,12 +8243,13 @@ class Program
         public void ParamsArray_Call()
         {
             var source = """
-                var lam = (params int[] xs) => System.Console.WriteLine(xs?.Length.ToString() ?? "null");
+                var lam = (params int?[] xs) => System.Console.WriteLine(xs?.Length.ToString() ?? "null");
                 lam();
                 lam(1);
                 lam(1, 2, 3);
-                lam(new[] { 1, 2, 3 });
+                lam(new int?[] { 1, 2, 3 });
                 lam(null);
+                lam((int?)null);
                 """;
             CompileAndVerify(source, expectedOutput: """
                 0
@@ -8171,6 +8257,7 @@ class Program
                 3
                 3
                 null
+                1
                 """).VerifyDiagnostics();
         }
 
@@ -8187,7 +8274,7 @@ class Program
         }
 
         [Fact]
-        public void ParamsArray_CompilerAttribute()
+        public void ParamsArray_ParamArrayAttribute()
         {
             var source = """
                 var lam = ([System.ParamArray] int[] xs) => xs.Length;
@@ -8253,6 +8340,35 @@ class Program
         }
 
         [Fact]
+        public void ParamsArray_Symbol_ExternalReference()
+        {
+            var source = """
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                var lam1 = (params int[] xs) => xs.Length;
+                Report(lam1);
+                var lam2 = (int[] xs) => xs.Length;
+                Report(lam2);
+                var lam3 = (int[] xs, params int[] ys) => xs.Length + ys.Length;
+                Report(lam3);
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+                System.Func`2[System.Int32[],System.Int32]
+                <>f__AnonymousDelegate1`3[System.Int32[],System.Int32,System.Int32]
+                """, symbolValidator: static module =>
+                {
+                    var lam1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate0");
+                    Assert.True(lam1.DelegateParameters().Single().IsParams);
+
+                    var lam3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate1");
+                    var lam3Parameters = lam3.DelegateParameters();
+                    Assert.Equal(2, lam3Parameters.Length);
+                    Assert.False(lam3Parameters[0].IsParams);
+                    Assert.True(lam3Parameters[1].IsParams);
+                });
+        }
+
+        [Fact]
         public void ParamsArray_NotLast()
         {
             var source = """
@@ -8261,10 +8377,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0231: A params parameter must be the last parameter in a parameter list
                 // var lam = (params int[] xs, int y) => xs.Length + y;
-                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12),
-                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
-                // var lam = (params int[] xs, int y) => xs.Length + y;
-                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12));
         }
 
         [Fact]
@@ -8276,10 +8389,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0231: A params parameter must be the last parameter in a parameter list
                 // var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
-                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12),
-                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
-                // var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
-                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12));
         }
 
         [Fact]
@@ -8295,15 +8405,63 @@ class Program
         }
 
         [Fact]
-        public void ParamsArray_ParamArrayAttribute()
+        public void ParamsArray_Multidimensional()
         {
             var source = """
-                var lam = ([System.ParamArrayAttribute] int[] xs) => xs;
+                var lam = (params int[,] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
-                // var lam = ([System.ParamArrayAttribute] int[] xs) => xs;
-                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArrayAttribute").WithLocation(1, 13));
+                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // var lam = (params int[,] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void ParamsArray_Jagged()
+        {
+            var source = """
+                var lam = (params int[][] xs) => xs.Length;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("out")]
+        [InlineData("in")]
+        public void ParamsArray_OtherModifiers(string modifier)
+        {
+            var source = $$"""
+                var lam = void (params {{modifier}} int[] xs) => throw null;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,24): error CS1611: The params parameter cannot be declared as ref
+                // var lam = void (params ref int[] xs) => throw null;
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, modifier).WithArguments(modifier).WithLocation(1, 24));
+        }
+
+        [Fact]
+        public void ParamsArray_ThisModifier_01()
+        {
+            var source = """
+                var lam = (this params int[] xs) => xs.Length;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS1041: Identifier expected; 'this' is a keyword
+                // var lam = (this params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void ParamsArray_ThisModifier_02()
+        {
+            var source = """
+                var lam = (params this int[] xs) => xs.Length;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,19): error CS0027: Keyword 'this' is not available in the current context
+                // var lam = (params this int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 19));
         }
     }
 }
