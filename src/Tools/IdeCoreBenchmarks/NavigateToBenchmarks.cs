@@ -99,9 +99,9 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
-            if (storageService == null)
-                throw new ArgumentException("Couldn't get storage service");
+            //var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
+            //if (storageService == null)
+            //    throw new ArgumentException("Couldn't get storage service");
         }
 
         [IterationCleanup]
@@ -109,6 +109,38 @@ namespace IdeCoreBenchmarks
         {
             _workspace.Dispose();
             _workspace = null;
+        }
+
+        [Benchmark]
+        public async Task RunSerialParsing()
+        {
+            Console.WriteLine("start profiling now");
+            Thread.Sleep(10000);
+            Console.WriteLine("Starting serial parsing.");
+            var start = DateTime.Now;
+            var roots = new List<SyntaxNode>();
+            foreach (var project in _workspace.CurrentSolution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    // await WalkTree(document);
+                    roots.Add(await document.GetSyntaxRootAsync());
+                }
+            }
+
+            Console.WriteLine("Serial: " + (DateTime.Now - start));
+            //Console.WriteLine($"{nameof(DocumentState.s_tryShareSyntaxTreeCount)} - {DocumentState.s_tryShareSyntaxTreeCount}");
+            //Console.WriteLine($"{nameof(DocumentState.s_successfullySharedSyntaxTreeCount)} - {DocumentState.s_successfullySharedSyntaxTreeCount}");
+
+            for (var i = 0; i < 10; i++)
+            {
+                GC.Collect(0, GCCollectionMode.Forced, blocking: true);
+                GC.Collect(1, GCCollectionMode.Forced, blocking: true);
+                GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            }
+
+            Console.ReadLine();
+            GC.KeepAlive(roots);
         }
 
         // [Benchmark]
@@ -151,7 +183,7 @@ namespace IdeCoreBenchmarks
             Console.ReadLine();
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task RunFullParallelIndexing()
         {
             Console.WriteLine("Attach now");
