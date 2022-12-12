@@ -88,6 +88,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return activeTextView.GetCaretPoint(textBuffer);
         }
 
+        public async Task<SnapshotPoint?> GetSnapshotPointFromCaretPositionAsync(CaretPosition newPosition, CancellationToken token)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(token);
+            return GetSnapshotPointFromCaretPosition(newPosition);
+        }
+
         private SnapshotPoint? GetSnapshotPointFromCaretPosition(CaretPosition newPosition)
         {
             _threadingContext.ThrowIfNotOnUIThread();
@@ -96,6 +102,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var textBuffer = activeTextView.TextBuffer;
             return newPosition.Point.GetPoint(textBuffer, PositionAffinity.Predecessor);
+        }
+
+        public async Task<IWpfTextView?> GetLastActiveIWpfTextViewAsync(CancellationToken token)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(token);
+            return GetLastActiveIWpfTextView();
         }
 
         /// <summary>

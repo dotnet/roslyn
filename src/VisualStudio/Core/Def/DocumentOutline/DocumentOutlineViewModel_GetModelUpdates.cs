@@ -2,13 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Progression.CodeSchema.Api;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
@@ -21,13 +27,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private readonly AsyncBatchingWorkQueue<VisualStudioCodeWindowInfo, DocumentSymbolDataModel?> _documentSymbolQueue;
 
+        private ITextSnapshot? _currentSnapshot;
+
         private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<VisualStudioCodeWindowInfo> infos, CancellationToken cancellationToken)
         {
             var info = infos.Last();
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (textBuffer, filePath, caretPoint) = info;
+            var (textBuffer, filePath, _) = info;
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
@@ -47,7 +55,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
-            EnqueueFilterAndSortTask(caretPoint);
+            // lock while we update the collection
+            using (await _guard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                _currentSnapshot = model.OriginalSnapshot;
+                var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
+                DocumentOutlineHelper.UnselectAll(DocumentSymbolUIItems);
+                DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolUIItems);
+
+                if (_currentCaretPosition.HasValue)
+                {
+                    // if we previously had a node selected, select that node in the new tree
+                    EnqueueSelectTreeNode(_currentCaretPosition.Value);
+                }
+            }
+
             return model;
         }
     }

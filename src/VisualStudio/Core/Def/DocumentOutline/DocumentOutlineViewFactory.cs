@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -24,12 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IVsCodeWindow codeWindow)
+            IVsCodeWindow codeWindow,
+            Workspace workspace,
+            IDocumentNavigationService documentNavigationService)
         {
             threadingContext.ThrowIfNotOnUIThread();
             var visualStudioCodeWindowInfoService = new VisualStudioCodeWindowInfoService(codeWindow, editorAdaptersFactoryService, threadingContext);
             var textViewEventSource = CreateEventSource(asyncListener, visualStudioCodeWindowInfoService);
-            var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, visualStudioCodeWindowInfoService, textViewEventSource);
+            var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, visualStudioCodeWindowInfoService, textViewEventSource, workspace, documentNavigationService);
             return new DocumentOutlineView(viewModel, visualStudioCodeWindowInfoService, editorAdaptersFactoryService, codeWindow);
         }
 

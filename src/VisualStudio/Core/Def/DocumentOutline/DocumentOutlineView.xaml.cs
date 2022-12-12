@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -35,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             IVsCodeWindow codeWindow)
         {
             _viewModel = viewModel;
+            _viewModel.NavigationCompleted += NavigationCompleted;
             _visualStudioCodeWindowInfoService = visualStudioCodeWindowInfoService;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             DataContext = _viewModel;
@@ -57,6 +60,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
         }
 
+        private void NavigationCompleted(object sender, EventArgs e)
+        {
+            _isNavigating = false;
+        }
+
         private int StartTrackingView(IVsTextView textView)
         {
             var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
@@ -73,42 +81,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => EnqueueUIUpdateTask(ExpansionOption.Expand);
+            => _viewModel.EnqueueExpandCollapseUpdate(ExpansionOption.Expand);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => EnqueueUIUpdateTask(ExpansionOption.Collapse);
+            => _viewModel.EnqueueExpandCollapseUpdate(ExpansionOption.Collapse);
 
-        private void SearchBox_TextChanged(object sender, EventArgs e)
-            => EnqueueFilterAndSortTask();
+        private void SearchBox_TextChanged(object sender, EventArgs e) { }
 
-        private void SortByName(object sender, EventArgs e)
-            => SetSortOptionAndUpdateDataModel(SortOption.Name);
+        private void SortByName(object sender, EventArgs e) { }
 
-        private void SortByOrder(object sender, EventArgs e)
-            => SetSortOptionAndUpdateDataModel(SortOption.Location);
+        private void SortByOrder(object sender, EventArgs e) { }
 
-        private void SortByType(object sender, EventArgs e)
-            => SetSortOptionAndUpdateDataModel(SortOption.Type);
+        private void SortByType(object sender, EventArgs e) { }
 
-        private void SetSortOptionAndUpdateDataModel(SortOption sortOption)
-        {
-            _viewModel.SortOption = sortOption;
-            EnqueueFilterAndSortTask();
-        }
-
-        private void EnqueueFilterAndSortTask()
-        {
-            var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
-            var caretPoint = service.GetCurrentCaretSnapshotPoint();
-            _viewModel.EnqueueFilterAndSortTask(caretPoint);
-        }
-
-        private void EnqueueUIUpdateTask(ExpansionOption option)
-        {
-            var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
-            var caretPoint = service.GetCurrentCaretSnapshotPoint();
-            _viewModel.EnqueueModelUpdateTask(option, caretPoint);
-        }
+        private bool _isNavigating = false;
 
         /// <summary>
         /// When a symbol node in the window is clicked, move the caret to its position in the latest active text view.
@@ -117,29 +103,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolItemViewModel symbol)
             {
-                var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
-                var activeTextView = service.GetLastActiveIWpfTextView();
-                Assumes.NotNull(activeTextView);
-
-                // When the user clicks on a symbol node in the window, we want to move the cursor to that line in the editor. If we
-                // don't unsubscribe from Caret_PositionChanged first, we will call EnqueueHighlightExpandAndPresentItemsTask() once
-                // we move the cursor ourselves. This is not ideal because we would be doing extra work to update the view with an
-                // identical document symbol tree.
-                activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
-
-                // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
-                try
-                {
-                    // Map the symbol's selection range start SnapshotPoint to a SnapshotPoint in the current textview then set the
-                    // active text view caret position to this SnapshotPoint.
-                    activeTextView.TryMoveCaretToAndEnsureVisible(
-                        symbol.SelectionRangeSpan.Start.TranslateTo(activeTextView.TextSnapshot, PointTrackingMode.Negative));
-                }
-                finally
-                {
-                    // Resubscribe to Caret_PositionChanged again so that when the user clicks somewhere else, we can highlight that node.
-                    activeTextView.Caret.PositionChanged += Caret_PositionChanged;
-                }
+                _isNavigating = true;
+                _viewModel.EnqueueNavigation(symbol.SelectionRangeSpan.Span.ToTextSpan());
             }
         }
 
@@ -148,14 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
-            if (!e.NewPosition.Equals(e.OldPosition))
+            if (!e.NewPosition.Equals(e.OldPosition) && !_isNavigating)
             {
-                var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
-                var caretPoint = service.GetSnapshotPointFromCaretPosition(e.NewPosition);
-                if (caretPoint.HasValue)
-                {
-                    _viewModel.EnqueueModelUpdateTask(ExpansionOption.CurrentExpansion, caretPoint.Value);
-                }
+                _viewModel.EnqueueSelectTreeNode(e.NewPosition);
             }
         }
 

@@ -11,9 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Evaluation.IL;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
@@ -31,18 +35,41 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             ILanguageServiceBroker2 languageServiceBroker,
             IAsynchronousOperationListener asyncListener,
             VisualStudioCodeWindowInfoService visualStudioCodeWindowInfoService,
-            CompilationAvailableTaggerEventSource textViewEventSource)
+            CompilationAvailableTaggerEventSource textViewEventSource,
+            Workspace workspace,
+            IDocumentNavigationService documentNavigationService)
         {
             _languageServiceBroker = languageServiceBroker;
             _visualStudioCodeWindowInfoService = visualStudioCodeWindowInfoService;
             _textViewEventSource = textViewEventSource;
+            _workspace = workspace;
+            _navigationService = documentNavigationService;
             _cancellationTokenSource = new CancellationTokenSource();
 
             // initialize public properties
             _sortOption = SortOption.Location;
             _documentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>();
 
-            // setup work queues
+            // event queues for updating view model state
+            _expandCollapseQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
+                DelayTimeSpan.NearImmediate,
+                ExpandCollapseItemsAsync,
+                asyncListener,
+                CancellationToken);
+
+            _selectTreeNodeQueue = new AsyncBatchingWorkQueue<CaretPosition>(
+                DelayTimeSpan.Short,
+                SelectTreeNodeAsync,
+                asyncListener,
+                CancellationToken);
+
+            _navigationQueue = new AsyncBatchingWorkQueue<TextSpan>(
+                DelayTimeSpan.NearImmediate,
+                NavigateToTextSpanAsync,
+                asyncListener,
+                CancellationToken);
+
+            // work queues for refreshing LSP data
             _visualStudioCodeWindowInfoQueue = new AsyncBatchingResultQueue<VisualStudioCodeWindowInfo?>(
                 DelayTimeSpan.Short,
                 GetVisualStudioCodeWindowInfoAsync,
@@ -53,19 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 DelayTimeSpan.Short,
                 GetDocumentSymbolAsync,
                 EqualityComparer<VisualStudioCodeWindowInfo>.Default,
-                asyncListener,
-                CancellationToken);
-
-            _filterAndSortQueue = new AsyncBatchingWorkQueue<FilterAndSortOptions, DocumentSymbolDataModel?>(
-                DelayTimeSpan.NearImmediate,
-                FilterAndSortDataModelAsync,
-                EqualityComparer<FilterAndSortOptions>.Default,
-                asyncListener,
-                CancellationToken);
-
-            _updateModelQueue = new AsyncBatchingWorkQueue<UIData>(
-                DelayTimeSpan.NearImmediate,
-                UpdateModelAsync,
                 asyncListener,
                 CancellationToken);
 
@@ -93,6 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             set => SetProperty(ref _sortOption, value);
         }
 
+        private readonly SemaphoreSlim _guard = new SemaphoreSlim(1);
         private ObservableCollection<DocumentSymbolItemViewModel> _documentSymbolUIItems;
         public ObservableCollection<DocumentSymbolItemViewModel> DocumentSymbolUIItems
         {

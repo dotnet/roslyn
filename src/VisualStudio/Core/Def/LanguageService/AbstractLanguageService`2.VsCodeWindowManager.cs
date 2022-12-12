@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -249,6 +250,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
                 var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
                 var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+                var workspace = _languageService.Workspace;
+                var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 threadingContext.ThrowIfNotOnUIThread();
 
@@ -257,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
                 _documentOutlineControl = DocumentOutlineViewFactory.CreateView(
-                    languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
+                    languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow, workspace, navigationService);
 
                 _documentOutlineViewHost = new ElementHost
                 {
