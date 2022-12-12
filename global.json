@@ -7,9 +7,9 @@
   "tools": {
     "dotnet": "7.0.100",
     "vs": {
-      "version": "17.2"
+      "version": "17.4.1"
     },
-    "xcopy-msbuild": "17.2.1"
+    "xcopy-msbuild": "17.4.1"
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.22524.5",
