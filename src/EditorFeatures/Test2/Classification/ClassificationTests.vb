@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim spans = Await ClassifierHelper.GetClassifiedSpansAsync(
                     document, New TextSpan(0, text.Length), ClassificationOptions.Default, CancellationToken.None)
 
-                AssertEx.Equal(
+                Assert.Equal(
 "(text, '<spaces>', [0..26))
 (keyword, 'using', [26..31))
 (text, '<spaces>', [31..32))
