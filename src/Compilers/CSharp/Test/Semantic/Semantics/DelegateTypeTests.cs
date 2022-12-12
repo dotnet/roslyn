@@ -13955,6 +13955,85 @@ class Program
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_Decimal_LocalFunction()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+
+                void local1(decimal d = 1.1m) {}
+                void local2(decimal? d = 1.1m) {}
+                """;
+            var verifier = CompileAndVerify(source).VerifyDiagnostics();
+            verifier.VerifyTypeIL("Program", $$"""
+                .class private auto ansi beforefieldinit Program
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method private hidebysig static 
+                		void '<Main>$' (
+                			string[] args
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		.entrypoint
+                		IL_0000: ret
+                	} // end of method Program::'<Main>$'
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2069
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method Program::.ctor
+                	.method assembly hidebysig static 
+                		void '<<Main>$>g__local1|0_0' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Decimal d
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                 		.param [1]
+                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                 				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                 				00 00
+                 			)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method Program::'<<Main>$>g__local1|0_0'
+                	.method assembly hidebysig static 
+                		void '<<Main>$>g__local2|0_1' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> d
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                 		.param [1]
+                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                 				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                 				00 00
+                 			)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method Program::'<<Main>$>g__local2|0_1'
+                } // end of class Program
+                """);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_Decimal_MethodGroup()
         {
             var source = """

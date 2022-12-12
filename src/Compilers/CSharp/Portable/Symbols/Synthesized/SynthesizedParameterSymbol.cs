@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            if (this.ContainingSymbol is SynthesizedDelegateInvokeMethod or SynthesizedClosureMethod)
             {
                 if (this.IsParams)
                 {
