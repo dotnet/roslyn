@@ -17,24 +17,23 @@ namespace Microsoft.CodeAnalysis.Classification
     internal static partial class ClassifierHelper
     {
         /// <summary>
-        /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>.
-        /// This will do this using an appropriate <see cref="IClassificationService"/>
-        /// if that can be found.  <see cref="ImmutableArray{T}.IsDefault"/> will be returned if this
-        /// fails.
+        /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>. This will do this
+        /// using an appropriate <see cref="IClassificationService"/> if that can be found.  <see
+        /// cref="ImmutableArray{T}.IsDefault"/> will be returned if this fails.
         /// </summary>
+        /// <param name="includeAdditiveSpans">Whether or not 'additive' classification spans are included in the
+        /// results or not.  'Additive' spans are things like 'this variable is static' or 'this variable is
+        /// overwritten'.  i.e. they add additional information to a previous classification.</param>
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan span,
             ClassificationOptions options,
-            CancellationToken cancellationToken,
-            bool removeAdditiveSpans = true,
-            bool fillInClassifiedSpanGaps = true)
+            bool includeAdditiveSpans,
+            CancellationToken cancellationToken)
         {
             var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
-            {
                 return default;
-            }
 
             // Call out to the individual language to classify the chunk of text around the
             // reference. We'll get both the syntactic and semantic spans for this region.
@@ -59,13 +58,13 @@ namespace Microsoft.CodeAnalysis.Classification
             // remove additive ClassifiedSpans until we have support for additive classifications
             // in classified spans. https://github.com/dotnet/roslyn/issues/32770
             // The exception to this is LSP, which expects the additive spans.
-            if (removeAdditiveSpans)
+            if (!includeAdditiveSpans)
             {
                 RemoveAdditiveSpans(syntaxSpans);
                 RemoveAdditiveSpans(semanticSpans);
             }
 
-            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span, fillInClassifiedSpanGaps);
+            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
             return classifiedSpans;
         }
 
@@ -82,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Classification
         private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
             ArrayBuilder<ClassifiedSpan> syntaxSpans,
             ArrayBuilder<ClassifiedSpan> semanticSpans,
-            TextSpan widenedSpan,
-            bool fillInClassifiedSpanGaps)
+            TextSpan widenedSpan)
         {
             // The spans produced by the language services may not be ordered
             // (indeed, this happens with semantic classification as different
@@ -111,13 +109,8 @@ namespace Microsoft.CodeAnalysis.Classification
             MergeParts(syntaxSpans, semanticSpans, mergedSpans);
             Order(mergedSpans);
 
-            if (!fillInClassifiedSpanGaps)
-                return mergedSpans.ToImmutable();
-
-            // The classification service will only produce classifications for
-            // things it knows about.  i.e. there will be gaps in what it produces.
-            // Fill in those gaps so we have *all* parts of the span 
-            // classified properly.
+            // The classification service will only produce classifications for things it knows about.  i.e. there will
+            // be gaps in what it produces. Fill in those gaps so we have *all* parts of the span classified properly.
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSpans);
             FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
             return filledInSpans.ToImmutable();
