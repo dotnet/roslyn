@@ -58,12 +58,35 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public Task ExecuteCommandAsync(CommandID command, CancellationToken cancellationToken)
             => ExecuteCommandAsync(command.Guid, (uint)command.ID, cancellationToken);
 
+        public Task ExecuteCommandAsync(CommandID command, string argument, CancellationToken cancellationToken)
+            => ExecuteCommandAsync(command.Guid, (uint)command.ID, argument, cancellationToken);
+
         public async Task ExecuteCommandAsync(Guid commandGuid, uint commandId, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
             ErrorHandler.ThrowOnFailure(dispatcher.Exec(commandGuid, commandId, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
+        }
+
+        public async Task ExecuteCommandAsync(Guid commandGuid, uint commandId, string argument, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
+
+            var pvaIn = Marshal.AllocHGlobal(Marshal.SizeOf<VariantHelper>());
+            try
+            {
+                Marshal.GetNativeVariantForObject(argument, pvaIn);
+                ErrorHandler.ThrowOnFailure(dispatcher.Exec(commandGuid, commandId, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, pvaIn, IntPtr.Zero));
+            }
+            finally
+            {
+                var variant = Marshal.PtrToStructure<VariantHelper>(pvaIn);
+                variant.Clear();
+                Marshal.FreeHGlobal(pvaIn);
+            }
         }
 
         public async Task<string> GetActiveWindowCaptionAsync(CancellationToken cancellationToken)

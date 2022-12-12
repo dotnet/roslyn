@@ -16,5 +16,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             return ExecuteCommandAsync(typeof(TEnum).GUID, Convert.ToUInt32(command), cancellationToken);
         }
+
+        public Task ExecuteCommandAsync<TEnum>(TEnum command, string argument, CancellationToken cancellationToken)
+            where TEnum : struct, Enum
+        {
+            return ExecuteCommandAsync(typeof(TEnum).GUID, Convert.ToUInt32(command), argument, cancellationToken);
+        }
     }
 }
