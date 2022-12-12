@@ -17,23 +17,23 @@ namespace Microsoft.CodeAnalysis.Classification
     internal static partial class ClassifierHelper
     {
         /// <summary>
-        /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>.
-        /// This will do this using an appropriate <see cref="IClassificationService"/>
-        /// if that can be found.  <see cref="ImmutableArray{T}.IsDefault"/> will be returned if this
-        /// fails.
+        /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>. This will do this
+        /// using an appropriate <see cref="IClassificationService"/> if that can be found.  <see
+        /// cref="ImmutableArray{T}.IsDefault"/> will be returned if this fails.
         /// </summary>
+        /// <param name="includeAdditiveSpans">Whether or not 'additive' classification spans are included in the
+        /// results or not.  'Additive' spans are things like 'this variable is static' or 'this variable is
+        /// overwritten'.  i.e. they add additional information to a previous classification.</param>
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan span,
             ClassificationOptions options,
-            CancellationToken cancellationToken,
-            bool removeAdditiveSpans = true)
+            bool includeAdditiveSpans,
+            CancellationToken cancellationToken)
         {
             var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
-            {
                 return default;
-            }
 
             // Call out to the individual language to classify the chunk of text around the
             // reference. We'll get both the syntactic and semantic spans for this region.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Classification
             // remove additive ClassifiedSpans until we have support for additive classifications
             // in classified spans. https://github.com/dotnet/roslyn/issues/32770
             // The exception to this is LSP, which expects the additive spans.
-            if (removeAdditiveSpans)
+            if (!includeAdditiveSpans)
             {
                 RemoveAdditiveSpans(syntaxSpans);
                 RemoveAdditiveSpans(semanticSpans);

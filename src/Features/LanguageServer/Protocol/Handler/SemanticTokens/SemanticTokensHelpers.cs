@@ -117,11 +117,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // casing: https://github.com/dotnet/razor-tooling/issues/5850
             if (includeSyntacticClassifications)
             {
-                // `removeAdditiveSpans` will remove token modifiers such as 'static', which we want to include in LSP.
-                // `fillInClassifiedSpanGaps` includes whitespace in the results, which we don't care about in LSP.
-                // Therefore, we set both optional parameters to false.
+                // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
                 var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, textSpan, options, cancellationToken, removeAdditiveSpans: false).ConfigureAwait(false);
+                    document, textSpan, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
 
                 // The spans returned to us may include some empty spans, which we don't care about. We also don't care
                 // about the 'text' classification.  It's added for everything between real classifications (including
