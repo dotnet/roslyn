@@ -213,6 +213,12 @@ namespace Microsoft.CodeAnalysis
                 transformation: static (oldSolution, data) =>
                 {
                     var newSolution = data.transformation(oldSolution);
+
+                    // Attempt to unify the syntax trees in the new solution (unless the option is set disabling that).
+                    var service = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>();
+                    if (service.Options.DisableSharedSyntaxTrees)
+                        return newSolution;
+
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
                 data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, kind, projectId, documentId),
@@ -1007,22 +1013,35 @@ namespace Microsoft.CodeAnalysis
                     var newSolution = oldSolution;
                     var previousSolution = newSolution;
                     newSolution = data.updateSolutionWithText(newSolution, data.documentId, data.arg);
+
                     if (previousSolution != newSolution)
                     {
                         updatedDocumentIds.Add(data.documentId);
 
-                        // Now, see if that document is linked to anything else. If so, update their document-state to point
-                        // at the exact text/tree-source as the doc we just made.  This way we can share text/trees and not
-                        // allocate for them unnecessarily. This is only for regular documents, not additional-docs or
-                        // analyzer config, as those don't support links).  If so
+                        // Now go update the linked docs to have the same doc contents.
                         var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(data.documentId);
                         if (linkedDocumentIds.Length > 0)
                         {
+                            // Two options for updating linked docs (legacy and new).
+                            //
+                            // Legacy behavior: update each linked doc to point at the same SourceText instance.  Each
+                            // doc will reparse itself however it wants (and thus not share any tree contents).
+                            //
+                            // Modern behavior: attempt to actually have the linked documents point *into* the same
+                            // instance data that the initial document points at.  This way things like tree data can be
+                            // shared across docs.
+
+                            var service = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>();
+                            var shareSyntaxTrees = !service.Options.DisableSharedSyntaxTrees;
+
                             var newDocument = newSolution.GetRequiredDocument(data.documentId);
                             foreach (var linkedDocumentId in linkedDocumentIds)
                             {
                                 previousSolution = newSolution;
-                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
+                                newSolution = shareSyntaxTrees
+                                    ? newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState)
+                                    : data.updateSolutionWithText(newSolution, linkedDocumentId, data.arg);
+
                                 if (previousSolution != newSolution)
                                     updatedDocumentIds.Add(linkedDocumentId);
                             }
