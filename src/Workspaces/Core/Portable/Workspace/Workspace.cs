@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <inheritdoc cref="SetCurrentSolutionAndUnifyLinkedDocumentContents(Func{Solution, Solution}, Func{Solution, Solution, WorkspaceChangeKind}, ProjectId?, DocumentId?, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
-        internal (bool updated, Solution newSolution) SetCurrentSolutionAndUnifyLinkedDocumentContents(
+        internal bool SetCurrentSolutionAndUnifyLinkedDocumentContents(
             Func<Solution, Solution> transformation,
             WorkspaceChangeKind changeKind,
             ProjectId? projectId = null,
@@ -195,13 +195,14 @@ namespace Microsoft.CodeAnalysis
             Action<Solution, Solution>? onBeforeUpdate = null,
             Action<Solution, Solution>? onAfterUpdate = null)
         {
-            return SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            var (updated, _) = SetCurrentSolutionAndUnifyLinkedDocumentContents(
                 transformation,
                 (_, _) => changeKind,
                 projectId,
                 documentId,
                 onBeforeUpdate,
                 onAfterUpdate);
+            return updated;
         }
 
         /// <summary>
