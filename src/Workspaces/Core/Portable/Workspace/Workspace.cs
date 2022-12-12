@@ -201,9 +201,9 @@ namespace Microsoft.CodeAnalysis
         /// the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the
         /// transformation did not change the solution.</returns>
-        internal bool SetCurrentSolutionAndUnifyLinkedDocumentContents(
+        internal (bool updated, Solution newSolution) SetCurrentSolutionAndUnifyLinkedDocumentContents(
             Func<Solution, Solution> transformation,
-            WorkspaceChangeKind kind,
+            WorkspaceChangeKind? kind,
             ProjectId? projectId = null,
             DocumentId? documentId = null,
             Action<Solution, Solution>? onBeforeUpdate = null,
@@ -233,10 +233,11 @@ namespace Microsoft.CodeAnalysis
                     // Queue the event but don't execute its handlers on this thread.
                     // Doing so under the serialization lock guarantees the same ordering of the events
                     // as the order of the changes made to the solution.
-                    data.@this.RaiseWorkspaceChangedEventAsync(data.kind, oldSolution, newSolution, data.projectId, data.documentId);
+                    if (data.kind != null)
+                        data.@this.RaiseWorkspaceChangedEventAsync(data.kind.Value, oldSolution, newSolution, data.projectId, data.documentId);
                 });
 
-            return oldSolution != newSolution;
+            return (oldSolution != newSolution, newSolution);
 
             static Solution UnifyLinkedDocumentContents(Solution oldSolution, Solution newSolution)
             {

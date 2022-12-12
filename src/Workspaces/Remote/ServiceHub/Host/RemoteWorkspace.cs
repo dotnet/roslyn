@@ -308,10 +308,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // Ensure we update newSolution with the result of SetCurrentSolution.  It will be the one appropriately
                 // 'attached' to this workspace.
-                (_, newSolution) = this.SetCurrentSolution(
-                    (oldSolution, _) => newSolution,
-                    data: /*unused*/0,
-                    onBeforeUpdate: (oldSolution, newSolution, _) =>
+                (_, newSolution) = this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+                    _ => newSolution,
+                    kind: null, // we'll figure out the change kind in onAfterUpdate below.
+                    onBeforeUpdate: (oldSolution, newSolution) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))
                         {
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             this.ClearSolutionData();
                         }
                     },
-                    onAfterUpdate: (oldSolution, newSolution, _) =>
+                    onAfterUpdate: (oldSolution, newSolution) =>
                     {
                         RaiseWorkspaceChangedEventAsync(
                             IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged,
