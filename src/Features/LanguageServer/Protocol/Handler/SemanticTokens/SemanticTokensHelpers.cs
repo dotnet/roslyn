@@ -121,10 +121,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 // `fillInClassifiedSpanGaps` includes whitespace in the results, which we don't care about in LSP.
                 // Therefore, we set both optional parameters to false.
                 var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, textSpan, options, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
+                    document, textSpan, options, cancellationToken, removeAdditiveSpans: false).ConfigureAwait(false);
 
-                // The spans returned to us may include some empty spans, which we don't care about.
-                var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty);
+                // The spans returned to us may include some empty spans, which we don't care about. We also don't care
+                // about the 'text' classification.  It's added for everything between real classifications (including
+                // whitespace), and just means 'don't classify this'.  No need for us to actually include that in
+                // semantic tokens as it just wastes space in the result.
+                var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
                 classifiedSpans.AddRange(nonEmptySpans);
             }
             else

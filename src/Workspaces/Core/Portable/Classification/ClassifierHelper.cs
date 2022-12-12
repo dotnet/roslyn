@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan span,
             ClassificationOptions options,
             CancellationToken cancellationToken,
-            bool removeAdditiveSpans = true,
-            bool fillInClassifiedSpanGaps = true)
+            bool removeAdditiveSpans = true)
         {
             var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 RemoveAdditiveSpans(semanticSpans);
             }
 
-            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span, fillInClassifiedSpanGaps);
+            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
             return classifiedSpans;
         }
 
@@ -82,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Classification
         private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
             ArrayBuilder<ClassifiedSpan> syntaxSpans,
             ArrayBuilder<ClassifiedSpan> semanticSpans,
-            TextSpan widenedSpan,
-            bool fillInClassifiedSpanGaps)
+            TextSpan widenedSpan)
         {
             // The spans produced by the language services may not be ordered
             // (indeed, this happens with semantic classification as different
@@ -111,13 +109,8 @@ namespace Microsoft.CodeAnalysis.Classification
             MergeParts(syntaxSpans, semanticSpans, mergedSpans);
             Order(mergedSpans);
 
-            if (!fillInClassifiedSpanGaps)
-                return mergedSpans.ToImmutable();
-
-            // The classification service will only produce classifications for
-            // things it knows about.  i.e. there will be gaps in what it produces.
-            // Fill in those gaps so we have *all* parts of the span 
-            // classified properly.
+            // The classification service will only produce classifications for things it knows about.  i.e. there will
+            // be gaps in what it produces. Fill in those gaps so we have *all* parts of the span classified properly.
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSpans);
             FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
             return filledInSpans.ToImmutable();
