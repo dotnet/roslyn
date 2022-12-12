@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal static class ClassifierHelper
+    internal static partial class ClassifierHelper
     {
         /// <summary>
         /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>.
@@ -105,29 +106,33 @@ namespace Microsoft.CodeAnalysis.Classification
             AdjustSpans(syntaxSpans, widenedSpan);
             AdjustSpans(semanticSpans, widenedSpan);
 
+            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var mergedSpans);
+
+            MergeParts(syntaxSpans, semanticSpans, mergedSpans);
+            Order(mergedSpans);
+
             if (!fillInClassifiedSpanGaps)
-            {
-                return MergeParts(syntaxSpans, semanticSpans);
-            }
+                return mergedSpans.ToImmutable();
 
             // The classification service will only produce classifications for
             // things it knows about.  i.e. there will be gaps in what it produces.
             // Fill in those gaps so we have *all* parts of the span 
             // classified properly.
-            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSyntaxSpans);
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSemanticSpans);
-
-            FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
-            FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
-
-            // Now merge the lists together, taking all the results from syntaxParts
-            // unless they were overridden by results in semanticParts.
-            return MergeParts(filledInSyntaxSpans, filledInSemanticSpans);
+            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSpans);
+            FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
+            return filledInSpans.ToImmutable();
         }
 
-        private static void Order(ArrayBuilder<ClassifiedSpan> syntaxSpans)
-            => syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
+        private static readonly Comparison<ClassifiedSpan> s_spanComparison = static (s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start;
 
+        private static void Order(ArrayBuilder<ClassifiedSpan> syntaxSpans)
+            => syntaxSpans.Sort(s_spanComparison);
+
+        /// <summary>
+        /// Ensures that all spans in <paramref name="spans"/> do not go beyond the spans in <paramref
+        /// name="widenedSpan"/>. Any spans that are entirely outside of <paramref name="widenedSpan"/> are replaced
+        /// with <see langword="default"/>.
+        /// </summary>
         private static void AdjustSpans(ArrayBuilder<ClassifiedSpan> spans, TextSpan widenedSpan)
         {
             for (var i = 0; i < spans.Count; i++)
@@ -164,12 +169,13 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             foreach (var span in classifiedSpans)
             {
+                // Should not get empty spans.  They are filtered out in MergeParts
+                Debug.Assert(!span.TextSpan.IsEmpty);
+
                 // Ignore empty spans.  We can get those when the classification service
                 // returns spans outside of the range of the span we asked to classify.
                 if (span.TextSpan.Length == 0)
-                {
                     continue;
-                }
 
                 // If there is space between this span and the last one, then add a space.
                 if (startPosition < span.TextSpan.Start)
@@ -184,64 +190,93 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
-        private static ImmutableArray<ClassifiedSpan> MergeParts(
+        /// <summary>
+        /// Adds all semantic parts to final parts, and adds all portions of <paramref name="syntaxParts"/> that do not
+        /// overlap with any semantic parts as well.  All final parts will be non-empty.
+        /// </summary>
+        private static void MergeParts(
             ArrayBuilder<ClassifiedSpan> syntaxParts,
-            ArrayBuilder<ClassifiedSpan> semanticParts)
+            ArrayBuilder<ClassifiedSpan> semanticParts,
+            ArrayBuilder<ClassifiedSpan> finalParts)
         {
-            // Take all the syntax parts.  However, if any have been overridden by a 
-            // semantic part, then choose that one.
+            // Create an interval tree so we can easily determine which semantic parts intersect with the 
+            // syntactic parts we're looking at.
+            var semanticPartsTree = new SimpleIntervalTree<ClassifiedSpan, ClassifiedSpanIntervalIntrospector>(
+                ClassifiedSpanIntervalIntrospector.Instance, values: null);
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var finalParts);
-            var lastReplacementIndex = 0;
-            for (int i = 0, n = syntaxParts.Count; i < n; i++)
+            // Add all the non-empty semantic parts to the tree.
+            foreach (var part in semanticParts)
             {
-                var syntaxPartAndSpan = syntaxParts[i];
-
-                // See if we can find a semantic part to replace this syntax part.
-                var replacementIndex = semanticParts.FindIndex(
-                    lastReplacementIndex, t => t.TextSpan.OverlapsWith(syntaxPartAndSpan.TextSpan));
-
-                // Take the semantic part if it's just 'text'.  We want to keep it if
-                // the semantic classifier actually produced an interesting result 
-                // (as opposed to it just being a 'gap' classification).
-                if (replacementIndex >= 0 && !IsClassifiedAsText(semanticParts[replacementIndex]))
+                if (!part.TextSpan.IsEmpty)
                 {
-                    finalParts.Add(semanticParts[replacementIndex]);
-                }
-                // We might already have a semantic part for the given TextSpan, in
-                // which case we don't want to add the syntactic part unless it's an
-                // additive type name (e.g. `static`).
-                else if (finalParts.Count == 0 ||
-                    !finalParts[^1].TextSpan.Equals(syntaxPartAndSpan.TextSpan) ||
-                    ClassificationTypeNames.AdditiveTypeNames.Contains(syntaxPartAndSpan.ClassificationType))
-                {
-                    finalParts.Add(syntaxPartAndSpan);
-                }
-
-                if (replacementIndex >= 0)
-                {
-                    // There may be multiple semantic parts corresponding to a single
-                    // syntactic part, so we might need to go through a syntactic part
-                    // multiple times to verify. For example, this is the case with
-                    // verbatim string literals containing string escape characters.
-                    i--;
-
-                    // If we found a semantic replacement, update the lastIndex.
-                    // That way we can start searching from that point instead 
-                    // of checking all the elements each time.
-                    lastReplacementIndex = replacementIndex + 1;
+                    semanticPartsTree.AddIntervalInPlace(part);
+                    finalParts.Add(part);
                 }
             }
 
-            return finalParts.ToImmutable();
-        }
+            using var tempBuffer = TemporaryArray<ClassifiedSpan>.Empty;
 
-        private static bool IsClassifiedAsText(ClassifiedSpan partAndSpan)
-        {
-            // Don't take 'text' from the semantic parts.  We'll get those for the 
-            // spaces between the actual interesting semantic spans, and we don't 
-            // want them to override actual good syntax spans.
-            return partAndSpan.ClassificationType == ClassificationTypeNames.Text;
+            foreach (var syntacticPart in syntaxParts)
+            {
+                // ignore empty parts.
+                if (syntacticPart.TextSpan.IsEmpty)
+                    continue;
+
+                tempBuffer.Clear();
+                semanticPartsTree.FillWithIntervalsThatOverlapWith(
+                    syntacticPart.TextSpan.Start, syntacticPart.TextSpan.Length, ref tempBuffer.AsRef());
+
+                if (tempBuffer.Count == 0)
+                {
+                    // semantic parts didn't overlap with this syntax part at all.  Just add in directly.
+                    finalParts.Add(syntacticPart);
+                    continue;
+                }
+
+                // One or Multiple semantic parts.
+                // Add the syntactic portion before the first semantic part,
+                // the syntactic pieces between the semantic parts,
+                // and the syntactic portion after the last semantic part.
+
+                var firstSemanticPart = tempBuffer[0];
+                var lastSemanticPart = tempBuffer[tempBuffer.Count - 1];
+
+                Debug.Assert(firstSemanticPart.TextSpan.OverlapsWith(syntacticPart.TextSpan));
+                Debug.Assert(lastSemanticPart.TextSpan.OverlapsWith(syntacticPart.TextSpan));
+
+                if (syntacticPart.TextSpan.Start < firstSemanticPart.TextSpan.Start)
+                {
+                    finalParts.Add(new ClassifiedSpan(syntacticPart.ClassificationType, TextSpan.FromBounds(
+                        syntacticPart.TextSpan.Start,
+                        firstSemanticPart.TextSpan.Start)));
+                }
+
+                for (var i = 0; i < tempBuffer.Count - 1; i++)
+                {
+                    var semanticPart1 = tempBuffer[i];
+                    var semanticPart2 = tempBuffer[i + 1];
+
+                    Debug.Assert(semanticPart1.TextSpan.OverlapsWith(syntacticPart.TextSpan));
+                    Debug.Assert(semanticPart1.TextSpan.OverlapsWith(syntacticPart.TextSpan));
+
+                    if (semanticPart1.TextSpan.End < semanticPart2.TextSpan.Start)
+                    {
+                        finalParts.Add(new ClassifiedSpan(syntacticPart.ClassificationType, TextSpan.FromBounds(
+                            semanticPart1.TextSpan.End,
+                            semanticPart2.TextSpan.Start)));
+                    }
+                }
+
+                if (lastSemanticPart.TextSpan.End < syntacticPart.TextSpan.End)
+                {
+                    finalParts.Add(new ClassifiedSpan(syntacticPart.ClassificationType, TextSpan.FromBounds(
+                        lastSemanticPart.TextSpan.End,
+                        syntacticPart.TextSpan.End)));
+                }
+            }
+
+            // now that we've added all semantic parts and syntactic-portions, sort the final result.
+            finalParts.Sort(s_spanComparison);
         }
     }
 }

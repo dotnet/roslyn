@@ -80,13 +80,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
         }
 
-        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
+            // Emit the call to RuntimeHelpers.InitializeArray, creating the necessary metadata blob if there isn't
+            // already one for this data.  Note that this specifies an alignment of 1.  This is valid regardless of
+            // the kind of data stored in the array, as it's never accessed directly in the blob; rather, InitializeArray
+            // copies out the data as bytes.  The upside to keeping this as 1 is it means no special alignment is required.
+            // Although the compiler currently always aligns the metadata fields at an 8-byte boundary, the .pack field
+            // is appropriately set to the alignment value, and a rewriter (e.g. illink) may respect that.  If the alignment
+            // value were to be increased to match the actual alignment requirements of the element type, that could cause
+            // such rewritten binaries to regress in size due to the extra padding necessary for aligning.  The downside
+            // to keeping this as 1 is that this data won't unify with any blobs created for spans (RuntimeHelpers.CreateSpan).
+            // Code typically does directly read from the blobs via spans, and as such alignment there is required to be
+            // at least what the element type requires.  That means if the same data/element type is used with an array
+            // and separately with a span, the data will exist duplicated in two different blobs.  If it turns out that's
+            // very common, this can be revised in the future to specify the element type's alignment.
+
             // get helpers
             var initializeArray = module.GetInitArrayHelper();
 
             // map a field to the block (that makes it addressable via a token).
-            var field = module.GetFieldForData(data, alignment, syntaxNode, diagnostics);
+            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
 
             // emit call to the helper
             EmitOpCode(ILOpCode.Dup);       //array

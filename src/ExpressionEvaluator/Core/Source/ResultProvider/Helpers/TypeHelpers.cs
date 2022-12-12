@@ -633,7 +633,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         visualizerAttribute.UISideVisualizerAssemblyName,
                         visualizerAttribute.UISideVisualizerAssemblyLocation,
                         visualizerAttribute.DebuggeeSideVisualizerTypeName,
-                        visualizerAttribute.DebuggeeSideVisualizerAssemblyName));
+                        visualizerAttribute.DebuggeeSideVisualizerAssemblyName,
+                        visualizerAttribute.ExtensionPartId));
                 }
 
                 underlyingType = underlyingType.GetBaseTypeOrNull(appDomain, out type);
