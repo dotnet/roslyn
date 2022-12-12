@@ -33,27 +33,25 @@ namespace Microsoft.CodeAnalysis.Options
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
+            : this(feature ?? throw new ArgumentNullException(nameof(feature)),
+                   OptionGroup.Default,
+                   name ?? throw new ArgumentNullException(nameof(name)),
+                   defaultValue,
+                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
         {
         }
 
         public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations.ToImmutableArray())
+            : this(feature ?? throw new ArgumentNullException(nameof(feature)),
+                   OptionGroup.Default,
+                   name ?? throw new ArgumentNullException(nameof(name)),
+                   defaultValue,
+                   (storageLocations ?? throw new ArgumentNullException(nameof(storageLocations))).ToImmutableArray())
         {
         }
 
-        internal PerLanguageOption(string feature, string name, T defaultValue, OptionStorageLocation storageLocation)
-            : this(feature, name, defaultValue, storageLocations: ImmutableArray.Create(storageLocation))
-        {
-        }
-
-        internal PerLanguageOption(string feature, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(feature, OptionGroup.Default, name, defaultValue, storageLocations)
-        {
-        }
-
-        internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T)), storageLocations)
+        internal PerLanguageOption(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+            : this(new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T)), storageLocations)
         {
         }
 
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
-        public override string ToString() => _optionDefinition.ToString();
+        public override string ToString() => _optionDefinition.PublicOptionDefinitionToString();
 
         public override int GetHashCode() => _optionDefinition.GetHashCode();
 
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return true;
             }
 
-            return _optionDefinition == other?.OptionDefinition;
+            return other is not null && _optionDefinition.PublicOptionDefinitionEquals(other.OptionDefinition);
         }
     }
 }
