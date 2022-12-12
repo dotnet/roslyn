@@ -212,7 +212,7 @@ class Program
         }
 
         [WpfFact]
-        public async Task InsertElseSnippetSingleLineIfTest()
+        public async Task InsertElseSnippetSingleLineIfWithBlockTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -230,6 +230,36 @@ class Program
     public void Method()
     {
         if (true) {}
+        else
+        {
+            $$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task InsertElseSnippetSingleLineIfTest()
+        {
+            var markupBeforeCommit =
+@"using System;
+class Program
+{
+    public void Method()
+    {
+        if (true) Console.WriteLine(5);
+        $$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"using System;
+class Program
+{
+    public void Method()
+    {
+        if (true) Console.WriteLine(5);
         else
         {
             $$
