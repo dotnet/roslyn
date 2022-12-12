@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -11,13 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal static class ClassifierHelper
+    internal static partial class ClassifierHelper
     {
         /// <summary>
         /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>.
@@ -191,17 +188,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 result.Add(span);
                 startPosition = span.TextSpan.End;
             }
-        }
-
-        private readonly struct ClassifiedSpanIntervalIntrospector : IIntervalIntrospector<ClassifiedSpan>
-        {
-            public static readonly ClassifiedSpanIntervalIntrospector Instance = new ClassifiedSpanIntervalIntrospector();
-
-            public int GetLength(ClassifiedSpan value)
-                => value.TextSpan.Length;
-
-            public int GetStart(ClassifiedSpan value)
-                => value.TextSpan.Start;
         }
 
         /// <summary>
