@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             ISettingsEditorView GetWhitespaceView()
             {
-                return GetView<WhitespaceSetting>(
+                return GetView<Setting>(
                     static (dataProvider, controlProvider, tableMangerProvider) => new WhitespaceViewModel(dataProvider, controlProvider, tableMangerProvider),
                     static viewModel => new WhitespaceSettingsView(viewModel));
             }
