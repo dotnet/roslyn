@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 {
                     var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, context.ClassificationOptions, cancellationToken).ConfigureAwait(false);
 
-                    var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                    var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions2.TabSize, document.Project.Language);
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans, tabSize);
                     var textRunsOfSpan = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont)).ToList();

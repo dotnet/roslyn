@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RS0030 // Do not used banned APIs: Option<T>
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public Option(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
+            : this(feature, OptionGroup.Default, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
         {
         }
 
@@ -49,17 +51,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
-        internal Option(string feature, string name, T defaultValue, OptionStorageLocation storageLocation)
-            : this(feature, name, defaultValue, storageLocations: ImmutableArray.Create(storageLocation))
-        {
-        }
-
-        internal Option(string feature, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(feature, OptionGroup.Default, name, defaultValue, storageLocations)
-        {
-        }
-
-        internal Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+        private Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
             : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T)), storageLocations)
         {
         }
