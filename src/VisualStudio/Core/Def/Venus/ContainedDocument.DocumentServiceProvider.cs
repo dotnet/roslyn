@@ -228,8 +228,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
                     // multiple spans with html code, so we need to fill those gaps
                     using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var builder);
-
-
                     ClassifierHelper.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
 
                     // add html after roslyn content if there is any
