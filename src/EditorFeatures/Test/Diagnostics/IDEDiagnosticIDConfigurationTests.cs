@@ -682,8 +682,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                     }
 
                     var optionKey = new OptionKey(option, option.IsPerLanguage ? languageName : null);
-                    var value = optionSet.GetOption(optionKey);
-                    var editorConfigString = editorConfigLocation.GetEditorConfigString(value, optionSet);
+                    var editorConfigString = editorConfigLocation.GetEditorConfigString(optionKey, optionSet);
 
                     ProcessDiagnosticIdAndOption(diagnosticId, option, editorConfigString);
                     hasEditorConfigCodeStyleOptions = true;
