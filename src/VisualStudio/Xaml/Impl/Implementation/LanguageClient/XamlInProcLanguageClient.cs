@@ -36,9 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     [Export(typeof(ILanguageClient))]
     internal class XamlInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly XamlProjectService _projectService;
-        private readonly IXamlLanguageServerFeedbackService? _feedbackService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClient(
@@ -46,13 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             IGlobalOptionService globalOptions,
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
-            ExportProvider exportProvider,
-            XamlProjectService projectService,
-            [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
+            ExportProvider exportProvider)
             : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
-            _projectService = projectService;
-            _feedbackService = feedbackService;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
@@ -62,16 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             var isLspExperimentEnabled = IsXamlLspIntelliSenseEnabled();
 
             return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
-        }
-
-        public override AbstractLanguageServer<RequestContext> Create(
-            JsonRpc jsonRpc,
-            ICapabilitiesProvider capabilitiesProvider,
-            WellKnownLspServerKinds serverKind,
-            ILspServiceLogger logger,
-            HostServices hostServices)
-        {
-            return new XamlLanguageServer(LspServiceProvider, jsonRpc, capabilitiesProvider, logger, SupportedLanguages, serverKind, hostServices, _projectService, _feedbackService);
         }
 
         /// <summary>

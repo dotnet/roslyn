@@ -37,5 +37,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public void LogEndContext(string message, params object[] @params)
         {
         }
+
+        public void LogDebug(string message, params object[] @params)
+        {
+        }
     }
 }

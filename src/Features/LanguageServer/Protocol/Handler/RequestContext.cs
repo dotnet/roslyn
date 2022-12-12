@@ -234,6 +234,9 @@ internal readonly struct RequestContext
     public void TraceInformation(string message)
         => _logger.LogInformation(message);
 
+    public void TraceDebug(string message)
+        => _logger.LogDebug(message);
+
     public void TraceWarning(string message)
         => _logger.LogWarning(message);
 

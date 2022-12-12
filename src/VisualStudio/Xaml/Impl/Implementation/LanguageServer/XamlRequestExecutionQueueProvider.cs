@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -17,29 +19,24 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer;
-internal class XamlLanguageServer : RoslynLanguageServer
+
+[ExportStatelessXamlLspService(typeof(IRequestExecutionQueueProvider<RequestContext>)), Shared]
+internal sealed class XamlRequestExecutionQueueProvider : IRequestExecutionQueueProvider<RequestContext>
 {
     private readonly XamlProjectService _projectService;
     private readonly IXamlLanguageServerFeedbackService? _feedbackService;
 
-    public XamlLanguageServer(
-        AbstractLspServiceProvider lspServiceProvider,
-        JsonRpc jsonRpc,
-        ICapabilitiesProvider capabilitiesProvider,
-        ILspServiceLogger logger,
-        ImmutableArray<string> supportedLanguages,
-        WellKnownLspServerKinds serverKind,
-        HostServices hostServices,
-        XamlProjectService projectService,
-        IXamlLanguageServerFeedbackService? feedbackService) : base(lspServiceProvider, jsonRpc, capabilitiesProvider, logger, hostServices, supportedLanguages, serverKind)
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+    public XamlRequestExecutionQueueProvider(XamlProjectService projectService, IXamlLanguageServerFeedbackService? feedbackService)
     {
         _projectService = projectService;
         _feedbackService = feedbackService;
     }
 
-    protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
+    public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
     {
-        var queue = new XamlRequestExecutionQueue(_projectService, _feedbackService, this, _logger, GetHandlerProvider());
+        var queue = new XamlRequestExecutionQueue(_projectService, _feedbackService, languageServer, logger, handlerProvider);
         queue.Start();
         return queue;
     }
