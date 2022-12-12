@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
                 s_optionService = workspace.Services.GetService<ILegacyWorkspaceOptionService>();
-                s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService), Enumerable.Empty<IOption>());
+                s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService));
             }
 
             // Use a single option store for all option pages so that changes are accumulated

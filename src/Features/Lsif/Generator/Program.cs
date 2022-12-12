@@ -12,11 +12,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using CompilerInvocationsReader = Microsoft.Build.Logging.StructuredLogger.CompilerInvocationsReader;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
@@ -172,12 +174,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 if (project.SupportsCompilation && project.FilePath != null)
                 {
                     var compilationCreationStopwatch = Stopwatch.StartNew();
-                    var compilation = (await project.GetCompilationAsync())!;
+                    var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
                     await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
-                    await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.Services, options);
+                    await lsifGenerator.GenerateForProjectAsync(project, options);
                     generationForProjectStopwatch.Stop();
 
                     totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;
@@ -195,14 +197,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Processing compiler invocation from {compilerInvocationFile.FullName}...");
 
             var compilerInvocationLoadStopwatch = Stopwatch.StartNew();
-            var compilerInvocation = await CompilerInvocation.CreateFromJsonAsync(File.ReadAllText(compilerInvocationFile.FullName));
+            var project = await CompilerInvocation.CreateFromJsonAsync(File.ReadAllText(compilerInvocationFile.FullName));
             await logFile.WriteLineAsync($"Load of the project completed in {compilerInvocationLoadStopwatch.Elapsed.ToDisplayString()}.");
 
             var generationStopwatch = Stopwatch.StartNew();
             var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter);
 
-            await lsifGenerator.GenerateForCompilationAsync(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices, compilerInvocation.Options);
-            await logFile.WriteLineAsync($"Generation for {compilerInvocation.ProjectFilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
+            await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default);
+            await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
         }
 
         // This method can't be loaded until we've registered MSBuild with MSBuildLocator, as otherwise we might load a type prematurely.
@@ -226,11 +228,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     Tool = msbuildInvocation.Language == Microsoft.Build.Logging.StructuredLogger.CompilerInvocation.CSharp ? "csc" : "vbc"
                 };
 
-                var compilerInvocation = await CompilerInvocation.CreateFromInvocationInfoAsync(invocationInfo);
+                var project = await CompilerInvocation.CreateFromInvocationInfoAsync(invocationInfo);
 
                 var generationStopwatch = Stopwatch.StartNew();
-                await lsifGenerator.GenerateForCompilationAsync(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices, compilerInvocation.Options);
-                await logFile.WriteLineAsync($"Generation for {compilerInvocation.ProjectFilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
+                await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default);
+                await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
             }
         }
     }

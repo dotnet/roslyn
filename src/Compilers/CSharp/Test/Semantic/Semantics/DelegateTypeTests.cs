@@ -10490,6 +10490,282 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred").WithArguments("arg1", "<anonymous delegate>").WithLocation(7, 1));
         }
 
+        [Fact]
+        public void SynthesizedDelegateTypes_MoreThan16Parameters_DefaultParameterValue()
+        {
+            var range = Enumerable.Range(1, 17);
+            var manyParams = string.Join(", ", range.Select(i => $"int p{i}"));
+            var manyTypes = string.Join(",", range.Select(_ => "System.Int32"));
+            var source = $$"""
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = ({{manyParams}} = 1) => { };
+                Report(lam1);
+                var lam2 = ({{manyParams}} = 1) => { };
+                Report(lam2);
+                var lam3 = ({{manyParams}} = 2) => { };
+                Report(lam3);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`17[{manyTypes}]
+                <>f__AnonymousDelegate0`17[{manyTypes}]
+                <>f__AnonymousDelegate1`17[{manyTypes}]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_MoreThan16Parameters_ParamsArray()
+        {
+            var range = Enumerable.Range(1, 16);
+            var manyParams = string.Join(", ", range.Select(i => $"int p{i}"));
+            var manyTypes = string.Join(",", range.Select(_ => "System.Int32"));
+            var source = $$"""
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = ({{manyParams}}, params int[] xs) => { };
+                Report(lam1);
+                var lam2 = ({{manyParams}}, params int[] xs) => { };
+                Report(lam2);
+                var lam3 = ({{manyParams}}, int[] xs) => { };
+                Report(lam3);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`17[{manyTypes},System.Int32]
+                <>f__AnonymousDelegate0`17[{manyTypes},System.Int32]
+                <>A`17[{manyTypes},System.Int32[]]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Pointer_DefaultParameterValue()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                unsafe
+                {
+                    var lam1 = (byte* a, int b = 1) => { };
+                    Report(lam1);
+                    var lam2 = (byte* x, int y = 1) => { };
+                    Report(lam2);
+                    var lam3 = (byte* a, int b = 2) => { };
+                    Report(lam3);
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: $"""
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate1
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Pointer_ParamsArray()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                unsafe
+                {
+                    var lam1 = (byte* a, params int[] bs) => { };
+                    Report(lam1);
+                    var lam2 = (byte* x, params int[] ys) => { };
+                    Report(lam2);
+                    var lam3 = (byte* a, int[] bs) => { };
+                    Report(lam3);
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: $"""
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate1
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_DefaultUnification()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (object o = null) => { };
+                Report(lam1);
+                var lam2 = (string s = null) => { };
+                Report(lam2);
+                var lam3 = (int? i = default) => { };
+                Report(lam3);
+                var lam4 = (S1 s1 = default) => { };
+                Report(lam4);
+                var lam5 = (S2 s2 = default) => { };
+                Report(lam5);
+                var lam6 = (C c = default) => { };
+                Report(lam6);
+                var lam7 = (I i = default) => { };
+                Report(lam7);
+                var lam8 = (int i = default) => { };
+                Report(lam8);
+
+                public struct S1 { public int X; }
+                public struct S2 { public int Y; }
+                public class C { }
+                public interface I { }
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Object]
+                <>f__AnonymousDelegate0`1[System.String]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Int32]]
+                <>f__AnonymousDelegate0`1[S1]
+                <>f__AnonymousDelegate0`1[S2]
+                <>f__AnonymousDelegate0`1[C]
+                <>f__AnonymousDelegate0`1[I]
+                <>f__AnonymousDelegate1`1[System.Int32]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_IntNullableUnification()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (int a = 1) => { };
+                Report(lam1);
+                var lam2 = (int? b = 1) => { };
+                Report(lam2);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Int32]]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_StringUnification()
+        {
+            var source = """
+                using System;
+                using System.Runtime.InteropServices;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (string a = "") => { };
+                Report(lam1);
+                var lam2 = (string b = null) => { };
+                Report(lam2);
+                var lam3 = (string c = "abc") => { };
+                Report(lam3);
+                var lam4 = (string d = "a" + "bc") => { };
+                Report(lam4);
+                var lam5 = ([Optional, DefaultParameterValue("abc")] object o) => { };
+                Report(lam5);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.String]
+                <>f__AnonymousDelegate1`1[System.String]
+                <>f__AnonymousDelegate2`1[System.String]
+                <>f__AnonymousDelegate2`1[System.String]
+                <>f__AnonymousDelegate2`1[System.Object]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_DifferentElementTypes()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (params int[] xs) => { };
+                Report(lam1);
+                var lam2 = (params string[] ys) => { };
+                Report(lam2);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.String]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_NonArrayTypeInMetadata()
+        {
+            /*
+                public static class C
+                {
+                    public static void M(params int x) { }
+                }
+             */
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit C
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            int32 x
+                        ) cil managed 
+                    {
+                        .param [1]
+                            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x20a2
+                        // Code size 2 (0x2)
+                        .maxstack 8
+
+                        IL_0000: nop
+                        IL_0001: ret
+                    } // end of method C::M
+
+                } // end of class C
+                """;
+            var source = """
+                var m = C.M;
+                System.Console.WriteLine(m.GetType());
+                """;
+            var comp = CreateCompilationWithIL(source, ilSource).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "System.Action`1[System.Int32]");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_NotLastInMetadata()
+        {
+            /*
+                public static class C
+                {
+                    public static void M(params int[] x, int y) { }
+                }
+             */
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit C
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            int32[] x,
+                            int32 y
+                        ) cil managed 
+                    {
+                        .param [1]
+                            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x20a2
+                        // Code size 2 (0x2)
+                        .maxstack 8
+
+                        IL_0000: nop
+                        IL_0001: ret
+                    } // end of method C::M
+
+                } // end of class C
+                """;
+            var source = """
+                var m = C.M;
+                System.Console.WriteLine(m.GetType());
+                """;
+            var comp = CreateCompilationWithIL(source, ilSource).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "System.Action`2[System.Int32[],System.Int32]");
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
@@ -11807,7 +12083,7 @@ class Program
 
             var expectAnonymousDelegateIL =
 $@"
-.class private auto ansi sealed '<>f__AnonymousDelegate0'
+.class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, TResult>
 	extends [{s_libPrefix}]System.MulticastDelegate
 {{
 	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11820,15 +12096,15 @@ $@"
 			native int 'method'
 		) runtime managed 
 	{{
-	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	}} // end of method '<>f__AnonymousDelegate0`2'::.ctor
 	.method public hidebysig newslot virtual 
-		instance int32 Invoke (
-			[opt] int32 arg
+		instance !TResult Invoke (
+			[opt] !T1 arg
 		) runtime managed 
 	{{
 		.param [1] = int32(30)
-	}} // end of method '<>f__AnonymousDelegate0'::Invoke
-}} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+}} // end of class <>f__AnonymousDelegate0`2
 ";
 
             var expectLoweredClosureContainerIL =
@@ -11841,7 +12117,7 @@ $@"
     )
     // Fields
     .field public static initonly class Program/'<>c' '<>9'
-    .field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+    .field public static class '<>f__AnonymousDelegate0`2'<int32, int32> '<>9__1_0'
     // Methods
     .method private hidebysig specialname rtspecialname static 
         void .cctor () cil managed 
@@ -11880,8 +12156,8 @@ $@"
 
             var verifier = CompileAndVerify(source, expectedOutput:
 @"30 10
-<>f__AnonymousDelegate0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", expectAnonymousDelegateIL);
             verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
         }
 
@@ -11901,7 +12177,7 @@ class Program
     }
 }
 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "7 <>f__AnonymousDelegate0");
+            var verifier = CompileAndVerify(source, expectedOutput: "7 <>f__AnonymousDelegate0`4[System.Int32,System.Int32,System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -11922,7 +12198,7 @@ class Program
 """;
             var expectAnonymousDelegateIL =
 $@"
-.class private auto ansi sealed '<>f__AnonymousDelegate0'
+.class private auto ansi sealed '<>f__AnonymousDelegate0`4'<T1, T2, T3, TResult>
 	extends [{s_libPrefix}]System.MulticastDelegate
 {{
 	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11935,18 +12211,18 @@ $@"
 			native int 'method'
 		) runtime managed 
 	{{
-	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	}} // end of method '<>f__AnonymousDelegate0`4'::.ctor
 	.method public hidebysig newslot virtual 
-		instance string Invoke (
-			string arg1,
-			[opt] string arg2,
-			[opt] string arg3
+		instance !TResult Invoke (
+			!T1 arg1,
+			[opt] !T2 arg2,
+			[opt] !T3 arg3
 		) runtime managed 
 	{{
 		.param [2] = ""b""
 		.param [3] = ""c""
-	}} // end of method '<>f__AnonymousDelegate0'::Invoke
-}} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0`4'::Invoke
+}} // end of class <>f__AnonymousDelegate0`4
 ";
 
             var expectLoweredClosureContainerIL =
@@ -11959,7 +12235,7 @@ $@"
 	)
 	// Fields
 	.field public static initonly class Program/'<>c' '<>9'
-	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	.field public static class '<>f__AnonymousDelegate0`4'<string, string, string, string> '<>9__1_0'
 	// Methods
 	.method private hidebysig specialname rtspecialname static 
 		void .cctor () cil managed 
@@ -12002,8 +12278,8 @@ $@"
 }} // end of class <>c
 ";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "abc <>f__AnonymousDelegate0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            var verifier = CompileAndVerify(source, expectedOutput: "abc <>f__AnonymousDelegate0`4[System.String,System.String,System.String,System.String]");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`4", expectAnonymousDelegateIL);
             verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
         }
 
@@ -12026,8 +12302,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1
+@"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate1`2[System.Int32,System.Int32]
 ");
         }
 
@@ -12050,8 +12326,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
- @"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate0");
+ @"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -12073,7 +12349,7 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
+@"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
 System.Func`2[System.Int32,System.Int32]
 ");
 
@@ -12097,11 +12373,9 @@ class Program
     }
 }
 """;
-
-            // Emit only one templated delegate type? https://github.com/dotnet/roslyn/issues/65213
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1");
+@"<>f__AnonymousDelegate0`2[System.Double,System.Int32]
+<>f__AnonymousDelegate0`2[System.String,System.Int32]");
         }
 
         [Fact]
@@ -12399,7 +12673,7 @@ class Program
     """;
             var expectAnonymousDelegateIL =
 $@"
-    .class private auto ansi sealed '<>f__AnonymousDelegate0'
+    .class private auto ansi sealed '<>f__AnonymousDelegate0`3'<T1, T2, T3>
 	extends [{s_libPrefix}]System.MulticastDelegate
 {{
 	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -12412,17 +12686,17 @@ $@"
 			native int 'method'
 		) runtime managed 
 	{{
-	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	}} // end of method '<>f__AnonymousDelegate0`3'::.ctor
 	.method public hidebysig newslot virtual 
 		instance void Invoke (
-			int32& arg1,
-			[out] int32& arg2,
-			[opt] int32 arg3
+			!T1& arg1,
+			[out] !T2& arg2,
+			[opt] !T3 arg3
 		) runtime managed 
 	{{
 		.param [3] = int32(3)
-	}} // end of method '<>f__AnonymousDelegate0'::Invoke
-}} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0`3'::Invoke
+}} // end of class <>f__AnonymousDelegate0`3
 ";
 
             var expectLoweredClosureContainerIL =
@@ -12435,7 +12709,7 @@ $@"
 	)
 	// Fields
 	.field public static initonly class Program/'<>c' '<>9'
-	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	.field public static class '<>f__AnonymousDelegate0`3'<int32, int32, int32> '<>9__1_0'
 	// Methods
 	.method private hidebysig specialname rtspecialname static 
 		void .cctor () cil managed 
@@ -12482,8 +12756,8 @@ $@"
             var verifier = CompileAndVerify(source, expectedOutput:
  @"12
 29
-<>f__AnonymousDelegate0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+<>f__AnonymousDelegate0`3[System.Int32,System.Int32,System.Int32]");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`3", expectAnonymousDelegateIL);
             verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
         }
 
@@ -12565,8 +12839,8 @@ class Program
 }
 """;
             var verifier = CompileAndVerify(source, expectedOutput: "file::member:0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`3", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`3'<T1, T2, T3>
                 	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
                 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -12579,19 +12853,19 @@ class Program
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`3'::.ctor
                 	.method public hidebysig newslot virtual 
                 		instance void Invoke (
-                			[opt] string arg1,
-                			[opt] string arg2,
-                			[opt] int32 arg3
+                			[opt] !T1 arg1,
+                			[opt] !T2 arg2,
+                			[opt] !T3 arg3
                 		) runtime managed 
                 	{
                 		.param [1] = "member"
                 		.param [2] = "file"
                 		.param [3] = int32(0)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`3'::Invoke
+                } // end of class <>f__AnonymousDelegate0`3
                 """);
         }
 
@@ -12614,8 +12888,8 @@ class Program
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net60,
                 verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
                 expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, T2>
                 	extends [System.Runtime]System.MulticastDelegate
                 {
                 	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -12628,16 +12902,16 @@ class Program
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`2'::.ctor
                 	.method public hidebysig newslot virtual 
                 		instance void Invoke (
-                			int32 arg1,
-                			[opt] string arg2
+                			!T1 arg1,
+                			[opt] !T2 arg2
                 		) runtime managed 
                 	{
                 		.param [2] = "callerArgExpression"
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+                } // end of class <>f__AnonymousDelegate0`2
                 """);
         }
 
@@ -12734,7 +13008,7 @@ class Program
 
             CompileAndVerify(source, expectedOutput:
 @"1
-<>f__AnonymousDelegate0");
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -12803,8 +13077,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate0");
+@"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -12838,8 +13112,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1");
+@"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate1`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -13119,8 +13393,8 @@ public class Program
 
             // ILVerify: Unrecognized arguments for delegate .ctor.
             CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1
+@"<>f__AnonymousDelegate0`4[Program,System.String,System.Int64,System.String]
+<>f__AnonymousDelegate1`3[System.String,System.Int64,System.String]
 20 b 1
 10 b 1");
         }
@@ -13572,13 +13846,13 @@ class Program
 }
 """;
             var verifier = CompileAndVerify(source, expectedOutput:
-@"3
+@" 3
 3
 3
-<>f__AnonymousDelegate0
-<>f__AnonymousDelegate0").VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, TResult>
                 	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
                 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -13591,15 +13865,15 @@ class Program
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`2'::.ctor
                 	.method public hidebysig newslot virtual 
-                		instance int32 Invoke (
-                			[opt] int32 arg
+                		instance !TResult Invoke (
+                			[opt] !T1 arg
                 		) runtime managed 
                 	{
                 		.param [1] = int32(3)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+                } // end of class <>f__AnonymousDelegate0`2
                 """);
         }
 
@@ -13650,10 +13924,10 @@ class Program
                 static void Report(object obj) => System.Console.WriteLine(obj.GetType());
                 """;
             CompileAndVerify(source, expectedOutput: """
-                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
                 System.Func`2[System.Int32,System.Int32]
                 System.Func`2[System.Int32,System.Int32]
-                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
                 """).VerifyDiagnostics();
         }
 
@@ -13703,9 +13977,9 @@ class Program
 }
 """;
             var verifier = CompileAndVerify(source, expectedOutput: "");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1",
 $$"""
-.class private auto ansi sealed '<>f__AnonymousDelegate0'
+.class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
 	extends [{{s_libPrefix}}]System.MulticastDelegate
 {
 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -13718,19 +13992,63 @@ $$"""
 			native int 'method'
 		) runtime managed 
 	{
-	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	} // end of method '<>f__AnonymousDelegate0`1'::.ctor
 	.method public hidebysig newslot virtual 
 		instance void Invoke (
-			[opt] object arg
+			[opt] !T1 arg
 		) runtime managed 
 	{
 		.param [1] = nullref
-			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
-				01 00 00 00
-			)
-	} // end of method '<>f__AnonymousDelegate0'::Invoke
-} // end of class <>f__AnonymousDelegate0
+	} // end of method '<>f__AnonymousDelegate0`1'::Invoke
+} // end of class <>f__AnonymousDelegate0`1
 """);
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0`1'<object> '<>9__0_0'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x208d
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2085
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<Main>b__0_0' (
+                			[opt] object d
+                		) cil managed 
+                	{
+                		.param [1] = nullref
+                			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                		// Method begins at RVA 0x2099
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<Main>b__0_0'
+                } // end of class <>c
+                """);
         }
 
         [Fact]
@@ -13854,8 +14172,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0`1[System.String]
-<>f__AnonymousDelegate0`1[System.String]").VerifyDiagnostics();
+@"<>f__AnonymousDelegate0`3[System.Int32,System.String,System.String]
+<>f__AnonymousDelegate0`3[System.Int32,System.String,System.String]").VerifyDiagnostics();
         }
 
         [Fact]
@@ -13899,8 +14217,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate0
+@"<>f__AnonymousDelegate0`2[System.Decimal,System.Decimal]
+<>f__AnonymousDelegate0`2[System.Decimal,System.Decimal]
 100
 100
 5
@@ -13935,7 +14253,7 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0[]").VerifyDiagnostics();
+@"<>f__AnonymousDelegate0`1[System.Int32][]").VerifyDiagnostics();
         }
 
         [Fact]
@@ -13957,8 +14275,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-$@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
-{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
+$@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,System.Int32]]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0`2[System.Int32,System.Int32]]]").VerifyDiagnostics();
         }
 
         [Fact]
@@ -14137,12 +14455,12 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 Report(lam7, del7);
                 """;
             CompileAndVerify(source, expectedOutput: """
-                True, <>f__AnonymousDelegate0
-                True, <>f__AnonymousDelegate0
-                True, <>f__AnonymousDelegate0
+                True, <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+                True, <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+                True, <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
                 True, System.Func`2[System.Int32[],System.Int32]
                 True, <>A{00000001}`3[System.Int32,System.Int32,System.Int32[]]
-                True, <>f__AnonymousDelegate1
+                True, <>f__AnonymousDelegate1`3[System.Int32,System.Int32,System.Int32]
                 True, <>f__AnonymousDelegate2
                 True, <>f__AnonymousDelegate2
                 """).VerifyDiagnostics();
@@ -14165,9 +14483,9 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                     {{method}}
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+            var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0`2[System.Int32,System.Int32]").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, T2>
                 	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
                 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -14180,19 +14498,19 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`2'::.ctor
                 	.method public hidebysig newslot virtual 
                 		instance void Invoke (
-                			int32 arg1,
-                			int32[] arg2
+                			!T1 arg1,
+                			!T2[] arg2
                 		) runtime managed 
                 	{
                 		.param [2]
                 			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
                 				01 00 00 00
                 			)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+                } // end of class <>f__AnonymousDelegate0`2
                 """);
         }
 
@@ -14213,7 +14531,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 	)
                 	// Fields
                 	.field public static initonly class Program/'<>c' '<>9'
-                	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
+                	.field public static class '<>f__AnonymousDelegate0`2'<int32, int32> '<>9__0_0'
                 	// Methods
                 	.method private hidebysig specialname rtspecialname static 
                 		void .cctor () cil managed 

@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
         public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
         {
-            if (!entry.TryGetValue(Value, out WhitespaceSetting setting))
+            if (!entry.TryGetValue(Value, out Setting setting))
             {
                 content = null;
                 return false;
