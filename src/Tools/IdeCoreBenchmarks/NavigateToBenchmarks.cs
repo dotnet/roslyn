@@ -129,8 +129,11 @@ namespace IdeCoreBenchmarks
             }
 
             Console.WriteLine("Serial: " + (DateTime.Now - start));
-            //Console.WriteLine($"{nameof(DocumentState.s_tryShareSyntaxTreeCount)} - {DocumentState.s_tryShareSyntaxTreeCount}");
-            //Console.WriteLine($"{nameof(DocumentState.s_successfullySharedSyntaxTreeCount)} - {DocumentState.s_successfullySharedSyntaxTreeCount}");
+            Console.WriteLine($"{nameof(DocumentState.s_tryReuseSyntaxTree)} - {DocumentState.s_tryReuseSyntaxTree}");
+            Console.WriteLine($"{nameof(DocumentState.s_couldReuseBecauseOfEqualPPNames)} - {DocumentState.s_couldReuseBecauseOfEqualPPNames}");
+            Console.WriteLine($"{nameof(DocumentState.s_couldReuseBecauseOfNoDirectives)} - {DocumentState.s_couldReuseBecauseOfNoDirectives}");
+            Console.WriteLine($"{nameof(DocumentState.s_couldReuseBecauseOfNoPPDirectives)} - {DocumentState.s_couldReuseBecauseOfNoPPDirectives}");
+            Console.WriteLine($"{nameof(DocumentState.s_couldNotReuse)} - {DocumentState.s_couldNotReuse}");
 
             for (var i = 0; i < 10; i++)
             {

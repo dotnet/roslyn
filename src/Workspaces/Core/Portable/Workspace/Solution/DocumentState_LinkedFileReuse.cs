@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis
 
                 bool CanReuseSiblingRoot()
                 {
+                    s_tryReuseSyntaxTree++;
                     var siblingParseOptions = siblingTree.Options;
 
                     var ppSymbolsNames1 = parseOptions.PreprocessorSymbolNames;
@@ -121,17 +122,26 @@ namespace Microsoft.CodeAnalysis
                     // If both documents have the same preprocessor directives defined, then they'll always produce the
                     // same trees.  So we can trivially reuse the tree from one for the other.
                     if (ppSymbolsNames1.SetEquals(ppSymbolsNames2))
+                    {
+                        s_couldReuseBecauseOfEqualPPNames++;
                         return true;
+                    }
 
                     // If the tree contains no `#` directives whatsoever, then you'll parse out the same tree and can reuse it.
                     if (!siblingRoot.ContainsDirectives)
+                    {
+                        s_couldReuseBecauseOfNoDirectives++;
                         return true;
+                    }
 
                     // It's ok to contain directives like #nullable, or #region.  They don't affect parsing.  But if we have a
                     // `#if` we can't share as each side might parse this differently.
                     var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
                     if (!siblingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
+                    {
+                        s_couldReuseBecauseOfNoPPDirectives++;
                         return true;
+                    }
 
                     // If the tree contains a #if directive, and the pp-symbol-names are different, then the files
                     // absolutely may be parsed differently, and so they should not be shared.
@@ -139,6 +149,7 @@ namespace Microsoft.CodeAnalysis
                     // TODO(cyrusn): We could potentially be smarter here as well.  We can check what pp-symbols the file
                     // actually uses. (e.g. 'DEBUG'/'NETCORE'/etc.) and see if the project parse options actually differ
                     // for these values.  If not, we could reuse the trees even then.
+                    s_couldNotReuse++;
                     return false;
                 }
             }
@@ -187,5 +198,11 @@ namespace Microsoft.CodeAnalysis
                 return IncrementallyParseTree(treeSource, siblingTextSource, loadTextOptions, cancellationToken);
             }
         }
+
+        public static int s_tryReuseSyntaxTree;
+        public static int s_couldNotReuse;
+        public static int s_couldReuseBecauseOfEqualPPNames;
+        public static int s_couldReuseBecauseOfNoDirectives;
+        public static int s_couldReuseBecauseOfNoPPDirectives;
     }
 }
