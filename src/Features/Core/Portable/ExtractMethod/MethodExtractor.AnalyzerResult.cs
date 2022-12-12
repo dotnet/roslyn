@@ -35,15 +35,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 bool endOfSelectionReachable,
                 OperationStatus status)
             {
-                _ = document.SemanticModel;
-
                 UseInstanceMember = instanceMemberIsUsed;
                 ShouldBeReadOnly = shouldBeReadOnly;
                 EndOfSelectionReachable = endOfSelectionReachable;
                 AwaitTaskReturn = awaitTaskReturn;
                 SemanticDocument = document;
-                _typeParametersInDeclaration = (IList<ITypeParameterSymbol>)typeParametersInDeclaration;
-                _typeParametersInConstraintList = (IList<ITypeParameterSymbol>)typeParametersInConstraintList;
+                _typeParametersInDeclaration = typeParametersInDeclaration.ToList();
+                _typeParametersInConstraintList = typeParametersInConstraintList.ToList();
                 _variables = variables;
                 ReturnType = returnType;
                 _variableToUseAsReturnValue = variableToUseAsReturnValue;
