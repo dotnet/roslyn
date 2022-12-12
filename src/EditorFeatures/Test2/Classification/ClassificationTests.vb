@@ -89,8 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         Private Shared Function ToTestString(text As SourceText, span As ClassifiedSpan) As String
             Dim subText = text.ToString(span.TextSpan)
             Return $"({span.ClassificationType}, '{If(subText.Trim() = "", "<spaces>",
-                If(subText.Contains(""""), subText.Replace("""", """"""),
-                subText))}', {span.TextSpan})"
+                subText)}', {span.TextSpan})"
         End Function
 
         <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
