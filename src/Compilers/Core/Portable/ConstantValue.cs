@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return this.Discriminator.GetHashCode();
+            return ((int)this.Discriminator).GetHashCode();
         }
 
         public override bool Equals(object? obj)
