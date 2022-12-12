@@ -24,6 +24,75 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     <[UseExportProvider]>
     Public Class ClassificationTests
+        <Fact, WorkItem(65926, "https://github.com/dotnet/roslyn/issues/65926")>
+        Public Async Function TestEmbeddedClassifications1() As Task
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
+                        <Document>
+                        using System.Text.RegularExpressions;
+
+                        class C
+                        {
+                            private Regex re = new Regex("()");
+                        }
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim text = Await document.GetTextAsync()
+
+                Dim spans = Await ClassifierHelper.GetClassifiedSpansAsync(
+                    document, New TextSpan(0, text.Length), ClassificationOptions.Default, CancellationToken.None)
+
+                AssertEx.Equal(
+"(text, '<spaces>', [0..26))
+(keyword, 'using', [26..31))
+(text, '<spaces>', [31..32))
+(namespace name, 'System', [32..38))
+(operator, '.', [38..39))
+(namespace name, 'Text', [39..43))
+(operator, '.', [43..44))
+(namespace name, 'RegularExpressions', [44..62))
+(punctuation, ';', [62..63))
+(text, '<spaces>', [63..91))
+(keyword, 'class', [91..96))
+(text, '<spaces>', [96..97))
+(class name, 'C', [97..98))
+(text, '<spaces>', [98..124))
+(punctuation, '{', [124..125))
+(text, '<spaces>', [125..155))
+(keyword, 'private', [155..162))
+(text, '<spaces>', [162..163))
+(class name, 'Regex', [163..168))
+(text, '<spaces>', [168..169))
+(field name, 're', [169..171))
+(text, '<spaces>', [171..172))
+(operator, '=', [172..173))
+(text, '<spaces>', [173..174))
+(keyword, 'new', [174..177))
+(text, '<spaces>', [177..178))
+(class name, 'Regex', [178..183))
+(punctuation, '(', [183..184))
+(string, '""', [184..185))
+(regex - grouping, '(', [185..186))
+(regex - grouping, ')', [186..187))
+(string, '""', [187..188))
+(punctuation, ')', [188..189))
+(punctuation, ';', [189..190))
+(text, '<spaces>', [190..216))
+(punctuation, '}', [216..217))", String.Join(vbCrLf, spans.Select(Function(s) ToTestString(text, s))))
+            End Using
+        End Function
+
+        Private Shared Function ToTestString(text As SourceText, span As ClassifiedSpan) As String
+            Dim subText = text.ToString(span.TextSpan)
+            Return $"({span.ClassificationType}, '{If(subText.Trim() = "", "<spaces>",
+                If(subText.Contains(""""), subText.Replace("""", """"""),
+                subText))}', {span.TextSpan})"
+        End Function
+
         <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestSemanticClassificationWithoutSyntaxTree() As Task
             Dim workspaceDefinition =
