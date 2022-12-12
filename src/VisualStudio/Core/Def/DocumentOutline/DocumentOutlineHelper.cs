@@ -375,5 +375,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 UnselectAll(documentSymbolItem.Children);
             }
         }
+
+        internal static bool AreAllCollapsed(IEnumerable<DocumentSymbolItemViewModel> documentSymbolUIItems)
+        {
+            foreach (var item in documentSymbolUIItems)
+            {
+                if (item.IsExpanded)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

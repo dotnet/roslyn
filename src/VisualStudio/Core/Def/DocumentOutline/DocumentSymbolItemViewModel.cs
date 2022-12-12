@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         public string Name { get; }
         public ImmutableArray<DocumentSymbolItemViewModel> Children { get; }
+        public int StartPosition => RangeSpan.Start;
         public SnapshotSpan RangeSpan { get; }
         public SnapshotSpan SelectionRangeSpan { get; }
         public SymbolKind SymbolKind { get; }

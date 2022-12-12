@@ -15,6 +15,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Navigation;
+using System.Windows.Data;
+using System.ComponentModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -88,11 +90,33 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private void SearchBox_TextChanged(object sender, EventArgs e) { }
 
-        private void SortByName(object sender, EventArgs e) { }
+        private void SortByName(object sender, EventArgs e)
+        {
+            UpdateSort(SortOption.Name, nameof(DocumentSymbolItemViewModel.Name));
+        }
 
-        private void SortByOrder(object sender, EventArgs e) { }
+        private void SortByOrder(object sender, EventArgs e)
+        {
+            UpdateSort(SortOption.Location, nameof(DocumentSymbolItemViewModel.StartPosition));
+        }
 
-        private void SortByType(object sender, EventArgs e) { }
+        private void SortByType(object sender, EventArgs e)
+        {
+            UpdateSort(SortOption.Type, nameof(DocumentSymbolItemViewModel.SymbolKind), nameof(DocumentSymbolItemViewModel.Name));
+        }
+
+        private void UpdateSort(SortOption sortOption, params string[] sortProperties)
+        {
+            var view = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
+            view.SortDescriptions.Clear();
+            foreach (var sortProperty in sortProperties)
+            {
+                view.SortDescriptions.Add(new SortDescription(sortProperty, ListSortDirection.Ascending));
+            }
+
+            _viewModel.SortOption = sortOption;
+            view.Refresh();
+        }
 
         private bool _isNavigating = false;
 

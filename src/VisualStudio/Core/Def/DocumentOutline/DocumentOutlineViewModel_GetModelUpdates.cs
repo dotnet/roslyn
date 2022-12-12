@@ -61,12 +61,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _currentSnapshot = model.OriginalSnapshot;
                 var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
                 DocumentOutlineHelper.UnselectAll(DocumentSymbolUIItems);
+                var allCollapsed = DocumentOutlineHelper.AreAllCollapsed(DocumentSymbolUIItems);
                 DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolUIItems);
 
                 if (_currentCaretPosition.HasValue)
                 {
                     // if we previously had a node selected, select that node in the new tree
                     EnqueueSelectTreeNode(_currentCaretPosition.Value);
+                }
+                else if (allCollapsed)
+                {
+                    EnqueueExpandCollapseUpdate(ExpansionOption.Collapse);
                 }
             }
 
