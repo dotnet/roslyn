@@ -310,7 +310,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 'attached' to this workspace.
                 (_, newSolution) = this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
                     _ => newSolution,
-                    kind: null, // we'll figure out the change kind in onAfterUpdate below.
+                    changeKind: static (oldSolution, newSolution) => IsAddingSolution(oldSolution, newSolution)
+                        ? WorkspaceChangeKind.SolutionAdded
+                        : WorkspaceChangeKind.SolutionChanged
                     onBeforeUpdate: (oldSolution, newSolution) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))
@@ -320,12 +322,6 @@ namespace Microsoft.CodeAnalysis.Remote
                             // this seems suspect as the remote workspace should not be tracking any open document state.
                             this.ClearSolutionData();
                         }
-                    },
-                    onAfterUpdate: (oldSolution, newSolution) =>
-                    {
-                        RaiseWorkspaceChangedEventAsync(
-                            IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged,
-                            oldSolution, newSolution);
                     });
 
                 return (newSolution, updated: true);

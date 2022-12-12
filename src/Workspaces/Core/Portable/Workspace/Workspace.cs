@@ -186,6 +186,24 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <inheritdoc cref="SetCurrentSolutionAndUnifyLinkedDocumentContents(Func{Solution, Solution}, Func{Solution, Solution, WorkspaceChangeKind}, ProjectId?, DocumentId?, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
+        internal (bool updated, Solution newSolution) SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            Func<Solution, Solution> transformation,
+            WorkspaceChangeKind changeKind,
+            ProjectId? projectId = null,
+            DocumentId? documentId = null,
+            Action<Solution, Solution>? onBeforeUpdate = null,
+            Action<Solution, Solution>? onAfterUpdate = null)
+        {
+            return SetCurrentSolutionAndUnifyLinkedDocumentContents(
+                transformation,
+                (_, _) => changeKind,
+                projectId,
+                documentId,
+                onBeforeUpdate,
+                onAfterUpdate);
+        }
+
         /// <summary>
         /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to
         /// the new value and raises a workspace change event of the specified kind.  All linked documents in the
@@ -194,7 +212,7 @@ namespace Microsoft.CodeAnalysis
         /// allowing that memory to be shared.
         /// </summary>
         /// <param name="transformation">Solution transformation.</param>
-        /// <param name="kind">The kind of workspace change event to raise.</param>
+        /// <param name="changeKind">The kind of workspace change event to raise.</param>
         /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to
         /// the workspace change event.</param>
         /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to
@@ -203,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         /// transformation did not change the solution.</returns>
         internal (bool updated, Solution newSolution) SetCurrentSolutionAndUnifyLinkedDocumentContents(
             Func<Solution, Solution> transformation,
-            WorkspaceChangeKind? kind,
+            Func<Solution, Solution, WorkspaceChangeKind> changeKind,
             ProjectId? projectId = null,
             DocumentId? documentId = null,
             Action<Solution, Solution>? onBeforeUpdate = null,
@@ -221,7 +239,7 @@ namespace Microsoft.CodeAnalysis
 
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
-                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, kind, projectId, documentId),
+                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, changeKind, projectId, documentId),
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
@@ -233,8 +251,8 @@ namespace Microsoft.CodeAnalysis
                     // Queue the event but don't execute its handlers on this thread.
                     // Doing so under the serialization lock guarantees the same ordering of the events
                     // as the order of the changes made to the solution.
-                    if (data.kind != null)
-                        data.@this.RaiseWorkspaceChangedEventAsync(data.kind.Value, oldSolution, newSolution, data.projectId, data.documentId);
+                    var kind = data.changeKind(oldSolution, newSolution);
+                    data.@this.RaiseWorkspaceChangedEventAsync(kind, oldSolution, newSolution, data.projectId, data.documentId);
                 });
 
             return (oldSolution != newSolution, newSolution);
