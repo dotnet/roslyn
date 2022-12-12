@@ -15,7 +15,7 @@ using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 {
-    // For specification of document comment IDs see https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments#processing-the-documentation-file
+    // For specification of document comment IDs see https://learn.microsoft.com/dotnet/csharp/language-reference/language-specification/documentation-comments#processing-the-documentation-file
 
     public class SymbolIsBannedAnalyzerTests
     {
