@@ -49,5 +49,6 @@
   -->
   <ItemGroup>
     <InProcService Include="Microsoft.VisualStudio.LanguageServices.SolutionAssetProvider" />
+    <InProcService Include="Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService" />
   </ItemGroup>
 </Project>

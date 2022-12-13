@@ -364,9 +364,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
                 try
                 {
-                    foreach (var (_, codeStyleOption, editorConfigLocation, isPerLanguage) in codeStyleOptions)
+                    foreach (var (optionKey, _, editorConfigLocation, isPerLanguage) in codeStyleOptions)
                     {
-                        if (!TryGetEditorConfigStringParts(codeStyleOption, editorConfigLocation, optionSet, out var parts))
+                        if (!TryGetEditorConfigStringParts(editorConfigLocation.GetEditorConfigString(optionKey, optionSet), out var parts))
                         {
                             // Did not find a match, bail out.
                             return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
@@ -386,13 +386,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
         }
 
-        internal static bool TryGetEditorConfigStringParts(
-            ICodeStyleOption codeStyleOption,
-            IEditorConfigStorageLocation2 editorConfigLocation,
-            OptionSet optionSet,
-            out (string optionName, string optionValue) parts)
+        internal static bool TryGetEditorConfigStringParts(string editorConfigString, out (string optionName, string optionValue) parts)
         {
-            var editorConfigString = editorConfigLocation.GetEditorConfigString(codeStyleOption, optionSet);
             if (!string.IsNullOrEmpty(editorConfigString))
             {
                 var match = s_optionEntryPattern.Match(editorConfigString);

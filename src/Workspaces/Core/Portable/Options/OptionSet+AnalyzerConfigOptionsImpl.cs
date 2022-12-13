@@ -7,13 +7,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     public abstract partial class OptionSet
     {
-        private sealed class AnalyzerConfigOptionsImpl : AnalyzerConfigOptions
+        private sealed class AnalyzerConfigOptionsImpl : StructuredAnalyzerConfigOptions
         {
             private readonly OptionSet _optionSet;
             private readonly IEditorConfigOptionMappingService _optionMappingService;
@@ -25,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Options
                 _optionMappingService = optionMappingService;
                 _language = language;
             }
+
+            public override NamingStylePreferences GetNamingStylePreferences()
+                => _optionSet.GetOption<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, _language);
 
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
@@ -38,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Options
                     return false;
                 }
 
-                var typedValue = _optionSet.GetOption(optionKey);
-                value = storageLocation.GetEditorConfigStringValue(typedValue, _optionSet);
+                value = storageLocation.GetEditorConfigStringValue(optionKey, _optionSet);
                 return true;
             }
 

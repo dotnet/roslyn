@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
-                                                                  string filePath,
-                                                                  OptionSet optionSet,
-                                                                  IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(
+            SourceText originalText,
+            string filePath,
+            IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
         {
             if (originalText is null)
                 return null;
@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 return null;
 
             var updatedText = originalText;
-            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value, optionSet))
+            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value))
                                            .Where(x => x.success)
                                            .Select(x => (x.option, x.value, x.language))
                                            .ToList();
 
             return TryUpdateAnalyzerConfigDocument(originalText, filePath, settings);
 
-            static (bool success, string option, string value, Language language) TryGetOptionValueAndLanguage(IOption2 option, object value, OptionSet optionSet)
+            static (bool success, string option, string value, Language language) TryGetOptionValueAndLanguage(IOption2 option, object value)
             {
                 if (option.StorageLocations.FirstOrDefault(x => x is IEditorConfigStorageLocation2) is not IEditorConfigStorageLocation2 storageLocation)
                 {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 }
 
                 var optionName = storageLocation.KeyName;
-                var optionValue = storageLocation.GetEditorConfigStringValue(value, optionSet);
+                var optionValue = storageLocation.GetEditorConfigStringValue(value);
                 if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
                 {
                     var severity = codeStyleOption.Notification.Severity switch

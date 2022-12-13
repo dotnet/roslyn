@@ -15,23 +15,19 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractForEachLoopSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractForEachLoopSnippetProvider : AbstractStatementSnippetProvider
     {
         protected abstract Task<SyntaxNode> CreateForEachLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
 
         public override string Identifier => "foreach";
 
         public override string Description => FeaturesResources.foreach_loop;
-
-        protected override bool IsValidSnippetLocation(SyntaxContext context, CancellationToken cancellationToken)
-        {
-            return context.IsStatementContext || context.IsGlobalStatementContext;
-        }
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {

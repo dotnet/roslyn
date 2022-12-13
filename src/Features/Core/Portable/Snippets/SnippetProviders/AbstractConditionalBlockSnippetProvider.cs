@@ -16,15 +16,10 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
     /// <summary>
     /// Base class for "if" and "while" snippet providers
     /// </summary>
-    internal abstract class AbstractConditionalBlockSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractConditionalBlockSnippetProvider : AbstractStatementSnippetProvider
     {
         protected abstract TextChange GenerateSnippetTextChange(Document document, int position);
         protected abstract SyntaxNode GetCondition(SyntaxNode node);
-
-        protected override bool IsValidSnippetLocation(SyntaxContext context, CancellationToken cancellationToken)
-        {
-            return context.IsStatementContext || context.IsGlobalStatementContext;
-        }
 
         protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {

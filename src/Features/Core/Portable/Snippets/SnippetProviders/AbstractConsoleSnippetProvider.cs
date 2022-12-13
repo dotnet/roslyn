@@ -18,12 +18,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
+using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractConsoleSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractConsoleSnippetProvider : AbstractStatementSnippetProvider
     {
         protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
 
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return false;
             }
 
-            return context.IsStatementContext || context.IsGlobalStatementContext;
+            return base.IsValidSnippetLocation(context, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
