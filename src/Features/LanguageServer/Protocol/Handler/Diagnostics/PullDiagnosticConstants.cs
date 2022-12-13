@@ -8,6 +8,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public const string TaskItemCustomTag = nameof(TaskItemCustomTag);
 
+        /// <summary>
+        /// Diagnostic category to get project diagnostics.
+        /// </summary>
+        public const string Project = nameof(Project);
         public const string CompilerSyntax = nameof(CompilerSyntax);
         public const string CompilerSemantic = nameof(CompilerSemantic);
         public const string AnalyzerSyntax = nameof(AnalyzerSyntax);

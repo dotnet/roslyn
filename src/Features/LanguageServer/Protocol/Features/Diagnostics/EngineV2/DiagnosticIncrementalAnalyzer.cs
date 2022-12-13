@@ -239,11 +239,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 var isCompilerAnalyzer = analyzer.IsCompilerAnalyzer();
                 includeSyntax = isCompilerAnalyzer
-                    ? _diagnosticKind == DiagnosticKind.CompilerSyntax
-                    : _diagnosticKind == DiagnosticKind.AnalyzerSyntax;
+                    ? diagnosticKind == DiagnosticKind.CompilerSyntax
+                    : diagnosticKind == DiagnosticKind.AnalyzerSyntax;
                 includeSemantic = isCompilerAnalyzer
-                    ? _diagnosticKind == DiagnosticKind.CompilerSemantic
-                    : _diagnosticKind == DiagnosticKind.AnalyzerSemantic;
+                    ? diagnosticKind == DiagnosticKind.CompilerSemantic
+                    : diagnosticKind == DiagnosticKind.AnalyzerSemantic;
             }
         }
 

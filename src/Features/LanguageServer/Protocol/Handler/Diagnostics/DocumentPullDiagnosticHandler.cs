@@ -68,8 +68,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
             VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            var (diagnosticKind, taskList) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
-            return ValueTaskFactory.FromResult(GetDiagnosticSources(diagnosticKind, taskList, context));
+            var (diagnosticKind, taskList, isProject) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
+
+            // Document handler never has anything for "project" requests.
+            return isProject
+                ? new(ImmutableArray<IDiagnosticSource>.Empty)
+                : new(GetDiagnosticSources(diagnosticKind, taskList, context));
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)

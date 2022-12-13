@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 serverCapabilities.DiagnosticProvider.DiagnosticKinds = new[]
                 {
                     VSInternalDiagnosticKind.Task,
+                    new(PullDiagnosticConstants.Project),
                     new(PullDiagnosticConstants.CompilerSyntax),
                     new(PullDiagnosticConstants.CompilerSemantic),
                     new(PullDiagnosticConstants.AnalyzerSyntax),

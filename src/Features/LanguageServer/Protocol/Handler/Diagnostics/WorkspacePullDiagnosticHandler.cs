@@ -69,10 +69,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
                 return ImmutableArray<IDiagnosticSource>.Empty;
 
-            var (diagnosticKind, taskList) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
-            return taskList
-                ? GetTaskListDiagnosticSources(context, GlobalOptions)
-                : await GetDiagnosticSourcesAsync(diagnosticKind, context, GlobalOptions, cancellationToken).ConfigureAwait(false);
+            var (diagnosticKind, taskList, isProject) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
+            if (isProject)
+                return GetProjectDiagnosticSources(context, GlobalOptions);
+
+            if (taskList)
+                return GetTaskListDiagnosticSources(context, GlobalOptions);
+
+            return await GetDiagnosticSourcesAsync(diagnosticKind, context, GlobalOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        internal static ImmutableArray<IDiagnosticSource> GetTaskListDiagnosticSources(
+        private static ImmutableArray<IDiagnosticSource> GetTaskListDiagnosticSources(
             RequestContext context, IGlobalOptionService globalOptions)
         {
             Contract.ThrowIfNull(context.Solution);
@@ -137,6 +141,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                     result.Add(new TaskListDiagnosticSource(document));
                 }
+            }
+
+            return result.ToImmutable();
+        }
+
+        private static async ValueTask<ImmutableArray<IDiagnosticSource>> GetProjectDiagnosticSourcesAsync(
+            RequestContext context, IGlobalOptionService globalOptions)
+        {
+            Contract.ThrowIfNull(context.Solution);
+
+            using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
+
+            var solution = context.Solution;
+
+            foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
+            {
+                var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
+                if (fullSolutionAnalysisEnabled)
+                    result.Add(new ProjectDiagnosticSource(project));
             }
 
             return result.ToImmutable();
