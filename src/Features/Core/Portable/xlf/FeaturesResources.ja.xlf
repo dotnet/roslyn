@@ -3463,6 +3463,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">破棄</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="new">else statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">埋め込み</target>
