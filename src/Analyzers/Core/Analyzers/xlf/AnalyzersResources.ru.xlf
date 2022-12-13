@@ -384,7 +384,7 @@
       </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
-        <target state="new">Use coalesce expression</target>
+        <target state="translated">Используйте выражение объединения</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
