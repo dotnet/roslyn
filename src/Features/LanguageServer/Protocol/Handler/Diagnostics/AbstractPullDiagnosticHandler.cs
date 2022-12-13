@@ -123,8 +123,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
 
-        protected abstract (DiagnosticKind? kind, bool? taskList) GetRequestedDiagnosticKinds(TDiagnosticsParams diagnosticsParams);
-
         public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {

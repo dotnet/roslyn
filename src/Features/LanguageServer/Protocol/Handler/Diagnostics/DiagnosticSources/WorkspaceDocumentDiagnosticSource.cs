@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal sealed record WorkspaceDocumentDiagnosticSource(DiagnosticKind DiagnosticKind, TextDocument Document) : AbstractDocumentDiagnosticSource<TextDocument>(Document)
 {
-    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
         CancellationToken cancellationToken)

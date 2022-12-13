@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal sealed record DocumentDiagnosticSource(DiagnosticKind DiagnosticKind, Document Document)
     : AbstractDocumentDiagnosticSource<Document>(Document)
 {
-    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf
