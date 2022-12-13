@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed record WorkspaceDocumentDiagnosticSource(DiagnosticKind DiagnosticKind, TextDocument Document) : AbstractDocumentDiagnosticSource<TextDocument>(Document)
+internal sealed record WorkspaceDocumentDiagnosticSource(TextDocument Document) : AbstractDocumentDiagnosticSource<TextDocument>(Document)
 {
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
@@ -30,7 +30,7 @@ internal sealed record WorkspaceDocumentDiagnosticSource(DiagnosticKind Diagnost
             // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
             // However we can include them as a part of workspace pull when FSA is on.
             var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                Document.Project.Solution, Document.Project.Id, Document.Id, diagnosticKind: this.DiagnosticKind, cancellationToken: cancellationToken).ConfigureAwait(false);
+                Document.Project.Solution, Document.Project.Id, Document.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
             return documentDiagnostics;
         }
     }

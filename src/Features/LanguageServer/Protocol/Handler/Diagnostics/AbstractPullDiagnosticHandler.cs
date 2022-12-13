@@ -480,23 +480,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             return true;
         }
-
-        protected static (DiagnosticKind diagnosticKind, bool taskList, bool isProject) GetDiagnosticKindInfo(VSInternalDiagnosticKind? queryingDiagnosticKind)
-        {
-            if (queryingDiagnosticKind?.Value == PullDiagnosticConstants.Project)
-                return (default, taskList: false, isProject: true);
-
-            if (queryingDiagnosticKind?.Value == VSInternalDiagnosticKind.Task.Value)
-                return (default, taskList: true, isProject: false);
-
-            return queryingDiagnosticKind?.Value switch
-            {
-                PullDiagnosticConstants.CompilerSyntax => (DiagnosticKind.CompilerSyntax, taskList: false, isProject: false),
-                PullDiagnosticConstants.CompilerSemantic => (DiagnosticKind.CompilerSemantic, taskList: false, isProject: false),
-                PullDiagnosticConstants.AnalyzerSyntax => (DiagnosticKind.AnalyzerSyntax, taskList: false, isProject: false),
-                PullDiagnosticConstants.AnalyzerSemantic => (DiagnosticKind.AnalyzerSemantic, taskList: false, isProject: false),
-                _ => (DiagnosticKind.All, taskList: false, isProject: false),
-            };
-        }
     }
 }

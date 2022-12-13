@@ -68,12 +68,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
             VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            var (diagnosticKind, taskList, isProject) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
+            var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
 
-            // Document handler never has anything for "project" requests.
-            return isProject
-                ? new(ImmutableArray<IDiagnosticSource>.Empty)
-                : new(GetDiagnosticSources(diagnosticKind, taskList, context));
+            if (category == PullDiagnosticCategories.Task)
+                return new(GetDiagnosticSources(diagnosticKind: default, taskList: true, context));
+
+            var diagnosticKind = category switch
+            {
+                PullDiagnosticCategories.DocumentCompilerSyntax => DiagnosticKind.CompilerSyntax,
+                PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
+                PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSemantic,
+                PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
+                // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
+                null => DiagnosticKind.All,
+                // if it's a category we don't recognize, return nothing.
+                _ => (DiagnosticKind?)null,
+            };
+
+            if (diagnosticKind is null)
+                return new(ImmutableArray<IDiagnosticSource>.Empty);
+
+            return new(GetDiagnosticSources(diagnosticKind.Value, taskList: false, context));
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)

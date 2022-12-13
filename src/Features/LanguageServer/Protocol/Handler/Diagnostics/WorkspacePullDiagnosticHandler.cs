@@ -69,14 +69,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
                 return ImmutableArray<IDiagnosticSource>.Empty;
 
-            var (diagnosticKind, taskList, isProject) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
-            if (isProject)
+            var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
+
+            if (category == PullDiagnosticCategories.WorkspaceProjects)
                 return GetProjectDiagnosticSources(context, GlobalOptions);
 
-            if (taskList)
+            if (category == PullDiagnosticCategories.Task)
                 return GetTaskListDiagnosticSources(context, GlobalOptions);
 
-            return await GetDiagnosticSourcesAsync(diagnosticKind, context, GlobalOptions, cancellationToken).ConfigureAwait(false);
+            // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
+            if (category == null || category == PullDiagnosticCategories.WorkspaceDocuments)
+                return await GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken).ConfigureAwait(false);
+
+            // if it's a category we don't recognize, return nothing.
+            return ImmutableArray<IDiagnosticSource>.Empty;
         }
 
         protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
@@ -148,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return result.ToImmutable();
         }
 
-        private static ImmutableArray<IDiagnosticSource> GetProjectDiagnosticSources(
+        public static ImmutableArray<IDiagnosticSource> GetProjectDiagnosticSources(
             RequestContext context, IGlobalOptionService globalOptions)
         {
             Contract.ThrowIfNull(context.Solution);
@@ -167,8 +173,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return result.ToImmutable();
         }
 
-        internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
-            DiagnosticKind diagnosticKind, RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        public static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
+            RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -212,7 +218,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     if (document.IsRazorDocument())
                         continue;
 
-                    result.Add(new WorkspaceDocumentDiagnosticSource(diagnosticKind, document));
+                    result.Add(new WorkspaceDocumentDiagnosticSource(document));
                 }
             }
         }
