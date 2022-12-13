@@ -14218,7 +14218,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "2m").WithArguments("System.Decimal").WithLocation(2, 24));
         }
 
-        [Fact]
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameter_MissingDecimalConstantAttribute_Lambda()
         {
             var source = """
@@ -14232,7 +14232,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "decimal d = 1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 12));
         }
 
-        [Fact]
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameter_MissingDecimalConstantAttribute_Method()
         {
             var source = """
@@ -14249,7 +14249,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "decimal d = 1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 19));
         }
 
-        [Fact]
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameter_MissingDecimalConstantAttribute_ExternalMethodGroup()
         {
             var source1 = """
@@ -14271,7 +14271,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 9));
         }
 
-        [Fact]
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameter_MissingDecimalConstantAttribute_Field()
         {
             var source = """
