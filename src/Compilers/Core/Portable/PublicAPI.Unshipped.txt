@@ -4,6 +4,7 @@ Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! operandType) -> Microsoft.CodeAnalysis.IMethodSymbol!
 Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions! analysisOptions, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.IsGeneratedCode.get -> bool
