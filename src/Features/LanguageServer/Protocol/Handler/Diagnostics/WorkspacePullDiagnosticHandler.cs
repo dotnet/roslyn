@@ -56,18 +56,94 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ConvertTags(diagnosticData, potentialDuplicate: true);
         }
 
-        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+        protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
             VSInternalWorkspaceDiagnosticsParams diagnosticsParams,
             RequestContext context,
             CancellationToken cancellationToken)
         {
+            // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
+            // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
+            // document-diagnostics instead.
+            if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
+                return ImmutableArray<IDiagnosticSource>.Empty;
+
             var (diagnosticKind, taskList) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
-            return GetDiagnosticSourcesAsync(diagnosticKind, taskList, context, GlobalOptions, cancellationToken);
+            return taskList
+                ? GetTaskListDiagnosticSources(context, GlobalOptions)
+                : await GetDiagnosticSourcesAsync(diagnosticKind, taskList, context, GlobalOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
         {
             return progress.GetFlattenedValues();
+        }
+
+        internal static ImmutableArray<IDiagnosticSource> GetTaskListDiagnosticSources(
+            RequestContext context, IGlobalOptionService globalOptions)
+        {
+            Contract.ThrowIfNull(context.Solution);
+
+            // Only compute task list items for closed files if the option is on for it.
+            var taskListEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
+            if (!taskListEnabled)
+                return ImmutableArray<IDiagnosticSource>.Empty;
+
+            using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
+
+            var solution = context.Solution;
+
+            var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
+
+            // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
+            // prioritize the files from currently active projects, but then also include all other docs in all projects
+            // (depending on current FSA settings).
+
+            var activeDocument = documentTrackingService.GetActiveDocument(solution);
+            var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
+
+            // Now, prioritize the projects related to the active/visible files.
+            AddDocumentsAndProject(activeDocument?.Project, context.SupportedLanguages);
+            foreach (var doc in visibleDocuments)
+                AddDocumentsAndProject(doc.Project, context.SupportedLanguages);
+
+            // finally, add the remainder of all documents.
+            foreach (var project in solution.Projects)
+                AddDocumentsAndProject(project, context.SupportedLanguages);
+
+            // Ensure that we only process documents once.
+            result.RemoveDuplicates();
+            return result.ToImmutable();
+
+            void AddDocumentsAndProject(Project? project, ImmutableArray<string> supportedLanguages)
+            {
+                if (project == null)
+                    return;
+
+                if (!supportedLanguages.Contains(project.Language))
+                {
+                    // This project is for a language not supported by the LSP server making the request.
+                    // Do not report diagnostics for these projects.
+                    return;
+                }
+
+                foreach (var document in project.Documents)
+                {
+                    // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+                    // Each handler treats those as separate worlds that they are responsible for.
+                    if (context.IsTracking(document.GetURI()))
+                    {
+                        context.TraceDebug($"Skipping tracked document: {document.GetURI()}");
+                        continue;
+                    }
+
+                    // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
+                    // for any razor file they are interested in.
+                    if (document.IsRazorDocument())
+                        continue;
+
+                    result.Add(new TaskListDiagnosticSource(document));
+                }
+            }
         }
 
         internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
