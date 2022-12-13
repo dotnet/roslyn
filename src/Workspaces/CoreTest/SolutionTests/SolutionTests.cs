@@ -863,6 +863,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory]
         [InlineData("#if DEBUG", false, LanguageNames.CSharp)]
         [InlineData(@"#region ""goo""", true, LanguageNames.CSharp)]
+        [InlineData(@"#nullable enable", true, LanguageNames.CSharp)]
         [InlineData("// File", true, LanguageNames.CSharp)]
         [InlineData("#if DEBUG", false, LanguageNames.VisualBasic)]
         [InlineData(@"#region ""goo""", true, LanguageNames.VisualBasic)]
