@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var (diagnosticKind, taskList) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
             return taskList
                 ? GetTaskListDiagnosticSources(context, GlobalOptions)
-                : await GetDiagnosticSourcesAsync(diagnosticKind, taskList, context, GlobalOptions, cancellationToken).ConfigureAwait(false);
+                : await GetDiagnosticSourcesAsync(diagnosticKind, context, GlobalOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
@@ -147,15 +147,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
-            DiagnosticKind kind, bool taskList, RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+            DiagnosticKind diagnosticKind, RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
-
-            // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
-            // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
-            // document-diagnostics instead.
-            if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
-                return ImmutableArray<IDiagnosticSource>.Empty;
 
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
 
@@ -196,8 +190,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
 
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                var taskListEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
-                if (!fullSolutionAnalysisEnabled && !taskListEnabled)
+                if (!fullSolutionAnalysisEnabled)
                     return;
 
                 var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
@@ -224,12 +217,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     if (document.IsRazorDocument())
                         continue;
 
-                    result.Add(new WorkspaceDocumentDiagnosticSource(document, includeTaskListItems: true, includeStandardDiagnostics: fullSolutionAnalysisEnabled));
+                    result.Add(new WorkspaceDocumentDiagnosticSource(diagnosticKind, document));
                 }
 
-                // Finally if fsa is on, we also want to check for diagnostics associated with the project itself.
-                if (fullSolutionAnalysisEnabled)
-                    result.Add(new ProjectDiagnosticSource(project));
+                // Finally, as fsa is on, we also want to check for diagnostics associated with the project itself.
+                result.Add(new ProjectDiagnosticSource(project));
             }
         }
     }
