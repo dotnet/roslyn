@@ -356,7 +356,17 @@ class C {
 
             // directive in trailing trivia is not a thing
             for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
-                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { } #if false").ContainsDirective(kind));
+            {
+                var compilationUnit = SyntaxFactory.ParseCompilationUnit("namespace N { } #if false");
+                compilationUnit.GetDiagnostics().Verify(
+                    // (1,17): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17),
+                    // (1,26): error CS1027: #endif directive expected
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 26));
+                Assert.False(compilationUnit.ContainsDirective(kind));
+            }
 
             testContainsHelper1("#define x", SyntaxKind.DefineDirectiveTrivia);
             testContainsHelper1("#if true\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);

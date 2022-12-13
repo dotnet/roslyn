@@ -2109,7 +2109,10 @@ End Module
 
             ' directive in trailing trivia Is Not a thing
             For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
-                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "end namespace #if false").ContainsDirective(currentKind))
+                Dim compilationUnit = SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "end namespace #if false")
+                compilationUnit.GetDiagnostics().Verify(
+                    Diagnostic(ERRID.ERR_ExpectedEOS, "#").WithLocation(2, 15))
+                Assert.False(compilationUnit.ContainsDirective(currentKind))
             Next
 
             Dim TestContainsHelper2 = Sub(directiveKinds As SyntaxKind(), compilationUnit As CompilationUnitSyntax)
