@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
             {
                 var solution = document.Project.Solution;
-                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, _diagnosticIds, _includeSuppressedDiagnostics, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, _diagnosticIds, _includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
                 return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public override async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {
                 // Get all diagnostics for the entire project, including document diagnostics.
-                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null, _diagnosticIds, _includeSuppressedDiagnostics, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null, _diagnosticIds, _includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             }
 

@@ -231,22 +231,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
 
-        private static void GetDiagnosticKindInfo(DiagnosticAnalyzer analyzer, DiagnosticKind diagnosticKind, out bool includeSyntax, out bool includeSemantic)
-        {
-            includeSyntax = true;
-            includeSemantic = true;
-            if (diagnosticKind != DiagnosticKind.All)
-            {
-                var isCompilerAnalyzer = analyzer.IsCompilerAnalyzer();
-                includeSyntax = isCompilerAnalyzer
-                    ? diagnosticKind == DiagnosticKind.CompilerSyntax
-                    : diagnosticKind == DiagnosticKind.AnalyzerSyntax;
-                includeSemantic = isCompilerAnalyzer
-                    ? diagnosticKind == DiagnosticKind.CompilerSemantic
-                    : diagnosticKind == DiagnosticKind.AnalyzerSemantic;
-            }
-        }
-
         public void LogAnalyzerCountSummary()
             => _telemetry.ReportAndClear(_correlationId);
 

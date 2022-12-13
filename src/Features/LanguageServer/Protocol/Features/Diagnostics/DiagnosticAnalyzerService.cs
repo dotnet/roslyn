@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
-                return analyzer.GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, DiagnosticKind.All, cancellationToken);
+                return analyzer.GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
@@ -178,18 +178,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-            Solution solution,
-            ProjectId? projectId,
-            DocumentId? documentId,
-            ImmutableHashSet<string>? diagnosticIds,
-            bool includeSuppressedDiagnostics,
-            DiagnosticKind diagnosticKind,
-            CancellationToken cancellationToken)
+            Solution solution, ProjectId? projectId = null, DocumentId? documentId = null, ImmutableHashSet<string>? diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
-                return analyzer.GetDiagnosticsForIdsAsync(
-                    solution, projectId, documentId, diagnosticIds, includeSuppressedDiagnostics, diagnosticKind, cancellationToken);
+                return analyzer.GetDiagnosticsForIdsAsync(solution, projectId, documentId, diagnosticIds, includeSuppressedDiagnostics, cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
@@ -200,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
-                return analyzer.GetProjectDiagnosticsForIdsAsync(solution, projectId, diagnosticIds, includeSuppressedDiagnostics, DiagnosticKind.All, cancellationToken);
+                return analyzer.GetProjectDiagnosticsForIdsAsync(solution, projectId, diagnosticIds, includeSuppressedDiagnostics, cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
