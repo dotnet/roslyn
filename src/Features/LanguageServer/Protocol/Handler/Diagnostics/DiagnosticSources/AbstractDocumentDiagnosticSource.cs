@@ -14,13 +14,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract record AbstractDocumentDiagnosticSource<TDocument>(DiagnosticKind DiagnosticKind, bool TaskList, TDocument Document) : IDiagnosticSource
+internal abstract record AbstractDocumentDiagnosticSource<TDocument>(TDocument Document) : IDiagnosticSource
     where TDocument : TextDocument
 {
-
-    private static Tuple<ImmutableArray<string>, ImmutableArray<TaskListItemDescriptor>> s_lastRequestedTokens =
-        Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TaskListItemDescriptor>.Empty);
-
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;
     public TextDocumentIdentifier? GetDocumentIdentifier()
@@ -30,61 +26,6 @@ internal abstract record AbstractDocumentDiagnosticSource<TDocument>(DiagnosticK
 
     public string ToDisplayString() => $"{Document.FilePath ?? Document.Name} in {Document.Project.Name}";
 
-    private bool IncludeTaskListItems => TaskList;
-    private bool IncludeStandardDiagnostics => !TaskList;
-
-    protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+    public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
-
-    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
-    {
-        var taskListItems = IncludeTaskListItems ? await this.GetTaskListDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
-        var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
-        return taskListItems.AddRange(diagnostics);
-    }
-
-    private async Task<ImmutableArray<DiagnosticData>> GetTaskListDiagnosticsAsync(CancellationToken cancellationToken)
-    {
-        if (this.Document is not Document document)
-            return ImmutableArray<DiagnosticData>.Empty;
-
-        var service = document.GetLanguageService<ITaskListService>();
-        if (service == null)
-            return ImmutableArray<DiagnosticData>.Empty;
-
-        var tokenList = document.Project.Solution.Options.GetOption(TaskListOptionsStorage.Descriptors);
-        var descriptors = GetAndCacheDescriptors(tokenList);
-
-        var items = await service.GetTaskListItemsAsync(document, descriptors, cancellationToken).ConfigureAwait(false);
-        if (items.Length == 0)
-            return ImmutableArray<DiagnosticData>.Empty;
-
-        return items.SelectAsArray(i => new DiagnosticData(
-            id: "TODO",
-            category: "TODO",
-            message: i.Message,
-            severity: DiagnosticSeverity.Info,
-            defaultSeverity: DiagnosticSeverity.Info,
-            isEnabledByDefault: true,
-            warningLevel: 0,
-            customTags: s_todoCommentCustomTags,
-            properties: ImmutableDictionary<string, string?>.Empty,
-            projectId: document.Project.Id,
-            language: document.Project.Language,
-            location: new DiagnosticDataLocation(i.Span, document.Id, mappedFileSpan: i.MappedSpan)));
-    }
-
-    private static ImmutableArray<TaskListItemDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
-    {
-        var lastRequested = s_lastRequestedTokens;
-        if (!lastRequested.Item1.SequenceEqual(tokenList))
-        {
-            var descriptors = TaskListItemDescriptor.Parse(tokenList);
-            lastRequested = Tuple.Create(tokenList, descriptors);
-            s_lastRequestedTokens = lastRequested;
-        }
-
-        return lastRequested.Item2;
-    }
 }
