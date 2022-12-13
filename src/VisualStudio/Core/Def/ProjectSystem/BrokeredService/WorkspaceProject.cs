@@ -118,6 +118,22 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
                 _project.RemoveSourceFile(sourceFile);
         }
 
+        public async Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
+        {
+            await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+
+            foreach (var dynamicFilePath in dynamicFilePaths)
+                _project.AddDynamicFile(dynamicFilePath);
+        }
+
+        public async Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
+        {
+            await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+
+            foreach (var dynamicFilePath in dynamicFilePaths)
+                _project.RemoveDynamicFile(dynamicFilePath);
+        }
+
         public async Task SetBuildSystemPropertiesAsync(IReadOnlyDictionary<string, string> properties, CancellationToken cancellationToken)
         {
             await using var batch = _project.CreateBatchScope().ConfigureAwait(false);

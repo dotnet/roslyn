@@ -33,5 +33,8 @@ internal interface IWorkspaceProject : IAsyncDisposable
     Task AddAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken);
     Task RemoveAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken);
 
+    Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken);
+    Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken);
+
     Task<IAsyncDisposable> StartBatchAsync(CancellationToken cancellationToken);
 }
