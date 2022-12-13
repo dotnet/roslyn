@@ -6,6 +6,7 @@ using System;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Options
@@ -26,6 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Options
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("Test Feature", null!, false));
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>(null!, "Test Name", false));
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: null!));
+        }
+
+        [Fact]
+        public void Ctor_Language()
+        {
+            var optionKey = new OptionKey(new TestOption() { IsPerLanguage = false });
+            Assert.Null(optionKey.Language);
+
+            Assert.Throws<ArgumentNullException>(() => new OptionKey(null!));
+            Assert.Throws<ArgumentNullException>(() => new OptionKey(null!, null!));
+            Assert.Throws<ArgumentNullException>(() => new OptionKey(null!, "lang"));
+            Assert.Throws<ArgumentNullException>(() => new OptionKey(new TestOption() { IsPerLanguage = true }));
+            Assert.Throws<ArgumentException>(() => new OptionKey(new TestOption() { IsPerLanguage = false }, language: "lang"));
         }
 
         [Fact]

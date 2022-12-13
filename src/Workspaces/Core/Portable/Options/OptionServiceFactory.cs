@@ -26,9 +26,9 @@ internal sealed class LegacyWorkspaceOptionService : ILegacyWorkspaceOptionServi
     public void UnregisterWorkspace(Workspace workspace)
         => GlobalOptions.UnregisterWorkspace(workspace);
 
-    public object? GetOption(OptionKey key)
-        => GlobalOptions.GetOption(key);
+    public object? GetOption(OptionKey2 key)
+        => GlobalOptions.GetOption<object?>(key);
 
-    public void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
+    public void SetOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
         => GlobalOptions.SetOptions(options);
 }

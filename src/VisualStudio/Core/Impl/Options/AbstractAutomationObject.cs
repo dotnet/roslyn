@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private protected void SetOption<T>(Option2<T> key, T value)
             => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(key, value)));
+                .WithChangedOption(new OptionKey(key), value)));
 
         private protected int GetBooleanOption(PerLanguageOption2<bool?> key)
             => NullableBooleanToInteger(GetOption(key));

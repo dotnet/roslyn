@@ -59,9 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         private static readonly Guid s_resharperPackageGuid = new("0C6E6407-13FC-4878-869A-C8B4016C57FE");
         private static readonly Guid s_resharperCommandGroup = new("47F03277-5055-4922-899C-0F7F30D26BF1");
 
-        private static readonly ImmutableArray<OptionKey> s_statusOptions = ImmutableArray.Create<OptionKey>(
-            new OptionKey(KeybindingResetOptions.ReSharperStatus),
-            new OptionKey(KeybindingResetOptions.NeedsReset));
+        private static readonly ImmutableArray<OptionKey2> s_statusOptions = ImmutableArray.Create<OptionKey2>(
+            new OptionKey2(KeybindingResetOptions.ReSharperStatus),
+            new OptionKey2(KeybindingResetOptions.NeedsReset));
 
         private readonly IGlobalOptionService _globalOptions;
         private readonly System.IServiceProvider _serviceProvider;
@@ -218,8 +218,8 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             }
 
             _globalOptions.SetGlobalOptions(ImmutableArray.Create(
-                KeyValuePairUtil.Create(new OptionKey(KeybindingResetOptions.ReSharperStatus), (object)currentStatus),
-                KeyValuePairUtil.Create(new OptionKey(KeybindingResetOptions.NeedsReset), (object)needsReset)));
+                KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptions.ReSharperStatus), (object)currentStatus),
+                KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptions.NeedsReset), (object)needsReset)));
 
             if (needsReset)
             {
@@ -353,7 +353,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
             KeybindingsResetLogger.Log("KeybindingsReset");
 
-            _globalOptions.SetGlobalOption(new OptionKey(KeybindingResetOptions.NeedsReset), false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
         }
 
         private void OpenExtensionsHyperlink()
@@ -363,13 +363,13 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             VisualStudioNavigateToLinkService.StartBrowser(KeybindingsFwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
-            _globalOptions.SetGlobalOption(new OptionKey(KeybindingResetOptions.NeedsReset), false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
         }
 
         private void NeverShowAgain()
         {
-            _globalOptions.SetGlobalOption(new OptionKey(KeybindingResetOptions.NeverShowAgain), true);
-            _globalOptions.SetGlobalOption(new OptionKey(KeybindingResetOptions.NeedsReset), false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeverShowAgain, true);
+            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
             KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the Shutdown method.

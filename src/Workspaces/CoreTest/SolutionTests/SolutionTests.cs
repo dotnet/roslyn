@@ -3917,7 +3917,7 @@ class C
 
 #pragma warning disable RS0030 // Do not used banned APIs
             var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
-            Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
+            Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions.UseTabs));
 #pragma warning restore
 
             var syntaxTree = await document.GetSyntaxTreeAsync();

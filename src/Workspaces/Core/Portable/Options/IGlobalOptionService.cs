@@ -25,18 +25,18 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        T GetOption<T>(PerLanguageOption2<T> option, string? languageName);
+        T GetOption<T>(PerLanguageOption2<T> option, string language);
 
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        object? GetOption(OptionKey optionKey);
+        T GetOption<T>(OptionKey2 optionKey);
 
         /// <summary>
         /// Gets the current values of specified options.
         /// All options are read atomically.
         /// </summary>
-        ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys);
+        ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys);
 
         /// <summary>
         /// Sets values of options that may be stored in <see cref="Solution.Options"/> (public options).
@@ -44,7 +44,11 @@ namespace Microsoft.CodeAnalysis.Options
         /// <see cref="Solution.Options"/> are queried for the options new values are fetched from 
         /// <see cref="GlobalOptionService"/>.
         /// </summary>
-        void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options);
+        void SetOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options);
+
+        void SetGlobalOption<T>(Option2<T> option, T value);
+
+        void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value);
 
         /// <summary>
         /// Sets and persists the value of a global option.
@@ -53,21 +57,21 @@ namespace Microsoft.CodeAnalysis.Options
         /// Triggers <see cref="OptionChanged"/>.
         /// Does not update any workspace (since this option is not a solution option).
         /// </summary>
-        void SetGlobalOption(OptionKey optionKey, object? value);
+        void SetGlobalOption(OptionKey2 optionKey, object? value);
 
         /// <summary>
         /// Atomically sets the values of specified global options. The option values are persisted.
         /// Triggers <see cref="OptionChanged"/>.
         /// Does not update any workspace (since this option is not a solution option).
         /// </summary>
-        void SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options);
+        void SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options);
 
         event EventHandler<OptionChangedEventArgs>? OptionChanged;
 
         /// <summary>
         /// Refreshes the stored value of a serialized option. This should only be called from serializers.
         /// </summary>
-        void RefreshOption(OptionKey optionKey, object? newValue);
+        void RefreshOption(OptionKey2 optionKey, object? newValue);
 
         /// <summary>
         /// Registers a workspace with the option service.

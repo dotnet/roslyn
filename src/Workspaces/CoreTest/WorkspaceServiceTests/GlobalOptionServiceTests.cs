@@ -40,19 +40,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         private static ILegacyWorkspaceOptionService GetOptionService(HostWorkspaceServices services, IOptionPersisterProvider? optionPersisterProvider = null)
-            => new TestService(GetGlobalOptionService(services, optionPersisterProvider));
+            => new TestLegacyWorkspaceOptionService(GetGlobalOptionService(services, optionPersisterProvider));
 
-        private sealed class TestService : ILegacyWorkspaceOptionService
+        private sealed class TestLegacyWorkspaceOptionService : ILegacyWorkspaceOptionService
         {
             public IGlobalOptionService GlobalOptions { get; }
 
-            public TestService(IGlobalOptionService globalOptions)
+            public TestLegacyWorkspaceOptionService(IGlobalOptionService globalOptions)
                 => GlobalOptions = globalOptions;
 
-            public object? GetOption(OptionKey key)
-                => GlobalOptions.GetOption(key);
+            public object? GetOption(OptionKey2 key)
+                => GlobalOptions.GetOption<object?>(key);
 
-            public void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
+            public void SetOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
                 => GlobalOptions.SetOptions(options);
 
             public void RegisterWorkspace(Workspace workspace)
@@ -81,16 +81,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         internal sealed class TestOptionsPersister : IOptionPersister
         {
-            private ImmutableDictionary<OptionKey, object?> _options = ImmutableDictionary<OptionKey, object?>.Empty;
+            private ImmutableDictionary<OptionKey2, object?> _options = ImmutableDictionary<OptionKey2, object?>.Empty;
 
-            public bool TryFetch(OptionKey optionKey, out object? value)
+            public bool TryFetch(OptionKey2 optionKey, out object? value)
                 => _options.TryGetValue(optionKey, out value);
 
-            public bool TryPersist(OptionKey optionKey, object? value)
+            public bool TryPersist(OptionKey2 optionKey, object? value)
             {
                 _options = _options.SetItem(optionKey, value);
                 return true;
             }
+        }
+
+        [Fact]
+        public void CustomIOption()
+        {
+            using var workspace = new AdhocWorkspace();
+            var optionService = GetOptionService(workspace.Services);
+            var optionSet = new SolutionOptionSet(optionService);
+
+            var optionKey = new OptionKey(new TestOption());
+            var perLanguageOptionKey = new OptionKey(new TestOption() { IsPerLanguage = true }, "lang");
+
+            Assert.Equal(optionKey.Option.DefaultValue, optionSet.GetOption<int>(optionKey));
+            Assert.Equal(perLanguageOptionKey.Option.DefaultValue, optionSet.GetOption<int>(perLanguageOptionKey));
+
+            var newSet = optionSet.WithChangedOption(optionKey, 2).WithChangedOption(perLanguageOptionKey, 3);
+            Assert.Equal(1, newSet.GetOption<int>(optionKey));
+            Assert.Equal(2, newSet.GetOption<int>(perLanguageOptionKey));
         }
 
         [Fact]
@@ -128,14 +146,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var handler = new EventHandler<OptionChangedEventArgs>((_, e) => changedOptions.Add(e));
             globalOptions.OptionChanged += handler;
 
-            var values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey(option1), new OptionKey(option2)));
+            var values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey2(option1), new OptionKey2(option2)));
             Assert.Equal(1, values[0]);
             Assert.Equal(2, values[1]);
 
             globalOptions.SetGlobalOptions(ImmutableArray.Create(
-                KeyValuePairUtil.Create(new OptionKey(option1), (object?)5),
-                KeyValuePairUtil.Create(new OptionKey(option2), (object?)6),
-                KeyValuePairUtil.Create(new OptionKey(option3), (object?)3)));
+                KeyValuePairUtil.Create(new OptionKey2(option1), (object?)5),
+                KeyValuePairUtil.Create(new OptionKey2(option2), (object?)6),
+                KeyValuePairUtil.Create(new OptionKey2(option3), (object?)3)));
 
             AssertEx.Equal(new[]
             {
@@ -143,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 "Name2=6",
             }, changedOptions.Select(e => $"{e.OptionKey.Option.Name}={e.Value}"));
 
-            values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey(option1), new OptionKey(option2), new OptionKey(option3)));
+            values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey2(option1), new OptionKey2(option2), new OptionKey2(option3)));
             Assert.Equal(5, values[0]);
             Assert.Equal(6, values[1]);
             Assert.Equal(3, values[2]);
@@ -193,7 +211,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetOptionService(workspace.Services);
-            var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
+            var option = new Option2<bool>("Test Feature", "Test Name", defaultValue: true);
             optionService.GetOption(option);
 
             var optionSet = new SolutionOptionSet(optionService);
@@ -206,7 +224,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetOptionService(workspace.Services);
-            var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
+            var option = new Option2<bool>("Test Feature", "Test Name", defaultValue: true);
             optionService.GetOption(option);
 
             var optionSet = new SolutionOptionSet(optionService);
@@ -328,10 +346,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(newValueCodeStyleOption, newOptionSet.GetOption(option));
             Assert.Equal(newValueCodeStyleOption2, newOptionSet.GetOption(option2));
 
-            newOptionSet = originalOptionSet.WithChangedOption(option2, newValueCodeStyleOption2);
-            Assert.Equal(newValueCodeStyleOption, newOptionSet.GetOption(option));
-            Assert.Equal(newValueCodeStyleOption2, newOptionSet.GetOption(option2));
-
             //  3. IOptionService validation
             optionService.GlobalOptions.SetOptions(((SolutionOptionSet)newOptionSet).GetChangedOptions());
             Assert.Equal(newValueCodeStyleOption2, optionService.GlobalOptions.GetOption(option2));
@@ -345,12 +359,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             //  Test matrix using different OptionKey and OptionKey2 get/set operations.
             var optionKey = new OptionKey(option, language);
-            var optionKey2 = option switch
-            {
-                IPerLanguageValuedOption perLanguageValuedOption => new OptionKey2(perLanguageValuedOption, language!),
-                ISingleValuedOption singleValued => new OptionKey2(singleValued),
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
+            var optionKey2 = new OptionKey2(option, language);
 
             // Value return from "object GetOption(OptionKey)" should always be public CodeStyleOption type.
             var newPublicValue = newValue.AsPublicCodeStyleOption();
@@ -364,32 +373,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey));
             Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey));
 
-            //  2. WithChangedOption(OptionKey), GetOption(OptionKey2)/GetOption<T>(OptionKey2)
-            newOptionSet = originalOptionSet.WithChangedOption(optionKey, newValue);
-            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey2));
-            // Verify "T GetOption<T>(OptionKey2)" works for both cases of T being a public and internal code style option type.
-            Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey2));
-            Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey2));
-
-            //  3. WithChangedOption(OptionKey2), GetOption(OptionKey)/GetOption<T>(OptionKey)
-            newOptionSet = originalOptionSet.WithChangedOption(optionKey2, newValue);
-            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey));
-            // Value returned from public API should always be castable to public CodeStyleOption type.
-            Assert.NotNull((CodeStyleOption<bool>)newOptionSet.GetOption(optionKey)!);
-            // Verify "T GetOption<T>(OptionKey)" works for both cases of T being a public and internal code style option type.
-            Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey));
-            Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey));
-
-            //  4. WithChangedOption(OptionKey2), GetOption(OptionKey2)/GetOption<T>(OptionKey2)
-            newOptionSet = originalOptionSet.WithChangedOption(optionKey2, newValue);
-            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey2));
-            // Verify "T GetOption<T>(OptionKey2)" works for both cases of T being a public and internal code style option type.
-            Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey2));
-            Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey2));
-
-            //  5. IOptionService.GetOption(OptionKey)
+            //  2. IOptionService.GetOption(OptionKey)
             optionService.GlobalOptions.SetOptions(((SolutionOptionSet)newOptionSet).GetChangedOptions());
-            Assert.Equal(newPublicValue, optionService.GetOption(optionKey));
+            Assert.Equal(newPublicValue, optionService.GetOption(optionKey2));
         }
     }
 }

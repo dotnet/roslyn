@@ -65,7 +65,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
         var options = new InitializationOptions()
         {
-            OptionUpdater = globalOptions => globalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.LspPull)
+            OptionUpdater = globalOptions => globalOptions.SetGlobalOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.LspPull)
         };
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, options);

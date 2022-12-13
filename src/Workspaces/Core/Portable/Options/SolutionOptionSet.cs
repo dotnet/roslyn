@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly ILegacyWorkspaceOptionService _globalOptions;
 
         /// <summary>
-        /// Cached values read from global options.
+        /// Cached values read from global options translated to public values.
         /// </summary>
         private ImmutableDictionary<OptionKey, object?> _values;
 
@@ -56,15 +57,30 @@ namespace Microsoft.CodeAnalysis.Options
         {
             if (_values.TryGetValue(optionKey, out var value))
             {
-                return value is ICodeStyleOption codeStyleOption ? codeStyleOption.AsPublicCodeStyleOption() : value;
+                return value;
             }
 
-            value = _globalOptions.GetOption(optionKey);
+            if (optionKey.Option is not IOption2 internalOption)
+            {
+                return optionKey.Option.DefaultValue;
+            }
+
+            var internalValue = _globalOptions.GetOption(new OptionKey2(internalOption, optionKey.Language));
+
+            // Global options store internal representation of code style options. Translate to public representation.
+            value = internalValue is ICodeStyleOption codeStyleOption ? codeStyleOption.AsPublicCodeStyleOption() : internalValue;
+
             return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
         }
 
         public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
         {
+            // translate possibly internal value to public value:
+            if (value is ICodeStyleOption codeStyleOption)
+            {
+                value = codeStyleOption.AsPublicCodeStyleOption();
+            }
+
             // Make sure we first load this in current optionset
             var currentValue = GetOption(optionKey);
 
@@ -87,8 +103,10 @@ namespace Microsoft.CodeAnalysis.Options
         internal IEnumerable<OptionKey> GetChangedOptionKeys()
             => _changedOptionKeys;
 
-        internal ImmutableArray<KeyValuePair<OptionKey, object?>> GetChangedOptions()
-            => _changedOptionKeys.SelectAsArray(key => KeyValuePairUtil.Create(key, GetOption(key)));
+        internal ImmutableArray<KeyValuePair<OptionKey2, object?>> GetChangedOptions()
+            => _changedOptionKeys
+                .Where(key => key.Option is IOption2)
+                .SelectAsArray(key => KeyValuePairUtil.Create(new OptionKey2((IOption2)key.Option, key.Language), GetOption(key)));
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
         {

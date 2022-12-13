@@ -1391,7 +1391,7 @@ class D { }
             using var workspace1 = CreateWorkspace();
             var solution = workspace1.CurrentSolution;
 
-            var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
+            var optionKey = new OptionKey(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
             var defaultValue = solution.Options.GetOption(optionKey);
             var changedValue = FormattingOptions.IndentStyle.Block;
             Assert.NotEqual(defaultValue, changedValue);
@@ -1429,7 +1429,7 @@ class D { }
             var beforeSolutionForPrimaryWorkspace = primaryWorkspace.CurrentSolution;
             var beforeSolutionForSecondaryWorkspace = secondaryWorkspace.CurrentSolution;
 
-            var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
+            var optionKey = new OptionKey(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, primaryWorkspace.Options.GetOption(optionKey));
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
@@ -1460,7 +1460,7 @@ class D { }
                 Assert.NotEqual(beforeOptionChangedSolution, currentSolution);
 
                 // Verify workspace.CurrentSolution has changed option.
-                var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
+                var optionKey = new OptionKey(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
                 Assert.Equal(FormattingOptions2.IndentStyle.Smart, beforeOptionChangedSolution.Options.GetOption(optionKey));
                 Assert.Equal(FormattingOptions2.IndentStyle.Block, currentSolution.Options.GetOption(optionKey));
             }

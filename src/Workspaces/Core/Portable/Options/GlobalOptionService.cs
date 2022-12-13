@@ -32,12 +32,11 @@ namespace Microsoft.CodeAnalysis.Options
         private ImmutableArray<Workspace> _registeredWorkspaces;
 
         private readonly object _gate = new();
-        private readonly Func<OptionKey, object?> _getOption;
 
         #region Guarded by _gate
 
         private ImmutableArray<IOptionPersister> _lazyOptionPersisters;
-        private ImmutableDictionary<OptionKey, object?> _currentValues;
+        private ImmutableDictionary<OptionKey2, object?> _currentValues;
 
         #endregion
 
@@ -47,13 +46,11 @@ namespace Microsoft.CodeAnalysis.Options
             [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
             [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters)
         {
-            _getOption = GetOption;
-
             _workspaceThreadingService = workspaceThreadingService;
             _optionPersisterProviders = optionPersisters.ToImmutableArray();
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
 
-            _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
+            _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
         }
 
         private ImmutableArray<IOptionPersister> GetOptionPersisters()
@@ -97,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private static object? LoadOptionFromPersisterOrGetDefault(OptionKey optionKey, ImmutableArray<IOptionPersister> persisters)
+        private static object? LoadOptionFromPersisterOrGetDefault(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
         {
             foreach (var persister in persisters)
             {
@@ -113,23 +110,23 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public T GetOption<T>(Option2<T> option)
-            => OptionsHelpers.GetOption(option, _getOption);
+            => GetOption<T>(new OptionKey2(option));
 
-        public T GetOption<T>(PerLanguageOption2<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, _getOption);
+        public T GetOption<T>(PerLanguageOption2<T> option, string language)
+            => GetOption<T>(new OptionKey2(option, language));
 
-        public object? GetOption(OptionKey optionKey)
+        public T GetOption<T>(OptionKey2 optionKey)
         {
             // Ensure the option persisters are available before taking the global lock
             var persisters = GetOptionPersisters();
 
             lock (_gate)
             {
-                return GetOption_NoLock(optionKey, persisters);
+                return (T)GetOption_NoLock(optionKey, persisters)!;
             }
         }
 
-        public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys)
+        public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys)
         {
             // Ensure the option persisters are available before taking the global lock
             var persisters = GetOptionPersisters();
@@ -146,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Options
             return values.ToImmutableAndClear();
         }
 
-        private object? GetOption_NoLock(OptionKey optionKey, ImmutableArray<IOptionPersister> persisters)
+        private object? GetOption_NoLock(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
         {
             if (_currentValues.TryGetValue(optionKey, out var value))
             {
@@ -160,18 +157,24 @@ namespace Microsoft.CodeAnalysis.Options
             return value;
         }
 
+        public void SetGlobalOption<T>(Option2<T> option, T value)
+            => SetGlobalOption(new OptionKey2(option), value);
+
+        public void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value)
+            => SetGlobalOption(new OptionKey2(option, language), value);
+
         /// <summary>
         /// Sets value of a global option, which is not stored in <see cref="Solution.Options"/>.
         /// Does not clear <see cref="SolutionOptionSet"/> of registered workspaces.
         /// </summary>
-        public void SetGlobalOption(OptionKey optionKey, object? value)
+        public void SetGlobalOption(OptionKey2 optionKey, object? value)
             => SetGlobalOptions(ImmutableArray.Create(KeyValuePairUtil.Create(optionKey, value)));
 
         /// <summary>
         /// Sets values of global options, which are not stored in <see cref="Solution.Options"/>.
         /// Does not clear <see cref="SolutionOptionSet"/> of registered workspaces.
         /// </summary>
-        public void SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
+        public void SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
             => SetOptions(options, updateWorkspaces: false);
 
         /// <summary>
@@ -180,10 +183,10 @@ namespace Microsoft.CodeAnalysis.Options
         /// <see cref="Solution.Options"/> are queried for the options new values are fetched from 
         /// <see cref="GlobalOptionService"/>.
         /// </summary>
-        public void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
+        public void SetOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
             => SetOptions(options, updateWorkspaces: true);
 
-        private void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options, bool updateWorkspaces)
+        private void SetOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options, bool updateWorkspaces)
         {
             var changedOptions = new List<OptionChangedEventArgs>();
             var persisters = GetOptionPersisters();
@@ -217,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Options
             RaiseOptionChangedEvent(changedOptions);
         }
 
-        private static void PersistOption(ImmutableArray<IOptionPersister> persisters, OptionKey optionKey, object? value)
+        private static void PersistOption(ImmutableArray<IOptionPersister> persisters, OptionKey2 optionKey, object? value)
         {
             foreach (var persister in persisters)
             {
@@ -228,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public void RefreshOption(OptionKey optionKey, object? newValue)
+        public void RefreshOption(OptionKey2 optionKey, object? newValue)
         {
             lock (_gate)
             {

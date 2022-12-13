@@ -23,6 +23,6 @@ internal interface ILegacyWorkspaceOptionService : IWorkspaceService
     void RegisterWorkspace(Workspace workspace);
     void UnregisterWorkspace(Workspace workspace);
 
-    object? GetOption(OptionKey key);
-    void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options);
+    object? GetOption(OptionKey2 key);
+    void SetOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options);
 }

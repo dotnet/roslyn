@@ -43,7 +43,7 @@ public class GlobalOptionsTests
     [Export(typeof(IGlobalOptionService)), Shared, PartNotDiscoverable]
     internal class TestGlobalOptions : IGlobalOptionService
     {
-        public readonly List<OptionKey> AccessedOptionKeys = new();
+        public readonly List<OptionKey2> AccessedOptionKeys = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,24 +51,24 @@ public class GlobalOptionsTests
         {
         }
 
-        private void OnOptionAccessed(OptionKey key)
+        private void OnOptionAccessed(OptionKey2 key)
         {
             AccessedOptionKeys.Add(key);
         }
 
         public T GetOption<T>(Option2<T> option)
         {
-            OnOptionAccessed(new OptionKey(option));
+            OnOptionAccessed(new OptionKey2(option));
             return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
         }
 
-        public T GetOption<T>(PerLanguageOption2<T> option, string? languageName)
+        public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
         {
-            OnOptionAccessed(new OptionKey(option, languageName));
+            OnOptionAccessed(new OptionKey2(option, languageName));
             return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
         }
 
-        public object? GetOption(OptionKey optionKey)
+        public T GetOption<T>(OptionKey2 optionKey)
             => throw new NotImplementedException();
 
         #region Unused
@@ -85,19 +85,25 @@ public class GlobalOptionsTests
         public event EventHandler<OptionChangedEventArgs>? OptionChanged;
 #pragma warning restore
 
-        public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys)
+        public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys)
             => throw new NotImplementedException();
 
-        public void RefreshOption(OptionKey optionKey, object? newValue)
+        public void RefreshOption(OptionKey2 optionKey, object? newValue)
             => throw new NotImplementedException();
 
-        public void SetGlobalOption(OptionKey optionKey, object? value)
+        public void SetGlobalOption<T>(Option2<T> option, T value)
             => throw new NotImplementedException();
 
-        public void SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
+        public void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value)
             => throw new NotImplementedException();
 
-        public void SetOptions(ImmutableArray<KeyValuePair<OptionKey, object?>> options)
+        public void SetGlobalOption(OptionKey2 optionKey, object? value)
+            => throw new NotImplementedException();
+
+        public void SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
+            => throw new NotImplementedException();
+
+        public void SetOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
             => throw new NotImplementedException();
 
         #endregion

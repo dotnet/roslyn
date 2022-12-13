@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
         /// <see cref="_optionsToMonitorForChangesGate" />.
         /// </summary>
-        private readonly Dictionary<string, List<OptionKey>> _optionsToMonitorForChanges = new();
+        private readonly Dictionary<string, List<OptionKey2>> _optionsToMonitorForChanges = new();
         private readonly object _optionsToMonitorForChangesGate = new();
 
         /// <remarks>
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
-            List<OptionKey>? optionsToRefresh = null;
+            List<OptionKey2>? optionsToRefresh = null;
 
             lock (_optionsToMonitorForChangesGate)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        private object? GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<ClientSettingsStorageLocation> storageLocations)
+        private object? GetFirstOrDefaultValue(OptionKey2 optionKey, IEnumerable<ClientSettingsStorageLocation> storageLocations)
         {
             Contract.ThrowIfNull(_settingManager);
 
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return optionKey.Option.DefaultValue;
         }
 
-        public bool TryFetch(OptionKey optionKey, out object? value)
+        public bool TryFetch(OptionKey2 optionKey, out object? value)
         {
             if (_settingManager == null)
             {
@@ -238,12 +238,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return false;
         }
 
-        private void RecordObservedValueToWatchForChanges(OptionKey optionKey, string storageKey)
+        private void RecordObservedValueToWatchForChanges(OptionKey2 optionKey, string storageKey)
         {
             // We're about to fetch the value, so make sure that if it changes we'll know about it
             lock (_optionsToMonitorForChangesGate)
             {
-                var optionKeysToMonitor = _optionsToMonitorForChanges.GetOrAdd(storageKey, _ => new List<OptionKey>());
+                var optionKeysToMonitor = _optionsToMonitorForChanges.GetOrAdd(storageKey, _ => new List<OptionKey2>());
 
                 if (!optionKeysToMonitor.Contains(optionKey))
                 {
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public bool TryPersist(OptionKey optionKey, object? value)
+        public bool TryPersist(OptionKey2 optionKey, object? value)
         {
             if (_settingManager == null)
             {
