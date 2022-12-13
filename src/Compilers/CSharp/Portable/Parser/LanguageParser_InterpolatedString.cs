@@ -149,11 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             InterpolatedStringContentSyntax? makeContent(
-                ReadOnlySpan<char> indentationWhitespace,
-                StringBuilder content,
-                bool isFirst,
-                bool isLast,
-                ReadOnlySpan<char> text)
+                ReadOnlySpan<char> indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, ReadOnlySpan<char> text)
             {
                 if (text.Length == 0)
                     return null;
