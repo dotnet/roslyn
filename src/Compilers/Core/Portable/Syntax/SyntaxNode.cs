@@ -458,11 +458,9 @@ namespace Microsoft.CodeAnalysis
                 while (stack.Count > 0)
                 {
                     var current = stack.Pop();
-                    if (current is null)
-                        continue;
 
                     // Don't bother looking further down this portion of the tree if it clearly doesn't contain directives.
-                    if (!current.ContainsDirectives)
+                    if (current is not { ContainsDirectives: true })
                         continue;
 
                     if (current.IsToken)
@@ -479,7 +477,7 @@ namespace Microsoft.CodeAnalysis
                                 for (int i = 0, n = leadingTriviaNode.SlotCount; i < n; i++)
                                 {
                                     var child = leadingTriviaNode.GetSlot(i);
-                                    if (child != null && child.IsDirective && child.RawKind == rawKind)
+                                    if (child is { IsDirective: true, RawKind: var childKind } && childKind == rawKind)
                                         return true;
                                 }
                             }
