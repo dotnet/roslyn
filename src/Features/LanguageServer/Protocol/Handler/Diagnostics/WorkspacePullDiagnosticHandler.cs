@@ -114,6 +114,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
+        private static bool ShouldSkipDocument(RequestContext context, TextDocument document)
+        {
+            // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+            // Each handler treats those as separate worlds that they are responsible for.
+            if (context.IsTracking(document.GetURI()))
+            {
+                context.TraceDebug($"Skipping tracked document: {document.GetURI()}");
+                return true;
+            }
+
+            // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
+            // for any razor file they are interested in.
+            if (document.IsRazorDocument())
+                return true;
+
+            return false;
+        }
+
         private static ImmutableArray<IDiagnosticSource> GetTaskListDiagnosticSources(
             RequestContext context, IGlobalOptionService globalOptions)
         {
@@ -130,20 +148,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 foreach (var document in project.Documents)
                 {
-                    // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
-                    // Each handler treats those as separate worlds that they are responsible for.
-                    if (context.IsTracking(document.GetURI()))
-                    {
-                        context.TraceDebug($"Skipping tracked document: {document.GetURI()}");
-                        continue;
-                    }
-
-                    // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
-                    // for any razor file they are interested in.
-                    if (document.IsRazorDocument())
-                        continue;
-
-                    result.Add(new TaskListDiagnosticSource(document));
+                    if (!ShouldSkipDocument(context, document))
+                        result.Add(new TaskListDiagnosticSource(document));
                 }
             }
 
@@ -182,20 +188,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 foreach (var document in documents)
                 {
-                    // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
-                    // Each handler treats those as separate worlds that they are responsible for.
-                    if (context.IsTracking(document.GetURI()))
-                    {
-                        context.TraceDebug($"Skipping tracked document: {document.GetURI()}");
-                        continue;
-                    }
-
-                    // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
-                    // for any razor file they are interested in.
-                    if (document.IsRazorDocument())
-                        continue;
-
-                    result.Add(new WorkspaceDocumentDiagnosticSource(document));
+                    if (!ShouldSkipDocument(context, document))
+                        result.Add(new WorkspaceDocumentDiagnosticSource(document));
                 }
 
                 // Finally, add the project source to get project specific diagnostics, not associated with any document.
