@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -10,6 +13,18 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IWorkspaceConfigurationService : IWorkspaceService
     {
         WorkspaceConfigurationOptions Options { get; }
+    }
+
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService)), Shared]
+    internal sealed class DefaultWorkspaceConfigurationService : IWorkspaceConfigurationService
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DefaultWorkspaceConfigurationService()
+        {
+        }
+
+        public WorkspaceConfigurationOptions Options => WorkspaceConfigurationOptions.Default;
     }
 
     /// <summary>

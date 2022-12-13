@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                     var newSolution = data.transformation(oldSolution);
 
                     // Attempt to unify the syntax trees in the new solution (unless the option is set disabling that).
-                    var options = oldSolution.Services.GetService<IWorkspaceConfigurationService>()?.Options ?? WorkspaceConfigurationOptions.Default;
+                    var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
                     if (options.DisableSharedSyntaxTrees)
                         return newSolution;
 
@@ -1051,7 +1051,7 @@ namespace Microsoft.CodeAnalysis
                             // instance data that the initial document points at.  This way things like tree data can be
                             // shared across docs.
 
-                            var options = oldSolution.Services.GetService<IWorkspaceConfigurationService>()?.Options ?? WorkspaceConfigurationOptions.Default;
+                            var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
                             var shareSyntaxTrees = !options.DisableSharedSyntaxTrees;
 
                             var newDocument = newSolution.GetRequiredDocument(data.documentId);
