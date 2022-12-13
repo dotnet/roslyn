@@ -68,9 +68,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IGlobalOptionService _globalOptions;
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        private readonly Lazy<VisualStudioProjectFactory> _projectFactory;
-
         private readonly ITextBufferCloneService _textBufferCloneService;
 
         /// <summary>
@@ -101,9 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new();
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal VisualStudioProjectTracker? _projectTracker;
-
         private VirtualMemoryNotificationListener? _memoryListener;
 
         private OpenFileTracker? _openFileTracker;
@@ -126,12 +120,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-
-            // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
-            // exists right now as a compat shim, we'll just do this.
-#pragma warning disable CS0618 // Type or member is obsolete
-            _projectFactory = exportProvider.GetExport<VisualStudioProjectFactory>();
-#pragma warning restore CS0618 // Type or member is obsolete
 
             _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
 
@@ -260,23 +248,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Contract.ThrowIfFalse(ImmutableInterlocked.TryAdd(ref _projectToRuleSetFilePath, project.Id, ruleSetFilePathFunc));
         }
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal VisualStudioProjectTracker GetProjectTrackerAndInitializeIfNecessary()
-        {
-            _projectTracker ??= new VisualStudioProjectTracker(this, _projectFactory.Value, _threadingContext);
-
-            return _projectTracker;
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript and F#; please do not use it.")]
-        internal VisualStudioProjectTracker ProjectTracker
-        {
-            get
-            {
-                return GetProjectTrackerAndInitializeIfNecessary();
-            }
-        }
-
         internal ProjectSystemProject? GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
         {
             using (_gate.DisposableWait())
@@ -317,14 +288,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 return null;
             }
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal IVisualStudioHostDocument? GetHostDocument(DocumentId documentId)
-        {
-            // TypeScript only calls this to immediately check if the document is a ContainedDocument. Because of that we can just check for
-            // ContainedDocuments
-            return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
         public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)
