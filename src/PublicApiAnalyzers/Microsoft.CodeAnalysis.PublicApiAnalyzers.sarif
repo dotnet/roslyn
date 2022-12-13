@@ -245,7 +245,7 @@
         "RS0051": {
           "id": "RS0051",
           "shortDescription": "Add internal types and members to the declared API",
-          "fullDescription": "All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "fullDescription": "All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
           "properties": {
@@ -343,7 +343,7 @@
         "RS0056": {
           "id": "RS0056",
           "shortDescription": "Enable tracking of nullability of reference types in the declared API",
-          "fullDescription": "PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).",
+          "fullDescription": "InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/InternalApiAnalyzers/InternalApiAnalyzers.Help.md",
           "properties": {
