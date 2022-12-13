@@ -229,6 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private sealed class IdeLatestDiagnosticGetter : DiagnosticGetter
         {
             private readonly ImmutableHashSet<string>? _diagnosticIds;
+            private readonly DiagnosticKind _diagnosticKind;
 
             public IdeLatestDiagnosticGetter(
                 DiagnosticIncrementalAnalyzer owner,
@@ -241,6 +242,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 : base(owner, solution, projectId, documentId, includeSuppressedDiagnostics)
             {
                 _diagnosticIds = diagnosticIds;
+                _diagnosticKind = diagnosticKind;
             }
 
             public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
@@ -279,11 +281,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analysisResult = result.GetResult(stateSet.Analyzer);
 
+                    GetDiagnosticKindInfo(stateSet.Analyzer, _diagnosticKind, out var includeSyntax, out var includeSemantic);
+                    var includeAll = includeSyntax && includeSemantic;
+
                     foreach (var documentId in documentIds)
                     {
-                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
-                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
-                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
+                        if (includeSyntax)
+                            AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
+
+                        if (includeSemantic)
+                            AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
+
+                        if (includeAll)
+                            AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                     }
 
                     if (includeProjectNonLocalResult)

@@ -193,17 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         if (!ShouldIncludeAnalyzer(analyzer, _shouldIncludeDiagnostic, _owner))
                             continue;
 
-                        bool includeSyntax = true, includeSemantic = true;
-                        if (_diagnosticKind != DiagnosticKind.All)
-                        {
-                            var isCompilerAnalyzer = analyzer.IsCompilerAnalyzer();
-                            includeSyntax = isCompilerAnalyzer
-                                ? _diagnosticKind == DiagnosticKind.CompilerSyntax
-                                : _diagnosticKind == DiagnosticKind.AnalyzerSyntax;
-                            includeSemantic = isCompilerAnalyzer
-                                ? _diagnosticKind == DiagnosticKind.CompilerSemantic
-                                : _diagnosticKind == DiagnosticKind.AnalyzerSemantic;
-                        }
+                        GetDiagnosticKindInfo(analyzer, _diagnosticKind, out var includeSyntax, out var includeSemantic);
 
                         if (includeSyntax && !await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
                             syntaxAnalyzers.Add(stateSet);
