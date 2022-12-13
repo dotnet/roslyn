@@ -68,6 +68,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
         }
 
+        [Fact]
+        public async Task TestDocumentDiagnosticsForOpenFilesWithFSAOff_Categories()
+        {
+            var markup =
+@"class A : B {";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var syntaxResults = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, category: PullDiagnosticCategories.DocumentCompilerSyntax);
+
+            var semanticResults = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, category: PullDiagnosticCategories.DocumentCompilerSemantic);
+
+            Assert.Equal("CS1513", syntaxResults.Single().Diagnostics.Single().Code);
+            Assert.Equal("CS0246", semanticResults.Single().Diagnostics.Single().Code);
+
+            var syntaxResults2 = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, previousResultId: syntaxResults.Single().ResultId, category: PullDiagnosticCategories.DocumentCompilerSyntax);
+            var semanticResults2 = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, previousResultId: semanticResults.Single().ResultId, category: PullDiagnosticCategories.DocumentCompilerSemantic);
+
+            Assert.Equal(syntaxResults.Single().ResultId, syntaxResults2.Single().ResultId);
+            Assert.Equal(semanticResults.Single().ResultId, semanticResults2.Single().ResultId);
+        }
+
         [Fact, WorkItem(65172, "https://github.com/dotnet/roslyn/issues/65172")]
         public async Task TestDocumentDiagnosticsHasVSExpandedMessage()
         {
