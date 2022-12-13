@@ -369,6 +369,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((GetLazyConstantValue(earlyDecodingWellKnownAttributes) == Microsoft.CodeAnalysis.ConstantValue.Unset) ||
                 (GetLazyConstantValue(earlyDecodingWellKnownAttributes) == value));
 
+            // Check availability of `DecimalConstantAttribute`.
+            if (value.IsDecimal)
+            {
+                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                    diagnostics,
+                    SyntaxNode.Location);
+            }
+
             if (earlyDecodingWellKnownAttributes)
             {
                 Interlocked.CompareExchange(ref _lazyConstantEarlyDecodingValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset);

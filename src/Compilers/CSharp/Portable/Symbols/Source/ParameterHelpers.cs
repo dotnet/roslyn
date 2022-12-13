@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
                 DeclarationScope? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
-                ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
+                ReportParameterErrors(withTypeParametersBinder.Compilation, owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
                                       parameter.RefKind, declaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
@@ -606,6 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static void ReportParameterErrors(
+            CSharpCompilation compilation,
             Symbol? owner,
             BaseParameterSyntax syntax,
             int ordinal,
@@ -672,6 +673,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (declaredScope == DeclarationScope.ValueScoped && !typeWithAnnotations.IsRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
+            }
+
+            // Check availability of `DecimalConstantAttribute`.
+            if (isDefault && typeWithAnnotations.SpecialType == SpecialType.System_Decimal)
+            {
+                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
+                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                    diagnostics,
+                    syntax.Location);
             }
         }
 

@@ -14219,6 +14219,76 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
+        public void DefaultParameter_MissingDecimalConstantAttribute_Lambda()
+        {
+            var source = """
+                var lam = (decimal d = 1.1m) => { };
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (1,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var lam = (decimal d = 1.1m) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "decimal d = 1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void DefaultParameter_MissingDecimalConstantAttribute_Method()
+        {
+            var source = """
+                class C
+                {
+                    static void M(decimal d = 1.1m) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                //     static void M(decimal d = 1.1m) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "decimal d = 1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 19));
+        }
+
+        [Fact]
+        public void DefaultParameter_MissingDecimalConstantAttribute_ExternalMethodGroup()
+        {
+            var source1 = """
+                public class C
+                {
+                    public static void M(decimal d = 1.1m) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                var m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp2.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 9));
+        }
+
+        [Fact]
+        public void DefaultParameter_MissingDecimalConstantAttribute_Field()
+        {
+            var source = """
+                class C
+                {
+                    public const decimal D = 1.1m;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (3,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                //     public const decimal D = 1.1m;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "D = 1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 26));
+        }
+
+        [Fact]
         public void ParamsArray_MissingParamArrayAttribute_Lambda()
         {
             var source = """

@@ -66,6 +66,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo.Add(memberUseSiteInfo);
             }
 
+            // If synthesizing a delegate with `decimal` default value, check that `DecimalConstantAttribute` is available.
+            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod invoke)
+            {
+                foreach (var p in invoke.Parameters)
+                {
+                    var defaultValue = p.ExplicitDefaultConstantValue;
+                    if (defaultValue != ConstantValue.NotAvailable &&
+                        defaultValue.SpecialType == SpecialType.System_Decimal)
+                    {
+                        Binder.GetWellKnownTypeMember(Compilation,
+                            WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                            out var memberUseSiteInfo);
+                        useSiteInfo.Add(memberUseSiteInfo);
+                    }
+                }
+            }
+
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
