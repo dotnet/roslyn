@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var document = context.Document;
             if (document is null)
             {
-                context.TraceWarning("Ignoring diagnostics request because no document was provided");
+                context.TraceInformation("Ignoring diagnostics request because no document was provided");
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
