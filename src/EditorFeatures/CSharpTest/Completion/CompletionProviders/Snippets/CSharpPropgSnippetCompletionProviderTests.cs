@@ -3,29 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpPropgSnippetProviderTests : CSharpAutoPropertyCompletionProviderTests
+    public class CSharpPropgSnippetCompletionProviderTests : CSharpAutoPropertyCompletionProviderTests
     {
         protected override string ItemToCommit => "propg";
 
         protected override string GetDefaultPropertyText(string propertyName)
             => $"public int {propertyName} {{ get; private set; }}";
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NotSetterInInterface()
+        public override async Task InsertSnippetInInterface()
         {
             await VerifyPropertyAsync("""
                 interface MyInterface
                 {
                     $$
                 }
-                """,
-                "public int MyProperty { get; }");
+                """, "public int MyProperty { get; }");
         }
     }
 }

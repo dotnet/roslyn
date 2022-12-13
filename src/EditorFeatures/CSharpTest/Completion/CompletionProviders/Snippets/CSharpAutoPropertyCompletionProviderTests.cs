@@ -76,6 +76,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public virtual async Task InsertSnippetInInterface()
+        {
+            await VerifyDefaultPropertyAsync("""
+                interface MyInterface
+                {
+                    $$
+                }
+                """);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertSnippetNaming()
         {
             await VerifyDefaultPropertyAsync("""
@@ -128,16 +139,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         protected abstract string GetDefaultPropertyText(string propertyName);
 
-        public Task VerifyPropertyAbsenceAsync(string markup) => VerifyItemIsAbsentAsync(markup, ItemToCommit);
+        private Task VerifyPropertyAbsenceAsync(string markup) => VerifyItemIsAbsentAsync(markup, ItemToCommit);
 
-        public async Task VerifyPropertyAsync(string markup, string propertyText)
+        protected async Task VerifyPropertyAsync(string markup, string propertyText)
         {
             TestFileMarkupParser.GetPosition(markup, out var code, out var position);
             var expectedCode = code.Insert(position, propertyText + "$$");
             await VerifyCustomCommitProviderAsync(markup, ItemToCommit, expectedCode);
         }
 
-        protected Task VerifyDefaultPropertyAsync(string markup, string propertyName = "MyProperty")
+        private Task VerifyDefaultPropertyAsync(string markup, string propertyName = "MyProperty")
             => VerifyPropertyAsync(markup, GetDefaultPropertyText(propertyName));
     }
 }
