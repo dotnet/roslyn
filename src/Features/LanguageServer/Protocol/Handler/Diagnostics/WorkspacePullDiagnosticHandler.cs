@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -78,6 +80,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetFlattenedValues();
         }
 
+        private static IEnumerable<Project> GetProjectsInPriorityOrder(Solution solution, ImmutableArray<string> supportedLanguages)
+        {
+            return GetProjectsInPriorityOrderWorker(solution).WhereNotNull().Distinct().Where(p => supportedLanguages.Contains(p.Language));
+
+            static IEnumerable<Project?> GetProjectsInPriorityOrderWorker(Solution solution)
+            {
+                var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
+
+                // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
+                // prioritize the files from currently active projects, but then also include all other docs in all projects
+                // (depending on current FSA settings).
+
+                var activeDocument = documentTrackingService.GetActiveDocument(solution);
+                var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
+
+                // Now, prioritize the projects related to the active/visible files.
+                yield return activeDocument?.Project;
+                foreach (var doc in visibleDocuments)
+                    yield return doc.Project;
+
+                // finally, add the remainder of all documents.
+                foreach (var project in solution.Projects)
+                    yield return project;
+            }
+        }
+
         internal static ImmutableArray<IDiagnosticSource> GetTaskListDiagnosticSources(
             RequestContext context, IGlobalOptionService globalOptions)
         {
@@ -92,40 +120,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             var solution = context.Solution;
 
-            var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
-
-            // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
-            // prioritize the files from currently active projects, but then also include all other docs in all projects
-            // (depending on current FSA settings).
-
-            var activeDocument = documentTrackingService.GetActiveDocument(solution);
-            var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
-
-            // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsAndProject(activeDocument?.Project, context.SupportedLanguages);
-            foreach (var doc in visibleDocuments)
-                AddDocumentsAndProject(doc.Project, context.SupportedLanguages);
-
-            // finally, add the remainder of all documents.
-            foreach (var project in solution.Projects)
-                AddDocumentsAndProject(project, context.SupportedLanguages);
-
-            // Ensure that we only process documents once.
-            result.RemoveDuplicates();
-            return result.ToImmutable();
-
-            void AddDocumentsAndProject(Project? project, ImmutableArray<string> supportedLanguages)
+            foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
             {
-                if (project == null)
-                    return;
-
-                if (!supportedLanguages.Contains(project.Language))
-                {
-                    // This project is for a language not supported by the LSP server making the request.
-                    // Do not report diagnostics for these projects.
-                    return;
-                }
-
                 foreach (var document in project.Documents)
                 {
                     // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
@@ -144,6 +140,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     result.Add(new TaskListDiagnosticSource(document));
                 }
             }
+
+            return result.ToImmutable();
         }
 
         internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
