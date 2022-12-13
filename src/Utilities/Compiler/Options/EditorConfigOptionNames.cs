@@ -124,7 +124,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure how many enum values should be prefixed by the enum type name to trigger the rule.
-        /// Configurable rules: CA1712 (https://learn.microsoft.com/en-us/visualstudio/code-quality/ca1712)
+        /// Configurable rules: CA1712 (https://learn.microsoft.com/visualstudio/code-quality/ca1712)
         /// Allowed method name formats:
         ///   1. Any of the enum values starts with the enum type name
         ///   2. All of the enum values starts with the enum type name
@@ -158,7 +158,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// Names of types or namespaces (separated by '|'), such that the type or type's namespace doesn't count in the inheritance hierarchy tree.
-        /// Configurable rules: CA1501 (https://learn.microsoft.com/en-us/visualstudio/code-quality/ca1501)
+        /// Configurable rules: CA1501 (https://learn.microsoft.com/visualstudio/code-quality/ca1501)
         /// Allowed name formats:
         ///   1. Type or namespace name (includes all types with the name, regardless of the containing type or namespace and all types whose namespace contains the name)
         ///   2. Type or namespace name ending with a wildcard symbol (includes all types whose name starts with the given name, regardless of the containing type or namespace
@@ -175,7 +175,7 @@ namespace Analyzer.Utilities
         public const string AnalyzedSymbolKinds = "analyzed_symbol_kinds";
 
         /// <summary>
-        /// Boolean option to configure if the naming heuristic should be used for CA1303 (https://learn.microsoft.com/en-us/visualstudio/code-quality/ca1303).
+        /// Boolean option to configure if the naming heuristic should be used for CA1303 (https://learn.microsoft.com/visualstudio/code-quality/ca1303).
         /// </summary>
         public const string UseNamingHeuristic = "use_naming_heuristic";
 
