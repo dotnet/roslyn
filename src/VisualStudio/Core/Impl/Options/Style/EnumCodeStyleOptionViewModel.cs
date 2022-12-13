@@ -82,9 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _enumValues = enumValues.ToImmutableArray();
             _previews = previews.ToImmutableArray();
 
-            var codeStyleOption = (CodeStyleOption2<T>)optionStore.GetOption(new OptionKey(option, language));
+            var codeStyleOption = (ICodeStyleOption)optionStore.GetOption(new OptionKey(option, language));
 
-            var enumIndex = _enumValues.IndexOf(codeStyleOption.Value);
+            var enumIndex = _enumValues.IndexOf((T)codeStyleOption.Value);
             if (enumIndex < 0 || enumIndex >= Preferences.Count)
             {
                 enumIndex = 0;

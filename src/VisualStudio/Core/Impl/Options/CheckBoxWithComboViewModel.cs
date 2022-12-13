@@ -34,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             NotificationOptions = items;
 
-            var codeStyleOption = ((CodeStyleOption2<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
-            SetProperty(ref _isChecked, codeStyleOption.Value);
+            var codeStyleOption = (ICodeStyleOption)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null));
+            SetProperty(ref _isChecked, (bool)codeStyleOption.Value);
 
             var notificationViewModel = items.Where(i => i.Notification.Severity == codeStyleOption.Notification.Severity).Single();
             SetProperty(ref _selectedNotificationOption, notificationViewModel);
