@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 _cancellationToken = cancellationToken;
             }
 
-            [return: NotNullIfNotNull("node")]
+            [return: NotNullIfNotNull(nameof(node))]
             public override SyntaxNode? Visit(SyntaxNode? node)
                 => base.Visit(node);
 

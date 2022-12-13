@@ -159,6 +159,9 @@
   <data name="IDS_XMLMISSINGINCLUDEPATH" xml:space="preserve">
     <value>Missing path attribute</value>
   </data>
+  <data name="IDS_Missing" xml:space="preserve">
+    <value>&lt;missing&gt;</value>
+  </data>
   <data name="IDS_GlobalNamespace" xml:space="preserve">
     <value>&lt;global namespace&gt;</value>
   </data>
@@ -3038,7 +3041,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
   </data>
   <data name="ERR_BadAsyncReturnExpression" xml:space="preserve">
-    <value>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</value>
+    <value>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</value>
   </data>
   <data name="ERR_CantConvAsyncAnonFuncReturns" xml:space="preserve">
     <value>Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.</value>
@@ -3750,7 +3753,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'{0}' does not implement '{1}'</value>
   </data>
   <data name="ERR_TaskRetNoObjectRequired" xml:space="preserve">
-    <value>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</value>
+    <value>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</value>
   </data>
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
     <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
@@ -4804,7 +4807,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Anonymous function converted to a void returning delegate cannot return a value</value>
   </data>
   <data name="ERR_TaskRetNoObjectRequiredLambda" xml:space="preserve">
-    <value>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</value>
+    <value>Async lambda expression converted to a '{0}' returning delegate cannot return a value</value>
   </data>
   <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
     <value>An instance of analyzer {0} cannot be created from {1} : {2}.</value>
@@ -7337,6 +7340,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
   </data>
+  <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
+    <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
+    <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch_Title" xml:space="preserve">
+    <value>The default parameter value does not match in the target delegate type.</value>
+  </data>
   <data name="IDS_FeatureFileTypes" xml:space="preserve">
     <value>file types</value>
   </data>
@@ -7381,5 +7393,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DeconstructVariableCannotBeByRef" xml:space="preserve">
     <value>A deconstruction variable cannot be declared as a ref local</value>
+  </data>
+  <data name="IDS_FeatureLambdaOptionalParameters" xml:space="preserve">
+    <value>lambda optional parameters</value>
+  </data>
+  <data name="IDS_FeatureLambdaParamsArray" xml:space="preserve">
+    <value>lambda params array</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly" xml:space="preserve">
+    <value>Parameter {0} has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
+    <value>Parameter has params modifier in lambda but not in target delegate type.</value>
   </data>
 </root>

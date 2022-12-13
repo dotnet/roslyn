@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
-
 // Contains support for pseudo-methods on multidimensional arrays.
 //
 // Opcodes such as newarr, ldelem, ldelema, stelem do not work with
@@ -137,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             throw ExceptionUtilities.UnexpectedValue(id);
         }
-
 
         /// <summary>
         /// "newobj ArrayConstructor"  is equivalent of "newarr ElementType" 

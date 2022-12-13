@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private int EnumValueAsInt32 => (int)(object)Value!;
 
-        public XElement ToXElement() =>
-            new(XmlElement_CodeStyleOption, // Ensure that we use "CodeStyleOption" as the name for back compat.
+        public XElement ToXElement()
+            => new(XmlElement_CodeStyleOption, // Ensure that we use "CodeStyleOption" as the name for back compat.
                 new XAttribute(XmlAttribute_SerializationVersion, SerializationVersion),
                 new XAttribute(XmlAttribute_Type, GetTypeNameForSerialization()),
                 new XAttribute(XmlAttribute_Value, GetValueForSerialization()),

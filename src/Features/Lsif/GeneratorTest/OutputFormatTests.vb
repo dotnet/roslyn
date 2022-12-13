@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
                             <Document Name="A.cs" FilePath="Z:\A.cs"/>
                         </Project>
-                    </Workspace>), jsonWriter)
+                    </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition), jsonWriter)
 
             AssertEx.EqualOrDiff(
 "{""hoverProvider"":true,""declarationProvider"":false,""definitionProvider"":true,""referencesProvider"":true,""typeDefinitionProvider"":false,""documentSymbolProvider"":false,""foldingRangeProvider"":true,""diagnosticProvider"":false,""id"":1,""type"":""vertex"",""label"":""capabilities""}
@@ -45,12 +45,12 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Using jsonWriter = New JsonModeLsifJsonWriter(stringWriter)
 
                 Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
-                            <Document Name="A.cs" FilePath="Z:\A.cs"/>
-                        </Project>
-                    </Workspace>), jsonWriter)
+                    TestWorkspace.CreateWorkspace(
+                        <Workspace>
+                            <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
+                                <Document Name="A.cs" FilePath="Z:\A.cs"/>
+                            </Project>
+                        </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition), jsonWriter)
             End Using
 
             AssertEx.EqualOrDiff(

@@ -226,7 +226,8 @@ class C
 @"{ int [||]x = 3;
 
 x.ToString(); }",
-                       @"{ 3.ToString(); }");
+                       @"{ 
+3.ToString(); }");
         }
 
         [Fact]
@@ -628,7 +629,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        Bar(x < x, x > 1 + 2);
+        Bar(x < x, x > 1+2);
     }
 
     static void Bar(object a, object b)
@@ -2372,7 +2373,7 @@ class Program
 {
     static void Main()
     {
-        object y = (global::E)-1;
+        object y = (global::E) -1;
     }
 }",
             parseOptions: null);
@@ -3916,25 +3917,10 @@ class C
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        public async Task Tuples_Disabled()
-        {
-            var code = @"
-using System;
-class C
-{
-    public void M()
-    {
-        (int, string) [||]x = (1, ""hello"");
-        x.ToString();
-    }
-}";
-
-            await TestMissingAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
-        }
-
-        [Fact]
-        public async Task Tuples()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp6)]
+        [InlineData(LanguageVersion.Preview)]
+        public async Task Tuples(LanguageVersion version)
         {
             var code = @"
 using System;
@@ -3957,7 +3943,10 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected);
+            await TestInRegularAndScript1Async(
+                code,
+                expected,
+                new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(version)));
         }
 
         [Fact]
@@ -5318,6 +5307,39 @@ class MyClass
 ";
 
             await TestInRegularAndScriptAsync(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, WorkItem(34143, "https://github.com/dotnet/roslyn/issues/34143")]
+        public async Task TestPreserveDestinationTrivia1()
+        {
+            var code = @"
+class MyClass
+{
+    void Goo(bool b)
+    {
+        var [||]s = """";
+        SomeMethod(
+            s);
+    }
+
+    void SomeMethod(string _) { }
+}
+";
+
+            var expected = @"
+class MyClass
+{
+    void Goo(bool b)
+    {
+        SomeMethod(
+            """");
+    }
+
+    void SomeMethod(string _) { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected);
         }
     }
 }

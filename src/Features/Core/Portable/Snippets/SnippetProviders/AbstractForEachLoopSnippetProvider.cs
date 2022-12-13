@@ -15,26 +15,19 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractForEachLoopSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractForEachLoopSnippetProvider : AbstractStatementSnippetProvider
     {
         protected abstract Task<SyntaxNode> CreateForEachLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
 
-        public override string SnippetIdentifier => "foreach";
+        public override string Identifier => "foreach";
 
-        public override string SnippetDescription => FeaturesResources.foreach_loop;
-
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
-        }
+        public override string Description => FeaturesResources.foreach_loop;
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -46,21 +39,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         {
             return syntaxFacts.IsForEachStatement;
-        }
-
-        protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
-            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
-            if (snippetExpressionNode is null)
-            {
-                return root;
-            }
-
-            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
-            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
     }
 }

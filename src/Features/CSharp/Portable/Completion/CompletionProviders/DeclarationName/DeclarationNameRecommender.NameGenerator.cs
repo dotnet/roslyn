@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Words = System.Collections.Immutable.ImmutableArray<string>;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName

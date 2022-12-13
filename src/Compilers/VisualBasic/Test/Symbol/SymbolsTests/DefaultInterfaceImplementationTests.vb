@@ -355,7 +355,6 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
-
         <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_09()
@@ -1909,8 +1908,6 @@ namespace System.Runtime.InteropServices
 
         <Fact>
         Public Sub NoPia_06()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes, targetFramework:=TargetFramework.Net50).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -1932,7 +1929,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1944,7 +1941,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <error>
 BC31558: Nested type 'ITest33.I1' cannot be embedded.
@@ -1956,8 +1953,6 @@ BC31558: Nested type 'ITest33.I1' cannot be embedded.
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_07()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes, targetFramework:=TargetFramework.Net50).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -1975,7 +1970,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1988,7 +1983,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <error>
 BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -2001,8 +1996,6 @@ BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member.
         <Fact>
         <WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")>
         Public Sub NoPia_10()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes, targetFramework:=TargetFramework.Net50).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -2027,7 +2020,7 @@ public interface ITest44 : ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2040,7 +2033,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <expected>
 BC37308: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.

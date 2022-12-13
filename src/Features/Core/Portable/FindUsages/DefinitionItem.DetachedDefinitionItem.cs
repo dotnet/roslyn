@@ -15,7 +15,7 @@ using static Microsoft.CodeAnalysis.FindUsages.DefinitionItem;
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     [DataContract]
-    internal readonly struct DetachedDefinitionItem : IEquatable<DetachedDefinitionItem>
+    internal sealed class DetachedDefinitionItem : IEquatable<DetachedDefinitionItem>
     {
         [DataMember(Order = 0)]
         public readonly ImmutableArray<string> Tags;
@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public readonly ImmutableDictionary<string, string> DisplayableProperties;
         [DataMember(Order = 7)]
         public readonly bool DisplayIfNoReferences;
+
+        private int _hashCode;
 
         public DetachedDefinitionItem(
             ImmutableArray<string> tags,
@@ -54,20 +56,34 @@ namespace Microsoft.CodeAnalysis.FindUsages
             SourceSpans = sourceSpans;
         }
 
-        public override int GetHashCode()
-            => throw ExceptionUtilities.Unreachable();
-
         public override bool Equals(object? obj)
-            => obj is DetachedDefinitionItem item && Equals(item);
+            => Equals(obj as DetachedDefinitionItem);
 
-        public bool Equals(DetachedDefinitionItem other)
-            => this.DisplayIfNoReferences == other.DisplayIfNoReferences &&
+        public bool Equals(DetachedDefinitionItem? other)
+            => other != null &&
+               this.DisplayIfNoReferences == other.DisplayIfNoReferences &&
                this.Tags.SequenceEqual(other.Tags) &&
                this.DisplayParts.SequenceEqual(other.DisplayParts) &&
                this.OriginationParts.SequenceEqual(other.OriginationParts) &&
                this.SourceSpans.SequenceEqual(other.SourceSpans) &&
                this.Properties.SetEquals(other.Properties) &&
                this.DisplayableProperties.SetEquals(other.DisplayableProperties);
+
+        public override int GetHashCode()
+        {
+            if (_hashCode == 0)
+            {
+                // Combine enough to have a low chance of collision.
+                var hash =
+                    Hash.Combine(this.DisplayIfNoReferences,
+                    Hash.CombineValues(this.Tags,
+                    Hash.CombineValues(this.DisplayParts)));
+
+                _hashCode = hash == 0 ? 1 : hash;
+            }
+
+            return _hashCode;
+        }
 
         public async Task<DefaultDefinitionItem?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {

@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
 
+                case BoundKind.IndexerAccess:
+                    return ((BoundIndexerAccess)node).Indexer.RefKind;
+
+                case BoundKind.ImplicitIndexerAccess:
+                    return ((BoundImplicitIndexerAccess)node).IndexerOrSliceAccess.GetRefKind();
+
                 case BoundKind.ObjectInitializerMember:
                     var member = (BoundObjectInitializerMember)node;
                     if (member.HasErrors)

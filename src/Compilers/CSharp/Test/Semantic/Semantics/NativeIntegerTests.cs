@@ -14831,7 +14831,6 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
             verify(sourceType: "nuint", destType: "System.UIntPtr");
 
-
             // type to System.IntPtr
             verify(sourceType: "object", destType: "System.IntPtr", isExplicit: true);
             verify(sourceType: "string", destType: "System.IntPtr", noConversion: true);

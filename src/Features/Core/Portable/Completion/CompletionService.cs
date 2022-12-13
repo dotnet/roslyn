@@ -335,8 +335,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Don't call. Used for pre-populating MEF providers only.
         /// </summary>
-        internal IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
-            => _providerManager.GetLazyImportedProviders();
+        internal void LoadImportedProviders()
+            => _providerManager.LoadProviders();
 
         /// <summary>
         /// Don't call. Used for pre-load project providers only.

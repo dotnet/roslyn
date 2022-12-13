@@ -1658,5 +1658,40 @@ class C
     }
 }");
         }
+
+        [Fact, WorkItem(40006, "https://github.com/dotnet/roslyn/issues/40006")]
+        public async Task TestArrayOfNullables()
+        {
+            await TestInRegularAndScript1Async(
+                @"
+#nullable enable
+
+class Program
+{
+    static void Set(object obj, object? item)
+    {
+        [|object?[]?|] arr = obj as object[];
+        if (arr != null)
+        {
+            arr[0] = item;
+        }
+    }
+}
+",
+                @"
+#nullable enable
+
+class Program
+{
+    static void Set(object obj, object? item)
+    {
+        if (obj is object?[] arr)
+        {
+            arr[0] = item;
+        }
+    }
+}
+");
+        }
     }
 }

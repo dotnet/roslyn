@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -34,9 +35,10 @@ namespace Microsoft.CodeAnalysis
         DateTime,
     }
 
-    internal abstract partial class ConstantValue : IEquatable<ConstantValue?>
+    internal abstract partial class ConstantValue : IEquatable<ConstantValue?>, IFormattable
     {
         public abstract ConstantValueTypeDiscriminator Discriminator { get; }
+
         internal abstract SpecialType SpecialType { get; }
 
         public virtual string? StringValue { get { throw new InvalidOperationException(); } }
@@ -453,6 +455,32 @@ namespace Microsoft.CodeAnalysis
             return ConstantValueTypeDiscriminator.Bad;
         }
 
+        public string GetPrimitiveTypeName()
+        {
+            return Discriminator switch
+            {
+                ConstantValueTypeDiscriminator.SByte => "sbyte",
+                ConstantValueTypeDiscriminator.Byte => "byte",
+                ConstantValueTypeDiscriminator.Int16 => "short",
+                ConstantValueTypeDiscriminator.UInt16 => "ushort",
+                ConstantValueTypeDiscriminator.Int32 => "int",
+                ConstantValueTypeDiscriminator.NInt => "nint",
+                ConstantValueTypeDiscriminator.UInt32 => "uint",
+                ConstantValueTypeDiscriminator.NUInt => "nuint",
+                ConstantValueTypeDiscriminator.Int64 => "long",
+                ConstantValueTypeDiscriminator.UInt64 => "ulong",
+                ConstantValueTypeDiscriminator.Char => "char",
+                ConstantValueTypeDiscriminator.Boolean => "bool",
+                ConstantValueTypeDiscriminator.Single => "float",
+                ConstantValueTypeDiscriminator.Double => "double",
+                ConstantValueTypeDiscriminator.String => "string",
+                ConstantValueTypeDiscriminator.Decimal => "decimal",
+                ConstantValueTypeDiscriminator.DateTime => "DateTime",
+                ConstantValueTypeDiscriminator.Null or ConstantValueTypeDiscriminator.Bad => throw ExceptionUtilities.UnexpectedValue(Discriminator),
+                _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
+            };
+        }
+
         private static SpecialType GetSpecialType(ConstantValueTypeDiscriminator discriminator)
         {
             switch (discriminator)
@@ -778,6 +806,28 @@ namespace Microsoft.CodeAnalysis
         {
             string? valueToDisplay = this.GetValueToDisplay();
             return String.Format("{0}({1}: {2})", this.GetType().Name, valueToDisplay, this.Discriminator);
+        }
+
+        public virtual string ToString(string? format, IFormatProvider? provider)
+        {
+            return Discriminator switch
+            {
+                ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
+                ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
+                ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
+                ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
+                ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
+                ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
+                ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Boolean => BooleanValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Single => SingleValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(provider),
+                ConstantValueTypeDiscriminator.DateTime => DateTimeValue.ToString(provider),
+                _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
+            };
         }
 
         internal virtual string? GetValueToDisplay()

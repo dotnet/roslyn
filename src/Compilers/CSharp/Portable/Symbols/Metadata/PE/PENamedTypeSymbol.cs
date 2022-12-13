@@ -1860,12 +1860,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 yield break;
             }
 
+            // Currently, it appears that we must import ALL types, even private ones,
+            // in order to maintain language semantics. This is because a class may implement
+            // private interfaces, and we use the interfaces (even if inaccessible) to determine
+            // conversions. For example:
+            //
+            // public class A: IEnumerable<A.X>
+            // {
+            //    private class X: ICloneable {}
+            // }
+            //
+            // Code compiling against A can convert A to IEnumerable<ICloneable>. Knowing this requires
+            // importing the type A.X.
             foreach (var typeRid in nestedTypeDefs)
             {
-                if (module.ShouldImportNestedType(typeRid))
-                {
-                    yield return PENamedTypeSymbol.Create(moduleSymbol, this, typeRid);
-                }
+                yield return PENamedTypeSymbol.Create(moduleSymbol, this, typeRid);
             }
         }
 

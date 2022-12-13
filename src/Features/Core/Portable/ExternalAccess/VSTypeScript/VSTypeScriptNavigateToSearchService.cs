@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -36,58 +35,62 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
-        public async IAsyncEnumerable<INavigateToSearchResult> SearchDocumentAsync(
+        public async Task SearchDocumentAsync(
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             if (_searchService != null)
             {
                 var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 foreach (var result in results)
-                    yield return Convert(result);
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
             }
         }
 
-        public async IAsyncEnumerable<INavigateToSearchResult> SearchProjectAsync(
+        public async Task SearchProjectAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             if (_searchService != null)
             {
                 var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 foreach (var result in results)
-                    yield return Convert(result);
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
             }
         }
 
-        public IAsyncEnumerable<INavigateToSearchResult> SearchCachedDocumentsAsync(
+        public Task SearchCachedDocumentsAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             // we don't support searching cached documents.
-            return AsyncEnumerable<INavigateToSearchResult>.Empty;
+            return Task.CompletedTask;
         }
 
-        public IAsyncEnumerable<INavigateToSearchResult> SearchGeneratedDocumentsAsync(
+        public Task SearchGeneratedDocumentsAsync(
             Project project,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             // we don't support searching generated documents.
-            return AsyncEnumerable<INavigateToSearchResult>.Empty;
+            return Task.CompletedTask;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)

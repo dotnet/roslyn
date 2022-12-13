@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        hasBody: true,
                        hasExpressionBody: false,
                        isIterator: false,
-                       modifiers: new SyntaxTokenList(),
+                       modifiers: default,
                        MethodKind.PropertyGet,
                        usesInit: false,
                        isAutoPropertyAccessor: false,

@@ -948,6 +948,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 { RefKind: RefKind.None } => Binder.CurrentMethodScope,
                 { EffectiveScope: DeclarationScope.RefScoped } => Binder.CurrentMethodScope,
+                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => Binder.ReturnOnlyScope,
+                { HasUnscopedRefAttribute: true, IsThis: false } => Binder.CallingMethodScope,
                 _ => Binder.ReturnOnlyScope
             };
         }
@@ -1037,9 +1039,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldIsStatic == containing.IsStatic &&
                         (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
                         (Compilation.FeatureStrictEnabled
-                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.ConsiderEverything2)
+                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.AllIgnoreOptions)
                             // We duplicate a bug in the native compiler for compatibility in non-strict mode
-                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
+                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions)))
                     {
                         if (containing.Kind == SymbolKind.Method)
                         {
@@ -2165,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (parameter.Type.IsRefLikeType && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
+                if (parameter.Type.IsRefLikeType && parameter.RefKind != RefKind.Out && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, valEscapeLevel, isRefEscape: false));
                 }
@@ -2425,9 +2427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : GetValEscape(fromArg, scopeOfTheContainingExpression));
                 }
 
-                foreach (var (_, fromArg, _, _) in escapeValues)
+                foreach (var argument in argsOpt)
                 {
-                    if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
+                    if (ShouldInferDeclarationExpressionValEscape(argument, out var localSymbol))
                     {
                         localSymbol.SetValEscape(inferredDestinationValEscape);
                     }
@@ -2712,6 +2714,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
         {
+            // The result of escape analysis is affected by the expression's type.
+            // We can't do escape analysis on expressions which lack a type, such as 'target typed new()', until they are converted.
+            Debug.Assert(expr.Type is not null);
+
             if (isByRef)
             {
                 if (CheckRefEscape(expr.Syntax, expr, this.LocalScopeDepth, escapeTo, checkingReceiver: false, diagnostics: diagnostics))

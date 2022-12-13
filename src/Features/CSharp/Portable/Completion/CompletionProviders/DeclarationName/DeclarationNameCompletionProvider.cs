@@ -3,9 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
@@ -15,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -24,13 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal partial class DeclarationNameCompletionProvider : LSPCompletionProvider
     {
-        private ImmutableArray<DeclarationNameRecommender> Recommenders { get; }
+        private ImmutableArray<Lazy<IDeclarationNameRecommender, OrderableMetadata>> Recommenders { get; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DeclarationNameCompletionProvider()
+        public DeclarationNameCompletionProvider([ImportMany] IEnumerable<Lazy<IDeclarationNameRecommender, OrderableMetadata>> recommenders)
         {
-            Recommenders = ImmutableArray.Create(new DeclarationNameRecommender());
+
+            Recommenders = ExtensionOrderer.Order(recommenders).ToImmutableArray();
         }
 
         internal override string Language => LanguageNames.CSharp;
@@ -71,24 +76,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var nameInfo = await NameDeclarationInfo.GetDeclarationInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-                using var _ = ArrayBuilder<(string name, Glyph glyph)>.GetInstance(out var result);
-
-                foreach (var recommender in Recommenders)
-                {
-                    var names = await recommender.ProvideRecommendedNamesAsync(completionContext, document, context, nameInfo, cancellationToken).ConfigureAwait(false);
-                    result.AddRange(names);
-                }
-
-                if (result.Count == 0)
-                    return;
+                using var _ = PooledHashSet<string>.GetInstance(out var suggestedNames);
 
                 var sortValue = 0;
-                foreach (var (name, glyph) in result)
+                foreach (var recommender in Recommenders)
                 {
-                    // We've produced items in the desired order, add a sort text to each item to prevent alphabetization
-                    completionContext.AddItem(CreateCompletionItem(name, glyph, sortValue.ToString("D8")));
-                    sortValue++;
+                    var names = await recommender.Value.ProvideRecommendedNamesAsync(completionContext, document, context, nameInfo, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var (name, glyph) in names)
+                    {
+                        if (suggestedNames.Add(name))
+                        {
+                            // We've produced items in the desired order, add a sort text to each item to prevent alphabetization
+                            completionContext.AddItem(CreateCompletionItem(name, glyph, sortValue.ToString("D8")));
+                            sortValue++;
+                        }
+                    }
                 }
+
+                if (suggestedNames.Count == 0)
+                    return;
 
                 completionContext.SuggestionModeItem = CommonCompletionItem.Create(
                     CSharpFeaturesResources.Name, displayTextSuffix: "", CompletionItemRules.Default);

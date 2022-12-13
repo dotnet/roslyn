@@ -13,24 +13,35 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal abstract class UnitTestingGlobalOperationAwareIdleProcessor : UnitTestingIdleProcessor
     {
-        private readonly IGlobalOperationNotificationService _globalOperationNotificationService;
+        /// <summary>
+        /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
+        /// it being null.
+        /// </summary>
+        private readonly IGlobalOperationNotificationService? _globalOperationNotificationService;
 
         public UnitTestingGlobalOperationAwareIdleProcessor(
             IAsynchronousOperationListener listener,
-            IGlobalOperationNotificationService globalOperationNotificationService,
+            IGlobalOperationNotificationService? globalOperationNotificationService,
             TimeSpan backOffTimeSpan,
             CancellationToken shutdownToken)
             : base(listener, backOffTimeSpan, shutdownToken)
         {
             _globalOperationNotificationService = globalOperationNotificationService;
-            _globalOperationNotificationService.Started += OnGlobalOperationStarted;
-            _globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
+
+            if (_globalOperationNotificationService != null)
+            {
+                _globalOperationNotificationService.Started += OnGlobalOperationStarted;
+                _globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
+            }
         }
 
         public virtual void Shutdown()
         {
-            _globalOperationNotificationService.Started -= OnGlobalOperationStarted;
-            _globalOperationNotificationService.Stopped -= OnGlobalOperationStopped;
+            if (_globalOperationNotificationService != null)
+            {
+                _globalOperationNotificationService.Started -= OnGlobalOperationStarted;
+                _globalOperationNotificationService.Stopped -= OnGlobalOperationStopped;
+            }
         }
 
         private void OnGlobalOperationStarted(object? sender, EventArgs e)

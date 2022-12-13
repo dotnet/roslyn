@@ -92,12 +92,10 @@ namespace Microsoft.Cci
         //    CHAR    NameString[ 1 ];
         //} IMAGE_RESOURCE_DIRECTORY_STRING, *PIMAGE_RESOURCE_DIRECTORY_STRING;
 
-
         //typedef struct _IMAGE_RESOURCE_DIR_STRING_U {
         //    WORD    Length;
         //    WCHAR   NameString[ 1 ];
         //} IMAGE_RESOURCE_DIR_STRING_U, *PIMAGE_RESOURCE_DIR_STRING_U;
-
 
         ////
         //// Each resource data entry describes a leaf node in the resource directory

@@ -337,7 +337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void LeaveParameter(ParameterSymbol parameter, SyntaxNode syntax, Location location)
         { }
 
-
         public override BoundNode Visit(BoundNode node)
         {
             return VisitAlways(node);
@@ -1320,7 +1319,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isCall)
             {
                 Join(ref State, ref localFunctionState.StateFromBottom);
-                Meet(ref State, ref localFunctionState.StateFromTop);
+
+                if (!symbol.IsAsync)
+                {
+                    Meet(ref State, ref localFunctionState.StateFromTop);
+                }
             }
             localFunctionState.Visited = true;
         }
@@ -1517,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
                 }
-                else if (node.MethodOpt is { } method && methodGroup.ReceiverOpt is { } receiver && !ignoreReceiver(receiver, method))
+                else if (node.MethodOpt is { } method && methodGroup.ReceiverOpt is { } receiver && !ignoreReceiver(method))
                 {
                     EnterRegionIfNeeded(methodGroup);
                     VisitRvalue(receiver);
@@ -1531,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
 
-            static bool ignoreReceiver(BoundExpression receiver, MethodSymbol method)
+            static bool ignoreReceiver(MethodSymbol method)
             {
                 // static methods that aren't extensions get an implicit `this` receiver that should be ignored
                 return method.IsStatic && !method.IsExtensionMethod;
@@ -2286,10 +2289,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref TLocalState leftTrue, ref TLocalState leftFalse)
         {
             Visit(right); // First part of VisitCondition
-            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(binary, right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(right, isAnd, isBool, ref leftTrue, ref leftFalse);
         }
 
-        protected void AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref TLocalState leftTrue, ref TLocalState leftFalse)
+        protected void AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression right, bool isAnd, bool isBool, ref TLocalState leftTrue, ref TLocalState leftFalse)
         {
             AdjustConditionalState(right); // Second part of VisitCondition
 

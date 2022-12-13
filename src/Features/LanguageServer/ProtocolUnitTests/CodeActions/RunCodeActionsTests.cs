@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/65303")]
         public async Task TestRunCodeActions()
         {
             var markup =

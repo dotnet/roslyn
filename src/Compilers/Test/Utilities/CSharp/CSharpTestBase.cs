@@ -16,6 +16,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -2198,7 +2199,6 @@ namespace System.Diagnostics.CodeAnalysis
                 options: options,
                 parseOptions: parseOptions);
 
-
             return comp;
         }
 
@@ -2224,6 +2224,7 @@ namespace System
             public ref T this[int i] => ref arr[i];
             public override int GetHashCode() => 1;
             public int Length { get; }
+            public bool IsEmpty => Length == 0;
 
             unsafe public Span(void* pointer, int length)
             {
@@ -2235,6 +2236,13 @@ namespace System
             {
                 this.arr = arr;
                 this.Length = arr.Length;
+            }
+
+            public Span(T[] arr, int start, int length)
+            {
+                this.arr = new T[length];
+                Array.Copy(arr, start, this.arr, 0, length);
+                this.Length = length;
             }
 
             public void CopyTo(Span<T> other) { }
@@ -2288,6 +2296,7 @@ namespace System
             public ref readonly T this[int i] => ref arr[i];
             public override int GetHashCode() => 2;
             public int Length { get; }
+            public bool IsEmpty => Length == 0;
 
             unsafe public ReadOnlySpan(void* pointer, int length)
             {
@@ -2299,6 +2308,13 @@ namespace System
             {
                 this.arr = arr;
                 this.Length = arr.Length;
+            }
+
+            public ReadOnlySpan(T[] arr, int start, int length)
+            {
+                this.arr = new T[length];
+                Array.Copy(arr, start, this.arr, 0, length);
+                this.Length = length;
             }
 
             public void CopyTo(Span<T> other) { }
@@ -2366,12 +2382,12 @@ namespace System
                     return null;
                 }
 
-                if (typeof(T) == typeof(int))
+                if (typeof(T) == typeof(sbyte))
                 {
-                    var arr = new int[count];
+                    var arr = new sbyte[count];
                     for(int i = 0; i < count; i++)
                     {
-                        arr[i] = ((int*)ptr)[i];
+                        arr[i] = ((sbyte*)ptr)[i];
                     }
 
                     return (T[])(object)arr;
@@ -2383,6 +2399,72 @@ namespace System
                     for(int i = 0; i < count; i++)
                     {
                         arr[i] = ((byte*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(short))
+                {
+                    var arr = new short[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((short*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(ushort))
+                {
+                    var arr = new ushort[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((ushort*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(int))
+                {
+                    var arr = new int[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((int*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(uint))
+                {
+                    var arr = new uint[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((uint*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(long))
+                {
+                    var arr = new long[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((long*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(ulong))
+                {
+                    var arr = new ulong[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((ulong*)ptr)[i];
                     }
 
                     return (T[])(object)arr;
@@ -2450,11 +2532,11 @@ namespace System
                 parseOptions: parseOptions);
         }
 
-        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
         {
             if (ExecutionConditionUtil.IsCoreClr)
             {
-                return CreateCompilation(text, targetFramework: TargetFramework.Net50, references: new[] { Basic.Reference.Assemblies.Net50.SystemMemory }, options: options, parseOptions: parseOptions);
+                return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
             }
             else
             {

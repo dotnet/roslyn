@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public static bool IsRegularOrDocumentationComment(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsRegularComment(trivia) || syntaxFacts.IsDocumentationComment(trivia);
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public static SyntaxNode? WalkDownParentheses(this ISyntaxFacts syntaxFacts, SyntaxNode? node)
         {
             while (syntaxFacts.IsParenthesizedExpression(node))
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             return node;
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public static SyntaxNode? WalkUpParentheses(this ISyntaxFacts syntaxFacts, SyntaxNode? node)
         {
             while (syntaxFacts.IsParenthesizedExpression(node?.Parent))
@@ -773,6 +773,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public static bool IsBaseExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.BaseExpression;
 
+        public static bool IsConditionalExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalExpression;
+
         public static bool IsConditionalAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
 
@@ -926,6 +929,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public static bool IsClassDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ClassDeclaration;
 
+        public static bool IsConstructorDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ConstructorDeclaration;
+
         public static bool IsGlobalAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => syntaxFacts.IsGlobalAssemblyAttribute(node) || syntaxFacts.IsGlobalModuleAttribute(node);
 
@@ -957,12 +963,17 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region clauses
 
+        public static bool IsElseClause(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ElseClause;
         public static bool IsEqualsValueClause(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.EqualsValueClause;
 
         #endregion
 
         #region other
+
+        public static bool IsImplicitElementAccess(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ImplicitElementAccess;
 
         public static bool IsIndexerMemberCref(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.IndexerMemberCref;

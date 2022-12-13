@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -61,7 +63,56 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task WithReferencesMethodCorrectlyUpdatesRunningGenerators()
+        [WorkItem(1655835, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
+        public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
+        {
+            using var workspace = CreateWorkspace();
+
+            // AnalyzerReferences may implement equality (AnalyezrFileReference does), and we want to make sure if we substitute out one
+            // reference with another reference that's equal, we correctly update generators. We'll have the underlying generators
+            // be different since two AnalyzerFileReferences that are value equal but different instances would have their own generators as well.
+            const string SharedPath = "Z:\\Generator.dll";
+            ISourceGenerator CreateGenerator() => new SingleFileTestGenerator("// StaticContent", hintName: "generated");
+
+            var analyzerReference1 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);
+            var analyzerReference2 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);
+
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference1);
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Go from one analyzer reference to the other
+            project = project.WithAnalyzerReferences(new[] { analyzerReference2 });
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Now remove and confirm that we don't have any files
+            project = project.WithAnalyzerReferences(SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
+
+            Assert.Empty((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+        }
+
+        private class TestGeneratorReferenceWithFilePathEquality : TestGeneratorReference, IEquatable<AnalyzerReference>
+        {
+            public TestGeneratorReferenceWithFilePathEquality(ISourceGenerator generator, string analyzerFilePath)
+                : base(generator, analyzerFilePath)
+            {
+            }
+
+            public override bool Equals(object? obj) => Equals(obj as AnalyzerReference);
+            public override string FullPath => base.FullPath!; // This derived class always has this non-null
+            public override int GetHashCode() => this.FullPath.GetHashCode();
+
+            public bool Equals(AnalyzerReference? other)
+            {
+                return other is TestGeneratorReferenceWithFilePathEquality otherReference &&
+                    this.FullPath == otherReference.FullPath;
+            }
+        }
+
+        [Fact]
+        public async Task WithReferencesMethodCorrectlyAddsAndRemovesRunningGenerators()
         {
             using var workspace = CreateWorkspace();
 

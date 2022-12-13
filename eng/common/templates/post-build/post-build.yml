@@ -95,6 +95,7 @@ stages:
     displayName: Validate Build Assets
     variables:
       - template: common-variables.yml
+      - template: /eng/common/templates/variables/pool-providers.yml
     jobs:
     - job:
       displayName: NuGet Validation
@@ -106,7 +107,7 @@ stages:
           demands: Cmd
         # If it's not devdiv, it's dnceng
         ${{ else }}:
-          name: NetCore1ESPool-Internal
+          name: $(DncEngInternalBuildPool)
           demands: ImageOverride -equals windows.vs2019.amd64
 
       steps:
@@ -143,7 +144,7 @@ stages:
           demands: Cmd
         # If it's not devdiv, it's dnceng
         ${{ else }}:
-          name: NetCore1ESPool-Internal
+          name: $(DncEngInternalBuildPool)
           demands: ImageOverride -equals windows.vs2019.amd64
       steps:
         - template: setup-maestro-vars.yml
@@ -171,12 +172,6 @@ stages:
         - task: NuGetAuthenticate@0
           displayName: 'Authenticate to AzDO Feeds'
 
-        - task: PowerShell@2
-          displayName: Enable cross-org publishing
-          inputs:
-            filePath: eng\common\enable-cross-org-publishing.ps1
-            arguments: -token $(dn-bot-dnceng-artifact-feeds-rw)
-
         # Signing validation will optionally work with the buildmanifest file which is downloaded from
         # Azure DevOps above.
         - task: PowerShell@2
@@ -203,7 +198,7 @@ stages:
           demands: Cmd
         # If it's not devdiv, it's dnceng
         ${{ else }}:
-          name: NetCore1ESPool-Internal
+          name: $(DncEngInternalBuildPool)
           demands: ImageOverride -equals windows.vs2019.amd64
       steps:
         - template: setup-maestro-vars.yml
@@ -251,6 +246,7 @@ stages:
     displayName: Publish using Darc
     variables:
       - template: common-variables.yml
+      - template: /eng/common/templates/variables/pool-providers.yml
     jobs:
     - job:
       displayName: Publish Using Darc
@@ -262,7 +258,7 @@ stages:
           demands: Cmd
         # If it's not devdiv, it's dnceng
         ${{ else }}:
-          name: NetCore1ESPool-Internal
+          name: $(DncEngInternalBuildPool)
           demands: ImageOverride -equals windows.vs2019.amd64
       steps:
         - template: setup-maestro-vars.yml

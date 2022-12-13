@@ -7358,7 +7358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundInterpolatedString Update(InterpolatedStringHandlerData? interpolationData, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type)
         {
-            if (interpolationData.Equals(this.InterpolationData) || parts != this.Parts || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!interpolationData.Equals(this.InterpolationData) || parts != this.Parts || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundInterpolatedString(this.Syntax, interpolationData, parts, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);

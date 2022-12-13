@@ -177,9 +177,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int Attribute { get; }
         int ClassDeclaration { get; }
+        int ConstructorDeclaration { get; }
         int InterfaceDeclaration { get; }
-        int? RecordDeclaration { get; }
-        int? RecordStructDeclaration { get; }
         int? StructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
@@ -195,12 +194,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region clauses
 
+        int ElseClause { get; }
         int EqualsValueClause { get; }
 
         #endregion
 
         #region other
 
+        int? ImplicitElementAccess { get; }
         int Interpolation { get; }
         int InterpolatedStringText { get; }
         int? IndexerMemberCref { get; }

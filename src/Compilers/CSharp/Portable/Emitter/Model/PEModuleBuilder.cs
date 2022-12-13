@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
         protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
         private readonly ConcurrentDictionary<Symbol, object> _genericInstanceMap = new ConcurrentDictionary<Symbol, object>(Symbols.SymbolEqualityComparer.ConsiderEverything);
+        private readonly ConcurrentDictionary<ImportChain, ImmutableArray<Cci.UsedNamespaceOrType>> _translatedImportsMap =
+                                                            new ConcurrentDictionary<ImportChain, ImmutableArray<Cci.UsedNamespaceOrType>>(ReferenceEqualityComparer.Instance);
         private readonly ConcurrentSet<TypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<TypeSymbol>();
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
@@ -1117,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             switch (typeSymbol.Kind)
             {
                 case SymbolKind.DynamicType:
-                    return Translate((DynamicTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics);
+                    return Translate(syntaxNodeOpt, diagnostics);
 
                 case SymbolKind.ArrayType:
                     return Translate((ArrayTypeSymbol)typeSymbol);
@@ -1484,7 +1486,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal Cci.ITypeReference Translate(
-            DynamicTypeSymbol symbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
@@ -1947,6 +1948,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
         {
             return base.GetEmbeddedTypes(diagnostics.DiagnosticBag);
+        }
+
+        internal bool TryGetTranslatedImports(ImportChain chain, out ImmutableArray<Cci.UsedNamespaceOrType> imports)
+        {
+            return _translatedImportsMap.TryGetValue(chain, out imports);
+        }
+
+        internal ImmutableArray<Cci.UsedNamespaceOrType> GetOrAddTranslatedImports(ImportChain chain, ImmutableArray<Cci.UsedNamespaceOrType> imports)
+        {
+            return _translatedImportsMap.GetOrAdd(chain, imports);
         }
     }
 }

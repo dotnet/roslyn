@@ -849,7 +849,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-
         // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(
@@ -895,7 +894,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(
             OutputKind outputKind,
+#pragma warning disable IDE0060 // Remove unused parameter
             bool reportSuppressedDiagnostics,
+#pragma warning restore IDE0060 // Remove unused parameter
             string? moduleName,
             string? mainTypeName,
             string? scriptClassName,

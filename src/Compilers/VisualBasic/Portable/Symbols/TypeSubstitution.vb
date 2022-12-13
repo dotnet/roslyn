@@ -477,7 +477,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return currentParent
         End Function
 
-
         Private Shared ReadOnly s_withoutModifiers As Func(Of TypeSymbol, TypeWithModifiers) = Function(arg) New TypeWithModifiers(arg)
 
         Public Shared Function Create(
@@ -554,7 +553,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.Append("}"c)
         End Sub
 
-
         Private Sub New(targetGenericDefinition As Symbol, pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)), parent As TypeSubstitution)
             Debug.Assert(Not pairs.IsDefault)
             Debug.Assert(pairs.All(Function(p) p.Key IsNot Nothing))
@@ -576,7 +574,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _parent = parent
             _targetGenericDefinition = targetGenericDefinition
         End Sub
-
 
         ''' <summary>
         ''' Create substitution to handle alpha-renaming of type parameters. 
@@ -616,7 +613,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return Concat(parent, memberDefinition, pairs.AsImmutableOrNull())
         End Function
-
 
         ''' <summary>
         ''' Create TypeSubstitution that can be used to substitute method's type parameters
@@ -688,7 +684,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(countOfMeaningfulPairs = pairs.Length)
             Return New TypeSubstitution(targetMethod, pairs.AsImmutableOrNull(), Nothing)
         End Function
-
 
         ''' <summary>
         ''' Adjust substitution for construction.
@@ -799,7 +794,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return pairsHaveChanged
         End Function
-
 
         ''' <summary>
         ''' Create substitution for targetGenericDefinition based on its type 

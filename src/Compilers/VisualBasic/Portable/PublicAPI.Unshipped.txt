@@ -1,1 +1,2 @@
 *REMOVED*Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode() -> Integer
+Microsoft.CodeAnalysis.VisualBasicExtensions.ContainsDirective(node As Microsoft.CodeAnalysis.SyntaxNode, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
@@ -41,7 +42,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
                 DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
                 new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
-                new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer()));
+                new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer(),
+                new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer()));
             builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
             builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
             return new(builder.ToImmutableDictionary());
@@ -241,13 +243,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateTestLspServerAsync(markup, GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push));
+            => CreateTestLspServerAsync(markup, GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
 
         private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateTestLspServerAsync(markups, GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push));
+            => CreateTestLspServerAsync(markups, GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
 
         private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateXmlTestLspServerAsync(xmlMarkup, initializationOptions: GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push));
+            => CreateXmlTestLspServerAsync(xmlMarkup, initializationOptions: GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
 
         private protected static InitializationOptions GetInitializationOptions(
             BackgroundAnalysisScope scope,
@@ -265,6 +267,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), scope);
                     globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript), scope);
                     globalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), mode);
+                    globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles), true);
                 },
                 ServerKind = serverKind,
                 SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>()

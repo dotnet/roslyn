@@ -1460,5 +1460,36 @@ class C
                 }
                 """);
         }
+
+        [Fact, WorkItem(40585, "https://github.com/dotnet/roslyn/issues/40585")]
+        public async Task TestYieldBreak()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections;
+
+class Program
+{
+    public static IEnumerable Method(bool condition)
+    {
+        [||]if (condition)
+        {
+            yield return 1;
+        }
+    }
+}",
+@"using System.Collections;
+
+class Program
+{
+    public static IEnumerable Method(bool condition)
+    {
+        if (!condition)
+        {
+            yield break;
+        }
+        yield return 1;
+    }
+}");
+        }
     }
 }
