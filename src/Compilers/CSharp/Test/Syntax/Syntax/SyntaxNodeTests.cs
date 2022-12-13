@@ -354,6 +354,10 @@ class C {
             for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
                 Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { }").ContainsDirective(kind));
 
+            // directive in trailing trivia is not a thing
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { } #if false").ContainsDirective(kind));
+
             testContainsHelper1("#define x", SyntaxKind.DefineDirectiveTrivia);
             testContainsHelper1("#if true\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
             testContainsHelper1("#if false\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
