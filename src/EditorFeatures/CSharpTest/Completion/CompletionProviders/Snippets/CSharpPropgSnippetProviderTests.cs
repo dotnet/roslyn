@@ -9,22 +9,23 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpPropSnippetCompletionProviderTests : CSharpAutoPropertyCompletionProviderTests
+    public class CSharpPropgSnippetProviderTests : CSharpAutoPropertyCompletionProviderTests
     {
-        protected override string ItemToCommit => "prop";
+        protected override string ItemToCommit => "propg";
 
         protected override string GetDefaultPropertyText(string propertyName)
-            => $"public int {propertyName} {{ get; set; }}";
+            => $"public int {propertyName} {{ get; private set; }}";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertSnippetInInterface()
+        public async Task NotSetterInInterface()
         {
-            await VerifyDefaultPropertyAsync("""
+            await VerifyPropertyAsync("""
                 interface MyInterface
                 {
                     $$
                 }
-                """);
+                """,
+                "public int MyProperty { get; }");
         }
     }
 }

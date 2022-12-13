@@ -3542,6 +3542,11 @@ O especificador de formato padrão "f" representa uma combinação de padrões d
         <target state="translated">sobrecargas genéricas</target>
         <note />
       </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
         <target state="translated">instrução if</target>

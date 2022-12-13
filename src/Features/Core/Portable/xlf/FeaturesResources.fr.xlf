@@ -3542,6 +3542,11 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
         <target state="translated">surcharges génériques</target>
         <note />
       </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
         <target state="translated">si l’instruction</target>

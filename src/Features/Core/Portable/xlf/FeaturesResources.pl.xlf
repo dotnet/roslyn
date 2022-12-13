@@ -3542,6 +3542,11 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
         <target state="translated">przeciążenia ogólne</target>
         <note />
       </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
         <target state="translated">instrukcja if</target>
