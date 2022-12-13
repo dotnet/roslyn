@@ -31,6 +31,12 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
     {
     }
 
+    /// <summary>
+    /// Public API doesn't support categories (yet).
+    /// </summary>
+    protected override string? GetDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
+        => null;
+
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {
         return ConvertTags(diagnosticData, potentialDuplicate: false);

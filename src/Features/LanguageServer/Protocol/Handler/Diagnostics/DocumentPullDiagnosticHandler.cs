@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
         }
 
+        protected override string? GetDiagnosticCategory(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.QueryingDiagnosticKind?.Value;
+
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
 

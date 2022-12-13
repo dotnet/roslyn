@@ -33,6 +33,12 @@ internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagno
     {
     }
 
+    /// <summary>
+    /// Public API doesn't support categories (yet).
+    /// </summary>
+    protected override string? GetDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
+        => null;
+
     public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
