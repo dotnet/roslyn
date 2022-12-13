@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal sealed record DocumentDiagnosticSource(DiagnosticKind DiagnosticKind, Document Document)
-    : AbstractDocumentDiagnosticSource<Document>(DiagnosticKind, Document)
+    : AbstractDocumentDiagnosticSource<Document>(Document)
 {
-    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf
