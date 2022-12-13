@@ -268,10 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Note: We don't need to check
             //
             //      var x = """
-            //   {1 + 1}
+            // <space>{1 + 1}
             //          """
             //
-            // As initial whitespace in text will already be checked in makeContent.  This is only for the case where
+            // as initial whitespace in text will already be checked in makeContent.  This is only for the case where
             // the interpolation is at the start of a line.
 
             SyntaxDiagnosticInfo? getInterpolationIndentationError(
