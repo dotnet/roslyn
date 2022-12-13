@@ -101,7 +101,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, taskList, document));
+            return taskList
+                ? ImmutableArray.Create<IDiagnosticSource>(new TaskListDiagnosticSource(document))
+                : ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, document));
         }
     }
 }
