@@ -206,14 +206,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#pragma warning disable IDE0060
         private void RemovePlaceholderScopes(ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
             Debug.Assert(_placeholderScopes is { });
-            foreach (var placeholder in placeholders)
-            {
-                _placeholderScopes.Remove(placeholder);
-            }
+            // https://github.com/dotnet/roslyn/issues/65961: Currently, analysis may require subsequent calls
+            // to GetRefEscape(), etc. for the same expression so we cannot remove placeholders eagerly.
+            //foreach (var placeholder in placeholders)
+            //{
+            //    _placeholderScopes.Remove(placeholder);
+            //}
         }
+#pragma warning restore IDE0060
 
         private uint GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
@@ -259,7 +263,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            // PROTOTYPE: Test all combinations of { safe, unsafe } for { container, local function }.
             var localFunction = node.Symbol;
             // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
             // across nested local functions or lambdas because _localScopeDepth is reset when entering
@@ -416,9 +419,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void RemoveLocalScopes(LocalSymbol local)
         {
             Debug.Assert(_localEscapeScopes is { });
-            // PROTOTYPE: We cannot remove the locals (or the placeholders presumably)
-            // when they go out of scope because we may need them later when we subsequently
-            // ValidateEscape(). See RefFieldTests.SwitchExpression_* for example.
+            // https://github.com/dotnet/roslyn/issues/65961: Currently, analysis may require subsequent calls
+            // to GetRefEscape(), etc. for the same expression so we cannot remove locals eagerly.
             //_localEscapeScopes.Remove(local);
         }
 #pragma warning restore IDE0060
@@ -619,27 +621,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var placeholder in interpolationData.ArgumentPlaceholders)
             {
-                BoundExpression expr;
+                uint valEscapeScope;
                 int argIndex = placeholder.ArgumentIndex;
                 switch (argIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                        Debug.Assert(receiver is { });
-                        expr = receiver;
+                        Debug.Assert(receiver != null);
+                        valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver, _localScopeDepth) : GetValEscape(receiver, _localScopeDepth);
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         continue;
                     case >= 0:
-                        // PROTOTYPE: BindInterpolatedStringHandlerInMemberCall() was ignoring parameters[paramIndex].RefKind and
-                        // using GetValEscape() unconditionally for this argument. But if the parameter is by ref, couldn't the ref be captured?
-                        // (See addInterpolationPlaceholderReplacements() which does use parameters[paramIndex].RefKind.)
-                        expr = arguments[argIndex];
+                        valEscapeScope = GetValEscape(arguments[argIndex], _localScopeDepth);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
                 }
-                placeholders.Add((placeholder, GetValEscape(expr, _localScopeDepth)));
+                placeholders.Add((placeholder, valEscapeScope));
             }
         }
 

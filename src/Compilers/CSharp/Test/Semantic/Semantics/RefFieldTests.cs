@@ -27724,5 +27724,59 @@ Block[B2] - Exit
             var comp = CreateCompilationWithSpan(source);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void UnsafeContext_LocalFunction()
+        {
+            var source = """
+                #pragma warning disable 8321
+                class Program
+                {
+                    static ref int F0(ref int x, ref int y)
+                    {
+                        return ref x;
+                    }
+                    static void F1()
+                    {
+                        static ref int Local1(ref int x1, int y1)
+                        {
+                            return ref F0(ref x1, ref y1);
+                        }
+                        unsafe static ref int Local2(ref int x2, int y2)
+                        {
+                            return ref F0(ref x2, ref y2);
+                        }
+                        unsafe
+                        {
+                            static ref int Local3(ref int x3, int y3)
+                            {
+                                return ref F0(ref x3, ref y3);
+                            }
+                            unsafe static ref int Local4(ref int x4, int y4)
+                            {
+                                return ref F0(ref x4, ref y4);
+                            }
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (12,24): error CS8347: Cannot use a result of 'Program.F0(ref int, ref int)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //             return ref F0(ref x1, ref y1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F0(ref x1, ref y1)").WithArguments("Program.F0(ref int, ref int)", "y").WithLocation(12, 24),
+                // (12,39): error CS8166: Cannot return a parameter by reference 'y1' because it is not a ref parameter
+                //             return ref F0(ref x1, ref y1);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y1").WithArguments("y1").WithLocation(12, 39),
+                // (16,39): warning CS9087: This returns a parameter by reference 'y2' but it is not a ref parameter
+                //             return ref F0(ref x2, ref y2);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y2").WithArguments("y2").WithLocation(16, 39),
+                // (22,43): warning CS9087: This returns a parameter by reference 'y3' but it is not a ref parameter
+                //                 return ref F0(ref x3, ref y3);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y3").WithArguments("y3").WithLocation(22, 43),
+                // (26,43): warning CS9087: This returns a parameter by reference 'y4' but it is not a ref parameter
+                //                 return ref F0(ref x4, ref y4);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y4").WithArguments("y4").WithLocation(26, 43));
+        }
     }
 }
