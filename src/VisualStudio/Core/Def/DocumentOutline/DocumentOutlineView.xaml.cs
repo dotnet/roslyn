@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Navigation;
 using System.Windows.Data;
 using System.ComponentModel;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -88,7 +89,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void CollapseAll(object sender, RoutedEventArgs e)
             => _viewModel.EnqueueExpandCollapseUpdate(ExpansionOption.Collapse);
 
-        private void SearchBox_TextChanged(object sender, EventArgs e) { }
+        private void SearchBox_TextChanged(object sender, EventArgs e)
+        {
+            var newText = SearchBox.Text ?? string.Empty;
+            _viewModel.EnqueueFilter(newText);
+        }
 
         private void SortByName(object sender, EventArgs e)
         {

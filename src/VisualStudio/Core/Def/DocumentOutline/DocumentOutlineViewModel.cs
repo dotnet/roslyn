@@ -83,6 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 CancellationToken);
 
+            _filterQueue = new AsyncBatchingWorkQueue<string>(
+                DelayTimeSpan.Short,
+                FilterTreeAsync,
+                asyncListener,
+                CancellationToken);
+
             _textViewEventSource.Changed += OnEventSourceChanged;
             _textViewEventSource.Connect();
 
@@ -91,13 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var info = service.GetVisualStudioCodeWindowInfo();
             Assumes.NotNull(info);
             _documentSymbolQueue.AddWork(info, cancelExistingWork: true);
-        }
-
-        private string? _searchText;
-        public string? SearchText
-        {
-            get => _searchText;
-            set => SetProperty(ref _searchText, value);
         }
 
         private SortOption _sortOption;
@@ -125,8 +124,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private void SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
         {
-            // Note: we do not lock here. Worst case is that we fire multiple
-            //       NotifyPropertyChanged events which WPF can handle.
             if (EqualityComparer<T>.Default.Equals(field, value))
             {
                 return;
