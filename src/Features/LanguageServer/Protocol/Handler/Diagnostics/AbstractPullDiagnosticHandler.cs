@@ -130,7 +130,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             context.TraceDebug($"{this.GetType()} started getting diagnostics");
 
             var diagnosticMode = GetDiagnosticMode(context);
-
             // For this handler to be called, we must have already checked the diagnostic mode
             // and set the appropriate capabilities.
             Contract.ThrowIfFalse(diagnosticMode == DiagnosticMode.LspPull, $"{diagnosticMode} is not pull");
