@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: CreateLocalizableResourceString(nameof(ShouldAnnotatePublicApiFilesDescription)),
+            description: CreateLocalizableResourceString(nameof(ShouldAnnotateInternalApiFilesDescription)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/InternalApiAnalyzers/InternalApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
