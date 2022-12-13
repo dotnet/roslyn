@@ -14276,6 +14276,102 @@ class Program
                 	} // end of method '<>f__AnonymousDelegate0`1'::Invoke
                 } // end of class <>f__AnonymousDelegate0`1
                 """);
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0`1'<valuetype [{{s_libPrefix}}]System.Decimal> '<>9__0_1'
+                	.field public static class '<>f__AnonymousDelegate0`1'<valuetype [{{s_libPrefix}}]System.Decimal> '<>9__0_2'
+                	.field public static class '<>f__AnonymousDelegate0`1'<valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal>> '<>9__0_3'
+                	.field public static class '<>f__AnonymousDelegate0`1'<valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal>> '<>9__0_4'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x211a
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2105
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_1' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Decimal d
+                		) cil managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                		// Method begins at RVA 0x2126
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_1'
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_2' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Decimal d
+                		) cil managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                		// Method begins at RVA 0x2126
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_2'
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_3' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> d
+                		) cil managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                		// Method begins at RVA 0x2126
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_3'
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_4' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> d
+                		) cil managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                		// Method begins at RVA 0x2126
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_4'
+                } // end of class <>c
+                """);
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]

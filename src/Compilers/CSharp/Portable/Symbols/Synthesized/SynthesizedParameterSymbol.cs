@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal virtual bool HasDefaultArgumentSyntax => false;
+
         internal override bool IsIDispatchConstant
         {
             get { throw ExceptionUtilities.Unreachable(); }
@@ -189,7 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Synthesize DecimalConstantAttribute.
                 var defaultValue = this.ExplicitDefaultConstantValue;
                 if (defaultValue != ConstantValue.NotAvailable &&
-                    defaultValue.SpecialType == SpecialType.System_Decimal)
+                    defaultValue.SpecialType == SpecialType.System_Decimal &&
+                    this.HasDefaultArgumentSyntax)
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue));
                 }
@@ -365,6 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue ?? _defaultValue;
+
+        internal override bool HasDefaultArgumentSyntax => _baseParameterForAttributes?.HasDefaultArgumentSyntax ?? _defaultValue != null;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
