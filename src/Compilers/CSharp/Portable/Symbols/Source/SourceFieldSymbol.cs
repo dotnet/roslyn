@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (GetLazyConstantValue(earlyDecodingWellKnownAttributes) == value));
 
             // Check availability of `DecimalConstantAttribute`.
-            if (value.IsDecimal)
+            if (value is { IsDecimal: true })
             {
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
                     WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
