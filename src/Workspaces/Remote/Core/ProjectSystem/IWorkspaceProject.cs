@@ -36,5 +36,7 @@ internal interface IWorkspaceProject : IAsyncDisposable
     Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken);
     Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken);
 
+    Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken);
+
     Task<IAsyncDisposable> StartBatchAsync(CancellationToken cancellationToken);
 }

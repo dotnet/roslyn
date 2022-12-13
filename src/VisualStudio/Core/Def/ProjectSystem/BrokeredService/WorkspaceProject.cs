@@ -154,6 +154,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
             return Task.CompletedTask;
         }
 
+        public Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken)
+        {
+            _project.LastDesignTimeBuildSucceeded = hasAllInformation;
+            return Task.CompletedTask;
+        }
+
         public Task<IAsyncDisposable> StartBatchAsync(CancellationToken cancellationToken)
         {
             return Task.FromResult(_project.CreateBatchScope());
