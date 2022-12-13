@@ -14237,13 +14237,19 @@ class Program
                 Report(lam1);
                 var lam2 = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) => {};
                 Report(lam2);
+                var lam3 = (decimal? d = 1.1m) => {};
+                Report(lam3);
+                var lam4 = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) => {};
+                Report(lam4);
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: """
-                <>f__AnonymousDelegate0
-                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
                 """).VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
                 	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
                 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -14256,57 +14262,10 @@ class Program
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`1'::.ctor
                 	.method public hidebysig newslot virtual 
                 		instance void Invoke (
-                			[opt] valuetype [{{s_libPrefix}}]System.Decimal arg
-                		) runtime managed 
-                	{
-                 		.param [1]
-                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
-                 				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
-                 				00 00
-                 			)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
-                """);
-        }
-
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
-        public void DefaultParameterValue_Decimal_Lambda_Nullable()
-        {
-            var source = """
-                using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
-                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
-
-                var lam1 = (decimal? d = 1.1m) => {};
-                Report(lam1);
-                var lam2 = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) => {};
-                Report(lam2);
-                """;
-            var verifier = CompileAndVerify(source, expectedOutput: """
-                <>f__AnonymousDelegate0
-                <>f__AnonymousDelegate0
-                """).VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
-                	extends [{{s_libPrefix}}]System.MulticastDelegate
-                {
-                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                		01 00 00 00
-                	)
-                	// Methods
-                	.method public hidebysig specialname rtspecialname 
-                		instance void .ctor (
-                			object 'object',
-                			native int 'method'
-                		) runtime managed 
-                	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
-                	.method public hidebysig newslot virtual 
-                		instance void Invoke (
-                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> arg
+                			[opt] !T1 arg
                 		) runtime managed 
                 	{
                 		.param [1]
@@ -14314,8 +14273,8 @@ class Program
                 				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
                 				00 00
                 			)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`1'::Invoke
+                } // end of class <>f__AnonymousDelegate0`1
                 """);
         }
 
@@ -14410,19 +14369,27 @@ class Program
                 Report(m1);
                 var m2 = C.M2;
                 Report(m2);
+                var m3 = C.M3;
+                Report(m3);
+                var m4 = C.M4;
+                Report(m4);
 
                 public class C
                 {
                     public static decimal M1(decimal d = 1.1m) => d;
                     public static decimal M2([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) => d;
+                    public static decimal? M3(decimal? d = 1.1m) => d;
+                    public static decimal? M4([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) => d;
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: """
-                <>f__AnonymousDelegate0
-                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0`2[System.Decimal,System.Decimal]
+                <>f__AnonymousDelegate0`2[System.Decimal,System.Decimal]
+                <>f__AnonymousDelegate0`2[System.Nullable`1[System.Decimal],System.Nullable`1[System.Decimal]]
+                <>f__AnonymousDelegate0`2[System.Nullable`1[System.Decimal],System.Nullable`1[System.Decimal]]
                 """).VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, TResult>
                 	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
                 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -14435,72 +14402,19 @@ class Program
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`2'::.ctor
                 	.method public hidebysig newslot virtual 
-                		instance valuetype [{{s_libPrefix}}]System.Decimal Invoke (
-                			[opt] valuetype [{{s_libPrefix}}]System.Decimal arg
+                		instance !TResult Invoke (
+                			[opt] !T1 arg
                 		) runtime managed 
                 	{
-                 		.param [1]
-                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
-                 				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
-                 				00 00
-                 			)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
-                """);
-        }
-
-        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
-        public void DefaultParameterValue_Decimal_MethodGroup_Nullable()
-        {
-            var source = """
-                using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
-                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
-
-                var m1 = C.M1;
-                Report(m1);
-                var m2 = C.M2;
-                Report(m2);
-
-                public class C
-                {
-                    public static decimal? M1(decimal? d = 1.1m) => d;
-                    public static decimal? M2([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) => d;
-                }
-                """;
-            var verifier = CompileAndVerify(source, expectedOutput: """
-                <>f__AnonymousDelegate0
-                <>f__AnonymousDelegate0
-                """).VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
-                	extends [{{s_libPrefix}}]System.MulticastDelegate
-                {
-                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                		01 00 00 00
-                	)
-                	// Methods
-                	.method public hidebysig specialname rtspecialname 
-                		instance void .ctor (
-                			object 'object',
-                			native int 'method'
-                		) runtime managed 
-                	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
-                	.method public hidebysig newslot virtual 
-                		instance valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> Invoke (
-                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> arg
-                		) runtime managed 
-                	{
-                 		.param [1]
-                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
-                 				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
-                 				00 00
-                 			)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                	} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+                } // end of class <>f__AnonymousDelegate0`2
                 """);
         }
 
