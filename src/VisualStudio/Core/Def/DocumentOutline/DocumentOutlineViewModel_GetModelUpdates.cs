@@ -71,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 }
                 else if (allCollapsed)
                 {
+                    // we previously had all nodes collapsed, so maintain that
                     EnqueueExpandCollapseUpdate(ExpansionOption.Collapse);
                 }
             }
