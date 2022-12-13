@@ -84,9 +84,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetFlattenedValues();
         }
 
-        private static IEnumerable<Project> GetProjectsInPriorityOrder(Solution solution, ImmutableArray<string> supportedLanguages)
+        private static IEnumerable<Project> GetProjectsInPriorityOrder(
+            Solution solution, ImmutableArray<string> supportedLanguages)
         {
-            return GetProjectsInPriorityOrderWorker(solution).WhereNotNull().Distinct().Where(p => supportedLanguages.Contains(p.Language));
+            return GetProjectsInPriorityOrderWorker(solution)
+                .WhereNotNull()
+                .Distinct()
+                .Where(p => supportedLanguages.Contains(p.Language));
 
             static IEnumerable<Project?> GetProjectsInPriorityOrderWorker(Solution solution)
             {
@@ -146,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return result.ToImmutable();
         }
 
-        private static async ValueTask<ImmutableArray<IDiagnosticSource>> GetProjectDiagnosticSourcesAsync(
+        private static ImmutableArray<IDiagnosticSource> GetProjectDiagnosticSources(
             RequestContext context, IGlobalOptionService globalOptions)
         {
             Contract.ThrowIfNull(context.Solution);
