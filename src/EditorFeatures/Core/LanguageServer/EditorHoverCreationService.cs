@@ -12,9 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -31,12 +29,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public async Task<Hover> CreateHoverAsync(
-            SourceText text, string language, QuickInfoItem info, Document? document, ClientCapabilities? clientCapabilities, CancellationToken cancellationToken)
+            Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
 
             if (!supportsVSExtensions)
-                return DefaultLspHoverResultCreationService.CreateDefaultHover(text, language, info, clientCapabilities);
+                return await DefaultLspHoverResultCreationService.CreateDefaultHoverAsync(document, info, clientCapabilities, cancellationToken).ConfigureAwait(false);
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var language = document.Project.Language;
 
             var classificationOptions = _optionService.GetClassificationOptions(language);
 
