@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <inheritdoc cref="SyntaxNode.ContainsDirective"/>
         <Extension>
         Public Function ContainsDirective(node As SyntaxNode, kind As SyntaxKind) As Boolean
-            Return node.ContainsDirective(CType(kind, Integer))
+            Return node.ContainsDirective(CInt(kind))
         End Function
 
         ''' <summary>
