@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
                             WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
                             diagnostics,
-                            CSharpSyntaxNode.Location);
+                            CSharpSyntaxNode?.Location ?? Locations.FirstOrDefault());
                     }
 
                     AddDeclarationDiagnostics(diagnostics);
