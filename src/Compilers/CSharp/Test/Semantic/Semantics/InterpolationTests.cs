@@ -3914,14 +3914,14 @@ Caught");
             var source = @"
 using System;
 
-ReadOnlySpan<char> s = new char[] { 'i' };
+Span<char> s = new char[] { 'i' };
 try
 {
     Console.WriteLine(""Starting try"");
     throw new MyException { Prop = s.ToString() };
 }
 // Test DefaultInterpolatedStringHandler renders specially, so we're actually comparing to ""value:Prop"" plus some whitespace
-catch (MyException e) when (e.ToString() == $""{s}"".Trim())
+catch (MyException e) when (e.ToString() == $""{(ReadOnlySpan<char>)s}"".Trim())
 {
     Console.WriteLine(""Caught"");
 }
@@ -3940,9 +3940,9 @@ Caught");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      122 (0x7a)
+  // Code size      127 (0x7f)
   .maxstack  4
-  .locals init (System.ReadOnlySpan<char> V_0, //s
+  .locals init (System.Span<char> V_0, //s
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     ""char""
@@ -3950,7 +3950,7 @@ Caught");
   IL_0007:  ldc.i4.0
   IL_0008:  ldc.i4.s   105
   IL_000a:  stelem.i2
-  IL_000b:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(char[])""
+  IL_000b:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
   IL_0010:  stloc.0
   .try
   {
@@ -3959,7 +3959,7 @@ Caught");
     IL_001b:  newobj     ""MyException..ctor()""
     IL_0020:  dup
     IL_0021:  ldloca.s   V_0
-    IL_0023:  constrained. ""System.ReadOnlySpan<char>""
+    IL_0023:  constrained. ""System.Span<char>""
     IL_0029:  callvirt   ""string object.ToString()""
     IL_002e:  callvirt   ""void MyException.Prop.set""
     IL_0033:  throw
@@ -3971,7 +3971,7 @@ Caught");
     IL_003a:  brtrue.s   IL_0040
     IL_003c:  pop
     IL_003d:  ldc.i4.0
-    IL_003e:  br.s       IL_006a
+    IL_003e:  br.s       IL_006f
     IL_0040:  callvirt   ""string object.ToString()""
     IL_0045:  ldloca.s   V_1
     IL_0047:  ldc.i4.0
@@ -3979,22 +3979,23 @@ Caught");
     IL_0049:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
     IL_004e:  ldloca.s   V_1
     IL_0050:  ldloc.0
-    IL_0051:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
-    IL_0056:  ldloca.s   V_1
-    IL_0058:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-    IL_005d:  callvirt   ""string string.Trim()""
-    IL_0062:  call       ""bool string.op_Equality(string, string)""
-    IL_0067:  ldc.i4.0
-    IL_0068:  cgt.un
-    IL_006a:  endfilter
+    IL_0051:  call       ""System.ReadOnlySpan<char> System.Span<char>.op_Implicit(System.Span<char>)""
+    IL_0056:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
+    IL_005b:  ldloca.s   V_1
+    IL_005d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_0062:  callvirt   ""string string.Trim()""
+    IL_0067:  call       ""bool string.op_Equality(string, string)""
+    IL_006c:  ldc.i4.0
+    IL_006d:  cgt.un
+    IL_006f:  endfilter
   }  // end filter
   {  // handler
-    IL_006c:  pop
-    IL_006d:  ldstr      ""Caught""
-    IL_0072:  call       ""void System.Console.WriteLine(string)""
-    IL_0077:  leave.s    IL_0079
+    IL_0071:  pop
+    IL_0072:  ldstr      ""Caught""
+    IL_0077:  call       ""void System.Console.WriteLine(string)""
+    IL_007c:  leave.s    IL_007e
   }
-  IL_0079:  ret
+  IL_007e:  ret
 }
 ");
         }
@@ -11029,31 +11030,46 @@ logged = 4
             verifier.VerifyIL("Program.<<Main>$>g__test1|0_0<T>",
 @"
 {
-  // Code size       58 (0x3a)
+  // Code size       88 (0x58)
   .maxstack  5
   .locals init (T& V_0,
-                DummyHandler V_1)
+            T V_1,
+            T& V_2,
+            T V_3,
+            DummyHandler V_4)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  ldloca.s   V_1
-  IL_0006:  ldc.i4.4
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldloc.0
-  IL_0009:  ldobj      ""T""
-  IL_000e:  box        ""T""
-  IL_0013:  call       ""DummyHandler..ctor(int, int, ILogger)""
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  ldstr      ""log:""
-  IL_001f:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  ldc.i4.m1
-  IL_0027:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_002c:  ldloc.1
-  IL_002d:  constrained. ""T""
-  IL_0033:  callvirt   ""void ILogger.Log(DummyHandler)""
-  IL_0038:  ldarg.0
-  IL_0039:  ret
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ldloca.s   V_4
+  IL_0023:  ldc.i4.4
+  IL_0024:  ldc.i4.1
+  IL_0025:  ldloc.0
+  IL_0026:  ldobj      ""T""
+  IL_002b:  box        ""T""
+  IL_0030:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0035:  ldloca.s   V_4
+  IL_0037:  ldstr      ""log:""
+  IL_003c:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0041:  ldloca.s   V_4
+  IL_0043:  ldc.i4.m1
+  IL_0044:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0049:  ldloc.s    V_4
+  IL_004b:  constrained. ""T""
+  IL_0051:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0056:  ldarg.0
+  IL_0057:  ret
 }
 ");
 
@@ -11091,30 +11107,45 @@ logged = 4
             verifier.VerifyIL("Program.<<Main>$>g__test3|0_2<T>",
 @"
 {
-  // Code size       57 (0x39)
+  // Code size       87 (0x57)
   .maxstack  5
   .locals init (T& V_0,
-                DummyHandler V_1)
+            T V_1,
+            T& V_2,
+            T V_3,
+            DummyHandler V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  ldc.i4.4
-  IL_0006:  ldc.i4.1
-  IL_0007:  ldloc.0
-  IL_0008:  ldobj      ""T""
-  IL_000d:  box        ""T""
-  IL_0012:  call       ""DummyHandler..ctor(int, int, ILogger)""
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  ldstr      ""log:""
-  IL_001e:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldc.i4.s   -3
-  IL_0027:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_002c:  ldloc.1
-  IL_002d:  constrained. ""T""
-  IL_0033:  callvirt   ""void ILogger.Log(DummyHandler)""
-  IL_0038:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldloca.s   V_4
+  IL_0022:  ldc.i4.4
+  IL_0023:  ldc.i4.1
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  box        ""T""
+  IL_002f:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0034:  ldloca.s   V_4
+  IL_0036:  ldstr      ""log:""
+  IL_003b:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0040:  ldloca.s   V_4
+  IL_0042:  ldc.i4.s   -3
+  IL_0044:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0049:  ldloc.s    V_4
+  IL_004b:  constrained. ""T""
+  IL_0051:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0056:  ret
 }
 ");
 
@@ -11253,40 +11284,55 @@ logged = 4
             verifier.VerifyIL("Program.<<Main>$>g__test3|0_0<T>",
 @"
 {
-  // Code size       79 (0x4f)
+  // Code size      110 (0x6e)
   .maxstack  4
   .locals init (T& V_0,
-                DummyHandler V_1,
-                DummyHandler V_2)
+            T V_1,
+            T& V_2,
+            DummyHandler V_3,
+            T V_4,
+            DummyHandler V_5)
   IL_0000:  ldarg.0
   IL_0001:  call       ""ref T Program.<<Main>$>g__get3|0_2<T>(ref T)""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  ldc.i4.4
-  IL_000a:  ldc.i4.1
-  IL_000b:  ldloc.0
-  IL_000c:  ldobj      ""T""
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_4
+  IL_0009:  initobj    ""T""
+  IL_000f:  ldloc.s    V_4
   IL_0011:  box        ""T""
-  IL_0016:  call       ""DummyHandler..ctor(int, int, ILogger)""
-  IL_001b:  ldloca.s   V_2
-  IL_001d:  ldstr      ""log:""
-  IL_0022:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_0027:  ldloca.s   V_2
-  IL_0029:  ldc.i4.s   -3
-  IL_002b:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_0030:  ldloc.2
-  IL_0031:  stloc.1
-  IL_0032:  ldloc.0
-  IL_0033:  ldloc.1
-  IL_0034:  ldloc.0
-  IL_0035:  ldloc.1
-  IL_0036:  constrained. ""T""
-  IL_003c:  callvirt   ""int ILogger.this[DummyHandler].get""
-  IL_0041:  ldc.i4.1
-  IL_0042:  add
-  IL_0043:  constrained. ""T""
-  IL_0049:  callvirt   ""void ILogger.this[DummyHandler].set""
-  IL_004e:  ret
+  IL_0016:  brtrue.s   IL_0023
+  IL_0018:  ldloc.2
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  br.s       IL_0024
+  IL_0023:  ldloc.2
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_5
+  IL_0027:  ldc.i4.4
+  IL_0028:  ldc.i4.1
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  box        ""T""
+  IL_0034:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0039:  ldloca.s   V_5
+  IL_003b:  ldstr      ""log:""
+  IL_0040:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0045:  ldloca.s   V_5
+  IL_0047:  ldc.i4.s   -3
+  IL_0049:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_004e:  ldloc.s    V_5
+  IL_0050:  stloc.3
+  IL_0051:  ldloc.0
+  IL_0052:  ldloc.3
+  IL_0053:  ldloc.0
+  IL_0054:  ldloc.3
+  IL_0055:  constrained. ""T""
+  IL_005b:  callvirt   ""int ILogger.this[DummyHandler].get""
+  IL_0060:  ldc.i4.1
+  IL_0061:  add
+  IL_0062:  constrained. ""T""
+  IL_0068:  callvirt   ""void ILogger.this[DummyHandler].set""
+  IL_006d:  ret
 }
 ");
 

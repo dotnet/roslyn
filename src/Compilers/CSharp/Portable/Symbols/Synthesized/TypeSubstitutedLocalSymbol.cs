@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.IsPinned; }
         }
 
+        internal override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return _originalVariable.IsKnownToReferToTempIfReferenceType; }
+        }
+
         public override RefKind RefKind
         {
             get { return _originalVariable.RefKind; }

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
     {
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         public IOperation? Visit(IOperation? operation)
         {
             return Visit(operation, argument: null);

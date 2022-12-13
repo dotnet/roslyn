@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
             _key = new OptionKey2(FormattingOptions2.IndentationSize, LanguageNames.CSharp);
         }
 
-        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
+        public IEnumSettingViewModel CreateViewModel(Setting setting)
         {
             return new IndentationSizeViewModel(setting);
         }
@@ -49,9 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
     internal class IndentationSizeViewModel : EnumSettingViewModel<IndentationSizeSetting>
     {
-        private readonly WhitespaceSetting _setting;
+        private readonly Setting _setting;
 
-        public IndentationSizeViewModel(WhitespaceSetting setting)
+        public IndentationSizeViewModel(Setting setting)
         {
             _setting = setting;
         }
