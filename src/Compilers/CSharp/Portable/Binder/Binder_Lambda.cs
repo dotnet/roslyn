@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var isParams = paramsKeyword.Kind() != SyntaxKind.None;
 
                     // UNDONE: Where do we report improper use of pointer types?
-                    ParameterHelpers.ReportParameterErrors(Compilation, owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
+                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
                          lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
                 }
             }
