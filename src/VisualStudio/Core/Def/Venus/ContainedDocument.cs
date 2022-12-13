@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -87,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
-        private readonly VisualStudioProject _project;
+        private readonly ProjectSystemProject _project;
 
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
         public bool SupportsSemanticSnippets { get { return false; } }
@@ -105,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer dataBuffer,
             IVsTextBufferCoordinator bufferCoordinator,
             Workspace workspace,
-            VisualStudioProject project,
+            ProjectSystemProject project,
             IComponentModel componentModel,
             AbstractFormattingRule vbHelperFormattingRule)
             : base(threadingContext)
