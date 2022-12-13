@@ -21,7 +21,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     <[UseExportProvider]>
-    <Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+    <Trait(Traits.Feature, Traits.Features.ErrorSquiggles), Trait(Traits.Feature, Traits.Features.Tagging)>
     Public Class ErrorSquiggleProducerTests
 
         Private Shared Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
@@ -70,7 +70,7 @@ End Class")
 End Class")
 
                 Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace)
-                Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagostic, span) (diagostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
+                Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagnostic, span) (diagnostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(1, spans.Count())
 
@@ -83,7 +83,7 @@ End Class")
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "BC30002", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC30002)", UriKind.Absolute)), "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC30002)"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, firstSpan.diagostic.Message)))
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, firstSpan.diagnostic.Message)))
 
                 ToolTipAssert.EqualContent(expectedToolTip, firstSpan.span.Tag.ToolTipContent)
             End Using
@@ -123,7 +123,7 @@ End Class"
                     New CodeStyleOption2(Of Boolean)(value:=True, notification:=NotificationOption2.Error))
 
                 Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace, analyzerMap)
-                Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagostic, span) (diagostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
+                Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagnostic, span) (diagnostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(2, spans.Length)
                 Dim first = spans(0)

@@ -56,7 +56,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     Dim expected = 1
                     AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Dim diagnostics = a.Diagnostics
                                                               Assert.Equal(expected, diagnostics.Length)
                                                               If expected = 1 Then
                                                                   Assert.Equal(diagnostics(0), diagnostic)
@@ -134,7 +134,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
 
                     AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Dim diagnostics = a.Diagnostics
                                                               Assert.Equal(1, diagnostics.Length)
                                                           End Sub
 
@@ -256,7 +256,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.AddNewErrors(project.Id, diagnostic)
 
                     AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Dim diagnostics = a.Diagnostics
                                                               Assert.Equal(1, diagnostics.Length)
                                                           End Sub
 
@@ -296,7 +296,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     AddHandler source.DiagnosticsUpdated, Sub(o, a)
                                                               buildDiagnosticCallbackSeen = True
 
-                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Dim diagnostics = a.Diagnostics
                                                               Assert.Equal(1, diagnostics.Length)
                                                               Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
                                                           End Sub
@@ -345,7 +345,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.AddNewErrors(project.Id, diagnostic)
 
                     AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Dim diagnostics = a.Diagnostics
 
                                                               Assert.Equal(1, diagnostics.Length)
                                                               Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
@@ -470,7 +470,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         language:=project.Language)
 
                     AddHandler service.DiagnosticsUpdated, Sub(o, args)
-                                                               Dim diagnostics = args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                               Dim diagnostics = args.Diagnostics
 
                                                                Assert.Single(diagnostics)
                                                                Assert.Equal(diagnostics(0).Id, diagnostic.Id)
@@ -530,7 +530,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim diagnosticRemoved = False
                     AddHandler source.DiagnosticsUpdated, Sub(o, args)
                                                               Assert.Equal(document.Id, args.DocumentId)
-                                                              Dim diagnostics = args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Dim diagnostics = args.Diagnostics
                                                               If args.Kind = DiagnosticsUpdatedKind.DiagnosticsCreated Then
                                                                   actualDiagnostic = Assert.Single(diagnostics)
                                                                   diagnosticAdded = True
@@ -667,7 +667,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
-            Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As CodeActionRequestPriority = CodeActionRequestPriority.None, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional diagnosticKinds As DiagnosticKinds = DiagnosticKinds.All, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
+            Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As CodeActionRequestPriority = CodeActionRequestPriority.None, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional diagnosticKinds As DiagnosticKind = DiagnosticKind.All, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)
             End Function
 
@@ -699,7 +699,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Throw New NotImplementedException()
             End Function
 
-            Public Function TryGetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan, shouldIncludeDiagnostic As Func(Of String, Boolean), Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As CodeActionRequestPriority = CodeActionRequestPriority.None, Optional diagnosticKinds As DiagnosticKinds = DiagnosticKinds.All, Optional cancellationToken As CancellationToken = Nothing) As Task(Of (diagnostics As ImmutableArray(Of DiagnosticData), upToDate As Boolean)) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
+            Public Function TryGetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan, shouldIncludeDiagnostic As Func(Of String, Boolean), Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As CodeActionRequestPriority = CodeActionRequestPriority.None, Optional diagnosticKinds As DiagnosticKind = DiagnosticKind.All, Optional cancellationToken As CancellationToken = Nothing) As Task(Of (diagnostics As ImmutableArray(Of DiagnosticData), upToDate As Boolean)) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
                 Return Task.FromResult((ImmutableArray(Of DiagnosticData).Empty, False))
             End Function
         End Class

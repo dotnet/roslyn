@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private class SourceSymbolsProjectSearchScope : ProjectSearchScope
         {
-            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
+            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> _projectToAssembly;
 
             public SourceSymbolsProjectSearchScope(
                 AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
                 Project project, bool ignoreCase, CancellationToken cancellationToken)
                 : base(provider, project, ignoreCase, cancellationToken)
             {
@@ -52,16 +52,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                     searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
 
                 return declarations;
-            }
 
-            private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
-            {
-                return new AsyncLazy<IAssemblySymbol>(
-                    async c =>
-                    {
-                        var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
-                        return compilation.Assembly;
-                    }, cacheResult: true);
+                static AsyncLazy<IAssemblySymbol?> CreateLazyAssembly(Project project)
+                    => new(async c =>
+                           {
+                               var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
+                               return compilation.Assembly;
+                           }, cacheResult: true);
             }
         }
     }

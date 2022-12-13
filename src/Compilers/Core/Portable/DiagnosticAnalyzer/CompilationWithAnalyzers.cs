@@ -415,26 +415,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var compilation = _compilation.WithEventQueue(eventQueue);
                 var compilationData = new CompilationData(compilation);
 
-                // Create and attach the driver to compilation.
+                // Create and initialize driver.
                 var categorizeDiagnostics = true;
                 driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, trackSuppressedDiagnosticIds: false, cancellationToken);
-                var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
-                var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
-                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
-
-                // Force compilation diagnostics and wait for analyzer execution to complete.
-                var compDiags = compilation.GetDiagnostics(cancellationToken);
-                await driver.WhenCompletedTask.ConfigureAwait(false);
 
                 // Get analyzer action counts.
                 var analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
+                var hasAnyActionsRequiringCompilationEvents = false;
                 foreach (var analyzer in analyzers)
                 {
                     var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, compilation.Options, cancellationToken).ConfigureAwait(false);
                     analyzerActionCounts.Add(analyzer, actionCounts);
+
+                    if (actionCounts.HasAnyActionsRequiringCompilationEvents)
+                        hasAnyActionsRequiringCompilationEvents = true;
                 }
                 Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts = analyzer => analyzerActionCounts[analyzer];
+
+                // Attach the driver to compilation and start processing events.
+                // If we do not have any analyzer actions that are driven by compilation events,
+                // we are only going to enqueue a CompilationStartedEvent, so ensure we
+                // pass 'usingPrePopulatedEventQueue = true' for that case.
+                var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
+                var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
+                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, usingPrePopulatedEventQueue: !hasAnyActionsRequiringCompilationEvents, cancellationToken);
+
+                // If we have any analyzer actions that are driven by compilation events, we need to
+                // force compilation diagnostics to populate the compilation event queue and force it to be completed.
+                if (hasAnyActionsRequiringCompilationEvents)
+                    _ = compilation.GetDiagnostics(cancellationToken);
+
+                // Wait for analyzer execution to complete.
+                await driver.WhenCompletedTask.ConfigureAwait(false);
 
                 _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(analysisScope, driver, compilation, getAnalyzerActionCounts, fullAnalysisResultForAnalyzersInScope: true);
             }
@@ -462,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, trackSuppressedDiagnosticIds: false, cancellationToken);
                 var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
-                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
+                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, usingPrePopulatedEventQueue: false, cancellationToken);
 
                 // Force compilation diagnostics and wait for analyzer execution to complete.
                 var compDiags = compilation.GetDiagnostics(cancellationToken);

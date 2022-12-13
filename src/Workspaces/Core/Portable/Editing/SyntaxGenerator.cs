@@ -273,9 +273,12 @@ namespace Microsoft.CodeAnalysis.Editing
             return ParameterDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
-                initializer,
+                initializer is not null ? initializer :
+                symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
                 symbol.RefKind);
         }
+
+        protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
 
         /// <summary>
         /// Creates a property declaration. The property will have a <c>get</c> accessor if
@@ -1600,7 +1603,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a literal expression. This is typically numeric primitives, strings or chars.
         /// </summary>
-        public abstract SyntaxNode LiteralExpression(object? value);
+        public SyntaxNode LiteralExpression(object? value)
+            => GenerateExpression(type: null, value, canUseFieldReference: true);
 
         /// <summary>
         /// Creates an expression for a typed constant.

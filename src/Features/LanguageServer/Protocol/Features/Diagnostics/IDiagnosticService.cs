@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -26,23 +25,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.
         /// </summary>
-        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
-        /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
-        /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
-        /// will return the requested diagnostics.</param>
-        ValueTask<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
-            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets storing our grouped diagnostics.
         /// </summary>
-        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The <see
-        /// cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).  If
-        /// the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
-        /// will return the requested buckets.</param>
-        ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId,
-            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
+        ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken);
     }
 }
