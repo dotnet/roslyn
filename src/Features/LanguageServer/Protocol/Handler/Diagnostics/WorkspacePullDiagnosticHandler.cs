@@ -103,12 +103,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var activeDocument = documentTrackingService.GetActiveDocument(solution);
                 var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
-                // Now, prioritize the projects related to the active/visible files.
                 yield return activeDocument?.Project;
                 foreach (var doc in visibleDocuments)
                     yield return doc.Project;
 
-                // finally, add the remainder of all documents.
                 foreach (var project in solution.Projects)
                     yield return project;
             }
@@ -216,9 +214,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                     result.Add(new WorkspaceDocumentDiagnosticSource(diagnosticKind, document));
                 }
-
-                // Finally, as fsa is on, we also want to check for diagnostics associated with the project itself.
-                result.Add(new ProjectDiagnosticSource(project));
             }
         }
     }
