@@ -446,6 +446,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool ContainsDirective(int rawKind)
         {
+            // Easy bail out without doing any work.
+            if (!this.ContainsDirectives)
+                return false;
+
             var stack = PooledObjects.ArrayBuilder<GreenNode?>.GetInstance();
             stack.Push(this.Green);
 
