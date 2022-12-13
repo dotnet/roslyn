@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         public override async Task InsertSnippetInInterface()
         {
+            // Ensure we don't generate redundant `set` accessor when executed in interface
             await VerifyPropertyAsync("""
                 interface MyInterface
                 {
