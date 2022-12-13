@@ -153,11 +153,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
 
             foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
-                AddDocumentsAndProject(project);
+                await AddDocumentsAndProject(project, cancellationToken).ConfigureAwait(false);
 
             return result.ToImmutable();
 
-            async Task AddDocumentsAndProject(Project project, ImmutableArray<string> supportedLanguages, CancellationToken cancellationToken)
+            async Task AddDocumentsAndProject(Project project, CancellationToken cancellationToken)
             {
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
                 if (!fullSolutionAnalysisEnabled)

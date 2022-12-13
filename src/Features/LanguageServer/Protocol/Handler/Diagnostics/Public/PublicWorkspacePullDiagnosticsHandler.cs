@@ -95,7 +95,7 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
     }
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(WorkspaceDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
-        => WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(diagnosticKind: DiagnosticKind.All, taskList: false, context, GlobalOptions, cancellationToken);
+        => WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(diagnosticKind: DiagnosticKind.All, context, GlobalOptions, cancellationToken);
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {
