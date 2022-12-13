@@ -190,7 +190,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
         }
 
-        [Fact]
+        [Fact, WorkItem(65938, "https://github.com/dotnet/roslyn/issues/65938")]
         public void StaticLocalFunction_CapturingMethodGroup()
         {
             CreateCompilation("""
