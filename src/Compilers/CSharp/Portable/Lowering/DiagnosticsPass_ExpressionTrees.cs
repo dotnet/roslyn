@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckReceiverIfField(node.ReceiverOpt);
             CheckReferenceToMethodIfLocalFunction(node, method);
 
-            if (method is null || method.RequiresInstanceReceiver)
+            if (method is null || method.RequiresInstanceReceiver || method.IsExtensionMethod)
             {
                 Visit(node.ReceiverOpt);
             }

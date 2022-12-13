@@ -189,5 +189,89 @@ class C
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
         }
+
+        [Fact]
+        public void StaticLocalFunction_CapturingMethodGroup()
+        {
+            CreateCompilation("""
+                var c = new C();
+                LocalFunc();
+
+                static void LocalFunc()
+                {
+                    var x = c.MyExtension;
+                    x();
+                }
+
+
+                public class C
+                {
+                }
+
+                public static class Extensions
+                {
+                    public static string MyExtension(this C c)
+                        => string.Empty;
+                }
+                """).VerifyDiagnostics(
+                    // (6,13): error CS8421: A static local function cannot contain a reference to 'c'.                       
+                    //     var x = c.GetName;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void StaticLocalFunction_CapturingMethodGroup2()
+        {
+            CreateCompilation("""
+                var c = new C();
+                LocalFunc();
+
+                static void LocalFunc()
+                {
+                    var x = Extensions.MyExtension;
+                    x(c);
+                }
+
+
+                public class C
+                {
+                }
+
+                public static class Extensions
+                {
+                    public static string MyExtension(this C c)
+                        => string.Empty;
+                }
+                """).VerifyDiagnostics(
+                    // (7,7): error CS8421: A static local function cannot contain a reference to 'c'.
+                    //     x(c);
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(7, 7));
+        }
+
+        [Fact]
+        public void StaticLocalFunction_CapturingMethodGroup3()
+        {
+            CreateCompilation("""
+                LocalFunc();
+
+                static void LocalFunc()
+                {
+                    var x = this.MyExtension;
+                    x();
+                }
+
+                internal static class Extensions
+                {
+                    public static string MyExtension(this Program c)
+                        => string.Empty;
+                }
+                """).VerifyDiagnostics(
+                    // (5,13): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                    //     var x = this.MyExtension;
+                    Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(5, 13),
+                    // (5,13): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //     var x = this.MyExtension;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(5, 13));
+        }
     }
 }
