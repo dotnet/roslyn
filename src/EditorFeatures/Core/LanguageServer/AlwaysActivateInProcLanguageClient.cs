@@ -79,8 +79,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 serverCapabilities.DiagnosticProvider ??= new();
                 serverCapabilities.DiagnosticProvider.DiagnosticKinds = new[]
                 {
+                    // Support a specialized requests dedicated to task-list items.  This way the client can ask just
+                    // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
+                    // the task list would not be visible.
                     VSInternalDiagnosticKind.Task,
+                    // Dedicated request for project-diagnostics only.  We will only respond to these if FSA is on.
                     new(PullDiagnosticConstants.Project),
+                    // Fine-grained diagnostics requests.  Importantly, this separates out syntactic vs semantic
+                    // requests, allowing the former to quickly reach the user without blocking on the latter.  In a
+                    // similar vein, compiler diagnostics are explicitly distinct from analyzer-diagnostics, allowing
+                    // the former to appear as soon as possible as they are much more critical for the user and should
+                    // not be delayed by a slow analyzer.
                     new(PullDiagnosticConstants.CompilerSyntax),
                     new(PullDiagnosticConstants.CompilerSemantic),
                     new(PullDiagnosticConstants.AnalyzerSyntax),
