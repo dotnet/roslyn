@@ -180,13 +180,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxDiagnosticInfo? indentationError = null;
                 while (currentIndex < text.Length)
                 {
-                    var lineStartIndex = currentIndex;
+                    var lineStartPosition = currentIndex;
 
                     // Only bother reporting a single indentation error on a text chunk.
                     if (indentationError == null)
                     {
                         currentIndex = SkipWhitespace(text, currentIndex);
-                        var currentLineWhitespace = text[lineStartIndex..currentIndex];
+                        var currentLineWhitespace = text[lineStartPosition..currentIndex];
 
                         if (!currentLineWhitespace.StartsWith(indentationWhitespace))
                         {
@@ -200,14 +200,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             var isLegalBlankLine = isBlankLine && indentationWhitespace.StartsWith(currentLineWhitespace);
                             if (!isLegalBlankLine)
                             {
-                                indentationError ??= makeIndentationError(
-                                    indentationWhitespace, currentLineWhitespace, lineStartIndex, currentIndex);
+                                // Specialized error message if this is a spacing difference.
+                                if (CheckForSpaceDifference(
+                                        currentLineWhitespace, indentationWhitespace,
+                                        out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
+                                {
+                                    indentationError ??= MakeError(
+                                        lineStartPosition,
+                                        width: currentIndex - lineStartPosition,
+                                        ErrorCode.ERR_LineContainsDifferentWhitespace,
+                                        currentLineWhitespaceChar, indentationWhitespaceChar);
+                                }
+                                else
+                                {
+                                    indentationError ??= MakeError(
+                                        lineStartPosition,
+                                        width: currentIndex - lineStartPosition,
+                                        ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
+                                }
                             }
                         }
                     }
 
                     // Skip the leading whitespace that matches the terminator line and add any text after that to our content.
-                    currentIndex = Math.Min(currentIndex, lineStartIndex + indentationWhitespace.Length);
+                    currentIndex = Math.Min(currentIndex, lineStartPosition + indentationWhitespace.Length);
                     currentIndex = ConsumeRemainingContentThroughNewLine(content, text, currentIndex);
                 }
 
@@ -238,32 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     },
                     originalText[closeQuoteRange],
                     originalToken.GetTrailingTrivia());
-            }
-
-            static SyntaxDiagnosticInfo makeIndentationError(
-                ReadOnlySpan<char> indentationWhitespace,
-                ReadOnlySpan<char> currentLineWhitespace,
-                int lineStartIndex,
-                int currentIndex)
-            {
-                // Specialized error message if this is a spacing difference.
-                if (CheckForSpaceDifference(
-                        currentLineWhitespace, indentationWhitespace,
-                        out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
-                {
-                    return MakeError(
-                        lineStartIndex,
-                        width: currentIndex - lineStartIndex,
-                        ErrorCode.ERR_LineContainsDifferentWhitespace,
-                        currentLineWhitespaceChar, indentationWhitespaceChar);
-                }
-                else
-                {
-                    return MakeError(
-                        lineStartIndex,
-                        width: currentIndex - lineStartIndex,
-                        ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
-                }
             }
 
             // if the interpolation starts on its own line, then it has to have correct indentation whitespace
