@@ -150,7 +150,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
-            _logger.LogDebug($"{MethodName} - Canceled");
+            _logger.LogInformation($"{MethodName} - Canceled");
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
