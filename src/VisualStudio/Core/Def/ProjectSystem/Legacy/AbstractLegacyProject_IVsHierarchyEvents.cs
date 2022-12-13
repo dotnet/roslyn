@@ -65,12 +65,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
                 if (filePath != null && File.Exists(filePath))
                 {
-                    VisualStudioProject.FilePath = filePath;
+                    ProjectSystemProject.FilePath = filePath;
                 }
 
                 if (Hierarchy.TryGetName(out var name))
                 {
-                    VisualStudioProject.DisplayName = name;
+                    ProjectSystemProject.DisplayName = name;
                 }
             }
 
