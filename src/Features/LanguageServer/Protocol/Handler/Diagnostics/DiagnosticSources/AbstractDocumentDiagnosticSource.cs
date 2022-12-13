@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal abstract record AbstractDocumentDiagnosticSource<TDocument>(DiagnosticKind DiagnosticKind, bool TaskList, TDocument Document) : IDiagnosticSource
     where TDocument : TextDocument
 {
-    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
 
     private static Tuple<ImmutableArray<string>, ImmutableArray<TaskListItemDescriptor>> s_lastRequestedTokens =
         Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TaskListItemDescriptor>.Empty);
