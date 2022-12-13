@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
-        protected abstract ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
+        protected abstract ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+            TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates the appropriate LSP type to report a new set of diagnostics and resultId.
@@ -122,6 +123,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
 
+        protected abstract (DiagnosticKind? kind, bool? taskList) GetRequestedDiagnosticKinds(TDiagnosticsParams diagnosticsParams);
+
         public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
@@ -129,6 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             context.TraceDebug($"{this.GetType()} started getting diagnostics");
 
             var diagnosticMode = GetDiagnosticMode(context);
+
             // For this handler to be called, we must have already checked the diagnostic mode
             // and set the appropriate capabilities.
             Contract.ThrowIfFalse(diagnosticMode == DiagnosticMode.LspPull, $"{diagnosticMode} is not pull");
@@ -152,7 +156,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
-            var orderedSources = await GetOrderedDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
+            var orderedSources = await GetOrderedDiagnosticSourcesAsync(
+                diagnosticsParams, context, cancellationToken).ConfigureAwait(false);
             context.TraceDebug($"Processing {orderedSources.Length} documents");
 
             foreach (var diagnosticSource in orderedSources)
@@ -476,6 +481,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
 
             return true;
+        }
+
+        protected static (DiagnosticKind diagnosticKind, bool taskList) GetDiagnosticKindInfo(VSInternalDiagnosticKind? queryingDiagnosticKind)
+        {
+            if (queryingDiagnosticKind?.Value == VSInternalDiagnosticKind.Task.Value)
+                return (default, taskList: true);
+
+            return queryingDiagnosticKind?.Value switch
+            {
+                PullDiagnosticConstants.CompilerSyntax => (DiagnosticKind.CompilerSyntax, taskList: false),
+                PullDiagnosticConstants.CompilerSemantic => (DiagnosticKind.CompilerSemantic, taskList: false),
+                PullDiagnosticConstants.AnalyzerSyntax => (DiagnosticKind.AnalyzerSyntax, taskList: false),
+                PullDiagnosticConstants.AnalyzerSemantic => (DiagnosticKind.AnalyzerSemantic, taskList: false),
+                _ => (DiagnosticKind.All, taskList: false),
+            };
         }
     }
 }

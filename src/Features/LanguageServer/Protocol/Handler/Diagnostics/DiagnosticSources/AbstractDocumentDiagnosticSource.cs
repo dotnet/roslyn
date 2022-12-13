@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract record AbstractDocumentDiagnosticSource<TDocument>(TDocument Document) : IDiagnosticSource
+internal abstract record AbstractDocumentDiagnosticSource<TDocument>(DiagnosticKind DiagnosticKind, bool TaskList, TDocument Document) : IDiagnosticSource
     where TDocument : TextDocument
 {
     private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
@@ -31,8 +31,8 @@ internal abstract record AbstractDocumentDiagnosticSource<TDocument>(TDocument D
 
     public string ToDisplayString() => $"{Document.FilePath ?? Document.Name} in {Document.Project.Name}";
 
-    protected abstract bool IncludeTaskListItems { get; }
-    protected abstract bool IncludeStandardDiagnostics { get; }
+    private bool IncludeTaskListItems => TaskList;
+    private bool IncludeStandardDiagnostics => !TaskList;
 
     protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);

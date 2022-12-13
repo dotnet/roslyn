@@ -56,15 +56,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ConvertTags(diagnosticData, potentialDuplicate: true);
         }
 
-        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-            => GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
+        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+            VSInternalWorkspaceDiagnosticsParams diagnosticsParams,
+            RequestContext context,
+            CancellationToken cancellationToken)
+        {
+            var (diagnosticKind, taskList) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
+            return GetDiagnosticSourcesAsync(diagnosticKind, taskList, context, GlobalOptions, cancellationToken);
+        }
 
         protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
         {
             return progress.GetFlattenedValues();
         }
 
-        internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
+            DiagnosticKind kind, bool taskList, RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -64,9 +65,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
             => ConvertTags(diagnosticData, potentialDuplicate: false);
 
-        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+            VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            return ValueTaskFactory.FromResult(GetDiagnosticSources(context));
+            var (diagnosticKind, taskList) = GetDiagnosticKindInfo(diagnosticsParams.QueryingDiagnosticKind);
+            return ValueTaskFactory.FromResult(GetDiagnosticSources(diagnosticKind, taskList, context));
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
@@ -74,7 +77,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetFlattenedValues();
         }
 
-        internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(RequestContext context)
+        internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(
+            DiagnosticKind diagnosticKind, bool taskList, RequestContext context)
         {
             // For the single document case, that is the only doc we want to process.
             //
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(document));
+            return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, taskList, document));
         }
     }
 }

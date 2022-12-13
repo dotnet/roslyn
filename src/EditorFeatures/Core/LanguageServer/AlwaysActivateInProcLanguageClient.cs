@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -75,6 +76,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             {
                 serverCapabilities.SupportsDiagnosticRequests = true;
                 serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
+                serverCapabilities.DiagnosticProvider ??= new();
+                serverCapabilities.DiagnosticProvider.DiagnosticKinds = new[]
+                {
+                    VSInternalDiagnosticKind.Task,
+                    new(PullDiagnosticConstants.CompilerSyntax),
+                    new(PullDiagnosticConstants.CompilerSemantic),
+                    new(PullDiagnosticConstants.AnalyzerSyntax),
+                    new(PullDiagnosticConstants.AnalyzerSemantic),
+                };
             }
 
             // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.

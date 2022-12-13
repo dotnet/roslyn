@@ -7,5 +7,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     internal static class PullDiagnosticConstants
     {
         public const string TaskItemCustomTag = nameof(TaskItemCustomTag);
+
+        public const string CompilerSyntax = nameof(CompilerSyntax);
+        public const string CompilerSemantic = nameof(CompilerSemantic);
+        public const string AnalyzerSyntax = nameof(AnalyzerSyntax);
+        public const string AnalyzerSemantic = nameof(AnalyzerSemantic);
     }
 }
