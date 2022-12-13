@@ -963,6 +963,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region clauses
 
+        public static bool IsElseClause(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ElseClause;
         public static bool IsEqualsValueClause(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.EqualsValueClause;
 

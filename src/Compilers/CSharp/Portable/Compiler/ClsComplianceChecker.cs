@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol containingType;
                     if (containingTypes.TryGetValue(contextBaseType.OriginalDefinition, out containingType))
                     {
-                        return !TypeSymbol.Equals(containingType, contextBaseType, TypeCompareKind.ConsiderEverything2);
+                        return !TypeSymbol.Equals(containingType, contextBaseType, TypeCompareKind.AllIgnoreOptions);
                     }
 
                     contextBaseType = contextBaseType.BaseTypeNoUseSiteDiagnostics;

@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
 Imports Roslyn.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         End Function
 
         Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace, jsonWriter As ILsifJsonWriter) As Task
-            ' We always want to assert that we're running with the correct composition, or otherwies the test doesn't reflect the real
+            ' We always want to assert that we're running with the correct composition, or otherwise the test doesn't reflect the real
             ' world function of the indexer.
             Assert.Equal(workspace.Composition, TestComposition)
 
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
                 ' Assert we don't have any errors to prevent any typos in the tests
                 Assert.Empty(compilation.GetDiagnostics().Where(Function(d) d.Severity = DiagnosticSeverity.Error))
 
-                Await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.Services, GeneratorOptions.Default)
+                Await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, CancellationToken.None)
             Next
         End Function
 
@@ -104,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         End Function
 
         ''' <summary>
-        ''' Returns the <see cref="Range" /> verticies in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
+        ''' Returns the <see cref="Range" /> vertices in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
         ''' </summary>
         Public Function GetSelectedRangesAsync() As Task(Of IEnumerable(Of Graph.Range))
             Return GetRangesAsync(Function(testDocument) testDocument.SelectedSpans)

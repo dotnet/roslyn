@@ -107,7 +107,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var spanSeparatorNeededBefore = false;
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
-                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, context.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+                    // We don't present additive-spans (like static/reassigned-variable) any differently, so strip them
+                    // out of the classifications we get back.
+                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(
+                        document, span, context.ClassificationOptions, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
 
                     var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
