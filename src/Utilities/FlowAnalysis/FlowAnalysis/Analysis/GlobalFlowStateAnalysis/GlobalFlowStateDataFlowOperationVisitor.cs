@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
     /// <summary>
     /// Operation visitor to flow the GlobalFlowState values across a given statement in a basic block.
     /// </summary>
-    public abstract class GlobalFlowStateDataFlowOperationVisitor<TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+    internal abstract class GlobalFlowStateDataFlowOperationVisitor<TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : AnalysisEntityDataFlowOperationVisitor<DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisContext : AbstractDataFlowAnalysisContext<DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
