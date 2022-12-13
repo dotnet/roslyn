@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     // the task list would not be visible.
                     new(PullDiagnosticCategories.Task),
                     // Dedicated request for workspace-diagnostics only.  We will only respond to these if FSA is on.
-                    new(PullDiagnosticCategories.WorkspaceDocuments),
-                    new(PullDiagnosticCategories.WorkspaceProjects),
+                    new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
                     // Fine-grained diagnostics requests.  Importantly, this separates out syntactic vs semantic
                     // requests, allowing the former to quickly reach the user without blocking on the latter.  In a
                     // similar vein, compiler diagnostics are explicitly distinct from analyzer-diagnostics, allowing

@@ -10,31 +10,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public const string TaskItemCustomTag = nameof(TaskItemCustomTag);
     }
-
-    internal static class PullDiagnosticCategories
-    {
-        /// <summary>
-        /// Task list items.  Can be for Document or Workspace pull requests.
-        /// </summary>
-        public static readonly string Task = VSInternalDiagnosticKind.Task.Value;
-
-        // Workspace categories
-
-        /// <summary>
-        /// Diagnostics for workspace documents.  We don't support fine-grained diagnostics requests for these (yet).
-        /// </summary>
-        public const string WorkspaceDocuments = nameof(WorkspaceDocuments);
-
-        /// <summary>
-        /// Diagnostics for workspace documents.  We don't support fine-grained diagnostics requests for these (yet).
-        /// </summary>
-        public const string WorkspaceProjects = nameof(WorkspaceProjects);
-
-        // Fine-grained document pull categories to allow diagnostics to more quickly reach the user.
-
-        public const string DocumentCompilerSyntax = nameof(DocumentCompilerSyntax);
-        public const string DocumentCompilerSemantic = nameof(DocumentCompilerSemantic);
-        public const string DocumentAnalyzerSyntax = nameof(DocumentAnalyzerSyntax);
-        public const string DocumentAnalyzerSemantic = nameof(DocumentAnalyzerSemantic);
-    }
 }

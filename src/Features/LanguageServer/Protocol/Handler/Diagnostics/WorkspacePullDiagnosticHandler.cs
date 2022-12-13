@@ -71,14 +71,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
 
-            if (category == PullDiagnosticCategories.WorkspaceProjects)
-                return GetProjectDiagnosticSources(context, GlobalOptions);
-
             if (category == PullDiagnosticCategories.Task)
                 return GetTaskListDiagnosticSources(context, GlobalOptions);
 
             // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
-            if (category == null || category == PullDiagnosticCategories.WorkspaceDocuments)
+            if (category == null || category == PullDiagnosticCategories.WorkspaceDocumentsAndProject)
                 return await GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken).ConfigureAwait(false);
 
             // if it's a category we don't recognize, return nothing.
@@ -154,25 +151,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return result.ToImmutable();
         }
 
-        public static ImmutableArray<IDiagnosticSource> GetProjectDiagnosticSources(
-            RequestContext context, IGlobalOptionService globalOptions)
-        {
-            Contract.ThrowIfNull(context.Solution);
-
-            using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
-
-            var solution = context.Solution;
-
-            foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
-            {
-                var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                if (fullSolutionAnalysisEnabled)
-                    result.Add(new ProjectDiagnosticSource(project));
-            }
-
-            return result.ToImmutable();
-        }
-
         public static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
             RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
@@ -220,6 +198,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                     result.Add(new WorkspaceDocumentDiagnosticSource(document));
                 }
+
+                // Finally, add the project source to get project specific diagnostics, not associated with any document.
+                result.Add(new ProjectDiagnosticSource(project));
             }
         }
     }

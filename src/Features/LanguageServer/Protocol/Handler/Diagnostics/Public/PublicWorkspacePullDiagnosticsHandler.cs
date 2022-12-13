@@ -94,14 +94,11 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         };
     }
 
-    protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
         WorkspaceDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
     {
         // Task list items are not reported through the public LSP diagnostic API.
-
-        var projectSources = WorkspacePullDiagnosticHandler.GetProjectDiagnosticSources(context, GlobalOptions);
-        var documentSources = await WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken).ConfigureAwait(false);
-        return documentSources.Concat(projectSources);
+        return WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
