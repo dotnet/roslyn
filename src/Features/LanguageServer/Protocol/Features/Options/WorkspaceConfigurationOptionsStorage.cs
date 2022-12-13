@@ -13,8 +13,7 @@ internal static class WorkspaceConfigurationOptionsStorage
         => new(
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
-                                               globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
-            DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences));
+                                               globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "FeatureManager/Storage", nameof(Database), WorkspaceConfigurationOptions.Default.CacheStorage,
@@ -23,10 +22,6 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
         "FeatureManager/Storage", "CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache,
         new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
-
-    public static readonly Option2<bool> DisableCloneWhenProducingSkeletonReferences = new(
-        "WorkspaceConfigurationOptions", "DisableCloneWhenProducingSkeletonReferences", WorkspaceConfigurationOptions.Default.DisableCloneWhenProducingSkeletonReferences,
-        new FeatureFlagStorageLocation("Roslyn.DisableCloneWhenProducingSkeletonReferences"));
 
     public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
         "WorkspaceConfigurationOptions", "DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata,
