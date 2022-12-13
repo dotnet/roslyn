@@ -118,9 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
 
-            var solution = context.Solution;
-
-            foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
+            foreach (var project in GetProjectsInPriorityOrder(context.Solution, context.SupportedLanguages))
             {
                 foreach (var document in project.Documents)
                 {
@@ -152,41 +150,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
 
             var solution = context.Solution;
+            var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
 
-            var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
+            foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
+                AddDocumentsAndProject(project);
 
-            // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
-            // prioritize the files from currently active projects, but then also include all other docs in all projects
-            // (depending on current FSA settings).
-
-            var activeDocument = documentTrackingService.GetActiveDocument(solution);
-            var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
-
-            // Now, prioritize the projects related to the active/visible files.
-            await AddDocumentsAndProject(activeDocument?.Project, context.SupportedLanguages, cancellationToken).ConfigureAwait(false);
-            foreach (var doc in visibleDocuments)
-                await AddDocumentsAndProject(doc.Project, context.SupportedLanguages, cancellationToken).ConfigureAwait(false);
-
-            // finally, add the remainder of all documents.
-            foreach (var project in solution.Projects)
-                await AddDocumentsAndProject(project, context.SupportedLanguages, cancellationToken).ConfigureAwait(false);
-
-            // Ensure that we only process documents once.
-            result.RemoveDuplicates();
             return result.ToImmutable();
 
-            async Task AddDocumentsAndProject(Project? project, ImmutableArray<string> supportedLanguages, CancellationToken cancellationToken)
+            async Task AddDocumentsAndProject(Project project, ImmutableArray<string> supportedLanguages, CancellationToken cancellationToken)
             {
-                if (project == null)
-                    return;
-
-                if (!supportedLanguages.Contains(project.Language))
-                {
-                    // This project is for a language not supported by the LSP server making the request.
-                    // Do not report diagnostics for these projects.
-                    return;
-                }
-
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
                 if (!fullSolutionAnalysisEnabled)
                     return;
@@ -194,7 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
 
                 // If all features are enabled for source generated documents, then compute todo-comments/diagnostics for them.
-                if (solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true)
+                if (enableDiagnosticsInSourceGeneratedFiles)
                 {
                     var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                     documents = documents.AddRange(sourceGeneratedDocuments);
