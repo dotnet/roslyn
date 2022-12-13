@@ -2107,6 +2107,11 @@ End Module
                 Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "end namespace").ContainsDirective(currentKind))
             Next
 
+            ' directive in trailing trivia Is Not a thing
+            For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
+                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "end namespace #if false").ContainsDirective(currentKind))
+            Next
+
             Dim TestContainsHelper2 = Sub(directiveKinds As SyntaxKind(), compilationUnit As CompilationUnitSyntax)
                                           Assert.True(compilationUnit.ContainsDirectives)
                                           For Each currentKind In directiveKinds
