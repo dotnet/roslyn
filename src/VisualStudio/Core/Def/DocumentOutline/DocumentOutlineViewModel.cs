@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // initialize public properties
             _sortOption = SortOption.Location;
-            _documentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>();
+            _documentSymbolViewModelItems = new ObservableCollection<DocumentSymbolItemViewModel>();
 
             // event queues for updating view model state
             _expandCollapseQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
@@ -107,11 +107,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private readonly SemaphoreSlim _guard = new SemaphoreSlim(1);
-        private ObservableCollection<DocumentSymbolItemViewModel> _documentSymbolUIItems;
-        public ObservableCollection<DocumentSymbolItemViewModel> DocumentSymbolUIItems
+        private ObservableCollection<DocumentSymbolItemViewModel> _documentSymbolViewModelItems;
+        public ObservableCollection<DocumentSymbolItemViewModel> DocumentSymbolViewModelItems
         {
-            get => _documentSymbolUIItems;
-            set => SetProperty(ref _documentSymbolUIItems, value);
+            get => _documentSymbolViewModelItems;
+            set => SetProperty(ref _documentSymbolViewModelItems, value);
         }
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)

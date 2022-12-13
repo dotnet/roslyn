@@ -55,15 +55,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
-            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
+            var documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
 
             // lock while we update the collection
             using (await _guard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 _currentSnapshot = model.OriginalSnapshot;
-                DocumentOutlineHelper.UnselectAll(DocumentSymbolUIItems);
-                var allCollapsed = DocumentOutlineHelper.AreAllCollapsed(DocumentSymbolUIItems);
-                DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolUIItems);
+                DocumentOutlineHelper.UnselectAll(DocumentSymbolViewModelItems);
+                var allCollapsed = DocumentOutlineHelper.AreAllCollapsed(DocumentSymbolViewModelItems);
+                DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolViewModelItems);
 
                 if (_currentCaretPosition.HasValue)
                 {

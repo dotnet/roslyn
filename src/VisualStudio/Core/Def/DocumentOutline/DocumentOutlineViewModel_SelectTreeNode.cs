@@ -38,15 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             using (await _guard.DisposableWaitAsync(token).ConfigureAwait(false))
             {
-                var documentSymbolUIItems = _documentSymbolUIItems;
-                var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, _currentSnapshot, caretPoint.Value);
+                var documentSymbolViewModelItems = _documentSymbolViewModelItems;
+                var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolViewModelItems, _currentSnapshot, caretPoint.Value);
 
                 if (symbolToSelect is null)
                 {
                     return;
                 }
 
-                DocumentOutlineHelper.ExpandAncestors(documentSymbolUIItems, symbolToSelect.RangeSpan);
+                DocumentOutlineHelper.ExpandAncestors(documentSymbolViewModelItems, symbolToSelect.RangeSpan);
                 symbolToSelect.IsSelected = true;
                 _currentCaretPosition = caretPosition;
             }

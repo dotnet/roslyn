@@ -25,8 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var expansionOption = expansionOptions.Last();
             using (await _guard.DisposableWaitAsync(token).ConfigureAwait(false))
             {
-                var documentSymbolUIItems = _documentSymbolUIItems;
-                DocumentOutlineHelper.SetExpansionOption(documentSymbolUIItems, expansionOption);
+                var documentSymbolViewModelItems = _documentSymbolViewModelItems;
+                DocumentOutlineHelper.SetExpansionOption(documentSymbolViewModelItems, expansionOption);
             }
         }
     }

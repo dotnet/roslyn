@@ -20,7 +20,7 @@
         <CollectionViewSource
             x:Key="DocumentSymbolItems"
             IsLiveSortingRequested="True"
-            Source="{Binding DocumentSymbolUIItems}">
+            Source="{Binding DocumentSymbolViewModelItems}">
             <CollectionViewSource.SortDescriptions>
                 <ComponentModel:SortDescription PropertyName="StartPosition" Direction="Ascending" />
             </CollectionViewSource.SortDescriptions>

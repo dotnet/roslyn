@@ -376,14 +376,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        internal static bool AreAllCollapsed(IEnumerable<DocumentSymbolItemViewModel> documentSymbolUIItems)
+        internal static bool AreAllCollapsed(IEnumerable<DocumentSymbolItemViewModel> documentSymbolViewModelItems)
         {
-            if (!documentSymbolUIItems.Any())
+            if (!documentSymbolViewModelItems.Any())
             {
                 return false;
             }
 
-            foreach (var item in documentSymbolUIItems)
+            foreach (var item in documentSymbolViewModelItems)
             {
                 if (item.IsExpanded)
                 {

@@ -34,21 +34,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             if (searchText == string.Empty)
             {
-                var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
+                var documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
                 using (await _guard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolUIItems);
+                    DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolViewModelItems);
                 }
             }
             else
             {
                 var documentSymbolData = DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, searchText, cancellationToken);
-                var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(documentSymbolData);
+                var documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(documentSymbolData);
 
                 using (await _guard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    DocumentOutlineHelper.UnselectAll(DocumentSymbolUIItems);
-                    DocumentSymbolUIItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolUIItems);
+                    DocumentOutlineHelper.UnselectAll(DocumentSymbolViewModelItems);
+                    DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolViewModelItems);
                 }
             }
         }
