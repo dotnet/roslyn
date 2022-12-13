@@ -468,24 +468,15 @@ namespace Microsoft.CodeAnalysis
                         // no need to look within if this token doesn't even have leading trivia.
                         if (current.HasLeadingTrivia)
                         {
-                            var leadingTriviaNode = current.GetLeadingTriviaCore();
-                            Debug.Assert(leadingTriviaNode != null);
-
-                            // Will either have one or many trivia nodes.
-                            if (leadingTriviaNode.IsList)
-                            {
-                                for (int i = 0, n = leadingTriviaNode.SlotCount; i < n; i++)
-                                {
-                                    var child = leadingTriviaNode.GetSlot(i);
-                                    if (child is { IsDirective: true, RawKind: var childKind } && childKind == rawKind)
-                                        return true;
-                                }
-                            }
-                            else if (leadingTriviaNode.IsDirective && leadingTriviaNode.RawKind == rawKind)
-                            {
+                            if (triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind))
                                 return true;
-                            }
                         }
+                        else
+                        {
+                            Debug.Assert(!triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind), "Should not have a match if the token doesn't even have leading trivia");
+                        }
+
+                        Debug.Assert(!triviaContainsMatch(current.GetTrailingTriviaCore(), rawKind), "Should never have a match in trailing trivia");
                     }
                     else
                     {
@@ -500,6 +491,29 @@ namespace Microsoft.CodeAnalysis
             finally
             {
                 stack.Free();
+            }
+
+            static bool triviaContainsMatch(GreenNode? triviaNode, int rawKind)
+            {
+                if (triviaNode is not null)
+                {
+                    // Will either have one or many trivia nodes.
+                    if (triviaNode.IsList)
+                    {
+                        for (int i = 0, n = triviaNode.SlotCount; i < n; i++)
+                        {
+                            var child = triviaNode.GetSlot(i);
+                            if (child is { IsDirective: true, RawKind: var childKind } && childKind == rawKind)
+                                return true;
+                        }
+                    }
+                    else if (triviaNode.IsDirective && triviaNode.RawKind == rawKind)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
