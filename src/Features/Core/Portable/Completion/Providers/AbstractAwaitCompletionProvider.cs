@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var appendConfigureAwait = completionProperties.ContainsKey(AppendConfigureAwait);
 
-                var description = appendConfigureAwait
+                var description = appendConfigureAwait || isDotAwait
                     ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, tooltip))
                     : RecommendedKeyword.CreateDisplayParts(displayText, tooltip);
 

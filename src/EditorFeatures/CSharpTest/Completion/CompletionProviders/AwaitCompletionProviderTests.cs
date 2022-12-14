@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion = LanguageVersion.Default, string? inlineDescription = null, bool dotAwait = false, bool dotAwaitf = false)
         {
             var expectedDescription = dotAwait
-                ? GetDescription(CompletionDisplayTextAwait, FeaturesResources.Await_the_preceding_expression)
+                ? FeaturesResources.Await_the_preceding_expression
                 : GetDescription(CompletionDisplayTextAwait, FeaturesResources.Asynchronously_waits_for_the_task_to_finish);
             await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: (int)(dotAwait ? Glyph.Snippet : Glyph.Keyword), expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
 
