@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// Serializes settings marked with <see cref="ClientSettingsStorageLocation"/> to and from VS Settings storage.
     /// </summary>
-    internal sealed class VisualStudioSettingsOptionPersister : IOptionPersister
+    internal sealed class VisualStudioSettingsOptionPersister
     {
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
         /// <see cref="_optionsToMonitorForChangesGate" />.
         /// </summary>
-        private readonly Dictionary<string, List<OptionKey2>> _optionsToMonitorForChanges = new();
+        private readonly Dictionary<string, List<(OptionKey2 optionKey, string storageKey)>> _optionsToMonitorForChanges = new();
         private readonly object _optionsToMonitorForChangesGate = new();
 
         /// <remarks>
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
-            List<OptionKey2>? optionsToRefresh = null;
+            List<(OptionKey2, string)>? optionsToRefresh = null;
 
             lock (_optionsToMonitorForChangesGate)
             {
@@ -81,9 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 // and since this event is raised after the setting is modified, any new setting would have already been observed in GetFirstOrDefaultValue.
                 // And if it wasn't, this event will then refresh it.
                 var anyOptionChanged = false;
-                foreach (var optionToRefresh in optionsToRefresh)
+                foreach (var (optionToRefresh, storageKey) in optionsToRefresh)
                 {
-                    if (TryFetch(optionToRefresh, out var optionValue))
+                    if (TryFetch(optionToRefresh, storageKey, out var optionValue))
                     {
                         anyOptionChanged |= _legacyGlobalOptions.GlobalOptions.RefreshOption(optionToRefresh, optionValue);
                     }
@@ -100,46 +101,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        private object? GetFirstOrDefaultValue(OptionKey2 optionKey, IEnumerable<ClientSettingsStorageLocation> storageLocations)
+        private bool TryGetValue(OptionKey2 optionKey, string storageKey, out object? value)
         {
             Contract.ThrowIfNull(_settingManager);
 
-            // There can be more than 1 storage location in the order of their priority.
-            // When fetching a value, we iterate all of them until we find the first one that exists.
-            // When persisting a value, we always use the first location.
-            // This functionality exists to accomodate breaking changes to persistence of some options. In such a case, there
-            // will be a new location added to the beginning with a new name. When fetching a value, we might find the old
-            // location (and can upgrade the value accordingly) but we only write to the new location so that
-            // we don't interfere with older versions. This will essentially "fork" the user's options at the time of upgrade.
+            RecordObservedValueToWatchForChanges(optionKey, storageKey);
 
-            foreach (var storageLocation in storageLocations)
+            if (optionKey.Option.Type == typeof(ImmutableArray<string>) &&
+                _settingManager.TryGetValue(storageKey, out string[] stringArray) == GetValueResult.Success)
             {
-                var storageKey = storageLocation.GetKeyNameForLanguage(optionKey.Language);
-
-                RecordObservedValueToWatchForChanges(optionKey, storageKey);
-
-                if (optionKey.Option.Type == typeof(ImmutableArray<string>) &&
-                    _settingManager.TryGetValue(storageKey, out string[] stringArray) == GetValueResult.Success)
-                {
-                    return stringArray.ToImmutableArray();
-                }
-
-                if (optionKey.Option.Type == typeof(int) &&
-                    _settingManager.TryGetValue(storageKey, out int intValue) == GetValueResult.Success)
-                {
-                    return intValue;
-                }
-
-                if (_settingManager.TryGetValue(storageKey, out object value) == GetValueResult.Success)
-                {
-                    return value;
-                }
+                value = stringArray.ToImmutableArray();
+                return true;
             }
 
-            return optionKey.Option.DefaultValue;
+            if (optionKey.Option.Type == typeof(int) &&
+                _settingManager.TryGetValue(storageKey, out int intValue) == GetValueResult.Success)
+            {
+                value = intValue;
+                return true;
+            }
+
+            return _settingManager.TryGetValue(storageKey, out value) == GetValueResult.Success;
         }
 
-        public bool TryFetch(OptionKey2 optionKey, out object? value)
+        public bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
         {
             if (_settingManager == null)
             {
@@ -148,14 +133,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return false;
             }
 
-            var storageLocations = optionKey.Option.StorageLocations.OfType<ClientSettingsStorageLocation>();
-            if (!storageLocations.Any())
+            if (!TryGetValue(optionKey, storageKey, out value))
             {
-                value = null;
                 return false;
             }
-
-            value = GetFirstOrDefaultValue(optionKey, storageLocations);
 
             // VS's ISettingsManager has some quirks around storing enums.  Specifically,
             // it *can* persist and retrieve enums, but only if you properly call 
@@ -251,31 +232,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // We're about to fetch the value, so make sure that if it changes we'll know about it
             lock (_optionsToMonitorForChangesGate)
             {
-                var optionKeysToMonitor = _optionsToMonitorForChanges.GetOrAdd(storageKey, _ => new List<OptionKey2>());
+                var optionKeysToMonitor = _optionsToMonitorForChanges.GetOrAdd(storageKey, _ => new List<(OptionKey2 optionKey, string storageKey)>());
 
-                if (!optionKeysToMonitor.Contains(optionKey))
+                if (optionKeysToMonitor.Contains((optionKey, storageKey)))
                 {
-                    optionKeysToMonitor.Add(optionKey);
+                    optionKeysToMonitor.Add((optionKey, storageKey));
                 }
             }
         }
 
-        public bool TryPersist(OptionKey2 optionKey, object? value)
+        public bool TryPersist(OptionKey2 optionKey, string storageKey, object? value)
         {
             if (_settingManager == null)
             {
                 Debug.Fail("Manager field is unexpectedly null.");
                 return false;
             }
-
-            // Do we roam this at all?
-            var storageLocation = optionKey.Option.StorageLocations.OfType<ClientSettingsStorageLocation>().FirstOrDefault();
-            if (storageLocation == null)
-            {
-                return false;
-            }
-
-            var storageKey = storageLocation.GetKeyNameForLanguage(optionKey.Language);
 
             RecordObservedValueToWatchForChanges(optionKey, storageKey);
 
@@ -293,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
             }
 
-            _settingManager.SetValueAsync(storageKey, value, storageLocation.IsMachineLocal);
+            _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
             return true;
         }
     }

@@ -12,10 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    /// <summary>
-    /// Serializes options marked with <see cref="FeatureFlagStorageLocation"/> to the feature flag storage maintained by VS.
-    /// </summary>
-    internal sealed class FeatureFlagPersister : IOptionPersister
+    internal sealed class FeatureFlagPersister
     {
         private readonly IVsFeatureFlags? _featureFlags;
 
@@ -24,16 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _featureFlags = featureFlags;
         }
 
-        public bool TryFetch(OptionKey2 optionKey, [NotNullWhen(true)] out object? value)
+        public bool TryFetch(OptionKey2 optionKey, string flagName, [NotNullWhen(true)] out object? value)
         {
             if (_featureFlags == null)
-            {
-                value = null;
-                return false;
-            }
-
-            var location = optionKey.Option.StorageLocations.OfType<FeatureFlagStorageLocation>().FirstOrDefault();
-            if (location == null)
             {
                 value = null;
                 return false;
@@ -46,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             try
             {
-                value = _featureFlags.IsFeatureEnabled(location.Name, defaultValue);
+                value = _featureFlags.IsFeatureEnabled(flagName, defaultValue);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -56,15 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
-        public bool TryPersist(OptionKey2 optionKey, object? value)
+        public bool TryPersist(string flagName, object? value)
         {
             if (_featureFlags == null)
-            {
-                return false;
-            }
-
-            var location = optionKey.Option.StorageLocations.OfType<FeatureFlagStorageLocation>().FirstOrDefault();
-            if (location == null)
             {
                 return false;
             }
@@ -76,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             try
             {
-                ((IVsFeatureFlags2)_featureFlags).EnableFeatureFlag(location.Name, flag);
+                ((IVsFeatureFlags2)_featureFlags).EnableFeatureFlag(flagName, flag);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
