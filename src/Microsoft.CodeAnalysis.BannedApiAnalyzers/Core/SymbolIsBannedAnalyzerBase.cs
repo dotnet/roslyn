@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifySymbol(context.ReportDiagnostic, conversion.OperatorMethod, context.Operation.Syntax);
                                 VerifyType(context.ReportDiagnostic, conversion.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
+
                             break;
 
                         case IUnaryOperation unary:
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifySymbol(context.ReportDiagnostic, unary.OperatorMethod, context.Operation.Syntax);
                                 VerifyType(context.ReportDiagnostic, unary.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
+
                             break;
 
                         case IBinaryOperation binary:
@@ -117,6 +119,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifySymbol(context.ReportDiagnostic, binary.OperatorMethod, context.Operation.Syntax);
                                 VerifyType(context.ReportDiagnostic, binary.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
+
                             break;
 
                         case IIncrementOrDecrementOperation incrementOrDecrement:
@@ -125,6 +128,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifySymbol(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod, context.Operation.Syntax);
                                 VerifyType(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
+
                             break;
                         case ITypeOfOperation typeOfOperation:
                             VerifyType(context.ReportDiagnostic, typeOfOperation.TypeOperand, context.Operation.Syntax);
@@ -220,6 +224,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 return false;
                             }
                         }
+
                         break;
 
                     case IArrayTypeSymbol arrayTypeSymbol:

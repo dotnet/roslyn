@@ -142,6 +142,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     TestOutput.WriteLine(
                         $"Line {lineNumber}, Column {columnNumber}, {MethodSymbolOrReturnString(kvp.Key.Method)}: {kvp.Value}");
                 }
+
                 TestOutput.WriteLine("============================");
 
                 throw;
@@ -1349,6 +1350,7 @@ class TestClass
             {
                 Assert.Same(model, operation.SemanticModel);
             }
+
             return (operation, model, syntaxNode);
         }
 

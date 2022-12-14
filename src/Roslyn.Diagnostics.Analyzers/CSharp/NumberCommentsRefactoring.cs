@@ -63,10 +63,12 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     return "@\"";
                 }
+
                 if (text.StartsWith("\"", StringComparison.OrdinalIgnoreCase))
                 {
                     return "\"";
                 }
+
                 return null;
             }
         }
@@ -131,9 +133,11 @@ namespace Roslyn.Diagnostics.Analyzers
                     {
                         return (i, "\r\n");
                     }
+
                     return (i, "\r");
                 }
             }
+
             return (length, ""); // EOF
         }
 
@@ -147,11 +151,13 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     commaCount++;
                 }
+
                 if (current == '/' && comment[index - 1] == '/' && comment[index - 2] == ' ')
                 {
                     // found start of comment
                     return (index + 1, commaCount);
                 }
+
                 if (!IsDigitOrComma(current))
                 {
                     break;
@@ -167,10 +173,12 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 return true;
             }
+
             if (c is ' ' or ',')
             {
                 return true;
             }
+
             return false;
         }
 
@@ -180,6 +188,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 return text.Length - 1;
             }
+
             return text.Length;
         }
 
@@ -212,6 +221,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     builder.Append(text, cursor, eolOrEofIndex + newLine.Length - cursor);
                 }
+
                 cursor = eolOrEofIndex + newLine.Length;
             }
             while (cursor < length);

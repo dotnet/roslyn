@@ -262,6 +262,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return GetAncestor(ancestor, ancestorKind, predicate);
                 }
+
                 return (TOperation)ancestor;
             }
             else
@@ -295,6 +296,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return GetAncestor(ancestor, ancestorKinds, predicate);
                 }
+
                 return ancestor;
             }
             else
@@ -420,6 +422,7 @@ namespace Analyzer.Utilities.Extensions
                 case BinaryOperatorKind.Subtract:
                     binaryOperator = '-'; return true;
             }
+
             return false;
         }
 
@@ -814,6 +817,7 @@ namespace Analyzer.Utilities.Extensions
                         {
                             return true;
                         }
+
                         stack.Add(current.Children.GetEnumerator());
                     }
                 }

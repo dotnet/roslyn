@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             countOperator(operation);
                             countOperand(field);
                         }
+
                         continue;
                     case OperationKind.PropertyInitializer:
                         foreach (var property in ((IPropertyInitializerOperation)operation).InitializedProperties)
@@ -162,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             countOperator(operation);
                             countOperand(property);
                         }
+
                         continue;
                     case OperationKind.ParameterInitializer:
                         countOperator(operation);
@@ -177,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         {
                             countOperand(variableDeclarator.Symbol);
                         }
+
                         continue;
 
                     // Invocations and Object creations.
@@ -187,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         {
                             countOperand(invocation.TargetMethod);
                         }
+
                         continue;
                     case OperationKind.ObjectCreation:
                         countOperator(operation);
@@ -225,6 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         {
                             countOperator(operation);
                         }
+
                         continue;
 
                     // Other common operators.
@@ -271,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         {
                             countOperator(operation);
                         }
+
                         continue;
                 }
             }
@@ -392,10 +398,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 {
                     count += _distinctBinaryOperatorKinds.Count - 1;
                 }
+
                 if (_distinctUnaryOperatorKinds.Count > 1)
                 {
                     count += _distinctUnaryOperatorKinds.Count - 1;
                 }
+
                 if (_distinctCaseKinds.Count > 1)
                 {
                     count += _distinctCaseKinds.Count - 1;
