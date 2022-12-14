@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly VersionedPullCache<(int, VersionStamp?), (int, Checksum)> _versionedCache;
+        private readonly ConcurrentDictionary<string, VersionedPullCache<(int, VersionStamp?), (int, Checksum)>> _categoryToVersionedCache = new();
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -86,7 +87,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             DiagnosticAnalyzerService = diagnosticAnalyzerService;
             _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
             GlobalOptions = globalOptions;
-            _versionedCache = new(this.GetType().Name);
         }
 
         /// <summary>
@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
-        protected abstract ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
+        protected abstract ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+            TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates the appropriate LSP type to report a new set of diagnostics and resultId.
@@ -122,11 +123,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
 
+        protected abstract string? GetDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
+
         public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
             var clientCapabilities = context.GetRequiredClientCapabilities();
-            context.TraceInformation($"{this.GetType()} started getting diagnostics");
+            var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
+            var handlerName = $"{this.GetType().Name}(category: {category})";
+            context.TraceInformation($"{handlerName} started getting diagnostics");
+
+            var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
 
             var diagnosticMode = GetDiagnosticMode(context);
             // For this handler to be called, we must have already checked the diagnostic mode
@@ -152,7 +159,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
-            var orderedSources = await GetOrderedDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
+            var orderedSources = await GetOrderedDiagnosticSourcesAsync(
+                diagnosticsParams, context, cancellationToken).ConfigureAwait(false);
             context.TraceInformation($"Processing {orderedSources.Length} documents");
 
             foreach (var diagnosticSource in orderedSources)
@@ -160,7 +168,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
 
                 var project = diagnosticSource.GetProject();
-                var newResultId = await _versionedCache.GetNewResultIdAsync(
+
+                var newResultId = await versionedCache.GetNewResultIdAsync(
                     documentToPreviousDiagnosticParams,
                     diagnosticSource.GetId(),
                     project,
