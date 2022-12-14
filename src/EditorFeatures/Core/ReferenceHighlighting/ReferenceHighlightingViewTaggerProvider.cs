@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -156,7 +157,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                     {
                         // We only want to search inside documents that correspond to the snapshots
                         // we're looking at
-                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
+                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag
+                            .Where(vt => vt.Document != null)
+                            .Select(vt => (vt.Document!, vt.SnapshotSpan.Span.ToTextSpan()));
                         var documentHighlightsList = await service.GetDocumentHighlightsAsync(
                             document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
                         if (documentHighlightsList != null)
