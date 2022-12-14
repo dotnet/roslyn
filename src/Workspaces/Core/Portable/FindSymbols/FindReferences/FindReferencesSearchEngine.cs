@@ -132,68 +132,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public async Task FindReferencesInDocumentsAsync(
-            ISymbol symbol, IImmutableSet<(Document document, TextSpan textSpan)> documentsAndSpans, CancellationToken cancellationToken)
-        {
-            // Caller needs to pass unidirectional cascading to make this search efficient.  If we only have
-            // unidirectional cascading, then we only need to check the potential matches we find in the file against
-            // the starting symbol.
-            Debug.Assert(_options.UnidirectionalHierarchyCascade);
-            var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
-            unifiedSymbols.Add(symbol);
-
-            await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
-            try
-            {
-                var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
-                await using var _ = disposable.ConfigureAwait(false);
-
-                // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
-                // we'll expand this set as we discover new symbols to search for in each project.
-                var symbolSet = await SymbolSet.CreateAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
-
-                // Report the initial set of symbols to the caller.
-                var allSymbols = symbolSet.GetAllSymbols();
-                await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
-
-                // Determine the set of projects we actually have to walk to find results in.  This is only the set of
-                // projects that all these documents are in.
-                var projectsToSearch = documentsAndSpans.Select(t => t.document.Project).ToImmutableHashSet();
-
-                // Process projects in dependency graph order so that any compilations built by one are available for later projects.
-                var dependencyGraph = _solution.GetProjectDependencyGraph();
-                await _progressTracker.AddItemsAsync(projectsToSearch.Count, cancellationToken).ConfigureAwait(false);
-
-                using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-                foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
-                {
-                    var currentProject = _solution.GetRequiredProject(projectId);
-                    if (!projectsToSearch.Contains(currentProject))
-                        continue;
-
-                    // As we walk each project, attempt to grow the search set appropriately up and down the inheritance
-                    // hierarchy and grab a copy of the symbols to be processed.  Note: this has to happen serially
-                    // which is why we do it in this loop and not inside the concurrent project processing that happens
-                    // below.
-                    await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
-                    allSymbols = symbolSet.GetAllSymbols();
-
-                    // Report any new symbols we've cascaded to to our caller.
-                    await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
-
-                    tasks.Add(CreateWorkAsync(() => ProcessProjectAsync(currentProject, allSymbols, cancellationToken), cancellationToken));
-                }
-
-                // Now, wait for all projects to complete.
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-            }
-            finally
-            {
-                await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
         public Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
             => Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap();
 
@@ -242,25 +180,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return DependentProjectsFinder.GetDependentProjectsAsync(_solution, symbols, projects, cancellationToken);
         }
 
+        private async Task AddGlobalAliasesAsync(
+            Project project,
+            ImmutableArray<ISymbol> allSymbols,
+            PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
+            CancellationToken cancellationToken)
+        {
+            foreach (var symbol in allSymbols)
+            {
+                foreach (var finder in _finders)
+                {
+                    var aliases = await finder.DetermineGlobalAliasesAsync(
+                        symbol, project, cancellationToken).ConfigureAwait(false);
+                    if (aliases.Length > 0)
+                    {
+                        var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
+                        globalAliases.AddRange(aliases);
+                    }
+                }
+            }
+        }
+
+        private static void FreeGlobalAliases(PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
+        {
+            foreach (var (_, globalAliases) in symbolToGlobalAliases)
+                globalAliases.Free();
+        }
+
         private async Task ProcessProjectAsync(Project project, ImmutableArray<ISymbol> allSymbols, CancellationToken cancellationToken)
         {
             using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
             using var _2 = PooledDictionary<Document, MetadataUnifyingSymbolHashSet>.GetInstance(out var documentToSymbols);
             try
             {
-                foreach (var symbol in allSymbols)
-                {
-                    foreach (var finder in _finders)
-                    {
-                        var aliases = await finder.DetermineGlobalAliasesAsync(
-                            symbol, project, cancellationToken).ConfigureAwait(false);
-                        if (aliases.Length > 0)
-                        {
-                            var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
-                            globalAliases.AddRange(aliases);
-                        }
-                    }
-                }
+                await AddGlobalAliasesAsync(project, allSymbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
 
                 foreach (var symbol in allSymbols)
                 {
@@ -296,21 +249,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     s_metadataUnifyingSymbolHashSetPool.Free(symbols);
                 }
 
-                foreach (var (_, globalAliases) in symbolToGlobalAliases)
-                    globalAliases.Free();
+                FreeGlobalAliases(symbolToGlobalAliases);
 
                 await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
-            {
-                if (!dictionary.TryGetValue(key, out var set))
-                {
-                    set = PooledHashSet<string>.GetInstance();
-                    dictionary.Add(key, set);
-                }
-
-                return set;
             }
 
             static MetadataUnifyingSymbolHashSet GetSymbolSet<T>(PooledDictionary<T, MetadataUnifyingSymbolHashSet> dictionary, T key) where T : notnull
@@ -323,6 +264,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return set;
             }
+        }
+
+        private static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var set))
+            {
+                set = PooledHashSet<string>.GetInstance();
+                dictionary.Add(key, set);
+            }
+
+            return set;
         }
 
         private static PooledHashSet<U>? TryGet<T, U>(Dictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
@@ -375,7 +327,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var finder in _finders)
                     {
                         var references = await finder.FindReferencesInDocumentAsync(
-                            symbol, state, _options, cancellationToken).ConfigureAwait(false);
+                            symbol, state, _options, textSpan: null, cancellationToken).ConfigureAwait(false);
                         foreach (var (_, location) in references)
                             await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                     }
