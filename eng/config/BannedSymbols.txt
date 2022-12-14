@@ -50,3 +50,4 @@ M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Create(Microsoft.Code
 M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Create(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions,System.String,System.Text.Encoding); Use VisualBasicSyntaxTree sublass that takes checksum algorithm
 M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(System.String,Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions,System.String,System.Text.Encoding,System.Collections.Immutable.ImmutableDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic},System.Threading.CancellationToken); Use overload with SourceText
 M:Microsoft.CodeAnalysis.Workspaces.Workspace.SetCurrentSolution(Microsoft.CodeAnalysis.Solution); Use SetCurrentSolutionEx instead.
+M:System.Enum.GetHashCode(); Cast to integral type to avoid boxing on .NET Framework
