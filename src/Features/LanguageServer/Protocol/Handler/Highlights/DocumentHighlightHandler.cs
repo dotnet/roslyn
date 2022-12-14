@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var highlights = await documentHighlightService.GetDocumentHighlightsAsync(
                 document,
                 position,
-                ImmutableHashSet.Create(document),
+                ImmutableHashSet.Create((document, new TextSpan(0, text.Length))),
                 options,
                 cancellationToken).ConfigureAwait(false);
 
