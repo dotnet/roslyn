@@ -111,6 +111,22 @@ namespace Microsoft.CodeAnalysis
                 newTreeAndVersion = new TreeAndVersion(newTree, siblingVersion);
                 return true;
 
+                // Determines if the root of a tree from a different project can be used in this project.  The general
+                // intuition (explained below) is that files without `#if` directives in them can be reused as the parse
+                // trees will be the same.
+                //
+                // This is *technically* not completely accurate as language-version can affect the parse tree as well.
+                // For example, `record X() { }` is a method prior to the addition of records to the language.  However,
+                // in practice this should not be an issue.  Specifically, either user code does not have a construct
+                // like this, in which case they are not affected by sharing.  *Or*, they do have such a construct, but
+                // are being deliberately pathological.  In other words, there are no realistic programs that depend on
+                // having one interpretation in one version, and another interpretation in another version.  So we are
+                // ok saying we don't care about having that not work in the IDE (it will still work fine in the
+                // compiler).
+                //
+                // Note: we deliberately do not look at language version because it often is different across project
+                // flavors.  So we would often get no benefit to sharing if we restricted to only when the lang version
+                // is the same.
                 bool CanReuseSiblingRoot()
                 {
                     Interlocked.Increment(ref s_tryReuseSyntaxTree);
