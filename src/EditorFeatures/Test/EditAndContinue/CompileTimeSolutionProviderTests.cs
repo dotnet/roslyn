@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var analyzerConfigText = "is_global = true\r\nbuild_property.SuppressRazorSourceGenerator = true";
 
-            workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(s => s.
+            workspace.SetCurrentSolution(s => s.
                 AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj", "proj", LanguageNames.CSharp)).
                 AddAnalyzerReference(projectId, new TestGeneratorReference(generator)).
                 AddAdditionalDocument(additionalDocumentId, "additional", SourceText.From(""), filePath: "additional.razor").
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // Now do something that shouldn't force the generator to rerun; we must change this through the workspace since the
             // service itself uses versions that won't change otherwise
             var documentId = DocumentId.CreateNewId(projectId);
-            workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            workspace.SetCurrentSolution(
                 s => s.AddDocument(documentId, "Test.cs", "// source file"),
                 WorkspaceChangeKind.DocumentAdded,
                 projectId,

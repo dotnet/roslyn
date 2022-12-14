@@ -100,7 +100,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.False(gotChecksum2);
 
             // Now, add a project.  At this point, the original pinned object should go away.
-            workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(solution => solution.AddProject("Project", "Assembly", LanguageNames.CSharp).Solution, WorkspaceChangeKind.ProjectAdded);
+            workspace.SetCurrentSolution(solution => solution.AddProject("Project", "Assembly", LanguageNames.CSharp).Solution, WorkspaceChangeKind.ProjectAdded);
 
             for (var i = 0; i < 10; i++)
             {

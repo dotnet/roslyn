@@ -1064,7 +1064,7 @@ class Class
                 var compilationOptions = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
                 ImmutableDictionary<string, ReportDiagnostic>.Empty
                     .Add(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, ReportDiagnostic.Suppress));
-                workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(s => s.WithProjectCompilationOptions(projectId, compilationOptions), WorkspaceChangeKind.ProjectChanged, projectId);
+                workspace.SetCurrentSolution(s => s.WithProjectCompilationOptions(projectId, compilationOptions), WorkspaceChangeKind.ProjectChanged, projectId);
 
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
                 Assert.True(actions.Length == 0, "An action was offered when none was expected");

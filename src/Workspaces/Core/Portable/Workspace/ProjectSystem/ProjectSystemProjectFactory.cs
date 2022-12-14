@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         {
             using (_gate.DisposableWait())
             {
-                Workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
+                Workspace.SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
             }
         }
 
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             if (!solutionChanges.HasChange)
                 return;
 
-            Workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            Workspace.SetCurrentSolution(
                 _ => solutionChanges.Solution,
                 solutionChanges.WorkspaceChangeKind,
                 solutionChanges.WorkspaceChangeProjectId,
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
             Workspace.ClearOpenDocuments();
 
-            Workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            Workspace.SetCurrentSolution(
                 solution => Workspace.CreateSolution(
                     SolutionInfo.Create(
                         SolutionId.CreateNewId(),

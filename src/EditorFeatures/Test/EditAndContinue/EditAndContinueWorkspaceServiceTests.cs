@@ -4699,7 +4699,7 @@ class C
                     loader: new WorkspaceFileTextLoader(workspace.Services.SolutionServices, sourceFile.Path, Encoding.UTF8),
                     filePath: sourceFile.Path));
 
-            Assert.True(workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(_ => solution, WorkspaceChangeKind.SolutionAdded));
+            Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionAdded));
             solution = workspace.CurrentSolution;
 
             var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);

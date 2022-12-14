@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 => _workspace = workspace;
 
             public void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references)
-                => _workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
+                => _workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
         }
     }
 }

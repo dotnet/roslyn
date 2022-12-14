@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <inheritdoc cref="SetCurrentSolutionAndUnifyLinkedDocumentContents(Func{Solution, Solution}, Func{Solution, Solution, WorkspaceChangeKind}, ProjectId?, DocumentId?, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
-        internal bool SetCurrentSolutionAndUnifyLinkedDocumentContents(
+        internal bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
             WorkspaceChangeKind changeKind,
             ProjectId? projectId = null,
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            SetCurrentSolution(
                 oldSolution => oldSolution.WithOptions(new SolutionOptionSet(_legacyOptions)),
                 WorkspaceChangeKind.SolutionChanged);
         }
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionAdded(SolutionInfo solutionInfo)
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckSolutionIsEmpty(oldSolution);
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionReloaded(SolutionInfo reloadedSolutionInfo)
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution =>
                 {
                     var newSolution = this.CreateSolution(reloadedSolutionInfo);
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionRemoved()
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 _ => this.CreateSolution(SolutionId.CreateNewId()),
                 WorkspaceChangeKind.SolutionRemoved,
                 onBeforeUpdate: (_, _) => this.ClearSolutionData());
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectAdded(ProjectInfo projectInfo)
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution => CheckAndAddProject(oldSolution, projectInfo),
                 WorkspaceChangeKind.ProjectAdded, projectId: projectInfo.Id);
         }
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis
         protected internal virtual void OnProjectReloaded(ProjectInfo reloadedProjectInfo)
         {
             var projectId = reloadedProjectInfo.Id;
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckProjectIsInSolution(oldSolution, projectId);
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectRemoved(ProjectId projectId)
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckProjectIsInSolution(oldSolution, projectId);
@@ -655,19 +655,19 @@ namespace Microsoft.CodeAnalysis
         /// Call this method when a project's assembly name is changed in the host environment.
         /// </summary>
         protected internal void OnAssemblyNameChanged(ProjectId projectId, string assemblyName)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithProjectAssemblyName(projectId, assemblyName), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectAssemblyName(projectId, assemblyName), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's output file path is changed in the host environment.
         /// </summary>
         protected internal void OnOutputFilePathChanged(ProjectId projectId, string? outputFilePath)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithProjectOutputFilePath(projectId, outputFilePath), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectOutputFilePath(projectId, outputFilePath), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's output ref file path is changed in the host environment.
         /// </summary>
         protected internal void OnOutputRefFilePathChanged(ProjectId projectId, string? outputFilePath)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's name is changed in the host environment.
@@ -677,32 +677,32 @@ namespace Microsoft.CodeAnalysis
         // I'm leaving this marked as "non-null" so as not to say we actually support that behavior. The underlying
         // requirement is ProjectInfo.ProjectAttributes holds a non-null name, so you can't get a null into this even if you tried.
         protected internal void OnProjectNameChanged(ProjectId projectId, string name, string? filePath)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's default namespace is changed in the host environment.
         /// </summary>
         internal void OnDefaultNamespaceChanged(ProjectId projectId, string? defaultNamespace)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithProjectDefaultNamespace(projectId, defaultNamespace), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectDefaultNamespace(projectId, defaultNamespace), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's compilation options are changed in the host environment.
         /// </summary>
         protected internal void OnCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithProjectCompilationOptions(projectId, options), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectCompilationOptions(projectId, options), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's parse options are changed in the host environment.
         /// </summary>
         protected internal void OnParseOptionsChanged(ProjectId projectId, ParseOptions options)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithProjectParseOptions(projectId, options), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectParseOptions(projectId, options), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project reference is added to a project in the host environment.
         /// </summary>
         protected internal void OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
                 CheckProjectDoesNotHaveProjectReference(projectId, projectReference);
@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
                 CheckProjectHasProjectReference(projectId, projectReference);
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectDoesNotHaveMetadataReference(projectId, metadataReference);
                 return oldSolution.AddMetadataReference(projectId, metadataReference);
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectHasMetadataReference(projectId, metadataReference);
                 return oldSolution.RemoveMetadataReference(projectId, metadataReference);
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectDoesNotHaveAnalyzerReference(projectId, analyzerReference);
                 return oldSolution.AddAnalyzerReference(projectId, analyzerReference);
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectHasAnalyzerReference(projectId, analyzerReference);
                 return oldSolution.RemoveAnalyzerReference(projectId, analyzerReference);
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void OnSolutionAnalyzerReferenceAdded(AnalyzerReference analyzerReference)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckSolutionDoesNotHaveAnalyzerReference(oldSolution, analyzerReference);
                 return oldSolution.AddAnalyzerReference(analyzerReference);
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void OnSolutionAnalyzerReferenceRemoved(AnalyzerReference analyzerReference)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckSolutionHasAnalyzerReference(oldSolution, analyzerReference);
                 return oldSolution.RemoveAnalyzerReference(analyzerReference);
@@ -806,20 +806,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         // TODO: make it public
         internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithHasAllInformation(projectId, hasAllInformation), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithHasAllInformation(projectId, hasAllInformation), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's RunAnalyzers property is changed in the host environment.
         /// </summary>
         internal void OnRunAnalyzersChanged(ProjectId projectId, bool runAnalyzers)
-            => SetCurrentSolutionAndUnifyLinkedDocumentContents(oldSolution => oldSolution.WithRunAnalyzers(projectId, runAnalyzers), WorkspaceChangeKind.ProjectChanged, projectId);
+            => SetCurrentSolution(oldSolution => oldSolution.WithRunAnalyzers(projectId, runAnalyzers), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a document is added to a project in the host environment.
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution => oldSolution.AddDocument(documentInfo),
                 WorkspaceChangeKind.DocumentAdded, documentId: documentInfo.Id);
         }
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentReloaded(DocumentInfo newDocumentInfo)
         {
             var documentId = newDocumentInfo.Id;
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution => oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo),
                 WorkspaceChangeKind.DocumentReloaded, documentId: documentId);
         }
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentRemoved(DocumentId documentId)
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckDocumentIsInSolution(oldSolution, documentId);
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentInfoChanged(DocumentId documentId, DocumentInfo newInfo)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckDocumentIsInSolution(oldSolution, documentId);
@@ -1099,7 +1099,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentSourceCodeKindChanged(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckDocumentIsInSolution(oldSolution, documentId);
@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnAdditionalDocumentAdded(DocumentInfo documentInfo)
         {
             var documentId = documentInfo.Id;
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckProjectIsInSolution(oldSolution, documentId.ProjectId);
@@ -1130,7 +1130,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentRemoved(DocumentId documentId)
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnAnalyzerConfigDocumentAdded(DocumentInfo documentInfo)
         {
             var documentId = documentInfo.Id;
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            SetCurrentSolution(
                 oldSolution =>
             {
                 CheckProjectIsInSolution(oldSolution, documentId.ProjectId);
@@ -1169,7 +1169,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentRemoved(DocumentId documentId)
         {
-            this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            this.SetCurrentSolution(
                 oldSolution =>
                 {
                     CheckAnalyzerConfigDocumentIsInSolution(oldSolution, documentId);
@@ -1190,7 +1190,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void UpdateReferencesAfterAdd()
         {
-            SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            SetCurrentSolution(
                 oldSolution => UpdateReferencesAfterAdd(oldSolution),
                 WorkspaceChangeKind.SolutionChanged);
 

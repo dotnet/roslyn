@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             textDocument.Rename(newSubmissionFilePath);
 
             // Chain projects to the the last submission that successfully executed.
-            _workspace.SetCurrentSolutionAndUnifyLinkedDocumentContents(solution =>
+            _workspace.SetCurrentSolution(solution =>
             {
                 if (initializationScriptProjectId != null)
                 {
