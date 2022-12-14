@@ -10,13 +10,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
-// A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka the sumtype of changed / unchanged) followed
-// by n DocumentDiagnosticPartialResult literals.
-// See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
-[ExportCSharpVisualBasicLspServiceFactory(typeof(ExperimentalDocumentPullDiagnosticsHandler)), Shared]
-internal class ExperimentalDocumentPullDiagnosticHandlerFactory : ILspServiceFactory
+[ExportCSharpVisualBasicLspServiceFactory(typeof(PublicWorkspacePullDiagnosticsHandler)), Shared]
+internal class PublicWorkspacePullDiagnosticHandlerFactory : ILspServiceFactory
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
     private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
@@ -24,7 +21,7 @@ internal class ExperimentalDocumentPullDiagnosticHandlerFactory : ILspServiceFac
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ExperimentalDocumentPullDiagnosticHandlerFactory(
+    public PublicWorkspacePullDiagnosticHandlerFactory(
         IDiagnosticAnalyzerService analyzerService,
         EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
         IGlobalOptionService globalOptions)
@@ -35,5 +32,5 @@ internal class ExperimentalDocumentPullDiagnosticHandlerFactory : ILspServiceFac
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new ExperimentalDocumentPullDiagnosticsHandler(_analyzerService, _editAndContinueDiagnosticUpdateSource, _globalOptions);
+        => new PublicWorkspacePullDiagnosticsHandler(_analyzerService, _editAndContinueDiagnosticUpdateSource, _globalOptions);
 }

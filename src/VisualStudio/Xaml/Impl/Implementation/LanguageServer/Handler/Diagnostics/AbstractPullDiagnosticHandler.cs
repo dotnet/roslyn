@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                             diagnosticReport.ResultId));
             }
 
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         /// <summary>
