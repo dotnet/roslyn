@@ -157,9 +157,10 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                     {
                         // We only want to search inside documents that correspond to the snapshots
                         // we're looking at
-                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag
+                        var documentsToSearch = context.SpansToTag
                             .Where(vt => vt.Document != null)
-                            .Select(vt => (vt.Document!, vt.SnapshotSpan.Span.ToTextSpan()));
+                            .Select(vt => (vt.Document!, vt.SnapshotSpan.Span.ToTextSpan()))
+                            .ToImmutableHashSet();
                         var documentHighlightsList = await service.GetDocumentHighlightsAsync(
                             document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
                         if (documentHighlightsList != null)
