@@ -119,8 +119,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Await_the_preceding_expression,
-                    isDotAwait: true,
-                    isComplexTextEdit: true));
+                    isComplexTextEdit: true,
+                    isDotAwait: true));
 
                 if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
                 {
@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     context.AddItem(CreateCompletionItem(
                         properties, _awaitfDisplayText, _awaitfFilterText,
                         string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
-                        isDotAwait: true,
-                        isComplexTextEdit: true));
+                        isComplexTextEdit: true,
+                        isDotAwait: true));
                 }
             }
 
