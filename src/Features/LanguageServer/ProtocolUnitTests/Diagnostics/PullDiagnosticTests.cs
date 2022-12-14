@@ -149,8 +149,6 @@ class A {
                 testLspServer, document.GetURI(), useVSDiagnostics);
 
             Assert.Empty(results.Single().Diagnostics);
-            //Assert.Equal("TODO", results.Single().Diagnostics.Single().Code);
-            //Assert.Equal("todo: goo", results.Single().Diagnostics.Single().Message);
         }
 
         [Theory, CombinatorialData]
