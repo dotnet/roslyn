@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </remarks>
             public abstract Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken);
 
-            private static bool InvolvesInheritance(ISymbol symbol)
-                => symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event;
-
             public static async Task<SymbolSet> CreateAsync(
                 FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
             {

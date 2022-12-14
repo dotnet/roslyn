@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, TextSpan? textSpan, CancellationToken cancellationToken);
 
         private static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
             ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
             => state.Cache.FindMatchingIdentifierTokensAsync(state.Document, identifier, cancellationToken);
 
         protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return locations.ToImmutable();
         }
 
-        protected static FinderLocation CreateFinderLocation(
+        public static FinderLocation CreateFinderLocation(
             FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(token.Parent != null);
@@ -774,7 +775,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         protected abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            TSymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            TSymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, TextSpan? textSpan, CancellationToken cancellationToken);
 
         protected virtual Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
             TSymbol symbol, Project project, CancellationToken cancellationToken)
@@ -800,10 +801,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, TextSpan? textSpan, CancellationToken cancellationToken)
         {
             return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-                ? FindReferencesInDocumentAsync(typedSymbol, state, options, cancellationToken)
+                ? FindReferencesInDocumentAsync(typedSymbol, state, options, textSpan, cancellationToken)
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
 

@@ -68,12 +68,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             TextSpan? textSpan,
             CancellationToken cancellationToken);
-
-        ValueTask<ImmutableArray<FindReferencesCandidate>> FindCandidateReferencesInDocumentAsync(
-            string name,
-            FindReferencesDocumentState state,
-            FindReferencesSearchOptions options,
-            TextSpan? textSpan,
-            CancellationToken cancellationToken);
     }
 }

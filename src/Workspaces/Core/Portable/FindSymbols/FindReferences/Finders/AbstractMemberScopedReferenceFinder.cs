@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
+            TextSpan? textSpan,
             CancellationToken cancellationToken)
         {
             var container = GetContainer(symbol);
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
             {
-                var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
+                var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, textSpan, cancellationToken).ConfigureAwait(false);
                 return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
             }
 

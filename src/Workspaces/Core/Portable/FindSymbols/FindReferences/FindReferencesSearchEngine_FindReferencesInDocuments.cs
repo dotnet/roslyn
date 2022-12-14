@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
             unifiedSymbols.Add(originalSymbol);
 
-            var inheritanceSymbolToMatch = new ConcurrentDictionary<ISymbol, bool>(MetadataUnifyingEquivalenceComparer.Instance);
+            var hasInheritanceRelationshipCache = new ConcurrentDictionary<(ISymbol searchSymbol, ISymbol candidateSymbol), AsyncLazy<bool>>();
 
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
             try
@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
                 try
                 {
+                    // Compute global aliases up front for the project so it can be used below for all the symbols we're
+                    // searching for.
                     await AddGlobalAliasesAsync(
                         project, symbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
 
@@ -136,11 +138,68 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // token that hits one of these other symbols.  When we do, we have to then see if that symbol is
                 // actually an inheritance match for the symbol we're looking at.
 
-                if (symbol is IMethodSymbol { MethodKind: MethodKind.Ordinary } or IPropertySymbol or IEventSymbol)
+                if (InvolvesInheritance(symbol))
                 {
-                    var tokens = AbstractReferenceFinder.fin
+                    var tokens = await AbstractReferenceFinder.FindMatchingIdentifierTokensAsync(
+                        state, symbol.Name, cancellationToken).ConfigureAwait(false);
 
+                    foreach (var token in tokens)
+                    {
+                        var parent = state.SyntaxFacts.TryGetBindableParent(token) ?? token.GetRequiredParent();
+                        var symbolInfo = state.Cache.GetSymbolInfo(parent, cancellationToken);
+
+                        var (matched, candidateReason) = await HasInheritanceRelationshipAsync(symbol, symbolInfo).ConfigureAwait(false);
+                        if (matched)
+                        {
+                            var location = AbstractReferenceFinder.CreateFinderLocation(state, token, candidateReason, cancellationToken);
+                            await _progress.OnReferenceFoundAsync(group, symbol, location.Location, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
                 }
+            }
+
+            async Task<(bool matched, CandidateReason candidateReason)> HasInheritanceRelationshipAsync(
+                ISymbol symbol, SymbolInfo symbolInfo)
+            {
+                if (await HasInheritanceRelationshipSingleAsync(symbol, symbolInfo.Symbol).ConfigureAwait(false))
+                    return (matched: true, CandidateReason.None);
+
+                foreach (var candidate in symbolInfo.CandidateSymbols)
+                {
+                    if (await HasInheritanceRelationshipSingleAsync(symbol, candidate).ConfigureAwait(false))
+                        return (matched: true, symbolInfo.CandidateReason);
+                }
+
+                return default;
+            }
+
+            async ValueTask<bool> HasInheritanceRelationshipSingleAsync(ISymbol symbol, ISymbol candidate)
+            {
+                var relationship = hasInheritanceRelationshipCache.GetOrAdd(
+                    (symbol.GetOriginalUnreducedDefinition(), candidate.GetOriginalUnreducedDefinition()),
+                    t => AsyncLazy.Create(cancellationToken => ComputeInheritanceRelationshipAsync(this, t.searchSymbol, t.candidateSymbol, cancellationToken), cacheResult: true));
+                return await relationship.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            static async Task<bool> ComputeInheritanceRelationshipAsync(
+                FindReferencesSearchEngine engine, ISymbol searchSymbol, ISymbol candidate, CancellationToken cancellationToken)
+            {
+                // Counter-intuitive, but if these are matching symbols, they do *not* have an inheritance relationship.
+                // We do *not* want to report these as they would have been found in the original call to the finders in
+                // PerformSearchInTextSpanAsync.
+                if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
+                    return false;
+
+                // walk upwards from each symbol, seeing if we hit the other symbol.
+                var searchSymbolSet = await SymbolSet.CreateAsync(engine, new() { searchSymbol }, cancellationToken).ConfigureAwait(false);
+                var candidateSymbolSet = await SymbolSet.CreateAsync(engine, new() { candidate }, cancellationToken).ConfigureAwait(false);
+
+                var searchSymbolUpInheritance = new MetadataUnifyingSymbolHashSet(searchSymbolSet.GetAllSymbols());
+                var candidateSymbolUpInheritance = new MetadataUnifyingSymbolHashSet(candidateSymbolSet.GetAllSymbols());
+
+                var intersection = searchSymbolUpInheritance.Intersect(candidateSymbolUpInheritance);
+                var hasInteritanceRelationship = intersection.Any();
+                return hasInteritanceRelationship;
             }
         }
     }

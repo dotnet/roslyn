@@ -334,5 +334,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
         }
+
+        private static bool InvolvesInheritance(ISymbol symbol)
+            => symbol is IMethodSymbol { MethodKind: MethodKind.Ordinary } or IPropertySymbol or IEventSymbol;
     }
 }
