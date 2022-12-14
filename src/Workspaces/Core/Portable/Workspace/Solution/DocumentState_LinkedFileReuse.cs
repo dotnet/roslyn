@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
 
                 bool CanReuseSiblingRoot()
                 {
-                    s_tryReuseSyntaxTree++;
+                    Interlocked.Increment(ref s_tryReuseSyntaxTree);
                     var siblingParseOptions = siblingTree.Options;
 
                     var ppSymbolsNames1 = parseOptions.PreprocessorSymbolNames;
@@ -123,14 +123,14 @@ namespace Microsoft.CodeAnalysis
                     // same trees.  So we can trivially reuse the tree from one for the other.
                     if (ppSymbolsNames1.SetEquals(ppSymbolsNames2))
                     {
-                        s_couldReuseBecauseOfEqualPPNames++;
+                        Interlocked.Increment(ref s_couldReuseBecauseOfEqualPPNames);
                         return true;
                     }
 
                     // If the tree contains no `#` directives whatsoever, then you'll parse out the same tree and can reuse it.
                     if (!siblingRoot.ContainsDirectives)
                     {
-                        s_couldReuseBecauseOfNoDirectives++;
+                        Interlocked.Increment(ref s_couldReuseBecauseOfNoDirectives);
                         return true;
                     }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                     var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
                     if (!siblingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
                     {
-                        s_couldReuseBecauseOfNoPPDirectives++;
+                        Interlocked.Increment(ref s_couldReuseBecauseOfNoPPDirectives);
                         return true;
                     }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis
                     // TODO(cyrusn): We could potentially be smarter here as well.  We can check what pp-symbols the file
                     // actually uses. (e.g. 'DEBUG'/'NETCORE'/etc.) and see if the project parse options actually differ
                     // for these values.  If not, we could reuse the trees even then.
-                    s_couldNotReuse++;
+                    Interlocked.Increment(ref s_couldNotReuse);
                     return false;
                 }
             }
