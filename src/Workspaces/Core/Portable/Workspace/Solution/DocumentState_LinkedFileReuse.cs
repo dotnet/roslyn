@@ -101,6 +101,10 @@ namespace Microsoft.CodeAnalysis
 
                 var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
+                // Note: passing along siblingTree.Encoding is a bit suspect.  Ideally we would only populate this tree
+                // with our own data (*except* for the new root).  However, we think it's safe as the encoding really is
+                // a property of the file, and that should stay the same even if linked into multiple projects.
+
                 var newTree = treeFactory.CreateSyntaxTree(
                     filePath,
                     parseOptions,
