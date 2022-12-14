@@ -199,7 +199,7 @@ class C
     void Test(int x, int y, int z) { }    
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(true);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(true);
 
             VisualStudio.Editor.SendKeys("(");
 

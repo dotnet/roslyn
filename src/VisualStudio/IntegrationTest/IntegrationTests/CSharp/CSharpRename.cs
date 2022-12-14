@@ -39,11 +39,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             await base.InitializeAsync();
 
             // reset relevant global options to default values:
-            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInComments, language: null, value: false);
-            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInStrings, language: null, value: false);
-            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameOverloads, language: null, value: false);
-            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile, language: null, value: true);
-            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges, language: null, value: false);
+            VisualStudio.GlobalOptions.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInComments, language: null, value: false);
+            VisualStudio.GlobalOptions.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInStrings, language: null, value: false);
+            VisualStudio.GlobalOptions.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameOverloads, language: null, value: false);
+            VisualStudio.GlobalOptions.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile, language: null, value: true);
+            VisualStudio.GlobalOptions.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges, language: null, value: false);
         }
 
         [WpfFact]

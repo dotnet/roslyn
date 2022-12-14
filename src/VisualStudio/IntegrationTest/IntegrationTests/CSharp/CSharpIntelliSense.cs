@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             await base.InitializeAsync().ConfigureAwait(true);
 
             // Disable import completion.
-            VisualStudio.Workspace.SetImportCompletionOption(false);
+            VisualStudio.GlobalOptions.SetImportCompletionOption(false);
         }
 
         [WpfTheory, CombinatorialData]
@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             SetUpEditor(@"$$");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("usi");
             VisualStudio.Editor.Verify.CompletionItemsExist("using");
@@ -59,7 +59,7 @@ class C
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("pub");
             VisualStudio.Editor.Verify.CompletionItemsExist("public");
@@ -98,7 +98,7 @@ public static class NavigateTo
     public static void Navigate(int i){ }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys('.');
             VisualStudio.Editor.Verify.CompletionItemsExist("Search", "Navigate");
@@ -110,7 +110,7 @@ public static class NavigateTo
         [WpfTheory, CombinatorialData]
         public void CtrlAltSpace(bool showCompletionInArgumentLists)
         {
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
@@ -163,7 +163,7 @@ public static class NavigateTo
         [WpfTheory, CombinatorialData]
         public void CtrlAltSpaceOption(bool showCompletionInArgumentLists)
         {
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
@@ -188,7 +188,7 @@ public static class NavigateTo
         {
             SetUpEditor("class c { void M() {$$ } }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
             VisualStudio.Editor.Verify.CompletionItemsExist("System");
@@ -199,7 +199,7 @@ public static class NavigateTo
         {
             SetUpEditor("class c { void M() {$$ } }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys('c');
             VisualStudio.Editor.Verify.CurrentCompletionItem("c");
@@ -223,7 +223,7 @@ class Class1
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("<s");
             VisualStudio.Editor.Verify.CompletionItemsExist("see", "seealso", "summary");
@@ -251,7 +251,7 @@ class Class1
 class C { }
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("<summary>");
             VisualStudio.Editor.Verify.CurrentLineText("/// <summary>$$</summary>", assertCaretPosition: true);
@@ -277,7 +277,7 @@ class Class1
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
@@ -301,7 +301,7 @@ class Class1
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
@@ -337,7 +337,7 @@ class Class1
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
@@ -369,7 +369,7 @@ class Class1
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(true);
 
@@ -399,7 +399,7 @@ class Class1
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
@@ -432,7 +432,7 @@ public class Program
     }}
 }}");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             Assert.True(variableName.Length > 0);
             VisualStudio.Editor.SendKeys(
@@ -450,7 +450,7 @@ public class Program
         {
             SetUpEditor(@"$$");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
             Assert.True(VisualStudio.Editor.IsCompletionActive());

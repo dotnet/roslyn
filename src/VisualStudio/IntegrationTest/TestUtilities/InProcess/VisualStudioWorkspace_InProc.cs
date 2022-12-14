@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private static readonly Guid RoslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
-        private readonly IGlobalOptionService _globalOptions;
 
         private VisualStudioWorkspace_InProc()
         {
@@ -37,24 +36,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             GetWaitingService().Enable(true);
 
             _visualStudioWorkspace = GetComponentModelService<VisualStudioWorkspace>();
-            _globalOptions = GetComponentModelService<IGlobalOptionService>();
         }
 
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
-
-        public bool IsPrettyListingOn(string languageName)
-            => _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
-
-        public void SetPrettyListing(string languageName, bool value)
-            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, languageName, value));
-
-        public void SetFileScopedNamespaces(bool value)
-            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations,
-                new CodeStyleOption2<NamespaceDeclarationPreference>(value ? NamespaceDeclarationPreference.FileScoped : NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion)));
-
-        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
-            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(option.GetKey(language), value));
 
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
         {
@@ -119,32 +104,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var hook = _visualStudioWorkspace.Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
                 hook.IsPartialSolutionDisabled = true;
             });
-
-        /// <summary>
-        /// Reset options that are manipulated by integration tests back to their default values.
-        /// </summary>
-        public void ResetOptions()
-        {
-            SetFileScopedNamespaces(false);
-
-            ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
-            ResetOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
-            return;
-
-            // Local function
-            void ResetOption(IOption2 option)
-            {
-                if (option.IsPerLanguage)
-                {
-                    _globalOptions.SetGlobalOption(new OptionKey2(option, LanguageNames.CSharp), option.DefaultValue);
-                    _globalOptions.SetGlobalOption(new OptionKey2(option, LanguageNames.VisualBasic), option.DefaultValue);
-                }
-                else
-                {
-                    _globalOptions.SetGlobalOption(new OptionKey2(option, language: null), option.DefaultValue);
-                }
-            }
-        }
 
         public void CleanUpWaitingService()
             => InvokeOnUIThread(cancellationToken =>

@@ -72,9 +72,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Editor.DismissCompletionSessions();
             VisualStudio.Editor.DismissLightBulbSession();
 
-            var originalValue = VisualStudio.Workspace.IsPrettyListingOn(LanguageName);
+            var originalValue = VisualStudio.GlobalOptions.IsPrettyListingOn(LanguageName);
 
-            VisualStudio.Workspace.SetPrettyListing(LanguageName, false);
+            VisualStudio.GlobalOptions.SetPrettyListing(LanguageName, false);
             try
             {
                 VisualStudio.Editor.SetText(code);
@@ -83,7 +83,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
             finally
             {
-                VisualStudio.Workspace.SetPrettyListing(LanguageName, originalValue);
+                VisualStudio.GlobalOptions.SetPrettyListing(LanguageName, originalValue);
             }
         }
 

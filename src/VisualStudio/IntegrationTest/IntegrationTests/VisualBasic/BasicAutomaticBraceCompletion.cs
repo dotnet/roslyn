@@ -28,11 +28,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         [WpfTheory, CombinatorialData]
         public void Braces_InsertionAndTabCompleting(bool argumentCompletion)
         {
-            VisualStudio.Workspace.SetArgumentCompletionSnippetsOption(argumentCompletion);
+            VisualStudio.GlobalOptions.SetArgumentCompletionSnippetsOption(argumentCompletion);
 
             // Disable new rename UI for now, it's causing these tests to fail.
             // https://github.com/dotnet/roslyn/issues/63576
-            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, language: null, false);
+            VisualStudio.GlobalOptions.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, language: null, false);
 
             SetUpEditor(@"
 Class C
@@ -196,7 +196,7 @@ End Class");
         {
             // Disable new rename UI for now, it's causing these tests to fail.
             // https://github.com/dotnet/roslyn/issues/63576
-            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, language: null, false);
+            VisualStudio.GlobalOptions.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, language: null, false);
 
             SetUpEditor(@"
 Class C

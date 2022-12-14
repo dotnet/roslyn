@@ -35,7 +35,7 @@ class C {
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("if (true) {");
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { $$}", assertCaretPosition: true);
@@ -54,7 +54,7 @@ class C {
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("if (true) {");
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { $$}", assertCaretPosition: true);
@@ -170,7 +170,7 @@ class C {
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "if (true) {",
@@ -199,7 +199,7 @@ class C {
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "if (true) {",
@@ -223,7 +223,7 @@ assertCaretPosition: true);
         [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnWithNonWhitespaceSpanInside(bool showCompletionInArgumentLists)
         {
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "class A { int i;",
@@ -242,7 +242,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("void Goo(");
             VisualStudio.Editor.Verify.CurrentLineText("void Goo($$)", assertCaretPosition: true);
@@ -259,7 +259,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "void Goo(",
@@ -277,7 +277,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("int [");
             VisualStudio.Editor.Verify.CurrentLineText("int[$$]", assertCaretPosition: true);
@@ -291,7 +291,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("int [", ']');
             VisualStudio.Editor.Verify.CurrentLineText("    int[]$$ ", assertCaretPosition: true, trimWhitespace: false);
@@ -306,7 +306,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("string str = \"", VirtualKey.Tab);
             VisualStudio.Editor.Verify.CurrentLineText("string str = \"\"$$", assertCaretPosition: true);
@@ -320,7 +320,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("string str = \"Hi Roslyn!", '"');
             VisualStudio.Editor.Verify.CurrentLineText("string str = \"Hi Roslyn!\"$$", assertCaretPosition: true);
@@ -338,7 +338,7 @@ class C
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("var v = @$\"");
             VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"$$\"", assertCaretPosition: true);
@@ -373,9 +373,9 @@ class C {
 
             // Disable new rename UI for now, it's causing these tests to fail.
             // https://github.com/dotnet/roslyn/issues/63576
-            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, language: null, false);
+            VisualStudio.GlobalOptions.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, language: null, false);
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("System.Action<", VirtualKey.Tab);
             VisualStudio.Editor.Verify.CurrentLineText("System.Action<>$$", assertCaretPosition: true);
@@ -423,7 +423,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("char c = '");
             VisualStudio.Editor.Verify.CurrentLineText("char c = '$$'", assertCaretPosition: true);
@@ -447,7 +447,7 @@ class Bar<U>
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "var arr=new object[,]{{Goo(0");
@@ -479,7 +479,7 @@ class C {
     // $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("{([\"'");
             VisualStudio.Editor.Verify.CurrentLineText("// {([\"'$$", assertCaretPosition: true);
@@ -495,7 +495,7 @@ class C {
     */
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("{([\"'");
             VisualStudio.Editor.Verify.CurrentLineText("{([\"'$$", assertCaretPosition: true);
@@ -509,7 +509,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("string s = \"{([<'");
             VisualStudio.Editor.Verify.CurrentLineText("string s = \"{([<'$$\"", assertCaretPosition: true);
@@ -532,7 +532,7 @@ class C {
 $$
 class C { }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "///",
@@ -551,7 +551,7 @@ $$
 #endif
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("void Goo(");
             VisualStudio.Editor.Verify.CurrentLineText("void Goo($$", assertCaretPosition: true);
@@ -566,7 +566,7 @@ $$
 #endregion
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("{([<\"'");
             VisualStudio.Editor.Verify.CurrentLineText("#region {([<\"'$$", assertCaretPosition: true);
@@ -581,7 +581,7 @@ $$
 #endregion $$
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("{([<\"'");
             VisualStudio.Editor.Verify.CurrentLineText("#endregion {([<\"'$$", assertCaretPosition: true);
@@ -594,7 +594,7 @@ $$
 #if $$
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("{([<\"'");
             VisualStudio.Editor.Verify.CurrentLineText("#if {([<\"'$$", assertCaretPosition: true);
@@ -607,7 +607,7 @@ $$
 #pragma $$
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("{([<\"'");
             VisualStudio.Editor.Verify.CurrentLineText("#pragma {([<\"'$$", assertCaretPosition: true);
@@ -629,7 +629,7 @@ class B : A
 }
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("override ");
             Assert.True(VisualStudio.Editor.IsCompletionActive());
@@ -663,7 +663,7 @@ class C
 }
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("new Li");
             Assert.True(VisualStudio.Editor.IsCompletionActive());
@@ -694,7 +694,7 @@ class C
 }
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("new int[]{");
             VisualStudio.Editor.Verify.CurrentLineText("var x = new int[] {$$}", assertCaretPosition: true);
@@ -714,7 +714,7 @@ class C
 }
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("new {");
             VisualStudio.Editor.Verify.CurrentLineText("var x = new {$$}", assertCaretPosition: true);
@@ -728,7 +728,7 @@ class C
 class $$
 ");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("C{");
             VisualStudio.Editor.Verify.CurrentLineText("class C { $$}", assertCaretPosition: true);
@@ -758,7 +758,7 @@ class Program
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("(ar");
             VisualStudio.Editor.Verify.CurrentLineText("Main(ar$$)", assertCaretPosition: true);
@@ -782,7 +782,7 @@ class C {
     }
 }");
 
-            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+            VisualStudio.GlobalOptions.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("if (true)",
                 VirtualKey.Enter,

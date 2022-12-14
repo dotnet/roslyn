@@ -66,6 +66,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public VisualStudioWorkspace_OutOfProc Workspace { get; }
 
+        public GlobalOptions_OutOfProc GlobalOptions { get; }
+
         public StartPage_OutOfProc StartPage { get; }
 
         internal DTE Dte { get; }
@@ -139,6 +141,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
+            GlobalOptions = new GlobalOptions_OutOfProc(this);
             StartPage = new StartPage_OutOfProc(this);
 
             SendKeys = new SendKeys(this);
@@ -221,7 +224,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Prevent the start page from showing after each solution closes
             StartPage.SetEnabled(false);
-            Workspace.ResetOptions();
+            GlobalOptions.ResetOptions();
         }
 
         public void Close(bool exitHostProcess = true)

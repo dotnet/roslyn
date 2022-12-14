@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [CombinatorialData]
         public void CodeDefinitionWindowOpensMetadataAsSource(bool enableDecompilation)
         {
-            VisualStudio.Workspace.SetEnableDecompilationOption(enableDecompilation);
+            VisualStudio.GlobalOptions.SetEnableDecompilationOption(enableDecompilation);
             VisualStudio.CodeDefinitionWindow.Show();
 
             // Opening the code definition window sets focus to the code definition window, but we want to go back to editing

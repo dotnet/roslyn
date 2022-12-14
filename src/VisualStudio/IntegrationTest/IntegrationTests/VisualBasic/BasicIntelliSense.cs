@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             await base.InitializeAsync().ConfigureAwait(true);
 
             // Disable import completion.
-            VisualStudio.Workspace.SetImportCompletionOption(false);
+            VisualStudio.GlobalOptions.SetImportCompletionOption(false);
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301")]
