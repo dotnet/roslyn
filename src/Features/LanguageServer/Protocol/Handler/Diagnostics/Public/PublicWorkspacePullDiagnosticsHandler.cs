@@ -31,6 +31,12 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
     {
     }
 
+    /// <summary>
+    /// Public API doesn't support categories (yet).
+    /// </summary>
+    protected override string? GetDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
+        => null;
+
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {
         return ConvertTags(diagnosticData, potentialDuplicate: false);
@@ -94,8 +100,12 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         };
     }
 
-    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-        => WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
+    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+        WorkspaceDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
+    {
+        // Task list items are not reported through the public LSP diagnostic API.
+        return WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
+    }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {
