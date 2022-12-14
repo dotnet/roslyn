@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var workspace = CreateWorkspace();
 
-            // note: despite teh additional-doc and analyzer-config doc being at the same path in multiple projects,
+            // note: despite the additional-doc and analyzer-config doc being at the same path in multiple projects,
             // they will still be treated as unique as the workspace only has the concept of linked docs for normal
             // docs.
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
