@@ -14623,6 +14623,21 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         {
             var source = $$"""
                 using System.Runtime.CompilerServices;
+
+                var lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal")]
+        [InlineData("decimal?")]
+        public void DefaultParameter_MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithOptional(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
                 using System.Runtime.InteropServices;
 
                 var lam = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
@@ -14638,20 +14653,16 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal")]
         [InlineData("decimal?")]
-        public void DefaultParameter_MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_Combined(string type)
+        public void DefaultParameter_MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithDefault(string type)
         {
             var source = $$"""
                 using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
 
-                var lam = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) => { };
+                var lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) => { };
                 """;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
-            comp.VerifyDiagnostics(
-                // (4,13): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                // var lam = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d = 1.1m) => { };
-                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(4, 13));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -14676,7 +14687,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
-        public void DefaultParameter_MissingDecimalConstantAttribute_Method_ExplicitAttribute_Alone(string type)
+        public void DefaultParameter_MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithOptional(string type)
         {
             var source = $$"""
                 using System.Runtime.CompilerServices;
@@ -14695,23 +14706,19 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
-        public void DefaultParameter_MissingDecimalConstantAttribute_Method_ExplicitAttribute_Combined(string type)
+        public void DefaultParameter_MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithDefault(string type)
         {
             var source = $$"""
                 using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
                 
                 class C
                 {
-                    static void M([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) { }
+                    static void M([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) { }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
-            comp.VerifyDiagnostics(
-                // (6,20): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                //     static void M([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal  d = 1.1m) { }
-                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(6, 20));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -14780,7 +14787,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
-        public void DefaultParameter_MissingDecimalConstantAttribute_Field_ExplicitAttribute_Combined()
+        public void DefaultParameter_MissingDecimalConstantAttribute_Field_ExplicitAttribute_WithDefault()
         {
             var source = """
                 class C
