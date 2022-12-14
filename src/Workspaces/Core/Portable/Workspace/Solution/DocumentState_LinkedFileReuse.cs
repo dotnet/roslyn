@@ -200,10 +200,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Values just kept around for benchmark tests.
-        public static int s_tryReuseSyntaxTree;
-        public static int s_couldNotReuse;
-        public static int s_couldReuseBecauseOfEqualPPNames;
-        public static int s_couldReuseBecauseOfNoDirectives;
-        public static int s_couldReuseBecauseOfNoPPDirectives;
+        private static int s_tryReuseSyntaxTree;
+        private static int s_couldNotReuse;
+        private static int s_couldReuseBecauseOfEqualPPNames;
+        private static int s_couldReuseBecauseOfNoDirectives;
+        private static int s_couldReuseBecauseOfNoPPDirectives;
+
+        public struct TestAccessor
+        {
+            public static int TryReuseSyntaxTree => s_tryReuseSyntaxTree;
+            public static int CouldNotReuse => s_couldNotReuse;
+            public static int CouldReuseBecauseOfEqualPPNames => s_couldReuseBecauseOfEqualPPNames;
+            public static int CouldReuseBecauseOfNoDirectives => s_couldReuseBecauseOfNoDirectives;
+            public static int CouldReuseBecauseOfNoPPDirectives => s_couldReuseBecauseOfNoPPDirectives;
+        }
     }
 }
