@@ -862,8 +862,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [InlineData("#if DEBUG", false, LanguageNames.CSharp)]
+        [InlineData(@"#region ""goo""", true, LanguageNames.CSharp)]
+        [InlineData(@"#nullable enable", true, LanguageNames.CSharp)]
+        [InlineData(@"#elif DEBUG", true, LanguageNames.CSharp)]
         [InlineData("// File", true, LanguageNames.CSharp)]
         [InlineData("#if DEBUG", false, LanguageNames.VisualBasic)]
+        [InlineData(@"#region ""goo""", true, LanguageNames.VisualBasic)]
+        [InlineData(@"#ElseIf DEBUG", true, LanguageNames.VisualBasic)]
         [InlineData("' File", true, LanguageNames.VisualBasic)]
         public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName)
         {
@@ -885,9 +890,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(document.Project.ParseOptions, oldTree.Options);
 
-            ParseOptions newOptions =
-                languageName == LanguageNames.CSharp ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
-                                                     : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
+            ParseOptions newOptions = languageName == LanguageNames.CSharp
+                ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
+                : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
 
             document = document.Project.WithParseOptions(newOptions).GetRequiredDocument(documentId);
 
