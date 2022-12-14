@@ -199,6 +199,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // Values just kept around for benchmark tests.
         public static int s_tryReuseSyntaxTree;
         public static int s_couldNotReuse;
         public static int s_couldReuseBecauseOfEqualPPNames;
