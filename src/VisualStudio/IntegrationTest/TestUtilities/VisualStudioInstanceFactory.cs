@@ -334,6 +334,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
+                // Disable text spell checker to avoid spurious warnings in the error list
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Editor\\EnableSpellChecker\" Value dword 0")).WaitForExit();
+
                 var lspRegistryValue = isUsingLspEditor ? "1" : "0";
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\LSP\\Editor\" Value dword {lspRegistryValue}")).WaitForExit();
                 Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
