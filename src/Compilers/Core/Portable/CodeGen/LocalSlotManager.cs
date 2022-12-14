@@ -10,10 +10,11 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
+    using Roslyn.Utilities;
+
     /// <summary>
     /// At this level there are two kinds of local variables:
     /// <list type="bullet">

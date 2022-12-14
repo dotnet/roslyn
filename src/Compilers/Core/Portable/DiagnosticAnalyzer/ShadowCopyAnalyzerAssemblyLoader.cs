@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -139,6 +140,7 @@ namespace Microsoft.CodeAnalysis
         private static void CopyFile(string originalPath, string shadowCopyPath)
         {
             var directory = Path.GetDirectoryName(shadowCopyPath);
+            Debug.Assert(directory != null);
             Directory.CreateDirectory(directory);
 
             File.Copy(originalPath, shadowCopyPath);

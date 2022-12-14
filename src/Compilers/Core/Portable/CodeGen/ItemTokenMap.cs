@@ -5,10 +5,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
+    using Roslyn.Utilities;
+
     /// <summary>
     /// Handles storage of items referenced via tokens in metadata. When items are stored 
     /// they are uniquely "associated" with fake tokens, which are basically sequential numbers.

@@ -18,10 +18,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Utilities;
+
     internal sealed class PdbWriter : IDisposable
     {
         internal const uint Age = 1;

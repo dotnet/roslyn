@@ -26,10 +26,11 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Utilities;
+
     internal abstract partial class MetadataWriter
     {
         internal static readonly Encoding s_utf8Encoding = Encoding.UTF8;

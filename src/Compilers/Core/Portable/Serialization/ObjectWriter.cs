@@ -18,6 +18,7 @@ namespace Roslyn.Utilities
 {
     using System.Collections.Immutable;
     using System.Threading.Tasks;
+    using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
 #elif CODE_STYLE

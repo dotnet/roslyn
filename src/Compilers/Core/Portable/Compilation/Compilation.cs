@@ -28,10 +28,11 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    using Roslyn.Utilities;
+
     /// <summary>
     /// The compilation object is an immutable representation of a single invocation of the
     /// compiler. Although immutable, a compilation is also on-demand, and will realize and cache

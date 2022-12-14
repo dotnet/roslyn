@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,6 +14,8 @@ using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
+    using Roslyn.Utilities;
+
     internal abstract class CommonEmbeddedTypesManager
     {
         public abstract bool IsFrozen { get; }

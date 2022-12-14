@@ -17,10 +17,11 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
+    using Roslyn.Utilities;
+
     internal abstract class CommonPEModuleBuilder : Cci.IUnit, Cci.IModuleReference
     {
         internal readonly DebugDocumentsBuilder DebugDocumentsBuilder;

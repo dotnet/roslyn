@@ -6,10 +6,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
+    using Roslyn.Utilities;
+
     internal sealed class OrderedSet<T> : IEnumerable<T>, IReadOnlySet<T>, IReadOnlyList<T>, IOrderedReadOnlySet<T>
     {
         private readonly HashSet<T> _set;
