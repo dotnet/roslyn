@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // only apply the portions of their work that updates documents, and nothing else.
                 if (option is not ApplyChangesOperation applyChangesOperation)
                 {
-                    context.TraceDebug($"Skipping code action operation for '{data.UniqueIdentifier}'.  It was a '{option.GetType().FullName}'");
+                    context.TraceInformation($"Skipping code action operation for '{data.UniqueIdentifier}'.  It was a '{option.GetType().FullName}'");
                     continue;
                 }
 

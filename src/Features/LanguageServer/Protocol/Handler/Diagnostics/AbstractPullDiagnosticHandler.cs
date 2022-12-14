@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
             var handlerName = $"{this.GetType().Name}(category: {category})";
-            context.TraceDebug($"{handlerName} started getting diagnostics");
+            context.TraceInformation($"{handlerName} started getting diagnostics");
 
             var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
             var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousPullResult>.Empty;
-            context.TraceDebug($"previousResults.Length={previousResults.Length}");
+            context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // last time we notified the client.  Report back either to the client so they can update accordingly.
             var orderedSources = await GetOrderedDiagnosticSourcesAsync(
                 diagnosticsParams, context, cancellationToken).ConfigureAwait(false);
-            context.TraceDebug($"Processing {orderedSources.Length} documents");
+            context.TraceInformation($"Processing {orderedSources.Length} documents");
 
             foreach (var diagnosticSource in orderedSources)
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
                 else
                 {
-                    context.TraceDebug($"Diagnostics were unchanged for {diagnosticSource.ToDisplayString()}");
+                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.ToDisplayString()}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
-            context.TraceDebug($"{this.GetType()} finished getting diagnostics");
+            context.TraceInformation($"{this.GetType()} finished getting diagnostics");
             return CreateReturn(progress);
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return;
             }
 
-            context.TraceDebug($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
+            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
 
             foreach (var diagnostic in diagnostics)
                 result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             foreach (var removedResult in removedPreviousResults)
             {
-                context.TraceDebug($"Clearing diagnostics for removed document: {removedResult.TextDocument.Uri}");
+                context.TraceInformation($"Clearing diagnostics for removed document: {removedResult.TextDocument.Uri}");
 
                 // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
                 // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
