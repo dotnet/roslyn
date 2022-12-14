@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<(DocumentId documentId, TextSpan textSpan)> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
             // NOTE: In projection scenarios, we might get a set of documents to search
             // that are not all the same language and might not exist in the OOP process
@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var documentsToSearch = await documentIdsToSearch
-                    .SelectAsArrayAsync(async t => (document: await solution.GetDocumentAsync(t.documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false)!, t.textSpan))
+                    .SelectAsArrayAsync(async id => await solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false))
                     .ConfigureAwait(false);
-                var documentsToSearchSet = documentsToSearch.Where(t => t.document != null).ToImmutableHashSet();
+                var documentsToSearchSet = documentsToSearch.WhereNotNull().ToImmutableHashSet();
 
                 var service = document.GetRequiredLanguageService<IDocumentHighlightsService>();
                 var result = await service.GetDocumentHighlightsAsync(

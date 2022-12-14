@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectIdArg,
-            ImmutableArray<(DocumentId documentId, TextSpan textSpan)> documentArgs,
+            ImmutableArray<DocumentId> documentIds,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -90,9 +90,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                var documents = documentArgs
-                    .Select(t => (document: solution.GetDocument(t.documentId)!, t.textSpan))
-                    .Where(t => t.document != null).ToImmutableHashSet();
+                var documentsArray = await documentIds
+                    .SelectAsArrayAsync(id => solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken))
+                    .ConfigureAwait(false);
+
+                var documents = documentsArray.WhereNotNull().ToImmutableHashSet();
 
                 await SymbolFinder.FindReferencesInDocumentsInCurrentProcessAsync(
                     symbol, solution, progressCallback, documents, options, cancellationToken).ConfigureAwait(false);

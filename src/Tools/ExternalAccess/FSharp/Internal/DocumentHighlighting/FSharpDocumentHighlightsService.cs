@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighligh
         }
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<(Document document, TextSpan textSpan)> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
             var highlights = await _service.GetDocumentHighlightsAsync(
-                document, position, documentsToSearch.Select(t => t.document).ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
+                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
             return highlights.SelectAsArray(x => new DocumentHighlights(x.Document, MapHighlightSpans(x.HighlightSpans)));
         }
     }
