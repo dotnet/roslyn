@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifyAwaitKeyword(markup As String, Optional dotAwait As Boolean = False, Optional dotAwaitf As Boolean = False) As Task
-            Dim expectedDescription = If(dotAwait, GetDescription("Await", FeaturesResources.Await_the_preceding_expression), GetDescription("Await", FeaturesResources.Asynchronously_waits_for_the_task_to_finish))
+            Dim expectedDescription = If(dotAwait, FeaturesResources.Await_the_preceding_expression, GetDescription("Await", FeaturesResources.Asynchronously_waits_for_the_task_to_finish))
             Await VerifyItemExistsAsync(markup, "Await", expectedDescriptionOrNull:=expectedDescription)
             If dotAwaitf Then
                 expectedDescription = String.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "False")
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             End If
         End Function
 
-        Private Shared Function GetDescription(ByVal keyword As String, ByVal tooltip As String) As String
+        Private Shared Function GetDescription(keyword As String, tooltip As String) As String
             Return $"{String.Format(FeaturesResources._0_Keyword, keyword)}{vbCrLf}{tooltip}"
         End Function
 
