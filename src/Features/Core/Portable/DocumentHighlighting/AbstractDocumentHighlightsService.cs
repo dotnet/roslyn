@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<(Document document, TextSpan textSpan)> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
                     document.Project,
                     (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(
-                        solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => (d.document.Id, d.textSpan)), options, cancellationToken),
+                        solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), options, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
-            Document document, int position, IImmutableSet<(Document document, TextSpan textSpan)> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var result = TryGetEmbeddedLanguageHighlights(document, semanticModel, position, options, cancellationToken);
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
             ImmutableArray<ReferencedSymbol> references, Document startingDocument,
-            IImmutableSet<(Document document, TextSpan textSpan)> documentsToSearch, ISymbol symbol,
+            IImmutableSet<Document> documentsToSearch, ISymbol symbol,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
             using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
 
-            foreach (var (currentDocument, textSpan) in documentsToSearch)
+            foreach (var currentDocument in documentsToSearch)
             {
                 // 'documentsToSearch' may contain documents from languages other than our own
                 // (for example cshtml files when we're searching the cs document).  Since we're
@@ -181,17 +181,17 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 if (currentDocument.Project.Language == startingDocument.Project.Language)
                 {
                     additionalReferences.AddRange(
-                        await GetAdditionalReferencesAsync(currentDocument, textSpan, symbol, cancellationToken).ConfigureAwait(false));
+                        await GetAdditionalReferencesAsync(currentDocument, symbol, cancellationToken).ConfigureAwait(false));
                 }
             }
 
             return await CreateSpansAsync(
                 solution, symbol, references, additionalReferences,
-                documentsToSearch.Select(t => t.document).ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
+                documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
         protected virtual Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
-            Document document, TextSpan textSpan, ISymbol symbol, CancellationToken cancellationToken)
+            Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<Location>();
         }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
         }
 
         protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
-            Document document, TextSpan textSpan, ISymbol symbol, CancellationToken cancellationToken)
+            Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             // The FindRefs engine won't find references through 'var' for performance reasons.
             // Also, they are not needed for things like rename/sig change, and the normal find refs
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
                 var originalSymbol = symbol.OriginalDefinition;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var descendants = root.DescendantNodes(textSpan);
+                var descendants = root.DescendantNodes();
                 var semanticModel = (SemanticModel)null;
 
                 foreach (var type in descendants.OfType<IdentifierNameSyntax>())

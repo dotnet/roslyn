@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal interface IRemoteDocumentHighlightsService
     {
         ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<(DocumentId documentId, TextSpan textSpan)> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken);
+            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken);
     }
 
     [DataContract]
