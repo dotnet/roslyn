@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var expectedDescription = dotAwait
                 ? GetDescription(CompletionDisplayTextAwait, FeaturesResources.Await_the_preceding_expression)
                 : GetDescription(CompletionDisplayTextAwait, FeaturesResources.Asynchronously_waits_for_the_task_to_finish);
-            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: (int)Glyph.Keyword, expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
+            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: (int)(dotAwait ? Glyph.Snippet : Glyph.Keyword), expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
 
             if (dotAwaitf)
             {
                 expectedDescription = string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "false");
-                await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: (int)Glyph.Keyword, expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
+                await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: (int)Glyph.Snippet, expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
             }
             else
             {

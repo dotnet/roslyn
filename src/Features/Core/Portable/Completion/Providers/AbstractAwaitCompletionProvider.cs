@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -121,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Await_the_preceding_expression,
+                    isDotAwait: true,
                     isComplexTextEdit: true));
 
                 if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
@@ -130,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     context.AddItem(CreateCompletionItem(
                         properties, _awaitfDisplayText, _awaitfFilterText,
                         string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
+                        isDotAwait: true,
                         isComplexTextEdit: true));
                 }
             }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return;
 
             static CompletionItem CreateCompletionItem(
-                ImmutableDictionary<string, string> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit)
+                ImmutableDictionary<string, string> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit, bool isDotAwait = false)
             {
                 var appendConfigureAwait = completionProperties.ContainsKey(AppendConfigureAwait);
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     displayTextSuffix: "",
                     filterText: filterText,
                     rules: CompletionItemRules.Default,
-                    glyph: Glyph.Keyword,
+                    glyph: isDotAwait ? Glyph.Snippet : Glyph.Keyword,
                     description: description,
                     isComplexTextEdit: isComplexTextEdit,
                     properties: completionProperties);
