@@ -2159,6 +2159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_OptionalParamValueMismatch = 9099,
         WRN_ParamsArrayInLambdaOnly = 9100,
         ERR_UnscopedRefAttributeUnsupportedMethodTarget = 9101,
+        ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
 
         #endregion
 

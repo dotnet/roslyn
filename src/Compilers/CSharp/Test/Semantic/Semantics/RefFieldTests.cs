@@ -24530,6 +24530,331 @@ public class A
             }
         }
 
+        [Fact]
+        [WorkItem(64508, "https://github.com/dotnet/roslyn/issues/64508")]
+        public void UnscopedRefAttribute_InterfaceImplementation_01()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R<T>
+                {
+                    public R(ref T t) { }
+                }
+                interface I<T>
+                {
+                    ref T F1();
+                    void F2();
+                    void F3(out R<T> r);
+                    ref T P { get; }
+                }
+                struct S1 : I<int>
+                {
+                    public ref int F1() => throw null;
+                    public void F2() { }
+                    public void F3(out R<int> r) { r = default; }
+                    public ref int P => throw null;
+                }
+                struct S2 : I<int>
+                {
+                    private int _f2;
+                    [UnscopedRef] public ref int F1() => ref _f2; // 1
+                    [UnscopedRef] public void F2() { } // 2
+                    [UnscopedRef] public void F3(out R<int> r) { r = new R<int>(ref _f2); } // 3
+                    [UnscopedRef] public ref int P => ref _f2; // 4
+                }
+                struct S3 : I<int>
+                {
+                    ref int I<int>.F1() => throw null;
+                    void I<int>.F2() { }
+                    void I<int>.F3(out R<int> r) { r = default; }
+                    ref int I<int>.P => throw null;
+                }
+                struct S4 : I<int>
+                {
+                    private int _f4;
+                    [UnscopedRef] ref int I<int>.F1() => ref _f4; // 5
+                    [UnscopedRef] void I<int>.F2() { } // 6
+                    [UnscopedRef] void I<int>.F3(out R<int> r) { r = new R<int>(ref _f4); } // 7
+                    [UnscopedRef] ref int I<int>.P => ref _f4; // 8
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (23,34): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public ref int F1() => ref _f2; // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F1").WithLocation(23, 34),
+                // (24,31): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public void F2() { } // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F2").WithLocation(24, 31),
+                // (25,31): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public void F3(out R<int> r) { r = new R<int>(ref _f2); } // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F3").WithLocation(25, 31),
+                // (26,39): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public ref int P => ref _f2; // 4
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "ref _f2").WithLocation(26, 39),
+                // (38,34): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] ref int I<int>.F1() => ref _f4; // 5
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F1").WithLocation(38, 34),
+                // (39,31): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] void I<int>.F2() { } // 6
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F2").WithLocation(39, 31),
+                // (40,31): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] void I<int>.F3(out R<int> r) { r = new R<int>(ref _f4); } // 7
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F3").WithLocation(40, 31),
+                // (41,39): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] ref int I<int>.P => ref _f4; // 8
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "ref _f4").WithLocation(41, 39));
+        }
+
+        // As above, but interface members are also marked [UnscopedRef].
+        [Fact]
+        [WorkItem(64508, "https://github.com/dotnet/roslyn/issues/64508")]
+        public void UnscopedRefAttribute_InterfaceImplementation_02()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R<T>
+                {
+                    public R(ref T t) { }
+                }
+                interface I<T>
+                {
+                    [UnscopedRef] ref T F1(); // 1
+                    [UnscopedRef] void F2(); // 2
+                    [UnscopedRef] void F3(out R<T> r); // 3
+                    [UnscopedRef] ref T P { get; } // 4
+                }
+                struct S1 : I<int>
+                {
+                    public ref int F1() => throw null;
+                    public void F2() { }
+                    public void F3(out R<int> r) { r = default; }
+                    public ref int P => throw null;
+                }
+                struct S2 : I<int>
+                {
+                    private int _f2;
+                    [UnscopedRef] public ref int F1() => ref _f2; // 5
+                    [UnscopedRef] public void F2() { } // 6
+                    [UnscopedRef] public void F3(out R<int> r) { r = new R<int>(ref _f2); } // 7
+                    [UnscopedRef] public ref int P => ref _f2; // 8
+                }
+                struct S3 : I<int>
+                {
+                    ref int I<int>.F1() => throw null;
+                    void I<int>.F2() { }
+                    void I<int>.F3(out R<int> r) { r = default; }
+                    ref int I<int>.P => throw null;
+                }
+                struct S4 : I<int>
+                {
+                    private int _f4;
+                    [UnscopedRef] ref int I<int>.F1() => ref _f4; // 9
+                    [UnscopedRef] void I<int>.F2() { } // 10
+                    [UnscopedRef] void I<int>.F3(out R<int> r) { r = new R<int>(ref _f4); } // 11
+                    [UnscopedRef] ref int I<int>.P => ref _f4; // 12
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (8,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] ref T F1(); // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(8, 6),
+                // (9,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] void F2(); // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(9, 6),
+                // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] void F3(out R<T> r); // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(10, 6),
+                // (11,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] ref T P { get; } // 4
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(11, 6),
+                // (23,34): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public ref int F1() => ref _f2; // 5
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F1").WithLocation(23, 34),
+                // (24,31): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public void F2() { } // 6
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F2").WithLocation(24, 31),
+                // (25,31): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public void F3(out R<int> r) { r = new R<int>(ref _f2); } // 7
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F3").WithLocation(25, 31),
+                // (26,39): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public ref int P => ref _f2; // 8
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "ref _f2").WithLocation(26, 39),
+                // (38,34): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] ref int I<int>.F1() => ref _f4; // 9
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F1").WithLocation(38, 34),
+                // (39,31): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] void I<int>.F2() { } // 10
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F2").WithLocation(39, 31),
+                // (40,31): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] void I<int>.F3(out R<int> r) { r = new R<int>(ref _f4); } // 11
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F3").WithLocation(40, 31),
+                // (41,39): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] ref int I<int>.P => ref _f4; // 12
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "ref _f4").WithLocation(41, 39));
+        }
+
+        [Fact]
+        [WorkItem(64508, "https://github.com/dotnet/roslyn/issues/64508")]
+        public void UnscopedRefAttribute_InterfaceImplementation_03()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                interface I1<T>
+                {
+                    ref T P1 { get; }
+                }
+                interface I2<T>
+                {
+                    T P2 { get; set; }
+                }
+                interface I3<T>
+                {
+                    T P3 { set; }
+                }
+                struct S1 : I1<int>, I2<int>
+                {
+                    [UnscopedRef] public ref int P1 => throw null; // 1
+                    [UnscopedRef] public int P2 { get; set; } // 2, 3
+                }
+                struct S2 : I1<int>, I2<int>
+                {
+                    public ref int P1 { [UnscopedRef] get => throw null; } // 4
+                    public int P2 { [UnscopedRef] get; set; } // 5
+                }
+                struct S3 : I2<int>, I3<int>
+                {
+                    public int P2 { get; [UnscopedRef] set; } // 6
+                    public int P3 { [UnscopedRef] set { } } // 7
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (16,40): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public ref int P1 => throw null; // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "throw null").WithLocation(16, 40),
+                // (17,35): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public int P2 { get; set; } // 2, 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "get").WithLocation(17, 35),
+                // (17,40): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     [UnscopedRef] public int P2 { get; set; } // 2, 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "set").WithLocation(17, 40),
+                // (21,39): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     public ref int P1 { [UnscopedRef] get => throw null; } // 4
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "get").WithLocation(21, 39),
+                // (22,35): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     public int P2 { [UnscopedRef] get; set; } // 5
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "get").WithLocation(22, 35),
+                // (26,40): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     public int P2 { get; [UnscopedRef] set; } // 6
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "set").WithLocation(26, 40),
+                // (27,35): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
+                //     public int P3 { [UnscopedRef] set { } } // 7
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "set").WithLocation(27, 35));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_InterfaceImplementation_04()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                interface I<T>
+                {
+                    ref T F();
+                    ref T P { get; }
+                }
+                struct S : I<int>
+                {
+                    private int _f;
+                    [UnscopedRef] public ref int F() => ref _f;
+                    [UnscopedRef] public ref int P => ref _f;
+                    ref int I<int>.F() => throw null;
+                    ref int I<int>.P => throw null;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_InterfaceImplementation_05()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                interface I<T>
+                {
+                    ref T F1();
+                    [UnscopedRef] ref T F2(); // 1
+                }
+                class C1 : I<int>
+                {
+                    private int _f1;
+                    [UnscopedRef] public ref int F1() => ref _f1; // 2
+                    [UnscopedRef] public ref int F2() => ref _f1; // 3
+                }
+                class C2 : I<int>
+                {
+                    private int _f2;
+                    [UnscopedRef] ref int I<int>.F1() => ref _f2; // 4
+                    [UnscopedRef] ref int I<int>.F2() => ref _f2; // 5
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] ref T F2(); // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(5, 6),
+                // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] public ref int F1() => ref _f1; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(10, 6),
+                // (11,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] public ref int F2() => ref _f1; // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(11, 6),
+                // (16,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] ref int I<int>.F1() => ref _f2; // 4
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(16, 6),
+                // (17,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] ref int I<int>.F2() => ref _f2; // 5
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(17, 6));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Overrides_07()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                abstract class A<T>
+                {
+                    public abstract ref T F1();
+                    [UnscopedRef] public abstract ref T F2(); // 1
+                }
+                class B1 : A<int>
+                {
+                    private int _f1;
+                    public override ref int F1() => ref _f1;
+                    public override ref int F2() => ref _f1;
+                }
+                class B2 : A<string>
+                {
+                    private string _f2;
+                    [UnscopedRef] public override ref string F1() => ref _f2; // 2
+                    [UnscopedRef] public override ref string F2() => ref _f2; // 3
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] public abstract ref T F2(); // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(5, 6),
+                // (16,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] public override ref string F1() => ref _f2; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(16, 6),
+                // (17,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                //     [UnscopedRef] public override ref string F2() => ref _f2; // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(17, 6));
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
