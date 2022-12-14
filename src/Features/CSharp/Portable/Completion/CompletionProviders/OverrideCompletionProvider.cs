@@ -82,9 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             out DeclarationModifiers modifiers)
         {
             var token = startToken;
-            var parentMember = token.GetRequiredParent();
+            var parentMember = token.Parent;
             modifiers = default;
             seenAccessibility = Accessibility.NotApplicable;
+
+            if (parentMember is null)
+                return false;
 
             // Keep walking backwards as long as we're still within our parent member.
             while (token != default)
