@@ -110,8 +110,8 @@ internal abstract class VisualStudioOptionStorage
         }
     }
 
-    public static bool TryGetStorage(OptionKey2 optionKey, out VisualStudioOptionStorage storage)
-        => s_storages.TryGetValue(optionKey.Option.OptionDefinition.ConfigName, out storage);
+    public static bool TryGetStorage(string configName, out VisualStudioOptionStorage storage)
+        => s_storages.TryGetValue(configName, out storage);
 
     private static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> s_storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
@@ -286,8 +286,8 @@ internal abstract class VisualStudioOptionStorage
         {"ExtractMethodOptions_DontPutOutOrRefOnStruct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")},
         {"FadingOptions_FadeOutUnreachableCode", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode")},
         {"FadingOptions_FadeOutUnusedImports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports")},
-        {"FeatureManager/Storage_CloudCacheFeatureFlag", new FeatureFlagStorage(@"Roslyn.CloudCache3")},
-        {"FeatureManager/Storage_Database", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Database")},
+        {"Storage_CloudCacheFeatureFlag", new FeatureFlagStorage(@"Roslyn.CloudCache3")},
+        {"Storage_Database", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Database")},
         {"FeatureOnOffOptions_AddImportsOnPaste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
         {"FeatureOnOffOptions_AlwaysUseDefaultSymbolServers", new RoamingProfileStorage("TextEditor.AlwaysUseDefaultSymbolServers")},
         {"FeatureOnOffOptions_AutoInsertBlockCommentStartString", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String")},

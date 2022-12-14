@@ -23,14 +23,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         End Function
 
         Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of Boolean), editorconfigKeyName As String, roamingProfileStorageKeyName As String) As Option2(Of CodeStyleOption2(Of Boolean))
-            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue), New RoamingProfileStorageLocation(roamingProfileStorageKeyName))
+            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue))
         End Function
 
         Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of String), editorconfigKeyName As String, roamingProfileStorageKeyName As String) As Option2(Of CodeStyleOption2(Of String))
             Return CreateOption(
                 group, name, defaultValue,
-                EditorConfigStorageLocation.ForStringCodeStyleOption(editorconfigKeyName, defaultValue),
-                New RoamingProfileStorageLocation(roamingProfileStorageKeyName))
+                EditorConfigStorageLocation.ForStringCodeStyleOption(editorconfigKeyName, defaultValue))
         End Function
 
         Public Shared ReadOnly Property AllOptions As ImmutableArray(Of IOption2)

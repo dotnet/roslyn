@@ -41,7 +41,7 @@ internal sealed class VisualStudioOptionPersister : IOptionPersister
     public bool TryFetch(OptionKey2 optionKey, out object? value)
     {
         value = null;
-        return VisualStudioOptionStorage.TryGetStorage(optionKey, out var storage) && TryFetch(storage, optionKey, out value);
+        return VisualStudioOptionStorage.TryGetStorage(optionKey.Option.OptionDefinition.ConfigName, out var storage) && TryFetch(storage, optionKey, out value);
     }
 
     public bool TryFetch(VisualStudioOptionStorage storage, OptionKey2 optionKey, out object? value)
@@ -55,7 +55,7 @@ internal sealed class VisualStudioOptionPersister : IOptionPersister
         };
 
     public bool TryPersist(OptionKey2 optionKey, object? value)
-        => VisualStudioOptionStorage.TryGetStorage(optionKey, out var storage) && TryPersist(storage, optionKey, value);
+        => VisualStudioOptionStorage.TryGetStorage(optionKey.Option.OptionDefinition.ConfigName, out var storage) && TryPersist(storage, optionKey, value);
 
     public bool TryPersist(VisualStudioOptionStorage storage, OptionKey2 optionKey, object? value)
         => storage switch

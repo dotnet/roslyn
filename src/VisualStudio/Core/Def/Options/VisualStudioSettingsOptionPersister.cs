@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// Serializes settings marked with <see cref="ClientSettingsStorageLocation"/> to and from VS Settings storage.
+    /// Serializes settings to and from VS Settings storage.
     /// </summary>
     internal sealed class VisualStudioSettingsOptionPersister
     {
