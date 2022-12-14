@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var extraDocComments = Generator.DocumentationCommentTrivia(
                     extraNodeList,
                     node.GetTrailingTrivia(),
-                    document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
+                    document.Project.Solution.Options.GetOption(FormattingOptions2.NewLine, document.Project.Language));
                 var newTrivia = Generator.Trivia(extraDocComments);
 
                 updatedLeadingTrivia.Add(newTrivia);
