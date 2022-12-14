@@ -262,14 +262,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                    // Check availability of `DecimalConstantAttribute`.
-                    if (_lazyDefaultSyntaxValue is { IsDecimal: true } ||
-                        GetEarlyDecodedWellKnownAttributeData() is { DefaultParameterValue.IsDecimal: true })
+                    // Ensure availability of `DecimalConstantAttribute`.
+                    // For lambdas, check also explicit attribute application
+                    // because it will be re-synthesized in the delegate type.
+                    if (this is LambdaParameterSymbol
+                        ? _lazyDefaultSyntaxValue is { IsDecimal: true } ^
+                            DefaultValueFromAttributes is { IsDecimal: true }
+                        : _lazyDefaultSyntaxValue is { IsDecimal: true } &&
+                            DefaultValueFromAttributes == ConstantValue.NotAvailable)
                     {
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
                             WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
                             diagnostics,
-                            CSharpSyntaxNode?.Location ?? Locations.FirstOrDefault());
+                            parameterEqualsValue?.Value.Syntax.Location ?? CSharpSyntaxNode?.Location ?? Locations.FirstOrDefault());
                     }
 
                     AddDeclarationDiagnostics(diagnostics);

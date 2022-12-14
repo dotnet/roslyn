@@ -14629,7 +14629,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 """;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var lam = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {type} d").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(4, 12));
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
