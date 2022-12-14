@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // Ensure we update newSolution with the result of SetCurrentSolution.  It will be the one appropriately
                 // 'attached' to this workspace.
-                (_, newSolution) = this.SetCurrentSolutionAndUnifyLinkedDocumentContents(
+                (_, newSolution) = this.SetCurrentSolution(
                     _ => newSolution,
                     changeKind: static (oldSolution, newSolution) => IsAddingSolution(oldSolution, newSolution)
                         ? WorkspaceChangeKind.SolutionAdded

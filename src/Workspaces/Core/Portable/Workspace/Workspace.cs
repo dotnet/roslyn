@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <inheritdoc cref="SetCurrentSolutionAndUnifyLinkedDocumentContents(Func{Solution, Solution}, Func{Solution, Solution, WorkspaceChangeKind}, ProjectId?, DocumentId?, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
+        /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, Func{Solution, Solution, WorkspaceChangeKind}, ProjectId?, DocumentId?, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
         internal bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
             WorkspaceChangeKind changeKind,
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis
             Action<Solution, Solution>? onBeforeUpdate = null,
             Action<Solution, Solution>? onAfterUpdate = null)
         {
-            var (updated, _) = SetCurrentSolutionAndUnifyLinkedDocumentContents(
+            var (updated, _) = SetCurrentSolution(
                 transformation,
                 (_, _) => changeKind,
                 projectId,
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis
         /// the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the
         /// transformation did not change the solution.</returns>
-        internal (bool updated, Solution newSolution) SetCurrentSolutionAndUnifyLinkedDocumentContents(
+        internal (bool updated, Solution newSolution) SetCurrentSolution(
             Func<Solution, Solution> transformation,
             Func<Solution, Solution, WorkspaceChangeKind> changeKind,
             ProjectId? projectId = null,
