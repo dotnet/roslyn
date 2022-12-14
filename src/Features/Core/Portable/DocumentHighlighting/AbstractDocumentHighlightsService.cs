@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 // in order to highlight values in this document.
                 var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
                     document.Project,
-                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => (d.Id, d.textSpan)), options, cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(
+                        solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => (d.document.Id, d.textSpan)), options, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
             ImmutableArray<ReferencedSymbol> references, Document startingDocument,
-            IImmutableSet<Document> documentsToSearch, ISymbol symbol,
+            IImmutableSet<(Document document, TextSpan textSpan)> documentsToSearch, ISymbol symbol,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
             using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
 
-            foreach (var currentDocument in documentsToSearch)
+            foreach (var (currentDocument, textSpan) in documentsToSearch)
             {
                 // 'documentsToSearch' may contain documents from languages other than our own
                 // (for example cshtml files when we're searching the cs document).  Since we're
@@ -180,17 +181,18 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 // we only process the document if it's also our language.
                 if (currentDocument.Project.Language == startingDocument.Project.Language)
                 {
-                    additionalReferences.AddRange(await GetAdditionalReferencesAsync(currentDocument, symbol, cancellationToken).ConfigureAwait(false));
+                    additionalReferences.AddRange(
+                        await GetAdditionalReferencesAsync(currentDocument, textSpan, symbol, cancellationToken).ConfigureAwait(false));
                 }
             }
 
             return await CreateSpansAsync(
                 solution, symbol, references, additionalReferences,
-                documentsToSearch, cancellationToken).ConfigureAwait(false);
+                documentsToSearch.Select(t => t.document).ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
         }
 
         protected virtual Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
-            Document document, ISymbol symbol, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ISymbol symbol, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<Location>();
         }

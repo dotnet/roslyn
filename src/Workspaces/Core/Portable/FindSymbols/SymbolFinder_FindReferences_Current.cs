@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // results as it finds them.  When we hear about results we'll forward them to
                         // the 'progress' parameter which will then update the UI.
                         var serverCallback = new FindReferencesServerCallback(solution, progress);
-                        var documentIds = documents.SelectAsArray(d => (d.Id, d.textSpan));
+                        var documentIds = documents.SelectAsArray(d => (d.document.Id, d.textSpan));
 
                         await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                             solution,
-                            (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, serializedSymbol, documentIds, options, cancellationToken),
+                            (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesInDocumentsAsync(solutionInfo, callbackId, serializedSymbol, documentIds, options, cancellationToken),
                             serverCallback,
                             cancellationToken).ConfigureAwait(false);
 
