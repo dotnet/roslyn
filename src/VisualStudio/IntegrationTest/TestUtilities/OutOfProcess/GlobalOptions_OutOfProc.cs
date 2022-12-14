@@ -53,5 +53,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
             => _inProc.SetGlobalOption(option, language, value);
+
+        public void ValidateAllOptions()
+            => _inProc.ValidateAllOptions();
     }
 }

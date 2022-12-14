@@ -2,16 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RS0030 // Do not used banned APIs
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -109,5 +112,43 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public static IEnumerable<string?> GetApplicableLanguages(IOption option)
             => (option is IPerLanguageValuedOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+
+        public static object? GetDifferentValue(Type type, object? value)
+            => value switch
+            {
+                _ when type == typeof(bool) => !(bool)value!,
+                _ when type.IsEnum => GetDifferentEnumValue(type, value),
+                _ when type == typeof(string) => (string?)value == "X" ? "Y" : "X",
+                _ when type == typeof(int) => (int)value! == 0 ? 1 : 0,
+                ICodeStyleOption codeStyleOption => codeStyleOption.WithNotification(codeStyleOption.Notification == NotificationOption2.Warning ? NotificationOption2.Error : NotificationOption2.Warning),
+                NamingStylePreferences namingPreference => namingPreference.IsEmpty ? NamingStylePreferences.Default : NamingStylePreferences.Empty,
+                ImmutableArray<string> strings => strings.IsEmpty ? ImmutableArray.Create("X") : ImmutableArray<string>.Empty,
+                _ when type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) => (value is null) ? Activator.CreateInstance(type.GetGenericArguments()[0]) : null,
+                _ when type == typeof(long) => (long)((long)value! == 0 ? 1 : 0),
+                _ when type == typeof(ulong) => (ulong)((ulong)value! == 0 ? 1 : 0),
+                _ when type == typeof(uint) => (uint)((uint)value! == 0 ? 1 : 0),
+                _ when type == typeof(short) => (short)((short)value! == 0 ? 1 : 0),
+                _ when type == typeof(ushort) => (ushort)((ushort)value! == 0 ? 1 : 0),
+                _ when type == typeof(byte) => (byte)((byte)value! == 0 ? 1 : 0),
+                _ when type == typeof(sbyte) => (sbyte)((sbyte)value! == 0 ? 1 : 0),
+                _ when type == typeof(char) => (char)value! == '0' ? '1' : '0',
+
+                // Hit when a new option is introduced that uses type not handled above:
+                _ => throw ExceptionUtilities.UnexpectedValue(type)
+            };
+
+        private static object GetDifferentEnumValue(Type type, object? defaultValue)
+        {
+            foreach (var value in Enum.GetValues(type))
+            {
+                if (value != defaultValue)
+                {
+                    return value;
+                }
+            }
+
+            // enum has only a single value:
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

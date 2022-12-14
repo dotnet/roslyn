@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,11 +14,15 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.UnitTests;
+using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal sealed class GlobalOptions_InProc : InProcComponent
     {
+        public static GlobalOptions_InProc Create() => new GlobalOptions_InProc();
+
         private readonly IGlobalOptionService _globalOptions;
 
         public GlobalOptions_InProc()
@@ -60,6 +65,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 else
                 {
                     _globalOptions.SetGlobalOption(new OptionKey2(option, language: null), option.DefaultValue);
+                }
+            }
+        }
+
+        public void ValidateAllOptions()
+        {
+            var optionsInfo = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(GlobalOptions_InProc).Assembly.Location!));
+            var allLanguages = new[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
+            var noLanguages = new[] { (string?)null };
+
+            foreach (var (option, _, _, _) in optionsInfo.GlobalOptions.Values)
+            {
+                foreach (var language in option.IsPerLanguage ? allLanguages : noLanguages)
+                {
+                    var key = new OptionKey2(option, language);
+                    var currentValue = _globalOptions.GetOption<object?>(key);
+                    var differentValue = OptionsTestHelpers.GetDifferentValue(option.Type, currentValue);
+                    _globalOptions.SetGlobalOption(key, differentValue);
+
+                    object? updatedValue;
+
+                    try
+                    {
+                        updatedValue = _globalOptions.GetOption<object?>(key);
+                    }
+                    finally
+                    {
+                        _globalOptions.SetGlobalOption(key, currentValue);
+                    }
+
+                    Assert.Equal(differentValue, updatedValue);
                 }
             }
         }
