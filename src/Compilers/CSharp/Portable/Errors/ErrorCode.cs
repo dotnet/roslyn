@@ -2154,9 +2154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region diagnostics introduced for C# 12.0
+
         ERR_ImplicitlyTypedDefaultParameter = 9098,
         WRN_OptionalParamValueMismatch = 9099,
         WRN_ParamsArrayInLambdaOnly = 9100,
+        ERR_UnscopedRefAttributeUnsupportedMethodTarget = 9101,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

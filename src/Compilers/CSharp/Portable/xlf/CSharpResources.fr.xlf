@@ -1637,9 +1637,14 @@
         <target state="translated">'{0}' est attribué avec 'UnmanagedCallersOnly' et ne peut pas être converti en type délégué. Obtenez un pointeur de fonction vers cette méthode.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMethodTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="translated">UnscopedRefAttribute ne peut pas être appliqué à cet élément, car il n’a pas d’étendue par défaut.</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="needs-review-translation">UnscopedRefAttribute ne peut pas être appliqué à cet élément, car il n’a pas d’étendue par défaut.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
