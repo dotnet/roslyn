@@ -370,15 +370,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((GetLazyConstantValue(earlyDecodingWellKnownAttributes) == Microsoft.CodeAnalysis.ConstantValue.Unset) ||
                 (GetLazyConstantValue(earlyDecodingWellKnownAttributes) == value));
 
-            // Check availability of `DecimalConstantAttribute`.
-            if (value is { IsDecimal: true })
-            {
-                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
-                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
-                    diagnostics,
-                    SyntaxNode?.Location ?? Locations.FirstOrDefault());
-            }
-
             if (earlyDecodingWellKnownAttributes)
             {
                 Interlocked.CompareExchange(ref _lazyConstantEarlyDecodingValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset);
@@ -390,6 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if REPORT_ALL
                     Console.WriteLine("Thread {0}, Field {1}, StartsCycle {2}", Thread.CurrentThread.ManagedThreadId, this, startsCycle);
 #endif
+                    if (this.state.HasComplete(CompletionPart.Attributes))
+                    {
+                        CheckConstantValue(value, diagnostics);
+                    }
+
                     this.AddDeclarationDiagnostics(diagnostics);
                     // CompletionPart.ConstantValue is the last part for a field
                     DeclaringCompilation.SymbolDeclaredEvent(this);
@@ -400,5 +396,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, BindingDiagnosticBag diagnostics);
+
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            if (this.state.HasComplete(CompletionPart.ConstantValue))
+            {
+                Debug.Assert(_lazyConstantValue != null);
+                CheckConstantValue(_lazyConstantValue, diagnostics);
+            }
+
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
+        protected virtual void CheckConstantValue(ConstantValue value, BindingDiagnosticBag diagnostics) { }
     }
 }

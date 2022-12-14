@@ -636,6 +636,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
         }
 
+        protected sealed override void CheckConstantValue(ConstantValue value, BindingDiagnosticBag diagnostics)
+        {
+            var equalsValueNode = VariableDeclaratorNode.Initializer;
+            if (equalsValueNode == null)
+            {
+                return;
+            }
+
+            var attrData = GetDecodedWellKnownAttributeData();
+
+            // Ensure availability of `DecimalConstantAttribute`.
+            if (value is { IsDecimal: true } &&
+                (attrData == null || attrData.ConstValue == CodeAnalysis.ConstantValue.Unset))
+            {
+                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                    diagnostics,
+                    syntax: equalsValueNode.Value);
+            }
+        }
+
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (this.SyntaxTree == tree)
