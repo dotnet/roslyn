@@ -5303,7 +5303,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
-        <target state="needs-review-translation">Bir özellik veya dizin erişimcisi, out veya ref parametresi olarak geçilemez</target>
+        <target state="new">A non ref-returning property or indexer may not be used as an out or ref value</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8511,7 +8511,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
-        <target state="translated">Bu zaman uyumsuz bir yöntem olduğundan, dönüş ifadesi '{1}' yerine '{0}' türünde olmalıdır</target>
+        <target state="new">Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
