@@ -14617,18 +14617,19 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
-        [InlineData("decimal")]
-        [InlineData("decimal?")]
-        public void DefaultParameter_MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_Alone(string type)
+        [InlineData("decimal", "System.Decimal")]
+        [InlineData("decimal?", "System.Nullable`1[System.Decimal]")]
+        public void DefaultParameter_MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_Alone(string type, string typeFullName)
         {
             var source = $$"""
                 using System.Runtime.CompilerServices;
 
                 var lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
+                System.Console.WriteLine(lam.GetType());
                 """;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
-            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: $"System.Action`1[{typeFullName}]").VerifyDiagnostics();
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -14651,7 +14652,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
-        [InlineData("decimal")]
+        [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void DefaultParameter_MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithDefault(string type)
         {
@@ -14662,7 +14663,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 """;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,62): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal  d = 1.1m) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 62));
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]

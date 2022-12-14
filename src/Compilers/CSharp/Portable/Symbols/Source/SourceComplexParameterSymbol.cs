@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // because it will be re-synthesized in the delegate type.
                     if (this is LambdaParameterSymbol
                         ? _lazyDefaultSyntaxValue is { IsDecimal: true } ^
-                            DefaultValueFromAttributes is { IsDecimal: true }
+                            (HasOptionalAttribute && DefaultValueFromAttributes is { IsDecimal: true })
                         : _lazyDefaultSyntaxValue is { IsDecimal: true } &&
                             DefaultValueFromAttributes == ConstantValue.NotAvailable)
                     {
