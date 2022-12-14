@@ -8,13 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     internal interface IRemoteDocumentHighlightsService
     {
         ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken);
+            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<(DocumentId documentId, TextSpan textSpan)> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken);
     }
 
     [DataContract]
