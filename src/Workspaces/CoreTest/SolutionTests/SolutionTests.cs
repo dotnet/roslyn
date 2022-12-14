@@ -426,13 +426,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
             var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
-            solution = updateType switch
-            {
-                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
-                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
-                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
-                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
-            };
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
 
             // because we only forked one doc, the text/versions should be different in this interim solution.
 
@@ -475,6 +469,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(root1.IsIncrementallyIdenticalTo(root2));
         }
 
+        private static Solution UpdateSolution(PreservationMode mode, TextUpdateType updateType, Solution solution, DocumentId documentId1, SourceText text, TextAndVersion textAndVersion)
+        {
+            solution = updateType switch
+            {
+                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
+                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
+                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
+                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
+            };
+            return solution;
+        }
+
         [Theory, CombinatorialData]
         public async Task WithDocumentText_LinkedFiles_PPConditionalDirective_SameParseOptions(
             PreservationMode mode,
@@ -508,13 +514,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
             var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
-            solution = updateType switch
-            {
-                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
-                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
-                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
-                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
-            };
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
 
             // because we only forked one doc, the text/versions should be different in this interim solution.
 
@@ -597,13 +597,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Because we removed pp directives, we'll be able to reuse after this.
             var text = SourceText.From("new text without pp directives", encoding: null, SourceHashAlgorithm.Sha1);
             var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
-            solution = updateType switch
-            {
-                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
-                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
-                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
-                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
-            };
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
 
             // because we only forked one doc, the text/versions should be different in this interim solution.
 
@@ -686,13 +680,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Because we still have pp directives, we'll still not be able to reuse the file.
             var text = SourceText.From("#if true", encoding: null, SourceHashAlgorithm.Sha1);
             var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
-            solution = updateType switch
-            {
-                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
-                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
-                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
-                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
-            };
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
 
             // because we only forked one doc, the text/versions should be different in this interim solution.
 
@@ -768,13 +756,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
             var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
-            solution = updateType switch
-            {
-                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
-                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
-                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
-                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
-            };
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
 
             // because we only forked one doc, the text/versions should be different in this interim solution.
 
