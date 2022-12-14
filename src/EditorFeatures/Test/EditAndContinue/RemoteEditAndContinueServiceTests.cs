@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
                 $" {d.Message}";
 
-        [ConditionalTheory]
+        [Theory]
         [CombinatorialData]
         public async Task Proxy(TestHost testHost)
         {

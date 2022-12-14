@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public partial class AddUsingTests
     {
-        [ConditionalFact]
+        [Fact]
         public async Task TestSimpleQuery()
         {
             await TestInRegularAndScriptAsync(
@@ -41,7 +41,7 @@ class Program
 }");
         }
 
-        [ConditionalFact]
+        [Fact]
         public async Task TestSimpleWhere()
         {
             await TestInRegularAndScriptAsync(
