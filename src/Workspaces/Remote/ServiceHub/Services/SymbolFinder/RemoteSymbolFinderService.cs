@@ -68,6 +68,37 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
+        public ValueTask FindReferencesInDocumentsAsync(
+            Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
+            SerializableSymbolAndProjectId symbolAndProjectIdArg,
+            ImmutableArray<(DocumentId documentId, TextSpan textSpan)> documentArgs,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(solutionChecksum, async solution =>
+            {
+                var symbol = await symbolAndProjectIdArg.TryRehydrateAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
+
+                var progressCallback = new FindReferencesProgressCallback(solution, _callback, callbackId);
+
+                if (symbol == null)
+                {
+                    await progressCallback.OnStartedAsync(cancellationToken).ConfigureAwait(false);
+                    await progressCallback.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    return;
+                }
+
+                var documents = documentArgs
+                    .Select(t => (document: solution.GetDocument(t.documentId)!, t.textSpan))
+                    .Where(t => t.document != null).ToImmutableHashSet();
+
+                await SymbolFinder.FindReferencesInDocumentsInCurrentProcessAsync(
+                    symbol, solution, progressCallback, documents, options, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
         public ValueTask FindLiteralReferencesAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, object value, TypeCode typeCode, CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>

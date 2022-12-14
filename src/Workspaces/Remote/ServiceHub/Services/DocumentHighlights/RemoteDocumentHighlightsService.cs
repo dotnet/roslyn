@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<(DocumentId documentId, TextSpan textSpan)> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
             // NOTE: In projection scenarios, we might get a set of documents to search
             // that are not all the same language and might not exist in the OOP process
@@ -36,8 +37,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                var documentsToSearch = await documentIdsToSearch.SelectAsArrayAsync(id => solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken)).ConfigureAwait(false);
-                var documentsToSearchSet = ImmutableHashSet.CreateRange(documentsToSearch.WhereNotNull());
+                var documentsToSearch = await documentIdsToSearch
+                    .SelectAsArrayAsync(async t => (document: await solution.GetDocumentAsync(t.documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false)!, t.textSpan))
+                    .ConfigureAwait(false);
+                var documentsToSearchSet = documentsToSearch.Where(t => t.document != null).ToImmutableHashSet();
 
                 var service = document.GetRequiredLanguageService<IDocumentHighlightsService>();
                 var result = await service.GetDocumentHighlightsAsync(
