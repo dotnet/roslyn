@@ -644,11 +644,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var attrData = GetDecodedWellKnownAttributeData();
-
             // Ensure availability of `DecimalConstantAttribute`.
             if (value is { IsDecimal: true } &&
-                (attrData == null || attrData.ConstValue == CodeAnalysis.ConstantValue.Unset))
+                (GetDecodedWellKnownAttributeData() is not { } attrData ||
+                attrData.ConstValue == CodeAnalysis.ConstantValue.Unset))
             {
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
                     WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
