@@ -11,6 +11,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     /// <param name="TextBuffer">text buffer used by the editor to find our language-server implementation.</param>
     /// <param name="FilePath">file path used as part of the LSP request.</param>
-    /// <param name="CaretPoint">Current caret position in the code window.</param>
-    internal sealed record VisualStudioCodeWindowInfo(ITextBuffer TextBuffer, string FilePath, SnapshotPoint? CaretPoint);
+    internal sealed record DocumentSymbolsRequestInfo(ITextBuffer TextBuffer, string FilePath);
 }

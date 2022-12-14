@@ -25,20 +25,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal partial class DocumentOutlineView : UserControl, IVsCodeWindowEvents, IDisposable
     {
         private readonly DocumentOutlineViewModel _viewModel;
-        private readonly VisualStudioCodeWindowInfoService _visualStudioCodeWindowInfoService;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
         private readonly ComEventSink _codeWindowEventsSink;
+        private bool _isNavigating = false;
 
         public DocumentOutlineView(
             DocumentOutlineViewModel viewModel,
-            VisualStudioCodeWindowInfoService visualStudioCodeWindowInfoService,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IVsCodeWindow codeWindow)
         {
             _viewModel = viewModel;
             _viewModel.NavigationCompleted += NavigationCompleted;
-            _visualStudioCodeWindowInfoService = visualStudioCodeWindowInfoService;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             DataContext = _viewModel;
             InitializeComponent();
@@ -60,6 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
         }
 
+        /// <summary>
+        /// Called by our View Model to tell us that navigation in the document has completed
+        /// </summary>
         private void NavigationCompleted(object sender, EventArgs e)
         {
             _isNavigating = false;
@@ -93,19 +94,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void SortByName(object sender, EventArgs e)
-        {
-            UpdateSort(SortOption.Name, nameof(DocumentSymbolItemViewModel.Name));
-        }
+            => UpdateSort(SortOption.Name, nameof(DocumentSymbolItemViewModel.Name));
 
         private void SortByOrder(object sender, EventArgs e)
-        {
-            UpdateSort(SortOption.Location, nameof(DocumentSymbolItemViewModel.StartPosition));
-        }
+            => UpdateSort(SortOption.Location, nameof(DocumentSymbolItemViewModel.StartPosition));
 
         private void SortByType(object sender, EventArgs e)
-        {
-            UpdateSort(SortOption.Type, nameof(DocumentSymbolItemViewModel.SymbolKind), nameof(DocumentSymbolItemViewModel.Name));
-        }
+            => UpdateSort(SortOption.Type, nameof(DocumentSymbolItemViewModel.SymbolKind), nameof(DocumentSymbolItemViewModel.Name));
 
         private void UpdateSort(SortOption sortOption, params string[] sortProperties)
         {
@@ -128,8 +123,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _viewModel.SortOption = sortOption;
             view.Refresh();
         }
-
-        private bool _isNavigating = false;
 
         /// <summary>
         /// When a symbol node in the window is clicked, move the caret to its position in the latest active text view.

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -14,32 +13,42 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal partial class DocumentOutlineViewModel
     {
+        /// <summary>
+        /// Queue of caret positions that we want to select to corresponding node for.
+        /// </summary>
         private readonly AsyncBatchingWorkQueue<CaretPosition> _selectTreeNodeQueue;
-        private CaretPosition? _currentCaretPosition;
+
+        /// <summary>
+        /// Last used caret position, read by our model update task so we can keep nodes selected across snap-shot updates.
+        /// </summary>
+        private CaretPosition? _currentlySelectedSymbolCaretPosition;
 
         public void EnqueueSelectTreeNode(CaretPosition caretPoint)
-        {
-            _selectTreeNodeQueue.AddWork(caretPoint, cancelExistingWork: true);
-        }
+            => _selectTreeNodeQueue.AddWork(caretPoint, cancelExistingWork: true);
 
-        private async ValueTask SelectTreeNodeAsync(ImmutableSegmentedList<CaretPosition> snapshotPoints, CancellationToken token)
+        private async ValueTask SelectTreeNodeAsync(ImmutableSegmentedList<CaretPosition> caretPositions, CancellationToken token)
         {
-            if (_currentSnapshot is null)
+            var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+            if (model is null)
             {
+                // we haven't gotten an LSP response yet
                 return;
             }
 
-            var caretPosition = snapshotPoints.Last();
+            var caretPosition = caretPositions.Last();
+            var currentTextSnapshot = model.OriginalSnapshot;
             var caretPoint = await _visualStudioCodeWindowInfoService.GetSnapshotPointFromCaretPositionAsync(caretPosition, token).ConfigureAwait(false);
             if (!caretPoint.HasValue)
             {
+                // document has changed since we were queue'd to the point that we can't find this position.
                 return;
             }
 
+            // guard as we update the state of the view models
             using (await _guard.DisposableWaitAsync(token).ConfigureAwait(false))
             {
                 var documentSymbolViewModelItems = _documentSymbolViewModelItems;
-                var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolViewModelItems, _currentSnapshot, caretPoint.Value);
+                var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolViewModelItems, currentTextSnapshot, caretPoint.Value);
 
                 if (symbolToSelect is null)
                 {
@@ -48,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                 DocumentOutlineHelper.ExpandAncestors(documentSymbolViewModelItems, symbolToSelect.RangeSpan);
                 symbolToSelect.IsSelected = true;
-                _currentCaretPosition = caretPosition;
+                _currentlySelectedSymbolCaretPosition = caretPosition;
             }
         }
     }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -10,33 +11,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal sealed class DocumentSymbolData
+    internal sealed record DocumentSymbolData(string Name, SymbolKind SymbolKind, SnapshotSpan RangeSpan, SnapshotSpan SelectionRangeSpan, ImmutableArray<DocumentSymbolData> Children)
     {
-        public string Name { get; }
-        public SymbolKind SymbolKind { get; }
-        public SnapshotSpan RangeSpan { get; }
-        public SnapshotSpan SelectionRangeSpan { get; }
-        public ImmutableArray<DocumentSymbolData> Children { get; }
-
         public DocumentSymbolData(DocumentSymbol documentSymbol, SnapshotSpan rangeSpan, SnapshotSpan selectionRangeSpan, ImmutableArray<DocumentSymbolData> children)
+            : this(documentSymbol.Name, documentSymbol.Kind, rangeSpan, selectionRangeSpan, children)
         {
-            Name = documentSymbol.Name;
-            SymbolKind = documentSymbol.Kind;
-            RangeSpan = rangeSpan;
-            SelectionRangeSpan = selectionRangeSpan;
-            Children = children;
         }
-
-        private DocumentSymbolData(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolData> children)
-        {
-            Name = documentSymbolData.Name;
-            SymbolKind = documentSymbolData.SymbolKind;
-            RangeSpan = documentSymbolData.RangeSpan;
-            SelectionRangeSpan = documentSymbolData.SelectionRangeSpan;
-            Children = children;
-        }
-
-        public DocumentSymbolData WithChildren(ImmutableArray<DocumentSymbolData> children)
-            => new(this, children);
     }
 }

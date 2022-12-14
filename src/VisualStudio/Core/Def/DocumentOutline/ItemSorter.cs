@@ -8,9 +8,13 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Markup;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
+    /// <summary>
+    /// Sorts immutable collections of <see cref="DocumentSymbolItemViewModel"/>s 
+    /// </summary>
     internal class ItemSorter : MarkupExtension, IMultiValueConverter
     {
         public static ItemSorter Instance { get; } = new();
@@ -28,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     SortOption.Name => children.Sort(NameComparer.Instance),
                     SortOption.Type => children.Sort(TypeComparer.Instance),
                     SortOption.Location => children.Sort(LocationComparer.Instance),
-                    _ => children
+                    _ => throw ExceptionUtilities.UnexpectedValue(sortOption)
                 };
             }
 
@@ -36,14 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public override object ProvideValue(IServiceProvider serviceProvider)
-        {
-            return Instance;
-        }
+            => Instance;
 
         private class NameComparer : IComparer<DocumentSymbolItemViewModel>
         {
@@ -66,12 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             public static TypeComparer Instance { get; } = new();
 
             public int Compare(DocumentSymbolItemViewModel x, DocumentSymbolItemViewModel y)
-            {
-                if (x.SymbolKind == y.SymbolKind)
-                    return NameComparer.Instance.Compare(x, y);
-
-                return x.SymbolKind - y.SymbolKind;
-            }
+                => x.SymbolKind == y.SymbolKind
+                    ? NameComparer.Instance.Compare(x, y)
+                    : x.SymbolKind - y.SymbolKind;
         }
     }
 }

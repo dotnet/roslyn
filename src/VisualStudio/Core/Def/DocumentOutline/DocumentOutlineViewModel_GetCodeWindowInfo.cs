@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
 using System.Threading;
-using System;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
@@ -14,11 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Queue uses to get the caret position, and data needed to make an LSP request. 
         /// </summary>
-        private readonly AsyncBatchingResultQueue<VisualStudioCodeWindowInfo?> _visualStudioCodeWindowInfoQueue;
+        private readonly AsyncBatchingResultQueue<DocumentSymbolsRequestInfo?> _visualStudioCodeWindowInfoQueue;
 
-        private async ValueTask<VisualStudioCodeWindowInfo?> GetVisualStudioCodeWindowInfoAsync(CancellationToken token)
+        private async ValueTask<DocumentSymbolsRequestInfo?> GetVisualStudioCodeWindowInfoAsync(CancellationToken token)
         {
-            var info = await _visualStudioCodeWindowInfoService.GetVisualStudioCodeWindowInfoAsync(token).ConfigureAwait(false);
+            var info = await _visualStudioCodeWindowInfoService.GetDocumentSymbolsRequestInfoAsync(token).ConfigureAwait(false);
             if (info is not null)
             {
                 _documentSymbolQueue.AddWork(info, cancelExistingWork: true);

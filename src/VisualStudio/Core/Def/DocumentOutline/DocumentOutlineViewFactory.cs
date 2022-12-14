@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var visualStudioCodeWindowInfoService = new VisualStudioCodeWindowInfoService(codeWindow, editorAdaptersFactoryService, threadingContext);
             var textViewEventSource = CreateEventSource(asyncListener, visualStudioCodeWindowInfoService);
             var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, visualStudioCodeWindowInfoService, textViewEventSource, workspace, documentNavigationService);
-            return new DocumentOutlineView(viewModel, visualStudioCodeWindowInfoService, editorAdaptersFactoryService, codeWindow);
+            return new DocumentOutlineView(viewModel, editorAdaptersFactoryService, codeWindow);
         }
 
         private static CompilationAvailableTaggerEventSource CreateEventSource(

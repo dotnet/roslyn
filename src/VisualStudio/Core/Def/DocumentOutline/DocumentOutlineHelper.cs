@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
@@ -210,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 var filteredChildren = SearchDocumentSymbolData(documentSymbol.Children, pattern, cancellationToken);
                 if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
-                    filteredDocumentSymbols.Add(documentSymbol.WithChildren(filteredChildren));
+                    filteredDocumentSymbols.Add(documentSymbol with { Children = filteredChildren });
             }
 
             return filteredDocumentSymbols.ToImmutable();
@@ -355,6 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return false;
             }
 
+            // No need to recurse, if all the items are collapsed then so are their children
             foreach (var item in documentSymbolViewModelItems)
             {
                 if (item.IsExpanded)

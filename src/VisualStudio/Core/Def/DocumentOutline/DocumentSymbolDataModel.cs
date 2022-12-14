@@ -7,15 +7,5 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    internal sealed class DocumentSymbolDataModel
-    {
-        public ImmutableArray<DocumentSymbolData> DocumentSymbolData { get; }
-        public ITextSnapshot OriginalSnapshot { get; }
-
-        public DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData> documentSymbolData, ITextSnapshot originalSnapshot)
-        {
-            DocumentSymbolData = documentSymbolData;
-            OriginalSnapshot = originalSnapshot;
-        }
-    }
+    internal sealed record DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData> DocumentSymbolData, ITextSnapshot OriginalSnapshot);
 }

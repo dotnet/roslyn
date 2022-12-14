@@ -12,17 +12,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal partial class DocumentOutlineViewModel
     {
-
+        /// <summary>
+        /// Queue to expand/collapse the items in the tree view
+        /// </summary>
         private readonly AsyncBatchingWorkQueue<ExpansionOption> _expandCollapseQueue;
 
         public void EnqueueExpandCollapseUpdate(ExpansionOption option)
-        {
-            _expandCollapseQueue.AddWork(option, cancelExistingWork: true);
-        }
+            => _expandCollapseQueue.AddWork(option, cancelExistingWork: true);
 
         private async ValueTask ExpandCollapseItemsAsync(ImmutableSegmentedList<ExpansionOption> expansionOptions, CancellationToken token)
         {
             var expansionOption = expansionOptions.Last();
+
+            // guard here as we are going to be modifying properties on the view models
+            // even though they are bools and this is safe to do without a guard it makes things happen 'in order' for the user
             using (await _guard.DisposableWaitAsync(token).ConfigureAwait(false))
             {
                 var documentSymbolViewModelItems = _documentSymbolViewModelItems;

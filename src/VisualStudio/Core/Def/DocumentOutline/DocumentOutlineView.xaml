@@ -17,6 +17,10 @@
              Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <UserControl.Resources>
+        <!-- This CollectionViewSource allows us to sort items in the tree with the minimal number of draw calls.
+             With IsLiveSortingRequested set to "True" sorting happens on notify-property-change for out data, 
+             most of which is boolean property changes.
+        -->
         <CollectionViewSource
             x:Key="DocumentSymbolItems"
             IsLiveSortingRequested="True"
@@ -25,6 +29,9 @@
                 <ComponentModel:SortDescription PropertyName="StartPosition" Direction="Ascending" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
+        <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
+             which uses far less memory.
+        -->
         <self:ItemSorter x:Key="ItemSorter"/>
         <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
         <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
@@ -126,15 +133,19 @@
                 </Style>
             </TextBox.Style>
         </TextBox>
+        <!-- Two important properties are being set for TreeView:
+               We set IsVirtualizing to "True" so that WPF only generates internal data-structures elements that are visible.
+               Setting VirtualizationMode to "Recycling" ensures that WPF internal data is reused as items scroll in and out of view.
+        -->
         <TreeView Grid.Row="2"
                   Name="SymbolTree"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}">
+                  ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolItemViewModel}">
                     <HierarchicalDataTemplate.ItemsSource>
-                        <MultiBinding Converter="{StaticResource ItemSorter}">
+                        <MultiBinding Converter="{StaticResource ItemSorter}"> <!-- This binding ensures our TreeViewItems are sorted if the collection is changed OR the sort option is changed -->
                             <Binding Path="Children" />
                             <Binding Path="DataContext.SortOption"  RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
                         </MultiBinding>

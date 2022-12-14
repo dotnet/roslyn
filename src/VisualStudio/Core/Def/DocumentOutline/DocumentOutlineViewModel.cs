@@ -8,17 +8,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Evaluation.IL;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
@@ -29,6 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly VisualStudioCodeWindowInfoService _visualStudioCodeWindowInfoService;
         private readonly CompilationAvailableTaggerEventSource _textViewEventSource;
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly IDocumentNavigationService _navigationService;
+        private readonly Workspace _workspace;
         private CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public DocumentOutlineViewModel(
@@ -70,16 +68,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 CancellationToken);
 
             // work queues for refreshing LSP data
-            _visualStudioCodeWindowInfoQueue = new AsyncBatchingResultQueue<VisualStudioCodeWindowInfo?>(
+            _visualStudioCodeWindowInfoQueue = new AsyncBatchingResultQueue<DocumentSymbolsRequestInfo?>(
                 DelayTimeSpan.Short,
                 GetVisualStudioCodeWindowInfoAsync,
                 asyncListener,
                 CancellationToken);
 
-            _documentSymbolQueue = new AsyncBatchingWorkQueue<VisualStudioCodeWindowInfo, DocumentSymbolDataModel?>(
+            _documentSymbolQueue = new AsyncBatchingWorkQueue<DocumentSymbolsRequestInfo, DocumentSymbolDataModel?>(
                 DelayTimeSpan.Short,
                 GetDocumentSymbolAsync,
-                EqualityComparer<VisualStudioCodeWindowInfo>.Default,
+                EqualityComparer<DocumentSymbolsRequestInfo>.Default,
                 asyncListener,
                 CancellationToken);
 
@@ -94,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // queue initial model update
             var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
-            var info = service.GetVisualStudioCodeWindowInfo();
+            var info = service.GetDocumentSymbolsRequestInfo();
             Assumes.NotNull(info);
             _documentSymbolQueue.AddWork(info, cancelExistingWork: true);
         }
@@ -106,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             set => SetProperty(ref _sortOption, value);
         }
 
-        private readonly SemaphoreSlim _guard = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _guard = new(1);
         private ObservableCollection<DocumentSymbolItemViewModel> _documentSymbolViewModelItems;
         public ObservableCollection<DocumentSymbolItemViewModel> DocumentSymbolViewModelItems
         {

@@ -6,6 +6,9 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
+    /// <summary>
+    /// Used to enable or disable the Document Outline feature
+    /// </summary>
     internal sealed class DocumentOutlineOptionsStorage
     {
         public static readonly Option2<bool> EnableDocumentOutline = new("dotnet_enable_document_outline", defaultValue: true);

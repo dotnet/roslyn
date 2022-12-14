@@ -36,15 +36,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Get <see cref="VisualStudioCodeWindowInfo"/>, switching to the UI thread if necessary.
+        /// Get <see cref="DocumentSymbolsRequestInfo"/>, switching to the UI thread if necessary.
         /// </summary>
-        public async Task<VisualStudioCodeWindowInfo?> GetVisualStudioCodeWindowInfoAsync(CancellationToken token)
+        public async Task<DocumentSymbolsRequestInfo?> GetDocumentSymbolsRequestInfoAsync(CancellationToken token)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(token);
-            return GetVisualStudioCodeWindowInfo();
+            return GetDocumentSymbolsRequestInfo();
         }
 
-        private VisualStudioCodeWindowInfo? GetVisualStudioCodeWindowInfo()
+        private DocumentSymbolsRequestInfo? GetDocumentSymbolsRequestInfo()
         {
             _threadingContext.ThrowIfNotOnUIThread();
             var wpfTextView = GetLastActiveIWpfTextView();
@@ -54,13 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             var textBuffer = wpfTextView.TextBuffer;
-
-            var caretPoint = wpfTextView.GetCaretPoint(textBuffer);
-
             if (_editorAdaptersFactoryService.GetBufferAdapter(textBuffer) is IPersistFileFormat persistFileFormat &&
                 ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out var _)))
             {
-                return new VisualStudioCodeWindowInfo(textBuffer, filePath, caretPoint);
+                return new DocumentSymbolsRequestInfo(textBuffer, filePath);
             }
 
             return null;
@@ -136,29 +133,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             private readonly VisualStudioCodeWindowInfoService _service;
 
             public VisualStudioCodeWindowInfoService_OnlyCallOnUIThread(VisualStudioCodeWindowInfoService service)
-            {
-                _service = service;
-            }
+                => _service = service;
 
-            public VisualStudioCodeWindowInfo? GetVisualStudioCodeWindowInfo()
-            {
-                return _service.GetVisualStudioCodeWindowInfo();
-            }
+            public DocumentSymbolsRequestInfo? GetDocumentSymbolsRequestInfo()
+                => _service.GetDocumentSymbolsRequestInfo();
 
             public SnapshotPoint? GetCurrentCaretSnapshotPoint()
-            {
-                return _service.GetCurrentCaretSnapshotPoint();
-            }
-
-            public SnapshotPoint? GetSnapshotPointFromCaretPosition(CaretPosition newPosition)
-            {
-                return _service.GetSnapshotPointFromCaretPosition(newPosition);
-            }
+                => _service.GetCurrentCaretSnapshotPoint();
 
             public IWpfTextView? GetLastActiveIWpfTextView()
-            {
-                return _service.GetLastActiveIWpfTextView();
-            }
+                => _service.GetLastActiveIWpfTextView();
         }
     }
 }
