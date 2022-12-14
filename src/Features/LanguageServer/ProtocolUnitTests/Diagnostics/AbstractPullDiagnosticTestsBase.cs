@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             return new VSInternalWorkspaceDiagnosticsParams
             {
-                PreviousResults = previousResults?.Select(r => new VSInternalDiagnosticParams{ PreviousResultId = r.resultId, TextDocument = r.identifier }).ToArray(),
+                PreviousResults = previousResults?.Select(r => new VSInternalDiagnosticParams { PreviousResultId = r.resultId, TextDocument = r.identifier }).ToArray(),
                 PartialResultToken = progress,
                 QueryingDiagnosticKind = category == null ? null : new(category),
             };
