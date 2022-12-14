@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-            context.TraceDebug($"didOpen for {request.TextDocument.Uri}");
+            context.TraceInformation($"didOpen for {request.TextDocument.Uri}");
 
             // Add the document and ensure the text we have matches whats on the client
             // TODO (https://github.com/dotnet/roslyn/issues/63583):
