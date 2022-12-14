@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var finder in _finders)
                     {
                         var references = await finder.FindReferencesInDocumentAsync(
-                            symbol, state, _options, textSpan: null, cancellationToken).ConfigureAwait(false);
+                            symbol, state, _options, cancellationToken).ConfigureAwait(false);
                         foreach (var (_, location) in references)
                             await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                     }

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Determine the set of projects we actually have to walk to find results in.  This is only the set of
                 // projects that all these documents are in.
-                var projectsToSearch = documentsAndSpans.Select(t => t.document.Project).ToImmutableHashSet();
+                var projectsToSearch = documents.Select(d => d.Project).ToImmutableHashSet();
 
                 // Process projects in dependency graph order so that any compilations built by one are available for later projects.
                 var dependencyGraph = _solution.GetProjectDependencyGraph();
@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     await AddGlobalAliasesAsync(
                         project, symbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
 
-                    var documentsAndSpansInProject = documentsAndSpans.Where(t => t.document.Project == project);
-                    foreach (var group in documentsAndSpansInProject.GroupBy(t => t.document))
+                    var documentsInProject = documents.Where(d => d.Project == project);
+                    foreach (var document in documentsInProject)
                     {
                         await PerformSearchInDocumentAsync(
-                            symbols, group.Key, group.Select(t => t.textSpan), symbolToGlobalAliases).ConfigureAwait(false);
+                            symbols, document, symbolToGlobalAliases).ConfigureAwait(false);
                     }
                 }
                 finally
@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             async Task PerformSearchInDocumentAsync(
                 ImmutableArray<ISymbol> symbols,
                 Document document,
-                IEnumerable<TextSpan> textSpans,
                 PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
             {
                 // We're doing to do all of our processing of this document at once.  This will necessitate all the
@@ -112,13 +111,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var globalAliases = TryGet(symbolToGlobalAliases, symbol);
                     var state = new FindReferencesDocumentState(
                         document, model, root, cache, globalAliases);
-                    foreach (var textSpan in textSpans)
-                        await PerformSearchInTextSpanAsync(symbol, document, textSpan, state).ConfigureAwait(false);
+
+                    await PerformSearchInDocumentWorkerAsync(symbol, document, state).ConfigureAwait(false);
                 }
             }
 
-            async Task PerformSearchInTextSpanAsync(
-                ISymbol symbol, Document document, TextSpan textSpan, FindReferencesDocumentState state)
+            async Task PerformSearchInDocumentWorkerAsync(
+                ISymbol symbol, Document document, FindReferencesDocumentState state)
             {
                 // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
                 // happened.  So there must be a group for this symbol in our map.
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var finder in _finders)
                 {
                     var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, state, _options, textSpan, cancellationToken).ConfigureAwait(false);
+                        symbol, state, _options, cancellationToken).ConfigureAwait(false);
                     foreach (var (_, location) in references)
                         await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                 }
@@ -173,8 +172,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return default;
             }
 
-            async ValueTask<bool> HasInheritanceRelationshipSingleAsync(ISymbol symbol, ISymbol candidate)
+            async ValueTask<bool> HasInheritanceRelationshipSingleAsync(ISymbol symbol, ISymbol? candidate)
             {
+                if (candidate is null)
+                    return false;
+
                 var relationship = hasInheritanceRelationshipCache.GetOrAdd(
                     (symbol.GetOriginalUnreducedDefinition(), candidate.GetOriginalUnreducedDefinition()),
                     t => AsyncLazy.Create(cancellationToken => ComputeInheritanceRelationshipAsync(this, t.searchSymbol, t.candidateSymbol, cancellationToken), cacheResult: true));
