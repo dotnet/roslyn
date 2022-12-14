@@ -562,10 +562,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             PreservationMode mode,
             TextUpdateType updateType)
         {
+            var parseOptions1 = CSharpParseOptions.Default.WithPreprocessorSymbols("UNIQUE_NAME");
+            var parseOptions2 = CSharpParseOptions.Default;
+
             using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("""
                 #if NETSTANDARD
                 public class Goo { }
-                """, CSharpParseOptions.Default.WithPreprocessorSymbols("UNIQUE_NAME"), CSharpParseOptions.Default);
+                """, parseOptions1, parseOptions2);
             var solution = workspace.CurrentSolution;
 
             var documentId1 = solution.Projects.First().DocumentIds.Single();
@@ -587,6 +590,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We can never reuse trees with conditional directives.
             Assert.NotEqual(root1, root2);
             Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            Assert.Equal(parseOptions1, root1.SyntaxTree.Options);
+            Assert.Equal(parseOptions2, root2.SyntaxTree.Options);
 
             // Because we removed pp directives, we'll be able to reuse after this.
             var text = SourceText.From("new text without pp directives", encoding: null, SourceHashAlgorithm.Sha1);
@@ -618,6 +624,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotEqual(root1, root2);
             Assert.False(root1.IsIncrementallyIdenticalTo(root2));
 
+            Assert.Equal(parseOptions1, root1.SyntaxTree.Options);
+            Assert.Equal(parseOptions2, root2.SyntaxTree.Options);
+
             // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
             workspace.TryApplyChanges(solution);
             solution = workspace.CurrentSolution;
@@ -638,6 +647,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We can reuse trees once they don't have conditional directives.
             Assert.NotEqual(root1, root2);
             Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+
+            Assert.Equal(parseOptions1, root1.SyntaxTree.Options);
+            Assert.Equal(parseOptions2, root2.SyntaxTree.Options);
         }
 
         [Theory, CombinatorialData]
