@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
+        private static Task<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
             => state.Cache.FindMatchingIdentifierTokensAsync(state.Document, identifier, cancellationToken);
 
         protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(

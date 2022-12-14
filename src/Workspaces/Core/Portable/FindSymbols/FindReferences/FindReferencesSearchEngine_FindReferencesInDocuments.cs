@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
             unifiedSymbols.Add(originalSymbol);
 
-            var symbolToMatch = new ConcurrentDictionary<ISymbol, bool>(MetadataUnifyingEquivalenceComparer.Instance);
+            var inheritanceSymbolToMatch = new ConcurrentDictionary<ISymbol, bool>(MetadataUnifyingEquivalenceComparer.Instance);
 
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
             try
@@ -41,17 +41,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
                 await using var _ = disposable.ConfigureAwait(false);
 
-                // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
-                // we'll expand this set as we discover new symbols to search for in each project.
-                var symbolSet = await SymbolSet.CreateAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
+                // Create the initial set of symbols to search for.  This includes linked and cascaded symbols. It does
+                // not walk up/down the inheritance hierarchy.
+                var symbolSet = await SymbolSet.DetermineInitialSearchSymbolsAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
 
                 // Report the initial set of symbols to the caller.
-                var allSymbols = symbolSet.GetAllSymbols();
+                var allSymbols = symbolSet.ToImmutableArray();
                 await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
-
-                // Any matches against the symbol passed in, or in its 'up' set is automatically a match.
-                foreach (var relatedSymbol in allSymbols)
-                    symbolToMatch[relatedSymbol] = true;
 
                 // Determine the set of projects we actually have to walk to find results in.  This is only the set of
                 // projects that all these documents are in.
@@ -64,10 +60,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
                 {
                     var currentProject = _solution.GetRequiredProject(projectId);
-                    if (!projectsToSearch.Contains(currentProject))
-                        continue;
-
-                    await PerformSearchInProjectAsync(allSymbols, currentProject).ConfigureAwait(false);
+                    if (projectsToSearch.Contains(currentProject))
+                        await PerformSearchInProjectAsync(allSymbols, currentProject).ConfigureAwait(false);
                 }
             }
             finally
@@ -104,11 +98,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
             {
                 // We're doing to do all of our processing of this document at once.  This will necessitate all the
-                // appropriate finders checking this document for hits.  We know that in the initial pass to determine
-                // documents, this document was already considered a strong match (e.g. we know it contains the name of
-                // the symbol being searched for).  As such, we're almost certainly going to have to do semantic checks
-                // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
-                // just grab those once here and hold onto them for the lifetime of this call.
+                // appropriate finders checking this document for hits.  We're likely going to need to checks in this
+                // file, which will require syntax and semantics.  So just grab those once here and hold onto them for
+                // the lifetime of this call.
                 var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var cache = FindReferenceCache.GetCache(model);
@@ -130,24 +122,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // happened.  So there must be a group for this symbol in our map.
                 var group = _symbolToGroup[symbol];
 
-                if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol)
+                // Always perform a normal search, looking directly for references to that symbol.
+                foreach (var finder in _finders)
                 {
-                    // This is a complex case.  We're looking for symbols that can be virtual and have other methods
-                    // related to them (like an override, or implemented interface method).  When searching the source,
-                    // we may end up looking at a token that hits one of these other symbols.
+                    var references = await finder.FindReferencesInDocumentAsync(
+                        symbol, state, _options, textSpan, cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, location) in references)
+                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                 }
-                else
-                {
 
-                    // Normal symbol without any inheritance concerns.  Just search for it using the appropriate finder
-                    // for it in this document.
-                    foreach (var finder in _finders)
-                    {
-                        var references = await finder.FindReferencesInDocumentAsync(
-                            symbol, state, _options, textSpan, cancellationToken).ConfigureAwait(false);
-                        foreach (var (_, location) in references)
-                            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
-                    }
+                // We may be looking for symbols that can be virtual and have other methods related to them (like an
+                // override, or implemented interface method).  When searching the source, we may end up looking at a
+                // token that hits one of these other symbols.  When we do, we have to then see if that symbol is
+                // actually an inheritance match for the symbol we're looking at.
+
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.Ordinary } or IPropertySymbol or IEventSymbol)
+                {
+                    var tokens = AbstractReferenceFinder.fin
+
                 }
             }
         }

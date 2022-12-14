@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// multi-targeting/shared-project documents.  This will not include symbols up or down the inheritance
             /// hierarchy.
             /// </summary>
-            private static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialSearchSymbolsAsync(
+            public static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialSearchSymbolsAsync(
                 FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
             {
                 var result = new MetadataUnifyingSymbolHashSet();
