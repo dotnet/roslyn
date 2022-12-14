@@ -615,7 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var membersWithStateEnforcedByRequiredMembers = constructorEnforcesRequiredMembers
                             ? method.ContainingType.GetMembersUnordered().SelectManyAsArray(
                                 predicate: member => member is PropertySymbol { IsRequired: true },
-                                selector: member => ((PropertySymbol)member).SetMethod.NotNullMembers)
+                                selector: member =>
+                                {
+                                    var property = ((PropertySymbol)member);
+                                    return property.SetMethod?.NotNullMembers ?? property.NotNullMembers;
+                                })
                             : ImmutableArray<string>.Empty;
 
                         var alreadyWarnedMembers = PooledHashSet<Symbol>.GetInstance();
@@ -1020,7 +1024,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 var property = (PropertySymbol)requiredMember;
-                                var setMethodNotNullMembers = property.SetMethod.NotNullMembers;
+                                // If the set method is null (ie missing), that's an error, but we'll recover as best we can
+                                var setMethodNotNullMembers = property.SetMethod?.NotNullMembers ?? property.NotNullMembers;
                                 var builder = ArrayBuilder<Symbol>.GetInstance(1 + setMethodNotNullMembers.Length);
 
                                 builder.Add(getFieldSymbolToBeInitialized(property));

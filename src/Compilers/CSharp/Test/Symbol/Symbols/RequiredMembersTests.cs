@@ -3782,6 +3782,30 @@ class C
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_08()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (6,60): error CS9034: Required member 'C.Property' must be settable.
+            //     [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Property").WithArguments("C.Property").WithLocation(6, 60)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_01()
     {
         var code = """
