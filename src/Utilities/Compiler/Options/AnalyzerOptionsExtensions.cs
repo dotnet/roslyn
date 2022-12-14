@@ -511,7 +511,11 @@ namespace Analyzer.Utilities
 
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
             return analyzerConfigOptions.GetOptionValue(optionName, tree, rule: null,
-                tryParseValue: (string value, out string? result) => { result = value; return true; },
+                tryParseValue: (string value, out string? result) =>
+                {
+                    result = value;
+                    return true;
+                },
                 defaultValue: null, OptionKind.BuildProperty);
         }
 
@@ -532,7 +536,11 @@ namespace Analyzer.Utilities
             var propertyOptionName = MSBuildItemOptionNamesHelpers.GetPropertyNameForItemOptionName(itemOptionName);
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
             var propertyValue = analyzerConfigOptions.GetOptionValue(propertyOptionName, tree, rule: null,
-                tryParseValue: (string value, out string? result) => { result = value; return true; },
+                tryParseValue: (string value, out string? result) =>
+                {
+                    result = value;
+                    return true;
+                },
                 defaultValue: null, OptionKind.BuildProperty);
             return MSBuildItemOptionNamesHelpers.ParseItemOptionValue(propertyValue);
         }
