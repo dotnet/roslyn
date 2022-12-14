@@ -11,9 +11,14 @@ using System.Windows.Markup;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    internal class ItemConverter : MarkupExtension, IMultiValueConverter
+    internal class ItemSorter : MarkupExtension, IMultiValueConverter
     {
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        public static ItemSorter Instance { get; } = new();
+
+        public ImmutableArray<DocumentSymbolItemViewModel> Sort(ImmutableArray<DocumentSymbolItemViewModel> items, SortOption sortOption)
+            => (ImmutableArray<DocumentSymbolItemViewModel>)Convert(new object[] { items, sortOption }, typeof(ImmutableArray<DocumentSymbolItemViewModel>), null, CultureInfo.CurrentCulture);
+
+        public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
         {
             if (values[0] is ImmutableArray<DocumentSymbolItemViewModel> children &&
                 values[1] is SortOption sortOption)
@@ -37,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            return this;
+            return Instance;
         }
 
         private class NameComparer : IComparer<DocumentSymbolItemViewModel>

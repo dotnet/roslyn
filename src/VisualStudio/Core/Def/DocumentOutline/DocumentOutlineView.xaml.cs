@@ -4,20 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Navigation;
-using System.Windows.Data;
-using System.ComponentModel;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -112,6 +109,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private void UpdateSort(SortOption sortOption, params string[] sortProperties)
         {
+            // Log which sort option was used
+            Logger.Log(sortOption switch
+            {
+                SortOption.Name => FunctionId.DocumentOutline_SortByName,
+                SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
+                SortOption.Type => FunctionId.DocumentOutline_SortByType,
+                _ => throw new NotImplementedException(),
+            }, logLevel: LogLevel.Information);
+
             var view = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
             view.SortDescriptions.Clear();
             foreach (var sortProperty in sortProperties)

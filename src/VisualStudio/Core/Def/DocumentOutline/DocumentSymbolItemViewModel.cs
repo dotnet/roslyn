@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -14,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal sealed class DocumentSymbolItemViewModel : INotifyPropertyChanged
+    internal sealed class DocumentSymbolItemViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolItemViewModel>
     {
         public string Name { get; }
         public ImmutableArray<DocumentSymbolItemViewModel> Children { get; }
@@ -39,15 +40,36 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         public DocumentSymbolItemViewModel(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolItemViewModel> children)
+            : this(
+                  documentSymbolData.Name,
+                  children,
+                  documentSymbolData.RangeSpan,
+                  documentSymbolData.SelectionRangeSpan,
+                  documentSymbolData.SymbolKind,
+                  GetImageMoniker(documentSymbolData.SymbolKind),
+                  isExpanded: true,
+                  isSelected: false)
         {
-            Name = documentSymbolData.Name;
+        }
+
+        private DocumentSymbolItemViewModel(
+            string name,
+            ImmutableArray<DocumentSymbolItemViewModel> children,
+            SnapshotSpan rangeSpan,
+            SnapshotSpan selectionRangeSpan,
+            SymbolKind symbolKind,
+            ImageMoniker imageMoniker,
+            bool isExpanded,
+            bool isSelected)
+        {
+            Name = name;
             Children = children;
-            SymbolKind = documentSymbolData.SymbolKind;
-            ImageMoniker = GetImageMoniker(documentSymbolData.SymbolKind);
-            IsExpanded = true;
-            IsSelected = false;
-            RangeSpan = documentSymbolData.RangeSpan;
-            SelectionRangeSpan = documentSymbolData.SelectionRangeSpan;
+            SymbolKind = symbolKind;
+            ImageMoniker = imageMoniker;
+            _isExpanded = isExpanded;
+            _isSelected = isSelected;
+            RangeSpan = rangeSpan;
+            SelectionRangeSpan = selectionRangeSpan;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -67,6 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             field = value;
             NotifyPropertyChanged(propertyName);
         }
+
+        internal DocumentSymbolItemViewModel WithChildren(ImmutableArray<DocumentSymbolItemViewModel> newChildren)
+            => new(Name, newChildren, RangeSpan, SelectionRangeSpan, SymbolKind, ImageMoniker, IsExpanded, IsSelected);
 
         private static ImageMoniker GetImageMoniker(SymbolKind symbolKind)
         {
@@ -101,5 +126,23 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _ => KnownMonikers.SelectObject,
             };
         }
+
+        public override bool Equals(object obj)
+            => Equals(obj as DocumentSymbolItemViewModel);
+
+        public static bool operator ==(DocumentSymbolItemViewModel left, DocumentSymbolItemViewModel right)
+            => (object)left == right || (left is not null && left.Equals(right));
+
+        public static bool operator !=(DocumentSymbolItemViewModel left, DocumentSymbolItemViewModel right)
+            => !(left == right);
+
+        public bool Equals(DocumentSymbolItemViewModel? other)
+            => (object)this == other ||
+                 (other is not null &&
+                   (RangeSpan.Span.Start, RangeSpan.Span.End, Name, SymbolKind) ==
+                   (other.RangeSpan.Span.Start, other.RangeSpan.Span.End, other.Name, other.SymbolKind));
+
+        public override int GetHashCode()
+            => (RangeSpan.Span.Start, RangeSpan.Span.End, Name, SymbolKind).GetHashCode();
     }
 }

@@ -25,7 +25,7 @@
                 <ComponentModel:SortDescription PropertyName="StartPosition" Direction="Ascending" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        <self:ItemConverter x:Key="ItemConverter"/>
+        <self:ItemSorter x:Key="ItemSorter"/>
         <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
         <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
         <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogLabelStyleKey}}" />
@@ -134,7 +134,7 @@
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolItemViewModel}">
                     <HierarchicalDataTemplate.ItemsSource>
-                        <MultiBinding Converter="{StaticResource ItemConverter}">
+                        <MultiBinding Converter="{StaticResource ItemSorter}">
                             <Binding Path="Children" />
                             <Binding Path="DataContext.SortOption"  RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
                         </MultiBinding>

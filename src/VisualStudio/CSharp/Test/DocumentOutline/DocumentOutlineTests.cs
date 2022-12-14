@@ -89,11 +89,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
         private async Task CheckSorting(SortOption sortOption)
         {
-            var (_, model, _) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-            var sortedSymbols = DocumentOutlineHelper.SortDocumentSymbolData(model.DocumentSymbolData, sortOption, CancellationToken.None);
+            var (_, _, items) = await InitializeMocksAndDataModelAndUIItems(TestCode);
+            var sortedSymbols = DocumentOutlineHelper.SortDocumentSymbolData(items, sortOption, CancellationToken.None);
             CheckSortedSymbols(sortedSymbols);
 
-            void CheckSortedSymbols(ImmutableArray<DocumentSymbolData> sortedSymbols)
+            void CheckSortedSymbols(ImmutableArray<DocumentSymbolItemViewModel> sortedSymbols)
             {
                 for (var i = 0; i < sortedSymbols.Length - 1; i++)
                 {
@@ -183,12 +183,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var (mocks, model, originalUIItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
             var updatedUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
 
-            // Check that all updatedUIItems nodes are collapsed (originalUIItems parameter is unused)
-            DocumentOutlineHelper.SetIsExpanded(updatedUIItems, originalUIItems, ExpansionOption.Collapse);
+            // Check that all updatedUIItems nodes are collapsed
+            DocumentOutlineHelper.SetExpansionOption(updatedUIItems, ExpansionOption.Collapse);
             CheckNodeExpansion(updatedUIItems, false);
 
-            // Check that all updatedUIItems nodes are expanded (originalUIItems parameter is unused)
-            DocumentOutlineHelper.SetIsExpanded(updatedUIItems, originalUIItems, ExpansionOption.Expand);
+            // Check that all updatedUIItems nodes are expanded
+            DocumentOutlineHelper.SetExpansionOption(updatedUIItems, ExpansionOption.Expand);
             CheckNodeExpansion(updatedUIItems, true);
 
             // Collapse 3 nodes in originalUIItems
@@ -197,7 +197,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             originalUIItems.Single(parent => parent.Name.Equals("foo")).Children.Single(child => child.Name.Equals("r")).IsExpanded = false;
 
             // Apply same expansion as originalUIItems to updatedUIItems
-            DocumentOutlineHelper.SetIsExpanded(updatedUIItems, originalUIItems, ExpansionOption.CurrentExpansion);
+            DocumentOutlineHelper.SetIsExpandedOnNewItems(updatedUIItems, originalUIItems);
 
             // Confirm that matching expanded/collapsed node states have been applied
             CheckNodeExpansionMatches(updatedUIItems, originalUIItems);
@@ -227,7 +227,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
 
             // Collapse all nodes first
-            DocumentOutlineHelper.SetIsExpanded(uiItems, uiItems, ExpansionOption.Collapse);
+            DocumentOutlineHelper.SetExpansionOption(uiItems, ExpansionOption.Collapse);
 
             // Call ExpandAncestors on a child node
             var selectedNode = uiItems.Single(parent => parent.Name.Equals("MyClass")).Children.Single(child => child.Name.Equals("Method2"));

@@ -165,59 +165,28 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Sorts and returns an immutable array of DocumentSymbolData based on a SortOption.
         /// </summary>
-        public static ImmutableArray<DocumentSymbolData> SortDocumentSymbolData(
-            ImmutableArray<DocumentSymbolData> documentSymbolData,
+        public static ImmutableArray<DocumentSymbolItemViewModel> SortDocumentSymbolData(
+            ImmutableArray<DocumentSymbolItemViewModel> documentSymbolData,
             SortOption sortOption,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Log which sort option was used
-            Logger.Log(sortOption switch
-            {
-                SortOption.Name => FunctionId.DocumentOutline_SortByName,
-                SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
-                SortOption.Type => FunctionId.DocumentOutline_SortByType,
-                _ => throw new NotImplementedException(),
-            }, logLevel: LogLevel.Information);
-
             return SortDocumentSymbols(documentSymbolData, sortOption, cancellationToken);
 
-            static ImmutableArray<DocumentSymbolData> SortDocumentSymbols(
-                ImmutableArray<DocumentSymbolData> documentSymbolData,
+            static ImmutableArray<DocumentSymbolItemViewModel> SortDocumentSymbols(
+                ImmutableArray<DocumentSymbolItemViewModel> documentSymbolData,
                 SortOption sortOption,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var sortedDocumentSymbols);
+                using var _ = ArrayBuilder<DocumentSymbolItemViewModel>.GetInstance(out var sortedDocumentSymbols);
+                documentSymbolData = ItemSorter.Instance.Sort(documentSymbolData, sortOption);
                 foreach (var documentSymbol in documentSymbolData)
                 {
                     var sortedChildren = SortDocumentSymbols(documentSymbol.Children, sortOption, cancellationToken);
                     sortedDocumentSymbols.Add(documentSymbol.WithChildren(sortedChildren));
-                }
-
-                switch (sortOption)
-                {
-                    case SortOption.Name:
-                        sortedDocumentSymbols.Sort(static (x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.Name, y.Name));
-                        break;
-                    case SortOption.Location:
-                        sortedDocumentSymbols.Sort(static (x, y) => x.RangeSpan.Start - y.RangeSpan.Start);
-                        break;
-                    case SortOption.Type:
-                        // At the moment, we sort the symbols by the SymbolKind enum values.
-                        sortedDocumentSymbols.Sort(static (x, y) =>
-                        {
-                            if (x.SymbolKind == y.SymbolKind)
-                                return x.Name.CompareTo(y.Name);
-
-                            return x.SymbolKind - y.SymbolKind;
-                        });
-                        break;
-                    default:
-                        ExceptionUtilities.UnexpectedValue(sortOption);
-                        break;
                 }
 
                 return sortedDocumentSymbols.ToImmutable();
@@ -308,19 +277,22 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Updates the IsExpanded property for the Document Symbol ViewModel based on the given Expansion Option. The parameter
         /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
         /// </summary>
-        public static void SetIsExpanded(
-            ImmutableArray<DocumentSymbolItemViewModel> documentSymbolItems,
-            IEnumerable<DocumentSymbolItemViewModel> currentDocumentSymbolItems,
-            ExpansionOption expansionOption)
+        public static void SetIsExpandedOnNewItems(
+            ImmutableArray<DocumentSymbolItemViewModel> newDocumentSymbolItems,
+            IEnumerable<DocumentSymbolItemViewModel> currentDocumentSymbolItems)
         {
-            for (var i = 0; i < documentSymbolItems.Length; i++)
-            {
-                if (expansionOption is ExpansionOption.CurrentExpansion)
-                    documentSymbolItems[i].IsExpanded = currentDocumentSymbolItems.ElementAt(i).IsExpanded;
-                else
-                    documentSymbolItems[i].IsExpanded = expansionOption is ExpansionOption.Expand;
+            using var _ = PooledHashSet<DocumentSymbolItemViewModel>.GetInstance(out var hashset);
+            hashset.AddRange(newDocumentSymbolItems);
 
-                SetIsExpanded(documentSymbolItems[i].Children, currentDocumentSymbolItems.ElementAt(i).Children, expansionOption);
+            foreach (var item in currentDocumentSymbolItems)
+            {
+                if (!hashset.TryGetValue(item, out var newItem))
+                {
+                    continue;
+                }
+
+                newItem.IsExpanded = item.IsExpanded;
+                SetIsExpandedOnNewItems(newItem.Children, item.Children);
             }
         }
 
