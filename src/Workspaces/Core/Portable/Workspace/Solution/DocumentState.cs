@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly Func<string?, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
 
-        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
-            new();
+        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap = new();
 
         // properties inherited from the containing project:
         private readonly HostLanguageServices _languageServices;
@@ -81,8 +80,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public ValueSource<TreeAndVersion>? TreeSource => _treeSource;
+
         [MemberNotNullWhen(true, nameof(_treeSource))]
+        [MemberNotNullWhen(true, nameof(TreeSource))]
         [MemberNotNullWhen(true, nameof(_options))]
+        [MemberNotNullWhen(true, nameof(ParseOptions))]
         internal bool SupportsSyntaxTree
             => _treeSource != null;
 
