@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class FindReferencesSearchEngine
     {
         public async Task FindReferencesInDocumentsAsync(
-            ISymbol originalSymbol, IImmutableSet<(Document document, TextSpan textSpan)> documentsAndSpans, CancellationToken cancellationToken)
+            ISymbol originalSymbol, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             // Caller needs to pass unidirectional cascading to make this search efficient.  If we only have
             // unidirectional cascading, then we only need to check the potential matches we find in the file against

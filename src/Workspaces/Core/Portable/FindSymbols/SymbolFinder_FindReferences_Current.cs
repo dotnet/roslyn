@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol symbol,
             Solution solution,
             IStreamingFindReferencesProgress progress,
-            IImmutableSet<(Document document, TextSpan textSpan)> documents,
+            IImmutableSet<Document> documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // results as it finds them.  When we hear about results we'll forward them to
                         // the 'progress' parameter which will then update the UI.
                         var serverCallback = new FindReferencesServerCallback(solution, progress);
-                        var documentIds = documents.SelectAsArray(d => (d.document.Id, d.textSpan));
+                        var documentIds = documents.SelectAsArray(d => d.Id);
 
                         await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                             solution,
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol symbol,
             Solution solution,
             IStreamingFindReferencesProgress progress,
-            IImmutableSet<(Document document, TextSpan textSpan)> documents,
+            IImmutableSet<Document> documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var finders = ReferenceFinders.DefaultReferenceFinders;
             progress ??= NoOpStreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
-                solution, documents.Select(t => t.document).ToImmutableHashSet(), finders, progress, options);
+                solution, documents, finders, progress, options);
             return engine.FindReferencesInDocumentsAsync(symbol, documents, cancellationToken);
         }
     }

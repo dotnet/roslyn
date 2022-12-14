@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol,
             FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
-            TextSpan? textSpan,
             CancellationToken cancellationToken);
     }
 }

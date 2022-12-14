@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
             ISymbol symbol,
             Document document,
-            IImmutableSet<(Document document, TextSpan textSpan)> documentsToSearch,
+            IImmutableSet<Document> documentsToSearch,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
@@ -120,9 +120,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var progress = new StreamingProgressCollector();
 
                 var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
-                await SymbolFinder.FindReferencesAsync(
-                    symbol, document.Project.Solution, progress,
-                    (IImmutableSet<Document>)documentsToSearch, options, cancellationToken).ConfigureAwait(false);
+                await SymbolFinder.FindReferencesInDocumentsAsync(
+                    symbol, document.Project.Solution, progress, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(
                     progress.GetReferencedSymbols(), document, documentsToSearch,

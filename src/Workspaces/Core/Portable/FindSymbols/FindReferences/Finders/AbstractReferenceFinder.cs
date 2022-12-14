@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, TextSpan? textSpan, CancellationToken cancellationToken);
+            ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         private static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
             ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         protected abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            TSymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, TextSpan? textSpan, CancellationToken cancellationToken);
+            TSymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         protected virtual Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
             TSymbol symbol, Project project, CancellationToken cancellationToken)
@@ -801,10 +801,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, TextSpan? textSpan, CancellationToken cancellationToken)
+            ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-                ? FindReferencesInDocumentAsync(typedSymbol, state, options, textSpan, cancellationToken)
+                ? FindReferencesInDocumentAsync(typedSymbol, state, options, cancellationToken)
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
 
