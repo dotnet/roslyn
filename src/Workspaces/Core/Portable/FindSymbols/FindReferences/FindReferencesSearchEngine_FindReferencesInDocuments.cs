@@ -159,37 +159,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var relationship = hasInheritanceRelationshipCache.GetOrAdd(
                     (symbol.GetOriginalUnreducedDefinition(), candidate.GetOriginalUnreducedDefinition()),
-                    t => AsyncLazy.Create(cancellationToken => ComputeInheritanceRelationshipAsync(this, t.searchSymbol, t.candidateSymbol, cancellationToken), cacheResult: true));
+                    t => AsyncLazy.Create(cancellationToken => ComputeInheritanceRelationshipAsync(t.searchSymbol, t.candidateSymbol, cancellationToken), cacheResult: true));
                 return await relationship.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
+        }
 
-            static async Task<bool> ComputeInheritanceRelationshipAsync(
-                FindReferencesSearchEngine engine, ISymbol searchSymbol, ISymbol candidate, CancellationToken cancellationToken)
-            {
-                // Counter-intuitive, but if these are matching symbols, they do *not* have an inheritance relationship.
-                // We do *not* want to report these as they would have been found in the original call to the finders in
-                // PerformSearchInTextSpanAsync.
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
-                    return false;
-
-                // walk up the original symbol's inheritance hierarchy to see if we hit the candidate.
-                var searchSymbolUpSet = await SymbolSet.CreateAsync(engine, new() { searchSymbol }, cancellationToken).ConfigureAwait(false);
-                foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
-                {
-                    if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
-                        return true;
-                }
-
-                // walk up the candidate's inheritance hierarchy to see if we hit the original symbol.
-                var candidateSymbolUpSet = await SymbolSet.CreateAsync(engine, new() { candidate }, cancellationToken).ConfigureAwait(false);
-                foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
-                {
-                    if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
-                        return true;
-                }
-
+        private async Task<bool> ComputeInheritanceRelationshipAsync(
+            ISymbol searchSymbol, ISymbol candidate, CancellationToken cancellationToken)
+        {
+            // Counter-intuitive, but if these are matching symbols, they do *not* have an inheritance relationship.
+            // We do *not* want to report these as they would have been found in the original call to the finders in
+            // PerformSearchInTextSpanAsync.
+            if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
                 return false;
+
+            // walk up the original symbol's inheritance hierarchy to see if we hit the candidate.
+            var searchSymbolUpSet = await SymbolSet.CreateAsync(this, new() { searchSymbol }, cancellationToken).ConfigureAwait(false);
+            foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
+            {
+                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
+                    return true;
             }
+
+            // walk up the candidate's inheritance hierarchy to see if we hit the original symbol.
+            var candidateSymbolUpSet = await SymbolSet.CreateAsync(this, new() { candidate }, cancellationToken).ConfigureAwait(false);
+            foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
+            {
+                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
+                    return true;
+            }
+
+            return false;
         }
     }
 }
