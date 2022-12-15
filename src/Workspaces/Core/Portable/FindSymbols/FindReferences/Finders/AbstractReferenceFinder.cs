@@ -208,8 +208,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 state.Cache.GetAliasInfo(state.SemanticFacts, token, cancellationToken),
                 token.GetLocation(),
                 isImplicit: false,
-                GetSymbolUsageInfo(token.Parent, state, cancellationToken),
-                GetAdditionalFindUsagesProperties(token.Parent, state),
+                GetSymbolUsageInfo(token.GetRequiredParent(), state, cancellationToken),
+                GetAdditionalFindUsagesProperties(token.GetRequiredParent(), state),
                 reason);
 
         private static IAliasSymbol? GetAliasSymbol(

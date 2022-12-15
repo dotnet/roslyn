@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             async Task PerformSearchInDocumentWorkerAsync(
                 ISymbol symbol, Document document, FindReferencesDocumentState state)
             {
-                // Always perform a normal search, looking directly for references to that symbol.
+                // Always perform a normal search, looking for direct references to exactly that symbol.
                 foreach (var finder in _finders)
                 {
                     var references = await finder.FindReferencesInDocumentAsync(
