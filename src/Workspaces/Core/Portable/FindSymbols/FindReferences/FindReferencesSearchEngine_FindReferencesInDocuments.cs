@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var symbol in symbols)
                 {
-                    var globalAliases = TryGet(symbolToGlobalAliases, symbol);
+                    var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
                     var state = new FindReferencesDocumentState(
                         document, model, root, cache, globalAliases);
 
