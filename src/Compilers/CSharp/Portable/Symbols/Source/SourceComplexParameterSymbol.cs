@@ -259,37 +259,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!_lazyDefaultSyntaxValue.IsBad)
                         {
                             VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
+
+                            // Ensure availability of `*ConstantAttribute`.
+                            // Ignoring lambdas to avoid duplicate errors with `Binder.BindToInferredDelegateType`.
+                            if (DefaultValueFromAttributes == ConstantValue.NotAvailable &&
+                                this is not LambdaParameterSymbol)
+                            {
+                                if (_lazyDefaultSyntaxValue.IsDecimal)
+                                {
+                                    Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                                        WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                                        diagnostics,
+                                        parameterEqualsValue.Value.Syntax.Location);
+                                }
+                                else if (_lazyDefaultSyntaxValue.IsDateTime)
+                                {
+                                    Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                                        WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                                        diagnostics,
+                                        parameterEqualsValue.Value.Syntax.Location);
+                                }
+                            }
                         }
-                    }
-
-                    // Ensure availability of `DecimalConstantAttribute`.
-                    // For lambdas, check also explicit attribute application
-                    // because it will be re-synthesized in the delegate type.
-                    var isLambda = this is LambdaParameterSymbol;
-                    var defaultValueLocation = parameterEqualsValue?.Value.Syntax.Location ?? CSharpSyntaxNode?.Location ?? Locations.FirstOrDefault();
-                    if (isLambda
-                        ? _lazyDefaultSyntaxValue is { IsDecimal: true } ^
-                            (HasOptionalAttribute && DefaultValueFromAttributes is { IsDecimal: true })
-                        : _lazyDefaultSyntaxValue is { IsDecimal: true } &&
-                            DefaultValueFromAttributes == ConstantValue.NotAvailable)
-                    {
-                        Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
-                            WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
-                            diagnostics,
-                            defaultValueLocation);
-                    }
-
-                    // Similarly, ensure availability of `DateTimeConstantAttribute`.
-                    if (isLambda
-                        ? _lazyDefaultSyntaxValue is { IsDateTime: true } ^
-                            (HasOptionalAttribute && DefaultValueFromAttributes is { IsDateTime: true })
-                        : _lazyDefaultSyntaxValue is { IsDateTime: true } &&
-                            DefaultValueFromAttributes == ConstantValue.NotAvailable)
-                    {
-                        Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
-                            WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
-                            diagnostics,
-                            defaultValueLocation);
                     }
 
                     AddDeclarationDiagnostics(diagnostics);

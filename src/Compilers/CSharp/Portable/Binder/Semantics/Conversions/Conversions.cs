@@ -57,39 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
 
-            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod invoke)
+            // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
+            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod invoke && invoke.IsParams())
             {
-                // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
-                if (invoke.IsParams())
-                {
-                    Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
-                        Compilation,
-                        WellKnownMember.System_ParamArrayAttribute__ctor,
-                        ref useSiteInfo);
-                }
-
-                // If synthesizing a delegate with `decimal`/`DateTime` default value,
-                // check that the corresponding `*ConstantAttribute` is available.
-                foreach (var p in invoke.Parameters)
-                {
-                    var defaultValue = p.ExplicitDefaultConstantValue;
-                    if (defaultValue != ConstantValue.NotAvailable)
-                    {
-                        WellKnownMember? member = defaultValue.SpecialType switch
-                        {
-                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
-                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
-                            _ => null
-                        };
-                        if (member != null)
-                        {
-                            Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
-                                Compilation,
-                                member.GetValueOrDefault(),
-                                ref useSiteInfo);
-                        }
-                    }
-                }
+                Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                    Compilation,
+                    WellKnownMember.System_ParamArrayAttribute__ctor,
+                    ref useSiteInfo);
             }
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);

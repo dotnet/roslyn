@@ -411,6 +411,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 delegateType = CreateErrorType();
             }
+            else
+            {
+                // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                // check that the corresponding `*ConstantAttribute` is available.
+                var delegateParameters = delegateType.DelegateParameters();
+                for (var i = 0; i < delegateParameters.Length; i++)
+                {
+                    var defaultValue = delegateParameters[i].ExplicitDefaultConstantValue;
+                    if (defaultValue != ConstantValue.NotAvailable)
+                    {
+                        WellKnownMember? member = defaultValue.SpecialType switch
+                        {
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            _ => null
+                        };
+                        if (member != null)
+                        {
+                            ReportUseSiteDiagnosticForSynthesizedAttribute(
+                                Compilation,
+                                member.GetValueOrDefault(),
+                                diagnostics,
+                                (expr as UnboundLambda)?.ParameterSyntax(i)?.Location ?? syntax.Location);
+                        }
+                    }
+                }
+            }
 
             return GenerateConversionForAssignment(delegateType, expr, diagnostics);
         }
