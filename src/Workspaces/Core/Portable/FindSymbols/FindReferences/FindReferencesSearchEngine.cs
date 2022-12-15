@@ -239,33 +239,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task AddGlobalAliasesAsync(
-            Project project,
-            ImmutableArray<ISymbol> allSymbols,
-            PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
-            CancellationToken cancellationToken)
-        {
-            foreach (var symbol in allSymbols)
-            {
-                foreach (var finder in _finders)
-                {
-                    var aliases = await finder.DetermineGlobalAliasesAsync(
-                        symbol, project, cancellationToken).ConfigureAwait(false);
-                    if (aliases.Length > 0)
-                    {
-                        var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
-                        globalAliases.AddRange(aliases);
-                    }
-                }
-            }
-        }
-
-        private static void FreeGlobalAliases(PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
-        {
-            foreach (var (_, globalAliases) in symbolToGlobalAliases)
-                globalAliases.Free();
-        }
-
         private static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
         {
             if (!dictionary.TryGetValue(key, out var set))
@@ -333,6 +306,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
             }
+        }
+
+        private async Task AddGlobalAliasesAsync(
+            Project project,
+            ImmutableArray<ISymbol> allSymbols,
+            PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
+            CancellationToken cancellationToken)
+        {
+            foreach (var symbol in allSymbols)
+            {
+                foreach (var finder in _finders)
+                {
+                    var aliases = await finder.DetermineGlobalAliasesAsync(
+                        symbol, project, cancellationToken).ConfigureAwait(false);
+                    if (aliases.Length > 0)
+                    {
+                        var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
+                        globalAliases.AddRange(aliases);
+                    }
+                }
+            }
+        }
+
+        private static void FreeGlobalAliases(PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
+        {
+            foreach (var (_, globalAliases) in symbolToGlobalAliases)
+                globalAliases.Free();
         }
 
         private static bool InvolvesInheritance(ISymbol symbol)
