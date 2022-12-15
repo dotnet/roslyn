@@ -32,39 +32,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // searching for.  Cache those results so we don't have to continually perform them.
             var hasInheritanceRelationshipCache = new ConcurrentDictionary<(ISymbol searchSymbol, ISymbol candidateSymbol), AsyncLazy<bool>>();
 
-            await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
-            try
+            // Create the initial set of symbols to search for.  This includes linked and cascaded symbols. It does
+            // not walk up/down the inheritance hierarchy.
+            var symbolSet = await SymbolSet.DetermineInitialSearchSymbolsAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
+
+            // Report the initial set of symbols to the caller.
+            var allSymbols = symbolSet.ToImmutableArray();
+            await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+
+            // Determine the set of projects we actually have to walk to find results in.  This is only the set of
+            // projects that all these documents are in.
+            var projectsToSearch = documents.Select(d => d.Project).ToImmutableHashSet();
+
+            // Process projects in dependency graph order so that any compilations built by one are available for later projects.
+            var dependencyGraph = _solution.GetProjectDependencyGraph();
+            await _progressTracker.AddItemsAsync(projectsToSearch.Count, cancellationToken).ConfigureAwait(false);
+
+            foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
             {
-                var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
-                await using var _ = disposable.ConfigureAwait(false);
-
-                // Create the initial set of symbols to search for.  This includes linked and cascaded symbols. It does
-                // not walk up/down the inheritance hierarchy.
-                var symbolSet = await SymbolSet.DetermineInitialSearchSymbolsAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
-
-                // Report the initial set of symbols to the caller.
-                var allSymbols = symbolSet.ToImmutableArray();
-                await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
-
-                // Determine the set of projects we actually have to walk to find results in.  This is only the set of
-                // projects that all these documents are in.
-                var projectsToSearch = documents.Select(d => d.Project).ToImmutableHashSet();
-
-                // Process projects in dependency graph order so that any compilations built by one are available for later projects.
-                var dependencyGraph = _solution.GetProjectDependencyGraph();
-                await _progressTracker.AddItemsAsync(projectsToSearch.Count, cancellationToken).ConfigureAwait(false);
-
-                foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
-                {
-                    var currentProject = _solution.GetRequiredProject(projectId);
-                    if (projectsToSearch.Contains(currentProject))
-                        await PerformSearchInProjectAsync(allSymbols, currentProject).ConfigureAwait(false);
-                }
+                var currentProject = _solution.GetRequiredProject(projectId);
+                if (projectsToSearch.Contains(currentProject))
+                    await PerformSearchInProjectAsync(allSymbols, currentProject).ConfigureAwait(false);
             }
-            finally
-            {
-                await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
-            }
+
+            return;
 
             async Task PerformSearchInProjectAsync(
                 ImmutableArray<ISymbol> symbols, Project project)
