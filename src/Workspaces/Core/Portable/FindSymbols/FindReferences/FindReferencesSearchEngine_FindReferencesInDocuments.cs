@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return;
 
-            async Task PerformSearchInProjectAsync(ImmutableArray<ISymbol> symbols, Project project)
+            async ValueTask PerformSearchInProjectAsync(ImmutableArray<ISymbol> symbols, Project project)
             {
                 using var _ = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
                 try
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            async Task PerformSearchInDocumentAsync(
+            async ValueTask PerformSearchInDocumentAsync(
                 ImmutableArray<ISymbol> symbols,
                 Document document,
                 PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            async Task PerformSearchInDocumentWorkerAsync(
+            async ValueTask PerformSearchInDocumentWorkerAsync(
                 ISymbol symbol, Document document, FindReferencesDocumentState state)
             {
                 // Always perform a normal search, looking for direct references to exactly that symbol.
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            async Task<(bool matched, ISymbol candidate, CandidateReason candidateReason)> HasInheritanceRelationshipAsync(
+            async ValueTask<(bool matched, ISymbol candidate, CandidateReason candidateReason)> HasInheritanceRelationshipAsync(
                 ISymbol symbol, SymbolInfo symbolInfo)
             {
                 if (await HasInheritanceRelationshipSingleAsync(symbol, symbolInfo.Symbol).ConfigureAwait(false))
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return default;
             }
 
-            async ValueTask<bool> HasInheritanceRelationshipSingleAsync(ISymbol symbol, ISymbol? candidate)
+            async ValueTask<bool> HasInheritanceRelationshipSingleAsync(ISymbol symbol, [NotNullWhen(true)] ISymbol? candidate)
             {
                 if (candidate is null)
                     return false;
