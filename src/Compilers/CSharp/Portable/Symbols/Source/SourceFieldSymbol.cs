@@ -401,13 +401,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.state.HasComplete(CompletionPart.ConstantValue))
             {
-                Debug.Assert(_lazyConstantValue != null);
                 CheckConstantValue(_lazyConstantValue, diagnostics);
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        protected virtual void CheckConstantValue(ConstantValue value, BindingDiagnosticBag diagnostics) { }
+        protected virtual void CheckConstantValue(ConstantValue? value, BindingDiagnosticBag diagnostics) { }
     }
 }
