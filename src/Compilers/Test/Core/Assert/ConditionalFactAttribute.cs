@@ -52,8 +52,6 @@ namespace Roslyn.Test.Utilities
         /// Mono issues around Default Interface Methods
         /// </summary>
         public const string MonoDefaultInterfaceMethods = "Mono can't execute this default interface method test yet";
-
-        public const string TestIsTriggeringMessagePackIssue = "https://github.com/dotnet/roslyn/issues/64195";
     }
 
     public class ConditionalFactAttribute : FactAttribute
