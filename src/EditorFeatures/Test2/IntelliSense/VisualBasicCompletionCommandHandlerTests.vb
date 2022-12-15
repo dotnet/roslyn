@@ -1978,8 +1978,7 @@ Public Class C
 End Class
 
                               </Document>)
-                state.SendTypeChars("Task")
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("Task")
                 state.SendDownKey()
                 state.SendTypeChars(" ")
                 Assert.Equal("        Dim a as Task(Of ", state.GetLineTextFromCaretPosition())
@@ -3578,9 +3577,8 @@ Class Program
     End Sub
 End Class
 </Document>)
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
 
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
                 Await state.AssertCompletionItemsContainAll("Colors.Red", "Colors.Green", "Colors")
 
                 Dim oldFilters = state.GetCompletionItemFilters()
@@ -3600,9 +3598,7 @@ End Class
 
                 Assert.True(hasTargetTypedFilter)
 
-                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
-
-                Await state.WaitForUIRenderedAsync()
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFiltersBuilder.ToImmutableAndFree())
                 Await state.AssertCompletionItemsContainAll("Colors.Red", "Colors.Green")
                 Await state.AssertCompletionItemsDoNotContainAny("Colors")
             End Using

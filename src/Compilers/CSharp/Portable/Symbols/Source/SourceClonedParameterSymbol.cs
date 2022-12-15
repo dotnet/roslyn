@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DeclarationScope EffectiveScope => _originalParam.EffectiveScope;
 
+        internal override bool HasUnscopedRefAttribute => _originalParam.HasUnscopedRefAttribute;
+
         internal sealed override bool UseUpdatedEscapeRules => _originalParam.UseUpdatedEscapeRules;
 
         internal override ConstantValue ExplicitDefaultConstantValue

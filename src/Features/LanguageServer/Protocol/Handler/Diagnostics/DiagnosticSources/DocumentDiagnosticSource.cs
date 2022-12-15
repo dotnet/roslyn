@@ -9,24 +9,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed class DocumentDiagnosticSource : AbstractDocumentDiagnosticSource<Document>
+internal sealed record DocumentDiagnosticSource(DiagnosticKind DiagnosticKind, Document Document)
+    : AbstractDocumentDiagnosticSource<Document>(Document)
 {
-    public DocumentDiagnosticSource(Document document) : base(document)
-    {
-    }
-
-    // The normal diagnostic source includes both todo comments and diagnostics for this open file.
-
-    protected override bool IncludeTaskListItems => true;
-    protected override bool IncludeStandardDiagnostics => true;
-
-    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf
         // characteristics. GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas
         // GetDiagnosticsForSpanAsync will only run analyzers against the request document.
-        var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(Document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
+            Document, range: null, diagnosticKind: this.DiagnosticKind, cancellationToken: cancellationToken).ConfigureAwait(false);
         return allSpanDiagnostics;
     }
 }

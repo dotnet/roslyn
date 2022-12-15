@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,12 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class SolutionChecksumUpdater
     {
         private readonly Workspace _workspace;
-        private readonly IGlobalOperationNotificationService _globalOperationService;
+
+        /// <summary>
+        /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
+        /// it being null.
+        /// </summary>
+        private readonly IGlobalOperationNotificationService? _globalOperationService;
 
         /// <summary>
         /// Queue to push out text changes in a batched fashion when we hear about them.  Because these should be short
@@ -45,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken shutdownToken)
         {
             var listener = listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater);
-            _globalOperationService = workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+
+            _globalOperationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
             _workspace = workspace;
 
@@ -66,8 +71,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // start listening workspace change event
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _globalOperationService.Started += OnGlobalOperationStarted;
-            _globalOperationService.Stopped += OnGlobalOperationStopped;
+
+            if (_globalOperationService != null)
+            {
+                _globalOperationService.Started += OnGlobalOperationStarted;
+                _globalOperationService.Stopped += OnGlobalOperationStopped;
+            }
 
             // Enqueue the work to sync the initial solution.
             ResumeWork();
@@ -79,8 +88,12 @@ namespace Microsoft.CodeAnalysis.Remote
             PauseWork();
 
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _globalOperationService.Started -= OnGlobalOperationStarted;
-            _globalOperationService.Stopped -= OnGlobalOperationStopped;
+
+            if (_globalOperationService != null)
+            {
+                _globalOperationService.Started -= OnGlobalOperationStarted;
+                _globalOperationService.Stopped -= OnGlobalOperationStopped;
+            }
         }
 
         private void OnGlobalOperationStarted(object? sender, EventArgs e)

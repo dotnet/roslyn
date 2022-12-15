@@ -1154,7 +1154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         private void ReportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
         {
             if (parameterHasBadConditionalState(parameter, sense, stateWhen))
@@ -5019,7 +5018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 targetType = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             }
-            TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand, targetType), trackMembers: false, AssignmentKind.Assignment);
+            TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand), trackMembers: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
             TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
@@ -5393,7 +5392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
             }
 
-
             resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             TypeWithAnnotations resultTypeWithAnnotations;
@@ -5417,7 +5415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
             }
-
 
             TypeWithState typeWithState = convertArms(
                                                 node, originalConsequence, originalAlternative, consequenceState, alternativeState, consequenceRValue, alternativeRValue,
@@ -6655,7 +6652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameterValue,
                                 targetType: ApplyLValueAnnotations(lValueType, leftAnnotations),
                                 valueType: applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations),
-                                UseLegacyWarnings(argument, result.LValueType));
+                                UseLegacyWarnings(argument));
                         }
                     }
                     break;
@@ -6694,7 +6691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // report warnings if parameter would unsafely let a null out in the worst case
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, worstCaseParameterWithState, UseLegacyWarnings(argument, result.LValueType));
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, worstCaseParameterWithState, UseLegacyWarnings(argument));
 
                             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref discardedUseSiteInfo))
@@ -8991,7 +8988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!node.IsRef)
                 {
                     var discarded = left is BoundDiscardExpression;
-                    rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: discarded ? default : leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
+                    rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: discarded ? default : leftLValueType, UseLegacyWarnings(left), trackMembers: true, AssignmentKind.Assignment);
                     Unsplit();
                 }
                 else
@@ -9115,7 +9112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return annotations;
         }
 
-        private static bool UseLegacyWarnings(BoundExpression expr, TypeWithAnnotations exprType)
+        private static bool UseLegacyWarnings(BoundExpression expr)
         {
             switch (expr.Kind)
             {
@@ -10407,7 +10404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportArgumentWarnings(right, rightType, logicalOperator.Parameters[1]);
             }
 
-            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node, right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(right, isAnd, isBool, ref leftTrue, ref leftFalse);
         }
 
         private TypeWithState InferResultNullabilityOfBinaryLogicalOperator(BoundExpression node, TypeWithState leftType, TypeWithState rightType)

@@ -71,23 +71,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeSyntax = typeSyntax.SkipScoped(out isScoped);
             isScoped = isScoped && allowScoped;
 
-            if (allowRefKind && typeSyntax is RefTypeSyntax refTypeSyntax)
-            {
-                this._refKind = refTypeSyntax.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
-                    RefKind.RefReadOnly :
-                    RefKind.Ref;
-                this._scope = isScoped ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
-            }
-            else
-            {
-                this._refKind = RefKind.None;
-                this._scope = isScoped ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped;
-            }
+            // Diagnostics for ref-locals is reported by caller in BindDeclarationStatementParts.
+            if (allowRefKind)
+                typeSyntax.SkipRefInLocalOrReturn(diagnostics: null, out _refKind);
+
+            _scope = _refKind != RefKind.None
+                ? isScoped ? DeclarationScope.RefScoped : DeclarationScope.Unscoped
+                : isScoped ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped;
 
             this._declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
-            _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
+            _locations = ImmutableArray.Create(identifierToken.GetLocation());
 
             _refEscapeScope = this._refKind == RefKind.None ?
                                         scopeBinder.LocalScopeDepth :
@@ -208,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(closestTypeSyntax != null);
             Debug.Assert(nodeBinder != null);
 
-            return closestTypeSyntax.SkipScoped(out _).SkipRef(out _).IsVar
+            return closestTypeSyntax.SkipScoped(out _).SkipRef().IsVar
                 ? new DeconstructionLocalSymbol(containingSymbol, scopeBinder, nodeBinder, closestTypeSyntax, identifierToken, kind, deconstruction)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: true, closestTypeSyntax, identifierToken, kind);
         }
@@ -239,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
             Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
-            return typeSyntax?.SkipScoped(out _).SkipRef(out _).IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
+            return typeSyntax?.SkipScoped(out _).SkipRef().IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: true, typeSyntax, identifierToken, kind);
         }
@@ -306,6 +301,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // the pointer variable itself is not pinned.
                 return false;
             }
+        }
+
+        internal sealed override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return false; }
         }
 
         internal virtual void SetRefEscape(uint value)
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                TypeSyntax typeSyntax = _typeSyntax.SkipScoped(out _).SkipRef(out _);
+                TypeSyntax typeSyntax = _typeSyntax.SkipScoped(out _).SkipRef();
 
                 if (typeSyntax.IsVar)
                 {
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar);
+                declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipScoped(out _).SkipRef(), diagnostics, out isVar);
             }
 
             if (isVar)

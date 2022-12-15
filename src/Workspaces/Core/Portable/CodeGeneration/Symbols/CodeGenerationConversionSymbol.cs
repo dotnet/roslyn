@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                   returnType: toType,
                   refKind: RefKind.None,
                   explicitInterfaceImplementations: default,
-                  name: isImplicit ?
-                      WellKnownMemberNames.ImplicitConversionName :
-                      WellKnownMemberNames.ExplicitConversionName,
+                  name: isImplicit
+                      ? WellKnownMemberNames.ImplicitConversionName
+                      : WellKnownMemberNames.ExplicitConversionName,
                   typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                   parameters: ImmutableArray.Create(fromType),
                   returnTypeAttributes: toTypeAttributes,

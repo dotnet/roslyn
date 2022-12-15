@@ -47,7 +47,6 @@ class C
 }").VerifyDiagnostics();
         }
 
-
         [Fact]
         public void GetOnlyAutoPropBadOverride()
         {

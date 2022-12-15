@@ -15,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         [Not] = 3
         IntrinsicOpMask = &H3
 
-
         Lifted = &H4
         UserDefined = &H8
 

@@ -7912,5 +7912,67 @@ sealed class C {
     }
 }");
         }
+
+        [Fact]
+        public async Task Lambda_OptionalParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        H((int x = 1, int y = 2) [||]=> x + y);
+    }
+
+    static void H(Delegate d) { }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var {|Rename:d|} = (int x = 1, int y = 2) => x + y;
+        H(d);
+    }
+
+    static void H(Delegate d) { }
+}");
+        }
+
+        [Fact]
+        public async Task Lambda_ParamsArray()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        H((int x, params int[] xs) [||]=> xs.Length + x);
+    }
+
+    static void H(Delegate d) { }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var {|Rename:d|} = (int x, params int[] xs) => xs.Length + x;
+        H(d);
+    }
+
+    static void H(Delegate d) { }
+}");
+        }
     }
 }

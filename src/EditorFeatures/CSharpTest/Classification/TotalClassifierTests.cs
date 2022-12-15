@@ -2004,7 +2004,7 @@ class Program
                 Field("Name"),
                 Punctuation.Colon,
                 Keyword("var"),
-                Identifier("n"),
+                Local("n"),
                 Punctuation.CloseCurly,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2099,6 +2099,45 @@ class Person
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory, WorkItem(59484, "https://github.com/dotnet/roslyn/issues/59484")]
+        [CombinatorialData]
+        public async Task TestPatternVariables(TestHost testHost)
+        {
+            await TestAsync(
+                @"
+void M(object o) {
+    _ = o is [var (x, y), {} z] list;
+} 
+",
+                testHost,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("_"),
+                Operators.Equals,
+                Parameter("o"),
+                Keyword("is"),
+                Punctuation.OpenBracket,
+                Keyword("var"),
+                Punctuation.OpenParen,
+                Local("x"),
+                Punctuation.Comma,
+                Local("y"),
+                Punctuation.CloseParen,
+                Punctuation.Comma,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Local("z"),
+                Punctuation.CloseBracket,
+                Local("list"),
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
 
@@ -2615,6 +2654,74 @@ Keyword("async"));
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestScopedVar(TestHost testHost)
+        {
+            await TestAsync("""
+                static void method(scoped in S s)
+                {
+                    scoped var rs1 = s;
+                }
+
+                file readonly ref struct S { }
+                """, testHost,
+                Keyword("static"),
+                Keyword("void"),
+                Method("method"),
+                Static("method"),
+                Punctuation.OpenParen,
+                Keyword("scoped"),
+                Keyword("in"),
+                Struct("S"),
+                Parameter("s"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("scoped"),
+                Keyword("var"),
+                Local("rs1"),
+                Operators.Equals,
+                Parameter("s"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Keyword("file"),
+                Keyword("readonly"),
+                Keyword("ref"),
+                Keyword("struct"),
+                Struct("S"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Lambda_DefaultParameterValue(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    const int N = 10;
+
+                    void M()
+                    {
+                        var lam = [|(int x = N) => x|];
+                    }
+                }
+
+                """,
+                testHost,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Operators.Equals,
+                Constant("N"),
+                Static("N"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Parameter("x"));
         }
     }
 }

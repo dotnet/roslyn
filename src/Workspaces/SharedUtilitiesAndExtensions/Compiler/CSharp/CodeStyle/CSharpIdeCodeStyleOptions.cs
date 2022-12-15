@@ -50,6 +50,8 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
     [DataMember] public CodeStyleOption2<bool> PreferNullCheckOverTypeCheck { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces { get; init; } = s_trueWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer { get; init; } = s_trueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterTokenInArrowExpressionClause { get; init; } = s_trueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterTokenInConditionalExpression { get; init; } = s_trueWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferConditionalDelegateCall { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferSwitchExpression { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferPatternMatching { get; init; } = s_trueWithSilentEnforcement;
@@ -85,6 +87,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
            PreferNullCheckOverTypeCheck.Equals(other.PreferNullCheckOverTypeCheck) &&
            AllowBlankLinesBetweenConsecutiveBraces.Equals(other.AllowBlankLinesBetweenConsecutiveBraces) &&
            AllowBlankLineAfterColonInConstructorInitializer.Equals(other.AllowBlankLineAfterColonInConstructorInitializer) &&
+           AllowBlankLineAfterTokenInConditionalExpression.Equals(other.AllowBlankLineAfterTokenInConditionalExpression) &&
            PreferConditionalDelegateCall.Equals(other.PreferConditionalDelegateCall) &&
            PreferSwitchExpression.Equals(other.PreferSwitchExpression) &&
            PreferPatternMatching.Equals(other.PreferPatternMatching) &&
@@ -114,6 +117,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
            Hash.Combine(PreferNullCheckOverTypeCheck,
            Hash.Combine(AllowBlankLinesBetweenConsecutiveBraces,
            Hash.Combine(AllowBlankLineAfterColonInConstructorInitializer,
+           Hash.Combine(AllowBlankLineAfterTokenInConditionalExpression,
            Hash.Combine(PreferConditionalDelegateCall,
            Hash.Combine(PreferSwitchExpression,
            Hash.Combine(PreferPatternMatching,
@@ -135,5 +139,5 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
            Hash.Combine(PreferMethodGroupConversion,
            Hash.Combine(PreferReadOnlyStruct,
            Hash.Combine(PreferStaticLocalFunction,
-           Hash.Combine(PreferExpressionBodiedLambdas, 0)))))))))))))))))))))))))));
+           Hash.Combine(PreferExpressionBodiedLambdas, 0))))))))))))))))))))))))))));
 }

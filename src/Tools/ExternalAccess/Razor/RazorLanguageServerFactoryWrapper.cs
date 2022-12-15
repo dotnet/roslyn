@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -35,10 +36,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _languageServerFactory = languageServerFactory;
         }
 
-        public IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider)
+        public IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
         {
             var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
-            var languageServer = _languageServerFactory.Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance);
+            var languageServer = _languageServerFactory.Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
 
             return new RazorLanguageServerTargetWrapper(languageServer);
         }

@@ -862,8 +862,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [InlineData("#if DEBUG", false, LanguageNames.CSharp)]
+        [InlineData(@"#region ""goo""", true, LanguageNames.CSharp)]
+        [InlineData(@"#nullable enable", true, LanguageNames.CSharp)]
+        [InlineData(@"#elif DEBUG", true, LanguageNames.CSharp)]
         [InlineData("// File", true, LanguageNames.CSharp)]
         [InlineData("#if DEBUG", false, LanguageNames.VisualBasic)]
+        [InlineData(@"#region ""goo""", true, LanguageNames.VisualBasic)]
+        [InlineData(@"#ElseIf DEBUG", true, LanguageNames.VisualBasic)]
         [InlineData("' File", true, LanguageNames.VisualBasic)]
         public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName)
         {
@@ -885,9 +890,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(document.Project.ParseOptions, oldTree.Options);
 
-            ParseOptions newOptions =
-                languageName == LanguageNames.CSharp ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
-                                                     : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
+            ParseOptions newOptions = languageName == LanguageNames.CSharp
+                ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
+                : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
 
             document = document.Project.WithParseOptions(newOptions).GetRequiredDocument(documentId);
 
@@ -2962,7 +2967,7 @@ public class C : A {
         }
 
         [Fact]
-        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions()
+        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions_AddedDoc()
         {
             using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
             var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
@@ -2983,6 +2988,97 @@ public class C : A {
 
             Assert.NotEqual(
                 await documentToFreeze.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions_ChangedDoc1()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            var documentToFreezeOriginal = project.AddDocument("DocumentToFreeze.cs", SourceText.From("class DocumentToFreeze { void M() { } }"));
+            project = documentToFreezeOriginal.Project;
+            var compilation = await project.GetCompilationAsync();
+
+            var solution = project.Solution.WithDocumentText(documentToFreezeOriginal.Id, SourceText.From("class DocumentToFreeze { void M() { /*no top level change*/ } }"));
+            var documentToFreezeChanged = solution.GetDocument(documentToFreezeOriginal.Id);
+            var tree = await documentToFreezeChanged.GetSyntaxTreeAsync();
+
+            var frozenDocument = documentToFreezeChanged.WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.NotSame(frozenDocument, documentToFreezeChanged);
+
+            // Versions should the same since there wasn't a top level change different
+            Assert.Equal(
+                await documentToFreezeOriginal.GetTopLevelChangeTextVersionAsync(),
+                await frozenDocument.GetTopLevelChangeTextVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.GetTopLevelChangeTextVersionAsync(),
+                await frozenDocument.GetTopLevelChangeTextVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeOriginal.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeOriginal.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions_ChangedDoc2()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            var documentToFreezeOriginal = project.AddDocument("DocumentToFreeze.cs", SourceText.From("class DocumentToFreeze { void M() { } }"));
+            project = documentToFreezeOriginal.Project;
+            var compilation = await project.GetCompilationAsync();
+
+            var solution = project.Solution.WithDocumentText(documentToFreezeOriginal.Id, SourceText.From("class DocumentToFreeze { void M() { } public void NewMethod() { } }"));
+            var documentToFreezeChanged = solution.GetDocument(documentToFreezeOriginal.Id);
+            var tree = await documentToFreezeChanged.GetSyntaxTreeAsync();
+
+            var frozenDocument = documentToFreezeChanged.WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.NotSame(frozenDocument, documentToFreezeChanged);
+
+            // Before/after the change must always result in a top level change.
+            // After the change, we should get the same version between the doc and its frozen version.
+            Assert.NotEqual(
+                await documentToFreezeOriginal.GetTopLevelChangeTextVersionAsync(),
+                await frozenDocument.GetTopLevelChangeTextVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.GetTopLevelChangeTextVersionAsync(),
+                await frozenDocument.GetTopLevelChangeTextVersionAsync());
+
+            Assert.NotEqual(
+                await documentToFreezeOriginal.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.NotEqual(
+                await documentToFreezeOriginal.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.Project.GetSemanticVersionAsync(),
                 await frozenDocument.Project.GetSemanticVersionAsync());
         }
 
@@ -3017,17 +3113,94 @@ public class C : A {
             var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
 
-            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
-            // when we freeze.
+            // Fetch the compilation to ensure further changes produce in progress states
             var originalCompilation = await project.GetCompilationAsync();
             project = project.AddAdditionalDocument("Test.txt", "").Project;
-            GC.KeepAlive(originalCompilation);
 
             // Freeze semantics -- this should give us a compilation and state that don't include the additional file,
             // since the compilation won't represent that either
             var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
             Assert.Empty(frozenDocument.Project.AdditionalDocuments);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSemanticsNoCompilationYetBuilt()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project
+                .AddDocument("RegularDocument2.cs", "// Source File", filePath: "RegularDocument2.cs").Project;
+
+            // Freeze semantics -- that document should be there, but nothing else will be yet.
+            var frozenDocument = project.Documents.First().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Single(frozenDocument.Project.Documents);
+            var singleTree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
+            Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
+        }
+
+        [Fact]
+        [WorkItem(1467404, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        public async Task TestFrozenPartialSemanticsHandlesDocumentWithSamePathBeingRemovedAndAdded()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Fetch the compilation to ensure further changes produce in progress states
+            var originalCompilation = await project.GetCompilationAsync();
+            project = project.RemoveDocument(project.DocumentIds.Single())
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Freeze semantics -- with the new document; this should still give us a project with a single document, the previous
+            // tree having been removed.
+            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Single(frozenDocument.Project.Documents);
+            var singleTree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
+            Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
+        }
+
+        [Fact]
+        [WorkItem(1467404, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        public async Task TestFrozenPartialSemanticsHandlesRemoveAndAddWithNullPathAndDifferentNames()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: null).Project;
+
+            // Fetch the compilation to ensure further changes produce in progress states
+            var originalCompilation = await project.GetCompilationAsync();
+            project = project.RemoveDocument(project.DocumentIds.Single())
+                .AddDocument("RegularDocument2.cs", "// Source File", filePath: null).Project;
+
+            // Freeze semantics -- with the new document; this should still give us a project with two documents: the new
+            // one will be added, and the old one will stay around since the name differed.
+            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Equal(2, frozenDocument.Project.Documents.Count());
+            var treesInCompilation = (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees;
+            Assert.Equal(2, treesInCompilation.Count());
+
+            foreach (var document in frozenDocument.Project.Documents)
+                Assert.Contains(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None), treesInCompilation);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSemanticsAfterSingleTextEdit()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: null);
+
+            // Fetch the compilation to ensure further changes produce in progress states
+            var originalCompilation = await document.Project.GetCompilationAsync();
+            document = document.WithText(SourceText.From("// Source File with Changes"));
+
+            var frozenDocument = document.WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Contains(await frozenDocument.GetSyntaxTreeAsync(), (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
         }
 
         [Theory]
@@ -3046,8 +3219,7 @@ public class C : A {
                 .AddDocument(documentId2, nameof(documentId2), "// Document 2")
                 .AddDocument(documentId3, nameof(documentId3), "// Document 3");
 
-            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
-            // when we freeze.
+            // Fetch the compilation to ensure further changes produce in progress states
             var originalCompilation = await solution.Projects.Single().GetCompilationAsync();
 
             solution = solution
@@ -3055,14 +3227,15 @@ public class C : A {
                 .WithDocumentText(documentId2, SourceText.From("// Document 2 Changed"))
                 .WithDocumentText(documentId3, SourceText.From("// Document 3 Changed"));
 
-            GC.KeepAlive(originalCompilation);
-
+            // We will freeze the appropriate document -- the reason we have three here is the code path might work accidentally if it
+            // was the first or last change made, so covering "first", "middle" and "last" ensures that's covered.
             var documentIdToFreeze = documentToFreeze == 1 ? documentId1 : documentToFreeze == 2 ? documentId2 : documentId3;
 
             var frozen = solution.GetRequiredDocument(documentIdToFreeze).WithFrozenPartialSemantics(CancellationToken.None);
 
             var tree = await frozen.GetSyntaxTreeAsync();
             Assert.Contains("Changed", tree.ToString());
+            Assert.Contains(tree, (await frozen.Project.GetCompilationAsync()).SyntaxTrees);
         }
 
         [Fact]

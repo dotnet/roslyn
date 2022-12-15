@@ -476,7 +476,7 @@ class C
 using System;
 class C
 {
-    {|IDE0025:int Goo => {|CS8059:throw new NotImplementedException()|};|}
+    {|IDE0025:int Goo => {|CS8059:throw|} new NotImplementedException();|}
 }";
             var fixedCode = @"
 using System;
@@ -500,8 +500,8 @@ class C
 using System;
 class C
 {
-    {|IDE0025:int Goo => {|CS8059:throw new NotImplementedException()|};|}
-    {|IDE0025:int Bar => {|CS8059:throw new NotImplementedException()|};|}
+    {|IDE0025:int Goo => {|CS8059:throw|} new NotImplementedException();|}
+    {|IDE0025:int Bar => {|CS8059:throw|} new NotImplementedException();|}
 }";
             var fixedCode = @"
 using System;

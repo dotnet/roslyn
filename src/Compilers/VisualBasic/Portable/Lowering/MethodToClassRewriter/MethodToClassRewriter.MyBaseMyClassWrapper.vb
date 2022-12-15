@@ -85,7 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim syntax As SyntaxNode = Me.CurrentMethod.Syntax
 
-
             ' generate and register wrapper method
             Dim wrapperMethodName As String = GeneratedNames.MakeBaseMethodWrapperName(method.Name, isMyBase)
             Dim wrapperMethod As New SynthesizedWrapperMethod(DirectCast(containingType, InstanceTypeSymbol), method, wrapperMethodName, syntax)

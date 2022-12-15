@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         {
         }
 
-        internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             if (!File.Exists(Path))
             {

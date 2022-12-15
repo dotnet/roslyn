@@ -667,6 +667,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return isOwner;
             }
 
+            // Special error code for this case.
+            if (isOwner &&
+                targetOpt.Identifier.ToAttributeLocation() == AttributeLocation.Module)
+            {
+                var parseOptions = (CSharpParseOptions)targetOpt.SyntaxTree.Options;
+                if (parseOptions.LanguageVersion == LanguageVersion.CSharp1)
+                    diagnostics.Add(ErrorCode.WRN_NonECMAFeature, targetOpt.GetLocation(), MessageID.IDS_FeatureModuleAttrLoc);
+            }
+
             AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
 
             AttributeLocation explicitTarget = targetOpt.GetAttributeLocation();

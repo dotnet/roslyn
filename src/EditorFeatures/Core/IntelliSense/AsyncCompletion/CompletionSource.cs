@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
-                if (!options.ShouldShowItemsFromUnimportedNamespaces())
+                if (!options.ShouldShowItemsFromUnimportedNamespaces)
                 {
                     // No need to trigger expanded providers at all if the feature is disabled, just trigger core providers and return;
                     var (context, list) = await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,

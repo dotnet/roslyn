@@ -1893,6 +1893,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Function
 
+        Public Function GetExpressionOfThrowStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowStatement
+            Return DirectCast(node, ThrowStatementSyntax).Expression
+        End Function
+
         Public Function GetInitializersOfObjectMemberInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetInitializersOfObjectMemberInitializer
             Dim initializer = TryCast(node, ObjectMemberInitializerSyntax)
             If initializer Is Nothing Then
