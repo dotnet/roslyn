@@ -8,6 +8,4 @@
     <!-- Avoid compile error about missing namespace when combining ImplicitUsings with .NET Framework target frameworks. -->
     <Using Remove="System.Net.Http" Condition="'$(TargetFrameworkIdentifier)'=='.NETFramework'" />
   </ItemGroup>
-
-  <Import Project="$(_WpfTempProjectNuGetFilePathNoExt).targets" Condition="'$(_WpfTempProjectNuGetFilePathNoExt)' != '' and Exists('$(_WpfTempProjectNuGetFilePathNoExt).targets')"/>
 </Project>
