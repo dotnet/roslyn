@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // unidirectional cascading, then we only need to check the potential matches we find in the file against
             // the starting symbol.
             Debug.Assert(_options.UnidirectionalHierarchyCascade);
+
             var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
             unifiedSymbols.Add(originalSymbol);
 
@@ -31,18 +32,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // searching for.  Cache those results so we don't have to continually perform them.
             var hasInheritanceRelationshipCache = new ConcurrentDictionary<(ISymbol searchSymbol, ISymbol candidateSymbol), AsyncLazy<bool>>();
 
-            // Create the initial set of symbols to search for.  This includes linked and cascaded symbols. It does
+            // Create and report the initial set of symbols to search for.  This includes linked and cascaded symbols. It does
             // not walk up/down the inheritance hierarchy.
             var symbolSet = await SymbolSet.DetermineInitialSearchSymbolsAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
             var allSymbols = symbolSet.ToImmutableArray();
+            await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-            // Determine the set of projects we actually have to walk to find results in.  This is only the set of
-            // projects that all these documents are in.
-            var projectsToSearch = documents.Select(d => d.Project).ToImmutableHashSet();
-
-            // Process projects in dependency graph order so that any compilations built by one are available for later projects.
+            // Process projects in dependency graph order so that any compilations built by one are available for later
+            // projects. We only have to examine the projects containing the documents requested though.
             var dependencyGraph = _solution.GetProjectDependencyGraph();
-            await _progressTracker.AddItemsAsync(projectsToSearch.Count, cancellationToken).ConfigureAwait(false);
+            var projectsToSearch = documents.Select(d => d.Project).ToImmutableHashSet();
 
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
             {
@@ -61,8 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     // Compute global aliases up front for the project so it can be used below for all the symbols we're
                     // searching for.
-                    await AddGlobalAliasesAsync(
-                        project, symbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
+                    await AddGlobalAliasesAsync(project, symbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
 
                     foreach (var document in documents)
                     {
@@ -92,8 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var symbol in symbols)
                 {
                     var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
-                    var state = new FindReferencesDocumentState(
-                        document, model, root, cache, globalAliases);
+                    var state = new FindReferencesDocumentState(document, model, root, cache, globalAliases);
 
                     await PerformSearchInDocumentWorkerAsync(symbol, document, state).ConfigureAwait(false);
                 }
