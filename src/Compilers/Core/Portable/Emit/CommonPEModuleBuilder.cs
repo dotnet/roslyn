@@ -17,11 +17,10 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    using Roslyn.Utilities;
-
     internal abstract class CommonPEModuleBuilder : Cci.IUnit, Cci.IModuleReference
     {
         internal readonly DebugDocumentsBuilder DebugDocumentsBuilder;
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DebugDocumentsBuilder = new DebugDocumentsBuilder(compilation.Options.SourceReferenceResolver, compilation.IsCaseSensitive);
             OutputKind = outputKind;
             SerializationProperties = serializationProperties;
-            _methodBodyMap = new ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
+            _methodBodyMap = new ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
             EmitOptions = emitOptions;
         }
 
@@ -843,7 +842,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         private readonly ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions> _synthesizedTypeMembers =
-            new ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions>(ReferenceEqualityComparer.Instance);
+            new ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
         private ConcurrentDictionary<INamespaceSymbolInternal, ConcurrentQueue<INamespaceOrTypeSymbolInternal>> _lazySynthesizedNamespaceMembers;
 

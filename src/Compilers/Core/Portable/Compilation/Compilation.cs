@@ -28,11 +28,10 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    using Roslyn.Utilities;
-
     /// <summary>
     /// The compilation object is an immutable representation of a single invocation of the
     /// compiler. Although immutable, a compilation is also on-demand, and will realize and cache
@@ -1133,10 +1132,10 @@ namespace Microsoft.CodeAnalysis
         // is that there are maybe a couple dozen analyzers in the solution and each one has
         // ~0-2 unique well-known types, and the chance of hash collision is very low.
         private readonly ConcurrentCache<string, INamedTypeSymbol?> _getTypeCache =
-            new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance);
+            new ConcurrentCache<string, INamedTypeSymbol?>(50, Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
         private readonly ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>> _getTypesCache =
-            new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50, ReferenceEqualityComparer.Instance);
+            new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50, Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
@@ -1214,7 +1213,7 @@ namespace Microsoft.CodeAnalysis
                 var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
                     || !_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
-                    || Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance));
+                    || Enumerable.SequenceEqual(addedArray, val, Roslyn.Utilities.ReferenceEqualityComparer.Instance));
             }
 
             return val;

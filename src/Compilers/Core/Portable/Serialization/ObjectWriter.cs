@@ -18,7 +18,6 @@ namespace Roslyn.Utilities
 {
     using System.Collections.Immutable;
     using System.Threading.Tasks;
-    using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
 #elif CODE_STYLE
@@ -1281,7 +1280,7 @@ namespace Roslyn.Utilities
             /// Encoding serialized as <see cref="TextEncodingKind"/>.
             /// </summary>
             FirstWellKnownTextEncoding,
-            LastWellKnownTextEncoding = FirstWellKnownTextEncoding + EncodingExtensions.LastTextEncodingKind - EncodingExtensions.FirstTextEncodingKind,
+            LastWellKnownTextEncoding = FirstWellKnownTextEncoding + Microsoft.CodeAnalysis.EncodingExtensions.LastTextEncodingKind - Microsoft.CodeAnalysis.EncodingExtensions.FirstTextEncodingKind,
 
             /// <summary>
             /// Encoding serialized as <see cref="Encoding.CodePage"/>.
@@ -1293,14 +1292,14 @@ namespace Roslyn.Utilities
 
         internal static TypeCode ToTypeCode(TextEncodingKind kind)
         {
-            Debug.Assert(kind is >= EncodingExtensions.FirstTextEncodingKind and <= EncodingExtensions.LastTextEncodingKind);
-            return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - EncodingExtensions.FirstTextEncodingKind);
+            Debug.Assert(kind is >= Microsoft.CodeAnalysis.EncodingExtensions.FirstTextEncodingKind and <= Microsoft.CodeAnalysis.EncodingExtensions.LastTextEncodingKind);
+            return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - Microsoft.CodeAnalysis.EncodingExtensions.FirstTextEncodingKind);
         }
 
         internal static TextEncodingKind ToEncodingKind(TypeCode code)
         {
             Debug.Assert(code is >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding);
-            return EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
+            return Microsoft.CodeAnalysis.EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
         }
     }
 }

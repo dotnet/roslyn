@@ -18,11 +18,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Utilities;
-
     internal sealed class PdbWriter : IDisposable
     {
         internal const uint Age = 1;
@@ -47,7 +46,7 @@ namespace Microsoft.Cci
             _symWriterFactory = symWriterFactory;
             _hashAlgorithmNameOpt = hashAlgorithmNameOpt;
             _documentIndex = new Dictionary<DebugSourceDocument, int>();
-            _qualifiedNameCache = new Dictionary<object, string>(ReferenceEqualityComparer.Instance);
+            _qualifiedNameCache = new Dictionary<object, string>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
         }
 
         public void WriteTo(Stream stream)

@@ -10,11 +10,10 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    using Roslyn.Utilities;
-
     /// <summary>
     /// At this level there are two kinds of local variables:
     /// <list type="bullet">
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var map = _localMap;
                 if (map == null)
                 {
-                    map = new Dictionary<ILocalSymbolInternal, LocalDefinition>(ReferenceEqualityComparer.Instance);
+                    map = new Dictionary<ILocalSymbolInternal, LocalDefinition>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
                     _localMap = map;
                 }
 

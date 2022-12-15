@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis
         private static void CopyFile(string originalPath, string shadowCopyPath)
         {
             var directory = Path.GetDirectoryName(shadowCopyPath);
-            Debug.Assert(directory != null);
+            Debug.Assert(directory is not null);
             Directory.CreateDirectory(directory);
 
             File.Copy(originalPath, shadowCopyPath);

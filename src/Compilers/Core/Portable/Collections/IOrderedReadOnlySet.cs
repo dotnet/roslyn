@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    using Roslyn.Utilities;
-
-    internal interface IOrderedReadOnlySet<T> : IReadOnlySet<T>, IReadOnlyList<T>
+    internal interface IOrderedReadOnlySet<T> : Roslyn.Utilities.IReadOnlySet<T>, IReadOnlyList<T>
     {
     }
 }

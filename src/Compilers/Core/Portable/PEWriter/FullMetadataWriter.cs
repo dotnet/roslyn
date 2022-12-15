@@ -10,12 +10,11 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Utilities;
-
     internal sealed class FullMetadataWriter : MetadataWriter
     {
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
@@ -99,9 +98,9 @@ namespace Microsoft.Cci
             _parameterDefs = new DefinitionIndex<IParameterDefinition>(numMethods);
             _genericParameters = new DefinitionIndex<IGenericParameter>(0);
 
-            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
-            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
-            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods, ReferenceEqualityComparer.Instance);
+            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods, Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this);
@@ -435,7 +434,7 @@ namespace Microsoft.Cci
 
             public DefinitionIndex(int capacity)
             {
-                _index = new Dictionary<T, int>(capacity, ReferenceEqualityComparer.Instance);
+                _index = new Dictionary<T, int>(capacity, Roslyn.Utilities.ReferenceEqualityComparer.Instance);
                 _rows = new List<T>(capacity);
             }
 

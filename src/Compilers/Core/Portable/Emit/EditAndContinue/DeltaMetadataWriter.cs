@@ -15,11 +15,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    using Roslyn.Utilities;
-
     internal sealed class DeltaMetadataWriter : MetadataWriter
     {
         private readonly EmitBaseline _previousGeneration;
@@ -103,8 +102,8 @@ namespace Microsoft.CodeAnalysis.Emit
             var sizes = previousGeneration.TableSizes;
 
             _changedTypeDefs = new List<ITypeDefinition>();
-            _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedTypeDefinition>(ReferenceEqualityComparer.Instance);
-            _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
+            _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedTypeDefinition>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+            _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _customAttributesAdded = new Dictionary<EntityHandle, ImmutableArray<int>>();
 
             _firstParamRowMap = new Dictionary<MethodDefinitionHandle, int>();
-            _existingParameterDefs = new Dictionary<IParameterDefinition, int>(ReferenceEqualityComparer.Instance);
+            _existingParameterDefs = new Dictionary<IParameterDefinition, int>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
@@ -545,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var deletedMethods = _changes.GetDeletedMethods(typeDef);
             if (deletedMethods.Length > 0)
             {
-                var deletedTypeMembers = ImmutableDictionary.CreateBuilder<IMethodDefinition, DeletedMethodDefinition>(ReferenceEqualityComparer.Instance);
+                var deletedTypeMembers = ImmutableDictionary.CreateBuilder<IMethodDefinition, DeletedMethodDefinition>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
                 foreach (var methodDef in deletedMethods)
                 {
                     var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
@@ -1435,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.Emit
             private readonly Dictionary<int, T> _map;
 
             public DefinitionIndex(TryGetExistingIndex tryGetExistingIndex, int lastRowId)
-                : base(lastRowId, ReferenceEqualityComparer.Instance)
+                : base(lastRowId, Roslyn.Utilities.ReferenceEqualityComparer.Instance)
             {
                 _tryGetExistingIndex = tryGetExistingIndex;
                 _map = new Dictionary<int, T>();
@@ -1647,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private sealed class GenericParameterIndex : DefinitionIndexBase<IGenericParameter>
         {
             public GenericParameterIndex(int lastRowId)
-                : base(lastRowId, ReferenceEqualityComparer.Instance)
+                : base(lastRowId, Roslyn.Utilities.ReferenceEqualityComparer.Instance)
             {
             }
 

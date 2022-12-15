@@ -5,11 +5,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    using Roslyn.Utilities;
-
     /// <summary>
     /// Handles storage of items referenced via tokens in metadata. When items are stored 
     /// they are uniquely "associated" with fake tokens, which are basically sequential numbers.
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class ItemTokenMap<T> where T : class
     {
-        private readonly ConcurrentDictionary<T, uint> _itemToToken = new ConcurrentDictionary<T, uint>(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentDictionary<T, uint> _itemToToken = new ConcurrentDictionary<T, uint>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
         private readonly ArrayBuilder<T> _items = new ArrayBuilder<T>();
 
         public uint GetOrAddTokenFor(T item)
