@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -46,8 +45,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 // in order to highlight values in this document.
                 var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
                     document.Project,
-                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(
-                        solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), options, cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), options, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -120,8 +118,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var progress = new StreamingProgressCollector();
 
                 var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
-                await SymbolFinder.FindReferencesInDocumentsAsync(
-                    symbol, document.Project.Solution, progress, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
+                await SymbolFinder.FindReferencesAsync(
+                    symbol, document.Project.Solution, progress,
+                    documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(
                     progress.GetReferencedSymbols(), document, documentsToSearch,
@@ -180,8 +179,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 // we only process the document if it's also our language.
                 if (currentDocument.Project.Language == startingDocument.Project.Language)
                 {
-                    additionalReferences.AddRange(
-                        await GetAdditionalReferencesAsync(currentDocument, symbol, cancellationToken).ConfigureAwait(false));
+                    additionalReferences.AddRange(await GetAdditionalReferencesAsync(currentDocument, symbol, cancellationToken).ConfigureAwait(false));
                 }
             }
 
