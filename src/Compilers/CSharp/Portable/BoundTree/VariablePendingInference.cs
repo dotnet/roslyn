@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (localSymbol.Scope == DeclarationScope.ValueScoped && !type.Type.IsErrorTypeOrRefLikeType())
                             {
                                 diagnosticsOpt.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
-                                                   (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef(out _) : typeOrDesignationSyntax).Location);
+                                                   (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef() : typeOrDesignationSyntax).Location);
                             }
                         }
                     }

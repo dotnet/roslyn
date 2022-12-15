@@ -6,11 +6,20 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
+#pragma warning disable RS0030 // Do not used banned APIs: PerLanguageOption<T>
     public static class RecommendationOptions
     {
-        public static PerLanguageOption<bool> HideAdvancedMembers { get; } = new PerLanguageOption<bool>(nameof(RecommendationOptions), nameof(HideAdvancedMembers), defaultValue: false);
+        public static PerLanguageOption<bool> HideAdvancedMembers { get; } = (PerLanguageOption<bool>)RecommendationOptions2.HideAdvancedMembers;
 
-        public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = new PerLanguageOption<bool>(nameof(RecommendationOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
+        public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = (PerLanguageOption<bool>)RecommendationOptions2.FilterOutOfScopeLocals;
+    }
+#pragma warning restore
+
+    internal static class RecommendationOptions2
+    {
+        public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("RecommendationOptions", "HideAdvancedMembers", defaultValue: false);
+
+        public static readonly PerLanguageOption2<bool> FilterOutOfScopeLocals = new("RecommendationOptions", "FilterOutOfScopeLocals", defaultValue: true);
     }
 
     internal readonly record struct RecommendationServiceOptions(
@@ -22,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
         public static RecommendationServiceOptions From(OptionSet options, string language)
           => new(
-              HideAdvancedMembers: options.GetOption(RecommendationOptions.HideAdvancedMembers, language),
-              FilterOutOfScopeLocals: options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, language));
+              HideAdvancedMembers: options.GetOption(RecommendationOptions2.HideAdvancedMembers, language),
+              FilterOutOfScopeLocals: options.GetOption(RecommendationOptions2.FilterOutOfScopeLocals, language));
     }
 }

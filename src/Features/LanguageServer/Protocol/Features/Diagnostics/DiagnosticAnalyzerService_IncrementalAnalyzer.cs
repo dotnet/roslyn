@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // have happened to the project or closed files outside of VS.
             // However, we still need to create the analyzer so that the map contains the analyzer to run when pull diagnostics asks.
             _ = _map.GetValue(workspace, _createIncrementalAnalyzer);
-
             return NoOpIncrementalAnalyzer.Instance;
         }
 

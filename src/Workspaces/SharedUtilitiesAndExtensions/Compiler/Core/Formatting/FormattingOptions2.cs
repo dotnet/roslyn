@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     "crlf" => "\r\n",
                     _ => Environment.NewLine
                 },
-                getEditorConfigStringForValue: option => option switch
+                serializeValue: value => value switch
                 {
                     "\n" => "lf",
                     "\r" => "cr",
@@ -78,8 +78,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), DocumentFormattingOptions.Default.InsertFinalNewLine,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
-        public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent { get; } =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle);
+        public static PerLanguageOption2<IndentStyle> SmartIndent { get; } =
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle,
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Style"));
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(

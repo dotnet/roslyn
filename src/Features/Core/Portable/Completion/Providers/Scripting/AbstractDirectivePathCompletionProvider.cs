@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractDirectivePathCompletionProvider : CompletionProvider
     {
-        protected static bool IsDirectorySeparator(char ch) =>
-             ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
+        protected static bool IsDirectorySeparator(char ch)
+             => ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
 
         protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
 

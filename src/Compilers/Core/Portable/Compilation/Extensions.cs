@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis
             return semanticModel.GetSpeculativeTypeInfo(position, expression, bindingOption);
         }
 
-
         /// <summary>
         /// Gets the symbol associated with a declaration syntax node.
         /// </summary>

@@ -4207,8 +4207,6 @@ public readonly struct S
 }
 " }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
-
-
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       31 (0x1f)

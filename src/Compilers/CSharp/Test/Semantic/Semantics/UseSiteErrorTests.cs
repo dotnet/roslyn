@@ -1064,7 +1064,6 @@ public class X {}
 ";
             var xRef = CreateCompilation(xSource, assemblyName: "Test").EmitToImageReference();
 
-
             var libSource = @"
 public interface I
 {
@@ -2451,7 +2450,6 @@ public struct S1
 {
     public int i;
 }", assemblyName: "libS1").ToMetadataReference();
-
 
         private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
 public struct S2

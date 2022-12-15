@@ -2676,7 +2676,6 @@ class Derived3 : Derived { }";
         );
     }
 
-
     /// <summary>
     /// This IL is the equivalent of:
     /// public record Derived : Base

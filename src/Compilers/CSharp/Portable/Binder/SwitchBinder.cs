@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            _ = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
+                            _ = ConvertCaseExpression(labelSyntax, boundLabelExpression, out boundLabelConstantOpt, tempDiagnosticBag);
                         }
                         break;
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundExpression ConvertCaseExpression(CSharpSyntaxNode node, BoundExpression caseExpression, Binder sectionBinder, out ConstantValue constantValueOpt, BindingDiagnosticBag diagnostics, bool isGotoCaseExpr = false)
+        protected BoundExpression ConvertCaseExpression(CSharpSyntaxNode node, BoundExpression caseExpression, out ConstantValue constantValueOpt, BindingDiagnosticBag diagnostics, bool isGotoCaseExpr = false)
         {
             bool hasErrors = false;
             if (isGotoCaseExpr)
@@ -494,8 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Bind the goto case expression
                     gotoCaseExpressionOpt = gotoBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-                    gotoCaseExpressionOpt = ConvertCaseExpression(node, gotoCaseExpressionOpt, gotoBinder,
-                        out gotoCaseExpressionConstant, diagnostics, isGotoCaseExpr: true);
+                    gotoCaseExpressionOpt = ConvertCaseExpression(node, gotoCaseExpressionOpt, out gotoCaseExpressionConstant,
+                        diagnostics, isGotoCaseExpr: true);
 
                     // Check for bind errors
                     hasErrors = hasErrors || gotoCaseExpressionOpt.HasAnyErrors;

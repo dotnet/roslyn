@@ -3577,7 +3577,6 @@ class C
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
         }
 
-
         [Fact]
         [WorkItem(30016, "https://github.com/dotnet/roslyn/issues/30016")]
         public void ForEachIteratorWithCurrentRefKind_DontPassFieldByValue()

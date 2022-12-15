@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             asc.Add("file5.cs", SourceText.From("", Encoding.UTF8));
             asc.Add("file4.cs", SourceText.From("", Encoding.UTF8));
 
-
             var sources = asc.ToImmutableAndFree();
             var hintNames = sources.Select(s => s.HintName).ToArray();
             Assert.Equal(new[]

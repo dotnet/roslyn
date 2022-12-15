@@ -169,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
 
-
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFlowAnonymousFunction(this);
@@ -349,7 +348,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     => Arguments[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
-
 
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {

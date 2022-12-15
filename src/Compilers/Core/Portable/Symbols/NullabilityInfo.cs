@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             other is NullabilityInfo info && Equals(info);
 
         public override int GetHashCode() =>
-            Hash.Combine(Annotation.GetHashCode(), FlowState.GetHashCode());
+            Hash.Combine(((int)Annotation).GetHashCode(), ((int)FlowState).GetHashCode());
 
         public bool Equals(NullabilityInfo other) =>
             Annotation == other.Annotation &&

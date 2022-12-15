@@ -1690,6 +1690,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Mark attribute arguments as used.
                 VisitAttributes(sourceComplexParam.BindParameterAttributes());
+
+                // Mark default parameter values as used.
+                if (sourceComplexParam.BindParameterEqualsValue() is { } boundValue)
+                {
+                    VisitRvalue(boundValue.Value);
+                }
             }
         }
 

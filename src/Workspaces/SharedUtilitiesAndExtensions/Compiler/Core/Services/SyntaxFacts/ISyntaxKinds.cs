@@ -179,8 +179,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int ClassDeclaration { get; }
         int ConstructorDeclaration { get; }
         int InterfaceDeclaration { get; }
-        int? RecordDeclaration { get; }
-        int? RecordStructDeclaration { get; }
         int? StructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
@@ -196,6 +194,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region clauses
 
+        int ElseClause { get; }
         int EqualsValueClause { get; }
 
         #endregion

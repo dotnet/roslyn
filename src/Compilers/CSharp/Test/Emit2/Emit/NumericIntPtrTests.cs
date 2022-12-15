@@ -1249,7 +1249,6 @@ class Program
     }
 }";
 
-
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (6,34): error CS0103: The name 'nint' does not exist in the current context
@@ -10132,7 +10131,6 @@ $@"static class NativeInts
             verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
             verify(sourceType: "nuint", destType: "System.UIntPtr");
 
-
             // type to IntPtr
             verify(sourceType: "object", destType: "System.IntPtr", isExplicit: true);
             verify(sourceType: "string", destType: "System.IntPtr", noConversion: true);
@@ -10556,7 +10554,6 @@ class D : C<System.IntPtr> { }
 
             comp.VerifyDiagnostics();
         }
-
 
         [Theory]
         [InlineData(false)]

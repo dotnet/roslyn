@@ -289,9 +289,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldSolution = _committedDesignTimeSolution;
                 var newSolution = WorkspaceProvider.Value.Workspace.CurrentSolution;
 
-                return (sourceFilePath != null) ?
-                    await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false) :
-                    await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
+                return (sourceFilePath != null)
+                    ? await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false)
+                    : await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

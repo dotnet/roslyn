@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         : GenerateNullLiteral();
 
                 case TypedConstantKind.Array:
-                    return typedConstant.IsNull ?
-                        GenerateNullLiteral() :
-                        SyntaxFactory.ImplicitArrayCreationExpression(
+                    return typedConstant.IsNull
+                        ? GenerateNullLiteral()
+                        : SyntaxFactory.ImplicitArrayCreationExpression(
                             SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
                                 SyntaxFactory.SeparatedList(typedConstant.Values.Select(GenerateExpression))));
 

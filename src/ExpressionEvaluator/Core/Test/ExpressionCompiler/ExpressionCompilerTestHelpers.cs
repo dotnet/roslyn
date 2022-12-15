@@ -759,9 +759,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             var parameters = signature.Substring(parameterListStart + 1, signature.Length - parameterListStart - 2);
             var methodName = signature.Substring(0, parameterListStart);
-            parameterTypeNames = (parameters.Length == 0) ?
-                new string[0] :
-                parameters.Split(',');
+            parameterTypeNames = (parameters.Length == 0)
+                ? new string[0]
+                : parameters.Split(',');
             return methodName;
         }
 

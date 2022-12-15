@@ -63,7 +63,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
+        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, new InitializationOptions());
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
         var documentPullRequest = new VSInternalDocumentDiagnosticsParams
@@ -105,6 +105,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             servicesProvider, jsonRpc,
             capabilitiesProvider,
             logger,
+            workspace.Services.HostServices,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);
 

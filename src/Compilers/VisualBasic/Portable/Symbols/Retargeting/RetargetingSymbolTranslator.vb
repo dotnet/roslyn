@@ -140,7 +140,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Function(type, translator) translator.Retarget(DirectCast(type, TypeSymbol), RetargetOptions.RetargetPrimitiveTypesByTypeCode), Me)
             End Function
 
-
             Public Function Retarget(symbol As TypeSymbol, options As RetargetOptions) As TypeSymbol
                 Return DirectCast(symbol.Accept(Me, options), TypeSymbol)
             End Function
@@ -760,7 +759,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 End If
             End Function
 
-
             Private Function RetargetAttributeNamedArguments(namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))) As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
                 Dim retargetedArguments = namedArguments
                 Dim argumentsHaveChanged As Boolean = False
@@ -1121,7 +1119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                 Return Nothing
             End Function
-
 
             Public Overrides Function VisitModule(symbol As ModuleSymbol, options As RetargetOptions) As Symbol
                 ' We shouldn't run into any other module, but the underlying module

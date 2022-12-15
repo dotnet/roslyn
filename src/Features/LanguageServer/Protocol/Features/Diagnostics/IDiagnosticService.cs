@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.
         /// </summary>
-        ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(
+        ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets storing our grouped diagnostics.
         /// </summary>
-        ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(
+        ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken);
     }
 }
