@@ -239,17 +239,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
-        {
-            if (!dictionary.TryGetValue(key, out var set))
-            {
-                set = PooledHashSet<string>.GetInstance();
-                dictionary.Add(key, set);
-            }
-
-            return set;
-        }
-
         private static PooledHashSet<U>? TryGet<T, U>(Dictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
             => dictionary.TryGetValue(key, out var set) ? set : null;
 
@@ -327,6 +316,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
             }
+        }
+
+        private static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var set))
+            {
+                set = PooledHashSet<string>.GetInstance();
+                dictionary.Add(key, set);
+            }
+
+            return set;
         }
 
         private static void FreeGlobalAliases(PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
