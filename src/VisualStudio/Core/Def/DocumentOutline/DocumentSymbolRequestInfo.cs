@@ -11,5 +11,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     /// <param name="TextBuffer">text buffer used by the editor to find our language-server implementation.</param>
     /// <param name="FilePath">file path used as part of the LSP request.</param>
-    internal sealed record DocumentSymbolsRequestInfo(ITextBuffer TextBuffer, string FilePath);
+    internal sealed record DocumentSymbolRequestInfo(ITextBuffer TextBuffer, string FilePath);
 }

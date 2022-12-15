@@ -18,9 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Queue that uses the language-server-protocol to get document symbol information.
         /// This queue can return null if it is called before and LSP server is registered for our document.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<DocumentSymbolsRequestInfo, DocumentSymbolDataModel?> _documentSymbolQueue;
+        private readonly AsyncBatchingWorkQueue<DocumentSymbolRequestInfo, DocumentSymbolDataModel?> _documentSymbolQueue;
 
-        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<DocumentSymbolsRequestInfo> infos, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<DocumentSymbolRequestInfo> infos, CancellationToken cancellationToken)
         {
             var (textBuffer, filePath) = infos.Last();
 
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 DocumentOutlineHelper.UnselectAll(DocumentSymbolViewModelItems);
                 var allCollapsed = DocumentOutlineHelper.AreAllCollapsed(DocumentSymbolViewModelItems);
-                DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolViewModelItems);
+                DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolDataViewModel>(documentSymbolViewModelItems);
 
                 if (_currentlySelectedSymbolCaretPosition.HasValue)
                 {
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 else if (allCollapsed)
                 {
                     // we previously had all nodes collapsed, so maintain that
-                    EnqueueExpandCollapseUpdate(ExpansionOption.Collapse);
+                    EnqueueExpandOrCollapse(ExpansionOption.Collapse);
                 }
             }
 

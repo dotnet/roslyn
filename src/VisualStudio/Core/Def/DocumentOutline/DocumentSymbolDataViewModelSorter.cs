@@ -13,18 +13,18 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     /// <summary>
-    /// Sorts immutable collections of <see cref="DocumentSymbolItemViewModel"/>s 
+    /// Sorts immutable collections of <see cref="DocumentSymbolDataViewModel"/>s 
     /// </summary>
-    internal class ItemSorter : MarkupExtension, IMultiValueConverter
+    internal class DocumentSymbolDataViewModelSorter : MarkupExtension, IMultiValueConverter
     {
-        public static ItemSorter Instance { get; } = new();
+        public static DocumentSymbolDataViewModelSorter Instance { get; } = new();
 
-        public ImmutableArray<DocumentSymbolItemViewModel> Sort(ImmutableArray<DocumentSymbolItemViewModel> items, SortOption sortOption)
-            => (ImmutableArray<DocumentSymbolItemViewModel>)Convert(new object[] { items, sortOption }, typeof(ImmutableArray<DocumentSymbolItemViewModel>), null, CultureInfo.CurrentCulture);
+        public ImmutableArray<DocumentSymbolDataViewModel> Sort(ImmutableArray<DocumentSymbolDataViewModel> items, SortOption sortOption)
+            => (ImmutableArray<DocumentSymbolDataViewModel>)Convert(new object[] { items, sortOption }, typeof(ImmutableArray<DocumentSymbolDataViewModel>), null, CultureInfo.CurrentCulture);
 
         public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
         {
-            if (values[0] is ImmutableArray<DocumentSymbolItemViewModel> children &&
+            if (values[0] is ImmutableArray<DocumentSymbolDataViewModel> children &&
                 values[1] is SortOption sortOption)
             {
                 return sortOption switch
@@ -45,27 +45,27 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public override object ProvideValue(IServiceProvider serviceProvider)
             => Instance;
 
-        private class NameComparer : IComparer<DocumentSymbolItemViewModel>
+        private class NameComparer : IComparer<DocumentSymbolDataViewModel>
         {
             public static NameComparer Instance { get; } = new();
 
-            public int Compare(DocumentSymbolItemViewModel x, DocumentSymbolItemViewModel y)
+            public int Compare(DocumentSymbolDataViewModel x, DocumentSymbolDataViewModel y)
                 => StringComparer.OrdinalIgnoreCase.Compare(x.Name, y.Name);
         }
 
-        private class LocationComparer : IComparer<DocumentSymbolItemViewModel>
+        private class LocationComparer : IComparer<DocumentSymbolDataViewModel>
         {
             public static LocationComparer Instance { get; } = new();
 
-            public int Compare(DocumentSymbolItemViewModel x, DocumentSymbolItemViewModel y)
+            public int Compare(DocumentSymbolDataViewModel x, DocumentSymbolDataViewModel y)
                 => x.StartPosition - y.StartPosition;
         }
 
-        private class TypeComparer : IComparer<DocumentSymbolItemViewModel>
+        private class TypeComparer : IComparer<DocumentSymbolDataViewModel>
         {
             public static TypeComparer Instance { get; } = new();
 
-            public int Compare(DocumentSymbolItemViewModel x, DocumentSymbolItemViewModel y)
+            public int Compare(DocumentSymbolDataViewModel x, DocumentSymbolDataViewModel y)
                 => x.SymbolKind == y.SymbolKind
                     ? NameComparer.Instance.Compare(x, y)
                     : x.SymbolKind - y.SymbolKind;

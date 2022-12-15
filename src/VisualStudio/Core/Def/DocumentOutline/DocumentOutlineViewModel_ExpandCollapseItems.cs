@@ -17,10 +17,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private readonly AsyncBatchingWorkQueue<ExpansionOption> _expandCollapseQueue;
 
-        public void EnqueueExpandCollapseUpdate(ExpansionOption option)
+        public void EnqueueExpandOrCollapse(ExpansionOption option)
             => _expandCollapseQueue.AddWork(option, cancelExistingWork: true);
 
-        private async ValueTask ExpandCollapseItemsAsync(ImmutableSegmentedList<ExpansionOption> expansionOptions, CancellationToken token)
+        private async ValueTask ExpandOrCollapseItemsAsync(ImmutableSegmentedList<ExpansionOption> expansionOptions, CancellationToken token)
         {
             var expansionOption = expansionOptions.Last();
 

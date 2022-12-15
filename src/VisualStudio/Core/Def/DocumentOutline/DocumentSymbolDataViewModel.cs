@@ -14,10 +14,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal sealed class DocumentSymbolItemViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolItemViewModel>
+    /// <summary>
+    /// A ViewModel over <see cref="DocumentSymbolData"/>
+    /// </summary>
+    internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolDataViewModel>
     {
         public string Name { get; }
-        public ImmutableArray<DocumentSymbolItemViewModel> Children { get; }
+        public ImmutableArray<DocumentSymbolDataViewModel> Children { get; }
         public int StartPosition => RangeSpan.Start;
         public SnapshotSpan RangeSpan { get; }
         public SnapshotSpan SelectionRangeSpan { get; }
@@ -38,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             set => SetProperty(ref _isSelected, value);
         }
 
-        public DocumentSymbolItemViewModel(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolItemViewModel> children)
+        public DocumentSymbolDataViewModel(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolDataViewModel> children)
             : this(
                   documentSymbolData.Name,
                   children,
@@ -51,9 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
         }
 
-        private DocumentSymbolItemViewModel(
+        private DocumentSymbolDataViewModel(
             string name,
-            ImmutableArray<DocumentSymbolItemViewModel> children,
+            ImmutableArray<DocumentSymbolDataViewModel> children,
             SnapshotSpan rangeSpan,
             SnapshotSpan selectionRangeSpan,
             SymbolKind symbolKind,
@@ -89,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             NotifyPropertyChanged(propertyName);
         }
 
-        internal DocumentSymbolItemViewModel WithChildren(ImmutableArray<DocumentSymbolItemViewModel> newChildren)
+        internal DocumentSymbolDataViewModel WithChildren(ImmutableArray<DocumentSymbolDataViewModel> newChildren)
             => new(Name, newChildren, RangeSpan, SelectionRangeSpan, SymbolKind, ImageMoniker, IsExpanded, IsSelected);
 
         private static ImageMoniker GetImageMoniker(SymbolKind symbolKind)
@@ -127,15 +130,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         public override bool Equals(object obj)
-            => Equals(obj as DocumentSymbolItemViewModel);
+            => Equals(obj as DocumentSymbolDataViewModel);
 
-        public static bool operator ==(DocumentSymbolItemViewModel left, DocumentSymbolItemViewModel right)
+        public static bool operator ==(DocumentSymbolDataViewModel left, DocumentSymbolDataViewModel right)
             => (object)left == right || (left is not null && left.Equals(right));
 
-        public static bool operator !=(DocumentSymbolItemViewModel left, DocumentSymbolItemViewModel right)
+        public static bool operator !=(DocumentSymbolDataViewModel left, DocumentSymbolDataViewModel right)
             => !(left == right);
 
-        public bool Equals(DocumentSymbolItemViewModel? other)
+        public bool Equals(DocumentSymbolDataViewModel? other)
             => (object)this == other ||
                  (other is not null &&
                    (RangeSpan.Span.Start, RangeSpan.Span.End, Name, SymbolKind) ==

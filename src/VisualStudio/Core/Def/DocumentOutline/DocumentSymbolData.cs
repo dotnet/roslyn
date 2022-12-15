@@ -11,9 +11,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal sealed record DocumentSymbolData(string Name, SymbolKind SymbolKind, SnapshotSpan RangeSpan, SnapshotSpan SelectionRangeSpan, ImmutableArray<DocumentSymbolData> Children)
+    internal sealed record DocumentSymbolData(
+        string Name,
+        SymbolKind SymbolKind,
+        SnapshotSpan RangeSpan,
+        SnapshotSpan SelectionRangeSpan,
+        ImmutableArray<DocumentSymbolData> Children)
     {
-        public DocumentSymbolData(DocumentSymbol documentSymbol, SnapshotSpan rangeSpan, SnapshotSpan selectionRangeSpan, ImmutableArray<DocumentSymbolData> children)
+        public DocumentSymbolData(
+            DocumentSymbol documentSymbol,
+            SnapshotSpan rangeSpan,
+            SnapshotSpan selectionRangeSpan,
+            ImmutableArray<DocumentSymbolData> children)
             : this(documentSymbol.Name, documentSymbol.Kind, rangeSpan, selectionRangeSpan, children)
         {
         }

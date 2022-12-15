@@ -11,6 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         SnapshotPoint? GetCurrentCaretSnapshotPoint();
         IWpfTextView? GetLastActiveIWpfTextView();
-        DocumentSymbolsRequestInfo? GetDocumentSymbolsRequestInfo();
+        DocumentSymbolRequestInfo? GetDocumentSymbolRequestInfo();
     }
 }

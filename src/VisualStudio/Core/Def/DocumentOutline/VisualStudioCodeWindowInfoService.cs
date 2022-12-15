@@ -36,15 +36,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Get <see cref="DocumentSymbolsRequestInfo"/>, switching to the UI thread if necessary.
+        /// Get <see cref="DocumentSymbolRequestInfo"/>, switching to the UI thread if necessary.
         /// </summary>
-        public async Task<DocumentSymbolsRequestInfo?> GetDocumentSymbolsRequestInfoAsync(CancellationToken token)
+        public async Task<DocumentSymbolRequestInfo?> GetDocumentSymbolRequestInfoAsync(CancellationToken token)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(token);
-            return GetDocumentSymbolsRequestInfo();
+            return GetDocumentSymbolRequestInfo();
         }
 
-        private DocumentSymbolsRequestInfo? GetDocumentSymbolsRequestInfo()
+        private DocumentSymbolRequestInfo? GetDocumentSymbolRequestInfo()
         {
             _threadingContext.ThrowIfNotOnUIThread();
             var wpfTextView = GetLastActiveIWpfTextView();
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (_editorAdaptersFactoryService.GetBufferAdapter(textBuffer) is IPersistFileFormat persistFileFormat &&
                 ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out var _)))
             {
-                return new DocumentSymbolsRequestInfo(textBuffer, filePath);
+                return new DocumentSymbolRequestInfo(textBuffer, filePath);
             }
 
             return null;
@@ -135,8 +135,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             public VisualStudioCodeWindowInfoService_OnlyCallOnUIThread(VisualStudioCodeWindowInfoService service)
                 => _service = service;
 
-            public DocumentSymbolsRequestInfo? GetDocumentSymbolsRequestInfo()
-                => _service.GetDocumentSymbolsRequestInfo();
+            public DocumentSymbolRequestInfo? GetDocumentSymbolRequestInfo()
+                => _service.GetDocumentSymbolRequestInfo();
 
             public SnapshotPoint? GetCurrentCaretSnapshotPoint()
                 => _service.GetCurrentCaretSnapshotPoint();

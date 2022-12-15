@@ -32,7 +32,7 @@
         <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
              which uses far less memory.
         -->
-        <self:ItemSorter x:Key="ItemSorter"/>
+        <self:DocumentSymbolDataViewModelSorter x:Key="ItemSorter"/>
         <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
         <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
         <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogLabelStyleKey}}" />
@@ -143,7 +143,7 @@
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolItemViewModel}">
+                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
                     <HierarchicalDataTemplate.ItemsSource>
                         <MultiBinding Converter="{StaticResource ItemSorter}"> <!-- This binding ensures our TreeViewItems are sorted if the collection is changed OR the sort option is changed -->
                             <Binding Path="Children" />

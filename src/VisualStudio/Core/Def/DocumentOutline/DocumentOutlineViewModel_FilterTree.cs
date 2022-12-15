@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 {
                     // Unselect any currently selected items or WPF will believe it needs to select the root node.
                     DocumentOutlineHelper.UnselectAll(DocumentSymbolViewModelItems);
-                    DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolViewModelItems);
+                    DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolDataViewModel>(documentSymbolViewModelItems);
                 }
             }
             else
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 {
                     // Unselect any currently selected items or WPF will believe it needs to select the root node.
                     DocumentOutlineHelper.UnselectAll(DocumentSymbolViewModelItems);
-                    DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolItemViewModel>(documentSymbolViewModelItems);
+                    DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolDataViewModel>(documentSymbolViewModelItems);
                 }
             }
         }

@@ -82,10 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandCollapseUpdate(ExpansionOption.Expand);
+            => _viewModel.EnqueueExpandOrCollapse(ExpansionOption.Expand);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandCollapseUpdate(ExpansionOption.Collapse);
+            => _viewModel.EnqueueExpandOrCollapse(ExpansionOption.Collapse);
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
         {
@@ -94,13 +94,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void SortByName(object sender, EventArgs e)
-            => UpdateSort(SortOption.Name, nameof(DocumentSymbolItemViewModel.Name));
+            => UpdateSort(SortOption.Name, nameof(DocumentSymbolDataViewModel.Name));
 
         private void SortByOrder(object sender, EventArgs e)
-            => UpdateSort(SortOption.Location, nameof(DocumentSymbolItemViewModel.StartPosition));
+            => UpdateSort(SortOption.Location, nameof(DocumentSymbolDataViewModel.StartPosition));
 
         private void SortByType(object sender, EventArgs e)
-            => UpdateSort(SortOption.Type, nameof(DocumentSymbolItemViewModel.SymbolKind), nameof(DocumentSymbolItemViewModel.Name));
+            => UpdateSort(SortOption.Type, nameof(DocumentSymbolDataViewModel.SymbolKind), nameof(DocumentSymbolDataViewModel.Name));
 
         private void UpdateSort(SortOption sortOption, params string[] sortProperties)
         {
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void SymbolTree_MouseDown(object sender, EventArgs e)
         {
-            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolItemViewModel symbol)
+            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolDataViewModel symbol)
             {
                 _isNavigating = true;
                 _viewModel.EnqueueNavigation(symbol.SelectionRangeSpan.Span.ToTextSpan());

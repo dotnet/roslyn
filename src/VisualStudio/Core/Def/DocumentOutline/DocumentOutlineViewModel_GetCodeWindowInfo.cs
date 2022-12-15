@@ -13,11 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Queue uses to get the caret position, and data needed to make an LSP request. 
         /// </summary>
-        private readonly AsyncBatchingResultQueue<DocumentSymbolsRequestInfo?> _visualStudioCodeWindowInfoQueue;
+        private readonly AsyncBatchingResultQueue<DocumentSymbolRequestInfo?> _documentSymbolRequestInfoQueue;
 
-        private async ValueTask<DocumentSymbolsRequestInfo?> GetVisualStudioCodeWindowInfoAsync(CancellationToken token)
+        private async ValueTask<DocumentSymbolRequestInfo?> GetDocumentSymbolRequestInfoAsync(CancellationToken token)
         {
-            var info = await _visualStudioCodeWindowInfoService.GetDocumentSymbolsRequestInfoAsync(token).ConfigureAwait(false);
+            var info = await _visualStudioCodeWindowInfoService.GetDocumentSymbolRequestInfoAsync(token).ConfigureAwait(false);
             if (info is not null)
             {
                 _documentSymbolQueue.AddWork(info, cancelExistingWork: true);
