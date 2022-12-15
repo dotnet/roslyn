@@ -148,11 +148,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var (matched, candidate, candidateReason) = await HasInheritanceRelationshipAsync(symbol, symbolInfo).ConfigureAwait(false);
                         if (matched)
                         {
-                            await ReportGroupsAsync(ImmutableArray.Create(candidate), cancellationToken).ConfigureAwait(false);
-
-                            // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
-                            // happened.  So there must be a group for this symbol in our map.
-                            var candidateGroup = _symbolToGroup[candidate];
+                            // Ensure we report this new symbol/group in case it's the first time we're seeing it.
+                            var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
 
                             var location = AbstractReferenceFinder.CreateFinderLocation(state, token, candidateReason, cancellationToken);
                             await _progress.OnReferenceFoundAsync(candidateGroup, candidate, location.Location, cancellationToken).ConfigureAwait(false);

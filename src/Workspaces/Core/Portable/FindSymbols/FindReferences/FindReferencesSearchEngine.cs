@@ -143,31 +143,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ReportGroupsAsync(ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
             foreach (var symbol in symbols)
+                await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<SymbolGroup> ReportGroupAsync(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            // See if this is the first time we're running across this symbol.  Note: no locks are needed
+            // here between checking and then adding because this is only ever called serially from within
+            // FindReferencesAsync above (though we still need a ConcurrentDictionary as reads of these 
+            // symbols will happen later in ProcessDocumentAsync.  However, those reads will only happen
+            // after the dependent symbol values were written in, so it will be safe to blindly read them
+            // out.
+            if (!_symbolToGroup.TryGetValue(symbol, out var group))
             {
-                // See if this is the first time we're running across this symbol.  Note: no locks are needed
-                // here between checking and then adding because this is only ever called serially from within
-                // FindReferencesAsync above (though we still need a ConcurrentDictionary as reads of these 
-                // symbols will happen later in ProcessDocumentAsync.  However, those reads will only happen
-                // after the dependent symbol values were written in, so it will be safe to blindly read them
-                // out.
-                if (!_symbolToGroup.ContainsKey(symbol))
-                {
-                    var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfFalse(linkedSymbols.Contains(symbol), "Linked symbols did not contain the very symbol we started with.");
+                var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(linkedSymbols.Contains(symbol), "Linked symbols did not contain the very symbol we started with.");
 
-                    var group = new SymbolGroup(linkedSymbols);
-                    Contract.ThrowIfFalse(group.Symbols.Contains(symbol), "Symbol group did not contain the very symbol we started with.");
+                group = new SymbolGroup(linkedSymbols);
+                Contract.ThrowIfFalse(group.Symbols.Contains(symbol), "Symbol group did not contain the very symbol we started with.");
 
-                    foreach (var groupSymbol in group.Symbols)
-                        _symbolToGroup.TryAdd(groupSymbol, group);
+                foreach (var groupSymbol in group.Symbols)
+                    _symbolToGroup.TryAdd(groupSymbol, group);
 
-                    // Since "symbol" was in group.Symbols, and we just added links from all of group.Symbols to that group, then "symbol" 
-                    // better now be in _symbolToGroup.
-                    Contract.ThrowIfFalse(_symbolToGroup.ContainsKey(symbol));
+                // Since "symbol" was in group.Symbols, and we just added links from all of group.Symbols to that group, then "symbol" 
+                // better now be in _symbolToGroup.
+                Contract.ThrowIfFalse(_symbolToGroup.ContainsKey(symbol));
 
-                    await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
-                }
+                await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
             }
+
+            return group;
         }
 
         private Task<ImmutableArray<Project>> GetProjectsToSearchAsync(
