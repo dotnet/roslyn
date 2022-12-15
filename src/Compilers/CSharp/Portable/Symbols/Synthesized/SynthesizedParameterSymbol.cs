@@ -388,12 +388,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
                 }
 
-                // Synthesize `DecimalConstantAttribute`.
+                // Synthesize `*ConstantAttribute`.
                 var defaultValue = this.ExplicitDefaultConstantValue;
-                if (defaultValue != ConstantValue.NotAvailable &&
-                    defaultValue.SpecialType == SpecialType.System_Decimal)
+                if (defaultValue != ConstantValue.NotAvailable)
                 {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue));
+                    var attrData = defaultValue.SpecialType switch
+                    {
+                        SpecialType.System_Decimal => compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue),
+                        SpecialType.System_DateTime => compilation.SynthesizeDateTimeConstantAttribute(defaultValue.DateTimeValue),
+                        _ => null
+                    };
+                    AddSynthesizedAttribute(ref attributes, attrData);
                 }
             }
         }

@@ -68,17 +68,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ref useSiteInfo);
                 }
 
-                // If synthesizing a delegate with `decimal` default value, check that `DecimalConstantAttribute` is available.
+                // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                // check that the corresponding `*ConstantAttribute` is available.
                 foreach (var p in invoke.Parameters)
                 {
                     var defaultValue = p.ExplicitDefaultConstantValue;
-                    if (defaultValue != ConstantValue.NotAvailable &&
-                        defaultValue.SpecialType == SpecialType.System_Decimal)
+                    if (defaultValue != ConstantValue.NotAvailable)
                     {
-                        Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
-                            Compilation,
-                            WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
-                            ref useSiteInfo);
+                        WellKnownMember? member = defaultValue.SpecialType switch
+                        {
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            _ => null
+                        };
+                        if (member != null)
+                        {
+                            Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                                Compilation,
+                                member.Value,
+                                ref useSiteInfo);
+                        }
                     }
                 }
             }

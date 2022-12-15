@@ -265,7 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Ensure availability of `DecimalConstantAttribute`.
                     // For lambdas, check also explicit attribute application
                     // because it will be re-synthesized in the delegate type.
-                    if (this is LambdaParameterSymbol
+                    var isLambda = this is LambdaParameterSymbol;
+                    var defaultValueLocation = parameterEqualsValue?.Value.Syntax.Location ?? CSharpSyntaxNode?.Location ?? Locations.FirstOrDefault();
+                    if (isLambda
                         ? _lazyDefaultSyntaxValue is { IsDecimal: true } ^
                             (HasOptionalAttribute && DefaultValueFromAttributes is { IsDecimal: true })
                         : _lazyDefaultSyntaxValue is { IsDecimal: true } &&
@@ -274,7 +276,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
                             WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
                             diagnostics,
-                            parameterEqualsValue?.Value.Syntax.Location ?? CSharpSyntaxNode?.Location ?? Locations.FirstOrDefault());
+                            defaultValueLocation);
+                    }
+
+                    // Similarly, ensure availability of `DateTimeConstantAttribute`.
+                    if (isLambda
+                        ? _lazyDefaultSyntaxValue is { IsDateTime: true } ^
+                            (HasOptionalAttribute && DefaultValueFromAttributes is { IsDateTime: true })
+                        : _lazyDefaultSyntaxValue is { IsDateTime: true } &&
+                            DefaultValueFromAttributes == ConstantValue.NotAvailable)
+                    {
+                        Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                            WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            diagnostics,
+                            defaultValueLocation);
                     }
 
                     AddDeclarationDiagnostics(diagnostics);
