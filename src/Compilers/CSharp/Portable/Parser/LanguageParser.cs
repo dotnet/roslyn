@@ -9775,6 +9775,21 @@ tryAgain:
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
                 this.EatToken();
 
+                // If the next token is an identifier with some contextual kind, it might be other contextual modifier.
+                // We want to treat current token as modifier if the next token is a modifier, so we need to check that.
+                // This allows to correctly parse things like local functions with several `async` modifiers
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.CurrentToken.ContextualKind != SyntaxKind.IdentifierToken)
+                {
+                    _recursionDepth++;
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                    var nextTokenIsModifier = shouldTreatAsModifier();
+                    _recursionDepth--;
+                    if (nextTokenIsModifier)
+                        return IsDeclarationModifier(this.CurrentToken.ContextualKind) ||
+                            IsAdditionalLocalFunctionModifier(this.CurrentToken.ContextualKind);
+                }
+
                 return IsDeclarationModifier(this.CurrentToken.Kind) ||
                     IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) ||
                     (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
