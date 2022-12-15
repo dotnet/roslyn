@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // Ensure we report this new symbol/group in case it's the first time we're seeing it.
                             var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
 
-                            var location = AbstractReferenceFinder.CreateFinderLocation(state, token, candidateReason, cancellationToken);
-                            await _progress.OnReferenceFoundAsync(candidateGroup, candidate, location.Location, cancellationToken).ConfigureAwait(false);
+                            var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
+                            await _progress.OnReferenceFoundAsync(candidateGroup, candidate, location, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }

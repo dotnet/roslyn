@@ -199,20 +199,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return locations.ToImmutable();
         }
 
-        public static FinderLocation CreateFinderLocation(
-            FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
-        {
-            RoslynDebug.Assert(token.Parent != null);
+        protected static FinderLocation CreateFinderLocation(FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
+            => new(token.GetRequiredParent(), CreateReferenceLocation(state, token, reason, cancellationToken));
 
-            return new FinderLocation(token.Parent, new ReferenceLocation(
+        public static ReferenceLocation CreateReferenceLocation(FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
+            => new(
                 state.Document,
                 state.Cache.GetAliasInfo(state.SemanticFacts, token, cancellationToken),
                 token.GetLocation(),
                 isImplicit: false,
                 GetSymbolUsageInfo(token.Parent, state, cancellationToken),
                 GetAdditionalFindUsagesProperties(token.Parent, state),
-                reason));
-        }
+                reason);
 
         private static IAliasSymbol? GetAliasSymbol(
             FindReferencesDocumentState state,
