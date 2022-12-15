@@ -30,7 +30,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
-    - name: Install prerequisites
+    - name: ⚙ Install prerequisites
       run: |
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
@@ -40,75 +40,75 @@ jobs:
           mono --version
         }
       shell: pwsh
-    - name: Set pipeline variables based on source
+    - name: ⚙️ Set pipeline variables based on source
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
-    - name: build
+    - name: 🛠 build
       run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
-    - name: test
+    - name: 🧪 test
       run: azure-pipelines/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
       shell: pwsh
-    - name: Update pipeline variables based on build outputs
+    - name: ⚙ Update pipeline variables based on build outputs
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
-    - name: Collect artifacts
+    - name: 📥 Collect artifacts
       run: azure-pipelines/artifacts/_stage_all.ps1
       shell: pwsh
       if: always()
-    - name: Upload project.assets.json files
+    - name: 📢 Upload project.assets.json files
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: projectAssetsJson-${{ runner.os }}
         path: ${{ runner.temp }}/_artifacts/projectAssetsJson
       continue-on-error: true
-    - name: Upload variables
+    - name: 📢 Upload variables
       uses: actions/upload-artifact@v1
       with:
         name: variables-${{ runner.os }}
         path: ${{ runner.temp }}/_artifacts/Variables
       continue-on-error: true
-    - name: Upload build_logs
+    - name: 📢 Upload build_logs
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: build_logs-${{ runner.os }}
         path: ${{ runner.temp }}/_artifacts/build_logs
       continue-on-error: true
-    - name: Upload test_logs
+    - name: 📢 Upload test_logs
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: test_logs-${{ runner.os }}
         path: ${{ runner.temp }}/_artifacts/test_logs
       continue-on-error: true
-    - name: Upload testResults
+    - name: 📢 Upload testResults
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: testResults-${{ runner.os }}
         path: ${{ runner.temp }}/_artifacts/testResults
       continue-on-error: true
-    - name: Upload coverageResults
+    - name: 📢 Upload coverageResults
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: coverageResults-${{ runner.os }}
         path: ${{ runner.temp }}/_artifacts/coverageResults
       continue-on-error: true
-    - name: Upload symbols
+    - name: 📢 Upload symbols
       uses: actions/upload-artifact@v1
       with:
         name: symbols-${{ runner.os }}
         path: ${{ runner.temp }}/_artifacts/symbols
       continue-on-error: true
-    - name: Upload deployables
+    - name: 📢 Upload deployables
       uses: actions/upload-artifact@v1
       with:
         name: deployables-${{ runner.os }}
         path: ${{ runner.temp }}/_artifacts/deployables
       if: always()
-    - name: Publish code coverage results to codecov.io
+    - name: 📢 Publish code coverage results to codecov.io
       run: ./azure-pipelines/publish-CodeCov.ps1 -CodeCovToken "${{ env.codecov_token }}" -PathToCodeCoverage "${{ runner.temp }}/_artifacts/coverageResults" -Name "${{ runner.os }} Coverage Results" -Flags "${{ runner.os }}Host,${{ env.BUILDCONFIGURATION }}"
       shell: pwsh
       timeout-minutes: 3
