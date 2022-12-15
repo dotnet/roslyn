@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<SymbolGroup> ReportGroupAsync(ISymbol symbol, CancellationToken cancellationToken)
+        private async ValueTask<SymbolGroup> ReportGroupAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
             // See if this is the first time we're running across this symbol.  Note: no locks are needed
             // here between checking and then adding because this is only ever called serially from within

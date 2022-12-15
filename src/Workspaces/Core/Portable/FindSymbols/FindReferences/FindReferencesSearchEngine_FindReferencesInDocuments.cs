@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -35,10 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Create the initial set of symbols to search for.  This includes linked and cascaded symbols. It does
             // not walk up/down the inheritance hierarchy.
             var symbolSet = await SymbolSet.DetermineInitialSearchSymbolsAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
-
-            // Report the initial set of symbols to the caller.
             var allSymbols = symbolSet.ToImmutableArray();
-            await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
             // Determine the set of projects we actually have to walk to find results in.  This is only the set of
             // projects that all these documents are in.
@@ -106,25 +102,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             async Task PerformSearchInDocumentWorkerAsync(
                 ISymbol symbol, Document document, FindReferencesDocumentState state)
             {
+                // Always perform a normal search, looking directly for references to that symbol.
+                foreach (var finder in _finders)
                 {
-                    // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
-                    // happened.  So there must be a group for this symbol in our map.
-                    var group = _symbolToGroup[symbol];
-
-                    // Always perform a normal search, looking directly for references to that symbol.
-                    foreach (var finder in _finders)
+                    var references = await finder.FindReferencesInDocumentAsync(
+                        symbol, state, _options, cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, location) in references)
                     {
-                        var references = await finder.FindReferencesInDocumentAsync(
-                            symbol, state, _options, cancellationToken).ConfigureAwait(false);
-                        foreach (var (_, location) in references)
-                            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                        var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
-                // We may be looking for symbols that can be virtual and have other methods related to them (like an
-                // override, or implemented interface method).  When searching the source, we may end up looking at a
-                // token that hits one of these other symbols.  When we do, we have to then see if that symbol is
-                // actually an inheritance match for the symbol we're looking at.
+                // Now, for symbols that could involve inheritance, look for references to the same named entity, and
+                // see if it's a reference to a symbol that shares an inheritance relationship with that symbol.
 
                 if (InvolvesInheritance(symbol))
                 {
