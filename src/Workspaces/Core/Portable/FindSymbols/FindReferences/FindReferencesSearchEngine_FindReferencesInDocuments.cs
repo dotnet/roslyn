@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -31,7 +32,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // As we hit symbols, we may have to compute if they have an inheritance relationship to the symbols we're
             // searching for.  Cache those results so we don't have to continually perform them.
-            var hasInheritanceRelationshipCache = new ConcurrentDictionary<(ISymbol searchSymbol, ISymbol candidateSymbol), AsyncLazy<bool>>();
+            //
+            // Note: this is a dictionary as we do all our work serially (though asynchronously).  If we ever change to
+            // doing things concurrently, this will need to be changed.
+            var hasInheritanceRelationshipCache = new Dictionary<(ISymbol searchSymbol, ISymbol candidateSymbol), bool>();
 
             // Create and report the initial set of symbols to search for.  This includes linked and cascaded symbols. It does
             // not walk up/down the inheritance hierarchy.
@@ -152,44 +156,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return default;
             }
 
-            async ValueTask<bool> HasInheritanceRelationshipSingleAsync(ISymbol symbol, [NotNullWhen(true)] ISymbol? candidate)
+            async ValueTask<bool> HasInheritanceRelationshipSingleAsync(ISymbol searchSymbol, [NotNullWhen(true)] ISymbol? candidate)
             {
                 if (candidate is null)
                     return false;
 
-                var relationship = hasInheritanceRelationshipCache.GetOrAdd(
-                    (symbol.GetOriginalUnreducedDefinition(), candidate.GetOriginalUnreducedDefinition()),
-                    t => AsyncLazy.Create(cancellationToken => ComputeInheritanceRelationshipAsync(t.searchSymbol, t.candidateSymbol, cancellationToken), cacheResult: true));
-                return await relationship.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
+                var key = (searchSymbol: searchSymbol.GetOriginalUnreducedDefinition(), candidate: candidate.GetOriginalUnreducedDefinition());
+                if (!hasInheritanceRelationshipCache.TryGetValue(key, out var relationship))
+                {
+                    relationship = await ComputeInheritanceRelationshipAsync(key.searchSymbol, key.candidate).ConfigureAwait(false);
+                    hasInheritanceRelationshipCache[key] = relationship;
+                }
 
-        private async Task<bool> ComputeInheritanceRelationshipAsync(
-            ISymbol searchSymbol, ISymbol candidate, CancellationToken cancellationToken)
-        {
-            // Counter-intuitive, but if these are matching symbols, they do *not* have an inheritance relationship.
-            // We do *not* want to report these as they would have been found in the original call to the finders in
-            // PerformSearchInTextSpanAsync.
-            if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
+                return relationship;
+            }
+
+            async Task<bool> ComputeInheritanceRelationshipAsync(
+                ISymbol searchSymbol, ISymbol candidate)
+            {
+                // Counter-intuitive, but if these are matching symbols, they do *not* have an inheritance relationship.
+                // We do *not* want to report these as they would have been found in the original call to the finders in
+                // PerformSearchInTextSpanAsync.
+                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
+                    return false;
+
+                // walk up the original symbol's inheritance hierarchy to see if we hit the candidate.
+                var searchSymbolUpSet = await SymbolSet.CreateAsync(this, new() { searchSymbol }, cancellationToken).ConfigureAwait(false);
+                foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
+                {
+                    if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
+                        return true;
+                }
+
+                // walk up the candidate's inheritance hierarchy to see if we hit the original symbol.
+                var candidateSymbolUpSet = await SymbolSet.CreateAsync(this, new() { candidate }, cancellationToken).ConfigureAwait(false);
+                foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
+                {
+                    if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
+                        return true;
+                }
+
                 return false;
-
-            // walk up the original symbol's inheritance hierarchy to see if we hit the candidate.
-            var searchSymbolUpSet = await SymbolSet.CreateAsync(this, new() { searchSymbol }, cancellationToken).ConfigureAwait(false);
-            foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
-            {
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
-                    return true;
             }
-
-            // walk up the candidate's inheritance hierarchy to see if we hit the original symbol.
-            var candidateSymbolUpSet = await SymbolSet.CreateAsync(this, new() { candidate }, cancellationToken).ConfigureAwait(false);
-            foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
-            {
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
-                    return true;
-            }
-
-            return false;
         }
     }
 }
