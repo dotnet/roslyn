@@ -10766,6 +10766,125 @@ class Program
             CompileAndVerify(comp, expectedOutput: "System.Action`2[System.Int32[],System.Int32]");
         }
 
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_01()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static ref int F1(ref int x, ref int y) => ref x;
+                    static ref int F2(ref int x, [UnscopedRef] ref int y) => ref x;
+                    static ref int F3([UnscopedRef] ref int x, ref int y) => ref x;
+                    static void Main()
+                    {
+                        var d1 = F1;
+                        var d2 = F2;
+                        var d3 = F3;
+                        var d4 = ([UnscopedRef] ref int x, ref int y) => ref x;
+                        var d5 = (ref int x, [UnscopedRef] ref int y) => ref x;
+                        var d6 = (ref int x, ref int y) => ref x;
+                        Report(d1);
+                        Report(d2);
+                        Report(d3);
+                        Report(d4);
+                        Report(d5);
+                        Report(d6);
+                    }
+                    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, verify: Verification.Skipped, expectedOutput:
+                """
+                <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate1
+                <>f__AnonymousDelegate1
+                <>f__AnonymousDelegate0
+                <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_02()
+        {
+            var attributeAssemblyName = GetUniqueName();
+            var comp = CreateCompilation(UnscopedRefAttributeDefinition, targetFramework: TargetFramework.Net60, assemblyName: attributeAssemblyName);
+            var refAttribute = comp.EmitToImageReference();
+
+            string sourceA = """
+                using System.Diagnostics.CodeAnalysis;
+                public class A
+                {
+                    public static ref int F([UnscopedRef] ref int i) => ref i;
+                }
+                """;
+
+            comp = CreateCompilation(sourceA, references: new[] { refAttribute }, targetFramework: TargetFramework.Net60);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int i = 0;
+                        var d = A.F;
+                        d(ref i);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net60, verify: Verification.Skipped);
+            verifyTypeIL(hasUnscopedRefAttribute: false);
+
+            verifier = CompileAndVerify(sourceB, references: new[] { refA, refAttribute }, targetFramework: TargetFramework.Net60, verify: Verification.Skipped);
+            verifyTypeIL(hasUnscopedRefAttribute: true);
+
+            void verifyTypeIL(bool hasUnscopedRefAttribute)
+            {
+                string paramAttributes = "";
+                if (hasUnscopedRefAttribute)
+                {
+                    paramAttributes = $"""
+
+                            .param [1]
+                                .custom instance void ['{attributeAssemblyName}']System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (
+                                    01 00 00 00
+                                )
+                    """;
+                }
+
+                verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+                    $$"""
+                    .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                        extends [System.Runtime]System.MulticastDelegate
+                    {
+                        .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Methods
+                        .method public hidebysig specialname rtspecialname
+                            instance void .ctor (
+                                object 'object',
+                                native int 'method'
+                            ) runtime managed
+                        {
+                        } // end of method '<>f__AnonymousDelegate0'::.ctor
+                        .method public hidebysig newslot virtual
+                            instance int32& Invoke (
+                                int32& arg
+                            ) runtime managed
+                        {{{paramAttributes}}
+                        } // end of method '<>f__AnonymousDelegate0'::Invoke
+                    } // end of class <>f__AnonymousDelegate0
+                    """);
+            }
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
