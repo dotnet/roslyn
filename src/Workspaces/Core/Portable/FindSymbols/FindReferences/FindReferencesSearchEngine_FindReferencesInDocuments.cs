@@ -119,17 +119,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             async Task PerformSearchInDocumentWorkerAsync(
                 ISymbol symbol, Document document, FindReferencesDocumentState state)
             {
-                // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
-                // happened.  So there must be a group for this symbol in our map.
-                var group = _symbolToGroup[symbol];
-
-                // Always perform a normal search, looking directly for references to that symbol.
-                foreach (var finder in _finders)
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, state, _options, cancellationToken).ConfigureAwait(false);
-                    foreach (var (_, location) in references)
-                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                    // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
+                    // happened.  So there must be a group for this symbol in our map.
+                    var group = _symbolToGroup[symbol];
+
+                    // Always perform a normal search, looking directly for references to that symbol.
+                    foreach (var finder in _finders)
+                    {
+                        var references = await finder.FindReferencesInDocumentAsync(
+                            symbol, state, _options, cancellationToken).ConfigureAwait(false);
+                        foreach (var (_, location) in references)
+                            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                    }
                 }
 
                 // We may be looking for symbols that can be virtual and have other methods related to them (like an
@@ -147,26 +149,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var parent = state.SyntaxFacts.TryGetBindableParent(token) ?? token.GetRequiredParent();
                         var symbolInfo = state.Cache.GetSymbolInfo(parent, cancellationToken);
 
-                        var (matched, candidateReason) = await HasInheritanceRelationshipAsync(symbol, symbolInfo).ConfigureAwait(false);
+                        var (matched, candidate, candidateReason) = await HasInheritanceRelationshipAsync(symbol, symbolInfo).ConfigureAwait(false);
                         if (matched)
                         {
+                            await ReportGroupsAsync(ImmutableArray.Create(candidate), cancellationToken).ConfigureAwait(false);
+
+                            // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
+                            // happened.  So there must be a group for this symbol in our map.
+                            var candidateGroup = _symbolToGroup[candidate];
+
                             var location = AbstractReferenceFinder.CreateFinderLocation(state, token, candidateReason, cancellationToken);
-                            await _progress.OnReferenceFoundAsync(group, symbol, location.Location, cancellationToken).ConfigureAwait(false);
+                            await _progress.OnReferenceFoundAsync(candidateGroup, candidate, location.Location, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
             }
 
-            async Task<(bool matched, CandidateReason candidateReason)> HasInheritanceRelationshipAsync(
+            async Task<(bool matched, ISymbol candidate, CandidateReason candidateReason)> HasInheritanceRelationshipAsync(
                 ISymbol symbol, SymbolInfo symbolInfo)
             {
                 if (await HasInheritanceRelationshipSingleAsync(symbol, symbolInfo.Symbol).ConfigureAwait(false))
-                    return (matched: true, CandidateReason.None);
+                    return (matched: true, symbolInfo.Symbol, CandidateReason.None);
 
                 foreach (var candidate in symbolInfo.CandidateSymbols)
                 {
                     if (await HasInheritanceRelationshipSingleAsync(symbol, candidate).ConfigureAwait(false))
-                        return (matched: true, symbolInfo.CandidateReason);
+                        return (matched: true, candidate, symbolInfo.CandidateReason);
                 }
 
                 return default;
@@ -194,14 +202,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // walk upwards from each symbol, seeing if we hit the other symbol.
                 var searchSymbolSet = await SymbolSet.CreateAsync(engine, new() { searchSymbol }, cancellationToken).ConfigureAwait(false);
+                foreach (var symbolUp in searchSymbolSet.GetAllSymbols())
+                {
+                    if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
+                        return true;
+                }
+
                 var candidateSymbolSet = await SymbolSet.CreateAsync(engine, new() { candidate }, cancellationToken).ConfigureAwait(false);
+                foreach (var candidateUp in candidateSymbolSet.GetAllSymbols())
+                {
+                    if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
+                        return true;
+                }
 
-                var searchSymbolUpInheritance = new MetadataUnifyingSymbolHashSet(searchSymbolSet.GetAllSymbols());
-                var candidateSymbolUpInheritance = new MetadataUnifyingSymbolHashSet(candidateSymbolSet.GetAllSymbols());
-
-                var intersection = searchSymbolUpInheritance.Intersect(candidateSymbolUpInheritance);
-                var hasInteritanceRelationship = intersection.Any();
-                return hasInteritanceRelationship;
+                return false;
             }
         }
     }
