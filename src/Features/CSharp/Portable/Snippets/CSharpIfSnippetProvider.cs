@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
@@ -21,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpIfSnippetProvider : AbstractIfSnippetProvider
+    internal sealed class CSharpIfSnippetProvider : AbstractIfSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,21 +28,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override void GetIfStatementCursorPosition(SourceText sourceText, SyntaxNode node, out int cursorPosition)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
-            var ifStatement = (IfStatementSyntax)node;
+            var ifStatement = (IfStatementSyntax)caretTarget;
             var blockStatement = (BlockSyntax)ifStatement.Statement;
 
             var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
             var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
             // Getting the location at the end of the line before the newline.
-            cursorPosition = line.Span.End;
+            return line.Span.End;
         }
 
-        protected override void GetIfStatementCondition(SyntaxNode node, out SyntaxNode condition)
+        protected override SyntaxNode GetCondition(SyntaxNode node)
         {
             var ifStatement = (IfStatementSyntax)node;
-            condition = ifStatement.Condition;
+            return ifStatement.Condition;
         }
 
         private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)

@@ -16,31 +16,62 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Manages remote workspaces. Currently supports only a single, primary workspace of kind <see cref="WorkspaceKind.RemoteWorkspace"/>. 
-    /// In future it should support workspaces of all kinds.
+    /// Manages remote workspaces. Currently supports only a single, primary workspace of kind <see
+    /// cref="WorkspaceKind.RemoteWorkspace"/>. In future it should support workspaces of all kinds.
     /// </summary>
     internal class RemoteWorkspaceManager
     {
-        /// <summary>
-        /// Default workspace manager used by the product. Tests may specify a custom <see cref="RemoteWorkspaceManager"/>
-        /// in order to override workspace services.
-        /// </summary>
-        internal static readonly RemoteWorkspaceManager Default = new RemoteWorkspaceManager(
-            new SolutionAssetCache(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3), gcAfter: TimeSpan.FromMinutes(5)));
-
         internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
                 .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
                 .Add(typeof(BrokeredServiceBase).Assembly)
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
-        private readonly Lazy<RemoteWorkspace> _lazyPrimaryWorkspace;
+        /// <summary>
+        /// Default workspace manager used by the product. Tests may specify a custom <see
+        /// cref="RemoteWorkspaceManager"/> in order to override workspace services.
+        /// </summary>
+        /// <remarks>
+        /// The general thinking behind these timings is that we don't want to be too aggressive constantly waking up
+        /// and cleaning purging items from the cache.  But we also don't want to wait an excessive amount of time,
+        /// allowing it to get too full.
+        /// <para>
+        /// Also note that the asset cache will not remove items associated with the <see
+        /// cref="Workspace.CurrentSolution"/> of the workspace it is created against.  This ensures that the assets
+        /// associated with the solution that most closely corresponds to what the user is working with will stay pinned
+        /// on the remote side and not get purged just because the user stopped interactive for a while.  This ensures
+        /// the next sync (which likely overlaps heavily with the current solution) will not force the same assets to be
+        /// resent.
+        /// </para>
+        /// <list type="bullet">
+        /// <item>CleanupInterval=30s gives what feels to be a reasonable non-aggressive amount of time to let the cache
+        /// do its job, while also making sure several times a minute it is scanned for things that can be
+        /// dropped.</item>
+        /// <item>PurgeAfter=1m effectively states that an item will be dumped from the cache if not used in the last
+        /// minute.  This seems reasonable for keeping around all the parts of the current solutions in use, while
+        /// allowing values from the past, or values removed from the solution to not persist too long.</item>
+        /// <item>GcAfter=1m means that we'll force some GCs to happen after that amount of time of *non-activity*.  In
+        /// other words, as long as OOP is being touched for operations, we will avoid doing the GCs.
+        /// </item>
+        /// </list>
+        /// </remarks>
+        internal static readonly RemoteWorkspaceManager Default = new(
+            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
+
+        private readonly RemoteWorkspace _workspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
 
-        public RemoteWorkspaceManager(SolutionAssetCache assetCache)
+        public RemoteWorkspaceManager(Func<RemoteWorkspace, SolutionAssetCache> createAssetCache)
+            : this(createAssetCache, CreatePrimaryWorkspace())
         {
-            _lazyPrimaryWorkspace = new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace);
-            SolutionAssetCache = assetCache;
+        }
+
+        public RemoteWorkspaceManager(
+            Func<RemoteWorkspace, SolutionAssetCache> createAssetCache,
+            RemoteWorkspace workspace)
+        {
+            _workspace = workspace;
+            SolutionAssetCache = createAssetCache(workspace);
         }
 
         private static ComposableCatalog CreateCatalog(ImmutableArray<Assembly> assemblies)
@@ -67,8 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider));
         }
 
-        public virtual RemoteWorkspace GetWorkspace()
-            => _lazyPrimaryWorkspace.Value;
+        public RemoteWorkspace GetWorkspace() => _workspace;
 
         /// <summary>
         /// Not ideal that we exposing the workspace solution, while not ensuring it stays alive for other calls using

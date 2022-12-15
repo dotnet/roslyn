@@ -171,8 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             Assert.Null(state.ReturnValue);
         }
 
-        [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
-        [Fact]
+        [Fact, WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
         public async Task TestRunExpressionStatement()
         {
             var state = await CSharpScript.RunAsync(
@@ -211,8 +210,7 @@ d.Do()"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunEmbeddedStatementNotFollowedBySemicolon()
         {
             var exceptionThrown = false;
@@ -234,8 +232,7 @@ d.Do()"
             Assert.True(exceptionThrown);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunEmbeddedStatementFollowedBySemicolon()
         {
             var state = CSharpScript.RunAsync(@"if (true)
@@ -243,16 +240,14 @@ System.Console.WriteLine(true);", globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunStatementFollowedBySpace()
         {
             var state = CSharpScript.RunAsync(@"System.Console.WriteLine(true) ", globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunStatementFollowedByNewLineNoSemicolon()
         {
             var state = CSharpScript.RunAsync(@"
@@ -262,8 +257,7 @@ System.Console.WriteLine(true)
             Assert.Null(state.Exception);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunEmbeddedNoSemicolonFollowedByAnotherStatement()
         {
             var exceptionThrown = false;
@@ -942,8 +936,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
-        [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
-        [Fact]
+        [Fact, WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
         public void StreamWithOffset()
         {
             var resolver = new StreamOffsetResolver();
@@ -1000,8 +993,7 @@ return reply;
             Assert.Equal("data", result);
         }
 
-        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
-        [Fact]
+        [Fact, WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
         public async Task SwitchPatternWithVar_WhenNonExistentVariable_ShouldReturnNameNotInContextCompilationError()
         {
             var exceptionThrown = false;
@@ -1023,8 +1015,7 @@ return reply;
             Assert.True(exceptionThrown);
         }
 
-        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
-        [Fact]
+        [Fact, WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
         public async Task SwitchPatternWithVar_WhenInvalidPattern_ShouldReturnUnsupportedTypeForRelationalPatternAndNoImplicitConvErrors()
         {
             var exceptionThrown = false;
@@ -1049,8 +1040,7 @@ return reply;
             Assert.True(exceptionThrown);
         }
 
-        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
-        [Fact]
+        [Fact, WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
         public async Task SwitchPatternWithVar_WhenInvalidArm_ShouldReturnTheNameNotInContextError()
         {
             var exceptionThrown = false;

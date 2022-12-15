@@ -34,7 +34,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return syntaxRoot.FindNode(textSpan);
+
+            // Pass getInnermostNodeForTie so top-level statements that are contained within a GlobalStatementSyntax picks the actual
+            // definition and not just the GlobalStatementSyntax.
+            return syntaxRoot.FindNode(textSpan, getInnermostNodeForTie: true);
         }
 
         public async ValueTask<ReferenceCount?> GetReferenceCountAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)

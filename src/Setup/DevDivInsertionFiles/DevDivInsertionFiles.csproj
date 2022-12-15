@@ -117,6 +117,7 @@
       <_Dependency Remove="Microsoft.Diagnostics.Tracing.EventSource.Redist"/>
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
+      <_Dependency Remove="Microsoft.NET.StringTools"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>
       <_Dependency Remove="Nerdbank.NetStandardBridge" />
       <_Dependency Remove="Nerdbank.Streams"/>
@@ -127,6 +128,7 @@
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Collections.Immutable"/>
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
+      <_Dependency Remove="System.Drawing.Common"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Reflection.Metadata"/>
       <_Dependency Remove="System.Reflection.TypeExtensions"/>
@@ -137,6 +139,7 @@
       <_Dependency Remove="System.Text.Encodings.Web" />
       <_Dependency Remove="System.Text.Json" />
       <_Dependency Remove="System.Threading.AccessControl"/>
+      <_Dependency Remove="System.Threading.Channels" />
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="System.Threading.Tasks.Extensions" />
       <_Dependency Remove="VSLangProj"/>
@@ -144,6 +147,8 @@
       <_Dependency Remove="VSLangProj80"/>
       <_Dependency Remove="VSLangProj140"/>
       <_Dependency Remove="VsWebSite.Interop"/>
+      <_Dependency Remove="Microsoft.NET.StringTools" />
+      <_Dependency Remove="Microsoft.IO.Redist" />
     </ItemGroup>
 
     <!-- Write out the filtered dependency versions we need to also update in VS. -->

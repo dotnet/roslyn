@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
                     .GetPreviousTokenIfTouchingWord(position);
 
-                if (!token.IsKind(SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+                if (token.Kind() is not (SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken))
                 {
                     return;
                 }

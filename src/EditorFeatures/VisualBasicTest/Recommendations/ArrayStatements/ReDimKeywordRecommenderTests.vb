@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.ArrayStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ReDimKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReDimInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "ReDim")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReDimAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x 
@@ -21,19 +20,16 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReDimMissingInClassBlockTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "ReDim")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReDimInSingleLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "ReDim")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReDimNotInSingleLineFunctionLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "ReDim")
         End Sub

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
         // the naming style that the user has specified.
-        private static ImmutableArray<string> s_disposedValueNameParts =
+        private static readonly ImmutableArray<string> s_disposedValueNameParts =
             ImmutableArray.Create("disposed", "value");
 
         // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`

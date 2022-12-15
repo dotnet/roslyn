@@ -4693,7 +4693,6 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
 + nr64, //-LiftedDoubleUnaryPlus
 + ndec  //-LiftedDecimalUnaryPlus" + Postfix;
 
-
         private const string UnaryMinus = Prefix + @"
 - chr, //-IntUnaryMinus
 - i08, //-IntUnaryMinus
@@ -4721,7 +4720,6 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
         private const string LogicalNegation = Prefix + @"
 ! bln, //-BoolLogicalNegation
 ! nbln //-LiftedBoolLogicalNegation" + Postfix;
-
 
         private const string BitwiseComplement = Prefix + @"
 ~ e,   //-EnumBitwiseComplement
@@ -5281,7 +5279,6 @@ public class X
 }";
             comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
-
 
             // "default(dynamic)" has type dynamic
             source = @"
@@ -7620,6 +7617,10 @@ public class RubyTime
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind);
             Assert.True(symbol1.IsImplicitlyDeclared);
 
+            var synthesizedMethod = compilation.CreateBuiltinOperator(
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters[0].Type);
+            Assert.Equal(synthesizedMethod, symbol1);
+
             bool expectChecked = false;
 
             switch (op)
@@ -8392,8 +8393,11 @@ class Module1
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind);
             Assert.True(symbol1.IsImplicitlyDeclared);
 
-            bool isChecked = false;
+            var synthesizedMethod = compilation.CreateBuiltinOperator(
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters[0].Type, symbol1.Parameters[1].Type);
+            Assert.Equal(synthesizedMethod, symbol1);
 
+            bool isChecked = false;
             switch (op)
             {
                 case BinaryOperatorKind.Multiplication:

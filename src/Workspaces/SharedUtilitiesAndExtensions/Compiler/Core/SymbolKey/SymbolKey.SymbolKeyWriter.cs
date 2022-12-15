@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis
             Field = 'F',
             FunctionPointer = 'G',
             DynamicType = 'I',
+            BuiltinOperator = 'L',
             Method = 'M',
             Namespace = 'N',
             PointerType = 'O',
@@ -347,13 +348,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override void VisitLabel(ILabelSymbol labelSymbol)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override void VisitLocal(ILocalSymbol localSymbol)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override void VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override void VisitMethod(IMethodSymbol methodSymbol)
             {
@@ -366,18 +367,23 @@ namespace Microsoft.CodeAnalysis
                 {
                     switch (methodSymbol.MethodKind)
                     {
-                        case MethodKind.ReducedExtension:
-                            WriteType(SymbolKeyType.ReducedExtensionMethod);
-                            ReducedExtensionMethodSymbolKey.Instance.Create(methodSymbol, this);
-                            break;
-
                         case MethodKind.AnonymousFunction:
                             WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
                             AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
                             break;
 
+                        case MethodKind.BuiltinOperator:
+                            WriteType(SymbolKeyType.BuiltinOperator);
+                            BuiltinOperatorSymbolKey.Instance.Create(methodSymbol, this);
+                            break;
+
+                        case MethodKind.ReducedExtension:
+                            WriteType(SymbolKeyType.ReducedExtensionMethod);
+                            ReducedExtensionMethodSymbolKey.Instance.Create(methodSymbol, this);
+                            break;
+
                         case MethodKind.LocalFunction:
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
 
                         default:
                             WriteType(SymbolKeyType.Method);

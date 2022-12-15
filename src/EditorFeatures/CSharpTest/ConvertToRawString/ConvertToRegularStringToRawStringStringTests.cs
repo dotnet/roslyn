@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
     using VerifyCS = CSharpCodeRefactoringVerifier<
         ConvertRegularStringToRawStringCodeRefactoringProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
     public class ConvertToRegularStringToRawStringStringTests
     {
         private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestNotInDirective()
         {
             var code = @"
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             await VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestNotOnEmptyString()
         {
             var code = @"public class C
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             await VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestNotOnEmptyVerbatimString()
         {
             var code = @"public class C
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             await VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestNotOnHighSurrogateChar()
         {
             var code = @"public class C
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             await VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestNotOnLowSurrogateChar1()
         {
             var code = @"public class C
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             await VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestOnCombinedSurrogate()
         {
             await VerifyRefactoringAsync(
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestNotOnNullChar()
         {
             var code = @"public class C
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             await VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestNotOnControlCharacter()
         {
             var code = @"public class C
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             await VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestSimpleString()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestVerbatimSimpleString()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestSimpleStringTopLevel()
         {
             await VerifyRefactoringAsync(@"
@@ -191,7 +192,7 @@ var v = """"""a"""""";
 ", outputKind: OutputKind.ConsoleApplication);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestStringWithQuoteInMiddle()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -209,7 +210,7 @@ var v = """"""a"""""";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestVerbatimStringWithQuoteInMiddle()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -227,7 +228,7 @@ var v = """"""a"""""";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestStringWithQuoteAtStart()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -247,7 +248,7 @@ var v = """"""a"""""";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestVerbatimStringWithQuoteAtStart()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -267,7 +268,7 @@ var v = """"""a"""""";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestStringWithQuoteAtEnd()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -287,7 +288,7 @@ var v = """"""a"""""";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestVerbatimStringWithQuoteAtEnd()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -307,7 +308,7 @@ var v = """"""a"""""";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestStringWithNewLine()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -328,7 +329,7 @@ var v = """"""a"""""";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestVerbatimStringWithNewLine()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -350,7 +351,7 @@ bar"";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestStringWithNewLineAtStartAndEnd()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -372,7 +373,7 @@ bar"";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestVerbatimStringWithNewLineAtStartAndEnd()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -396,7 +397,7 @@ goobar
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestNoIndentVerbatimStringWithNewLineAtStartAndEnd()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -418,7 +419,7 @@ goobar
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestIndentedString()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -439,7 +440,7 @@ goobar
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestWithoutLeadingWhitespace1()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -464,7 +465,7 @@ select x"";
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestIndentedStringTopLevel()
         {
             await VerifyRefactoringAsync(@"
@@ -477,7 +478,7 @@ var v = """"""
 ", outputKind: OutputKind.ConsoleApplication);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestWithoutLeadingWhitespaceTopLevel()
         {
             await VerifyRefactoringAsync(@"
@@ -494,7 +495,7 @@ var v = """"""
 ", index: 1, outputKind: OutputKind.ConsoleApplication);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestVerbatimIndentedString()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -516,7 +517,7 @@ bar"";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestIndentedStringOnOwnLine()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -539,7 +540,7 @@ bar"";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestVerbatimIndentedStringOnOwnLine()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -563,7 +564,7 @@ bar"";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestWithoutLeadingWhitespace2()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -588,7 +589,7 @@ bar"";
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestWithoutLeadingWhitespace3()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -614,7 +615,7 @@ bar"";
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestWithoutLeadingWhitespace4()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -640,7 +641,7 @@ bar"";
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestWithoutLeadingWhitespace5()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -666,7 +667,7 @@ bar"";
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        [Fact]
         public async Task TestWithoutLeadingWhitespace6()
         {
             await VerifyRefactoringAsync(@"public class C

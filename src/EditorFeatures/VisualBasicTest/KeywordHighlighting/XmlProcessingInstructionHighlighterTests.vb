@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class XmlProcessingInstructionHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return GetType(XmlProcessingInstructionHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlProcessingInstruction1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -22,7 +23,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlProcessingInstruction2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -32,7 +33,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlProcessingInstruction3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C

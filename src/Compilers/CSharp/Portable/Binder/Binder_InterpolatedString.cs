@@ -562,7 +562,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionDiagnostics.Free();
             }
 
-
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, syntax);
             int constructorArgumentLength = 3 + additionalConstructorArguments.Length;
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(constructorArgumentLength);
@@ -1016,13 +1015,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiver != null);
                         valSafeToEscapeScope = requiresInstanceReceiver
                             ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                            : Binder.ExternalScope;
+                            : Binder.CallingMethodScope;
                         isSuppressed = receiver.IsSuppressed;
                         placeholderSyntax = receiver.Syntax;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = Binder.ExternalScope;
+                        valSafeToEscapeScope = Binder.CallingMethodScope;
                         isSuppressed = false;
                         break;
                     case >= 0:

@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedLocalKind _kind;
         private readonly SyntaxNode _syntaxOpt;
         private readonly bool _isPinned;
+        private bool _isKnownToReferToTempIfReferenceType;
         private readonly RefKind _refKind;
 
 #if DEBUG
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SynthesizedLocalKind kind,
             SyntaxNode syntaxOpt = null,
             bool isPinned = false,
+            bool isKnownToReferToTempIfReferenceType = false,
             RefKind refKind = RefKind.None
 #if DEBUG
             ,
@@ -55,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _kind = kind;
             _syntaxOpt = syntaxOpt;
             _isPinned = isPinned;
+            _isKnownToReferToTempIfReferenceType = isKnownToReferToTempIfReferenceType;
             _refKind = refKind;
 
 #if DEBUG
@@ -76,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 kind,
                 syntax,
                 _isPinned,
+                _isKnownToReferToTempIfReferenceType,
                 _refKind);
         }
 
@@ -150,6 +154,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isPinned; }
         }
 
+        internal sealed override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return _isKnownToReferToTempIfReferenceType; }
+        }
+
+        internal void SetIsKnownToReferToTempIfReferenceType()
+        {
+            Debug.Assert(!_isKnownToReferToTempIfReferenceType);
+            _isKnownToReferToTempIfReferenceType = true;
+        }
+
         internal sealed override bool IsCompilerGenerated
         {
             get { return true; }
@@ -159,13 +174,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Compiler should always be synthesizing locals with correct escape semantics.
         /// Checking escape scopes is not valid here.
         /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable();
 
         /// <summary>
         /// Compiler should always be synthesizing locals with correct escape semantics.
         /// Checking escape scopes is not valid here.
         /// </summary>
-        internal sealed override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal sealed override uint RefEscapeScope => throw ExceptionUtilities.Unreachable();
 
         internal sealed override DeclarationScope Scope => DeclarationScope.Unscoped;
 

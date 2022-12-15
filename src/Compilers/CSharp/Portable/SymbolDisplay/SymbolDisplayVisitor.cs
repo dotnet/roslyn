@@ -187,33 +187,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocal(ILocalSymbol symbol)
         {
-            if (symbol.IsRef &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeModifiers))
             {
-                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                if ((symbol as Symbols.PublicModel.LocalSymbol)?.GetSymbol<LocalSymbol>().Scope == DeclarationScope.RefScoped &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                if (symbol.IsRef)
+                {
+                    if (symbol.ScopedKind == ScopedKind.ScopedRef)
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
+
+                    AddKeyword(SyntaxKind.RefKeyword);
+                    AddSpace();
+
+                    if (symbol.RefKind == RefKind.RefReadOnly)
+                    {
+                        AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                        AddSpace();
+                    }
+                }
+                else if (symbol.ScopedKind == ScopedKind.ScopedValue)
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();
                 }
-
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
-
-                if (symbol.RefKind == RefKind.RefReadOnly)
-                {
-                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
-                    AddSpace();
-                }
-            }
-
-            // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-            if ((symbol as Symbols.PublicModel.LocalSymbol)?.GetSymbol<LocalSymbol>().Scope == DeclarationScope.ValueScoped &&
-                format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
-            {
-                AddKeyword(SyntaxKind.ScopedKeyword);
-                AddSpace();
             }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))

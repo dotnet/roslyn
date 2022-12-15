@@ -38,8 +38,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Windows_Release_Build
   dependsOn: []
@@ -50,8 +50,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Unix_Build
   dependsOn: []
@@ -98,7 +98,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      
+
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
       parameters:
@@ -233,22 +233,25 @@ stages:
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
         displayName: Validate Build Artifacts
 
+      - script: eng/validate-rules-missing-documentation.cmd -ci
+        displayName: Validate rules missing documentation
+
       - task: PowerShell@2
         displayName: Generate Syntax Files
         inputs:
           filePath: eng/generate-compiler-code.ps1
           arguments: -test -configuration Release
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
-        
+
       - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe tool run dotnet-format whitespace  $(Build.SourcesDirectory)\src --folder --include-generated --include $(Build.SourcesDirectory)\src\Compilers\CSharp\Portable\Generated\ $(Build.SourcesDirectory)\src\Compilers\VisualBasic\Portable\Generated\ $(Build.SourcesDirectory)\src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ --verify-no-changes
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
-        
+
       - template: eng/pipelines/publish-logs.yml
         parameters:
           jobName: Correctness_Build_Artifacts
           configuration: Release
-      
+
   - job: Correctness_Determinism
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
@@ -258,7 +261,7 @@ stages:
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
-      
+
       - script: eng/test-determinism.cmd -configuration Debug
         displayName: Build - Validate determinism
 
@@ -349,6 +352,6 @@ stages:
     timeoutInMinutes: 35
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
-        
+
       - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers

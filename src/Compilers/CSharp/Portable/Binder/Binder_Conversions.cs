@@ -704,6 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
+            CheckLambdaConversion(boundLambda.Symbol, destination, diagnostics);
             return new BoundConversion(
                 syntax,
                 boundLambda,
@@ -735,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
         }
 
-        private static bool CheckValidScopedMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
+        private static void CheckValidScopedMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
         {
             MethodSymbol? delegateMethod;
             if (targetType.GetDelegateType() is { } delegateType)
@@ -748,20 +749,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return false;
+                return;
             }
-            return SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
-                delegateMethod,
-                lambdaOrMethod,
-                diagnostics,
-                static (diagnostics, _, _, parameter, _, typeAndLocation) =>
-                    diagnostics.Add(
-                        ErrorCode.ERR_ScopedMismatchInParameterOfTarget,
-                        typeAndLocation.Location,
-                        new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                        typeAndLocation.Type),
-                (Type: targetType, Location: syntax.Location),
-                invokedAsExtensionMethod);
+
+            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod))
+            {
+                SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                    delegateMethod,
+                    lambdaOrMethod,
+                    diagnostics,
+                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndLocation) =>
+                    {
+                        diagnostics.Add(
+                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
+                                ErrorCode.ERR_ScopedMismatchInParameterOfTarget :
+                                ErrorCode.WRN_ScopedMismatchInParameterOfTarget,
+                            typeAndLocation.Location,
+                            new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                            typeAndLocation.Type);
+                    },
+                    (Type: targetType, Location: syntax.Location),
+                    allowVariance: true,
+                    invokedAsExtensionMethod: invokedAsExtensionMethod);
+            }
+        }
+
+        /// <summary>
+        /// Warns for defaults/`params` mismatch.
+        /// </summary>
+        private static void CheckLambdaConversion(LambdaSymbol lambdaSymbol, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        {
+            if (lambdaSymbol.SyntaxNode.IsKind(SyntaxKind.AnonymousMethodExpression))
+            {
+                return;
+            }
+
+            var delegateType = targetType.GetDelegateType();
+            Debug.Assert(delegateType is not null);
+            var delegateParameters = delegateType.DelegateParameters();
+
+            Debug.Assert(lambdaSymbol.ParameterCount == delegateParameters.Length);
+            for (int p = 0; p < lambdaSymbol.ParameterCount; p++)
+            {
+                var lambdaParameter = lambdaSymbol.Parameters[p];
+                var delegateParameter = delegateParameters[p];
+
+                if (lambdaParameter.HasExplicitDefaultValue &&
+                    lambdaParameter.ExplicitDefaultConstantValue is { IsBad: false } lambdaParamDefault)
+                {
+                    var delegateParamDefault = delegateParameter.HasExplicitDefaultValue ? delegateParameter.ExplicitDefaultConstantValue : null;
+                    if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
+                    {
+                        // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
+                        Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
+                    }
+                }
+
+                if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1 && lambdaParameter.Type.IsSZArray())
+                {
+                    // Parameter {0} has params modifier in lambda but not in target delegate type.
+                    Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
+                }
+            }
         }
 
         private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)

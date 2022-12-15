@@ -2209,6 +2209,107 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    /// <summary>The 'scoped' modifier of a local.</summary>
+    internal sealed partial class ScopedTypeSyntax : TypeSyntax
+    {
+        internal readonly SyntaxToken scopedKeyword;
+        internal readonly TypeSyntax type;
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        public SyntaxToken ScopedKeyword => this.scopedKeyword;
+        public TypeSyntax Type => this.type;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.scopedKeyword,
+                1 => this.type,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ScopedTypeSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitScopedType(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitScopedType(this);
+
+        public ScopedTypeSyntax Update(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+            if (scopedKeyword != this.ScopedKeyword || type != this.Type)
+            {
+                var newNode = SyntaxFactory.ScopedType(scopedKeyword, type);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new ScopedTypeSyntax(this.Kind, this.scopedKeyword, this.type, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new ScopedTypeSyntax(this.Kind, this.scopedKeyword, this.type, GetDiagnostics(), annotations);
+
+        internal ScopedTypeSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 2;
+            var scopedKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            var type = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.scopedKeyword);
+            writer.WriteValue(this.type);
+        }
+
+        static ScopedTypeSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(ScopedTypeSyntax), r => new ScopedTypeSyntax(r));
+        }
+    }
+
     internal abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
     {
         internal ExpressionOrPatternSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
@@ -34266,6 +34367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitScopedType(ScopedTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
@@ -34507,6 +34609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
         public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
         public virtual void VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitScopedType(ScopedTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
@@ -34785,6 +34888,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitRefType(RefTypeSyntax node)
             => node.Update((SyntaxToken)Visit(node.RefKeyword), (SyntaxToken)Visit(node.ReadOnlyKeyword), (TypeSyntax)Visit(node.Type));
+
+        public override CSharpSyntaxNode VisitScopedType(ScopedTypeSyntax node)
+            => node.Update((SyntaxToken)Visit(node.ScopedKeyword), (TypeSyntax)Visit(node.Type));
 
         public override CSharpSyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseParenToken));
@@ -35877,6 +35983,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (RefTypeSyntax)cached;
 
             var result = new RefTypeSyntax(SyntaxKind.RefType, refKeyword, readOnlyKeyword, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public ScopedTypeSyntax ScopedType(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+#if DEBUG
+            if (scopedKeyword == null) throw new ArgumentNullException(nameof(scopedKeyword));
+            if (scopedKeyword.Kind != SyntaxKind.ScopedKeyword) throw new ArgumentException(nameof(scopedKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ScopedType, scopedKeyword, type, this.context, out hash);
+            if (cached != null) return (ScopedTypeSyntax)cached;
+
+            var result = new ScopedTypeSyntax(SyntaxKind.ScopedType, scopedKeyword, type, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -40935,6 +41062,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public static ScopedTypeSyntax ScopedType(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+#if DEBUG
+            if (scopedKeyword == null) throw new ArgumentNullException(nameof(scopedKeyword));
+            if (scopedKeyword.Kind != SyntaxKind.ScopedKeyword) throw new ArgumentException(nameof(scopedKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ScopedType, scopedKeyword, type, out hash);
+            if (cached != null) return (ScopedTypeSyntax)cached;
+
+            var result = new ScopedTypeSyntax(SyntaxKind.ScopedType, scopedKeyword, type);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         public static ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
 #if DEBUG
@@ -45544,247 +45692,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return new NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia, hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive);
         }
-
-        internal static IEnumerable<Type> GetNodeTypes()
-            => new Type[]
-            {
-                typeof(IdentifierNameSyntax),
-                typeof(QualifiedNameSyntax),
-                typeof(GenericNameSyntax),
-                typeof(TypeArgumentListSyntax),
-                typeof(AliasQualifiedNameSyntax),
-                typeof(PredefinedTypeSyntax),
-                typeof(ArrayTypeSyntax),
-                typeof(ArrayRankSpecifierSyntax),
-                typeof(PointerTypeSyntax),
-                typeof(FunctionPointerTypeSyntax),
-                typeof(FunctionPointerParameterListSyntax),
-                typeof(FunctionPointerCallingConventionSyntax),
-                typeof(FunctionPointerUnmanagedCallingConventionListSyntax),
-                typeof(FunctionPointerUnmanagedCallingConventionSyntax),
-                typeof(NullableTypeSyntax),
-                typeof(TupleTypeSyntax),
-                typeof(TupleElementSyntax),
-                typeof(OmittedTypeArgumentSyntax),
-                typeof(RefTypeSyntax),
-                typeof(ParenthesizedExpressionSyntax),
-                typeof(TupleExpressionSyntax),
-                typeof(PrefixUnaryExpressionSyntax),
-                typeof(AwaitExpressionSyntax),
-                typeof(PostfixUnaryExpressionSyntax),
-                typeof(MemberAccessExpressionSyntax),
-                typeof(ConditionalAccessExpressionSyntax),
-                typeof(MemberBindingExpressionSyntax),
-                typeof(ElementBindingExpressionSyntax),
-                typeof(RangeExpressionSyntax),
-                typeof(ImplicitElementAccessSyntax),
-                typeof(BinaryExpressionSyntax),
-                typeof(AssignmentExpressionSyntax),
-                typeof(ConditionalExpressionSyntax),
-                typeof(ThisExpressionSyntax),
-                typeof(BaseExpressionSyntax),
-                typeof(LiteralExpressionSyntax),
-                typeof(MakeRefExpressionSyntax),
-                typeof(RefTypeExpressionSyntax),
-                typeof(RefValueExpressionSyntax),
-                typeof(CheckedExpressionSyntax),
-                typeof(DefaultExpressionSyntax),
-                typeof(TypeOfExpressionSyntax),
-                typeof(SizeOfExpressionSyntax),
-                typeof(InvocationExpressionSyntax),
-                typeof(ElementAccessExpressionSyntax),
-                typeof(ArgumentListSyntax),
-                typeof(BracketedArgumentListSyntax),
-                typeof(ArgumentSyntax),
-                typeof(ExpressionColonSyntax),
-                typeof(NameColonSyntax),
-                typeof(DeclarationExpressionSyntax),
-                typeof(CastExpressionSyntax),
-                typeof(AnonymousMethodExpressionSyntax),
-                typeof(SimpleLambdaExpressionSyntax),
-                typeof(RefExpressionSyntax),
-                typeof(ParenthesizedLambdaExpressionSyntax),
-                typeof(InitializerExpressionSyntax),
-                typeof(ImplicitObjectCreationExpressionSyntax),
-                typeof(ObjectCreationExpressionSyntax),
-                typeof(WithExpressionSyntax),
-                typeof(AnonymousObjectMemberDeclaratorSyntax),
-                typeof(AnonymousObjectCreationExpressionSyntax),
-                typeof(ArrayCreationExpressionSyntax),
-                typeof(ImplicitArrayCreationExpressionSyntax),
-                typeof(StackAllocArrayCreationExpressionSyntax),
-                typeof(ImplicitStackAllocArrayCreationExpressionSyntax),
-                typeof(QueryExpressionSyntax),
-                typeof(QueryBodySyntax),
-                typeof(FromClauseSyntax),
-                typeof(LetClauseSyntax),
-                typeof(JoinClauseSyntax),
-                typeof(JoinIntoClauseSyntax),
-                typeof(WhereClauseSyntax),
-                typeof(OrderByClauseSyntax),
-                typeof(OrderingSyntax),
-                typeof(SelectClauseSyntax),
-                typeof(GroupClauseSyntax),
-                typeof(QueryContinuationSyntax),
-                typeof(OmittedArraySizeExpressionSyntax),
-                typeof(InterpolatedStringExpressionSyntax),
-                typeof(IsPatternExpressionSyntax),
-                typeof(ThrowExpressionSyntax),
-                typeof(WhenClauseSyntax),
-                typeof(DiscardPatternSyntax),
-                typeof(DeclarationPatternSyntax),
-                typeof(VarPatternSyntax),
-                typeof(RecursivePatternSyntax),
-                typeof(PositionalPatternClauseSyntax),
-                typeof(PropertyPatternClauseSyntax),
-                typeof(SubpatternSyntax),
-                typeof(ConstantPatternSyntax),
-                typeof(ParenthesizedPatternSyntax),
-                typeof(RelationalPatternSyntax),
-                typeof(TypePatternSyntax),
-                typeof(BinaryPatternSyntax),
-                typeof(UnaryPatternSyntax),
-                typeof(ListPatternSyntax),
-                typeof(SlicePatternSyntax),
-                typeof(InterpolatedStringTextSyntax),
-                typeof(InterpolationSyntax),
-                typeof(InterpolationAlignmentClauseSyntax),
-                typeof(InterpolationFormatClauseSyntax),
-                typeof(GlobalStatementSyntax),
-                typeof(BlockSyntax),
-                typeof(LocalFunctionStatementSyntax),
-                typeof(LocalDeclarationStatementSyntax),
-                typeof(VariableDeclarationSyntax),
-                typeof(VariableDeclaratorSyntax),
-                typeof(EqualsValueClauseSyntax),
-                typeof(SingleVariableDesignationSyntax),
-                typeof(DiscardDesignationSyntax),
-                typeof(ParenthesizedVariableDesignationSyntax),
-                typeof(ExpressionStatementSyntax),
-                typeof(EmptyStatementSyntax),
-                typeof(LabeledStatementSyntax),
-                typeof(GotoStatementSyntax),
-                typeof(BreakStatementSyntax),
-                typeof(ContinueStatementSyntax),
-                typeof(ReturnStatementSyntax),
-                typeof(ThrowStatementSyntax),
-                typeof(YieldStatementSyntax),
-                typeof(WhileStatementSyntax),
-                typeof(DoStatementSyntax),
-                typeof(ForStatementSyntax),
-                typeof(ForEachStatementSyntax),
-                typeof(ForEachVariableStatementSyntax),
-                typeof(UsingStatementSyntax),
-                typeof(FixedStatementSyntax),
-                typeof(CheckedStatementSyntax),
-                typeof(UnsafeStatementSyntax),
-                typeof(LockStatementSyntax),
-                typeof(IfStatementSyntax),
-                typeof(ElseClauseSyntax),
-                typeof(SwitchStatementSyntax),
-                typeof(SwitchSectionSyntax),
-                typeof(CasePatternSwitchLabelSyntax),
-                typeof(CaseSwitchLabelSyntax),
-                typeof(DefaultSwitchLabelSyntax),
-                typeof(SwitchExpressionSyntax),
-                typeof(SwitchExpressionArmSyntax),
-                typeof(TryStatementSyntax),
-                typeof(CatchClauseSyntax),
-                typeof(CatchDeclarationSyntax),
-                typeof(CatchFilterClauseSyntax),
-                typeof(FinallyClauseSyntax),
-                typeof(CompilationUnitSyntax),
-                typeof(ExternAliasDirectiveSyntax),
-                typeof(UsingDirectiveSyntax),
-                typeof(NamespaceDeclarationSyntax),
-                typeof(FileScopedNamespaceDeclarationSyntax),
-                typeof(AttributeListSyntax),
-                typeof(AttributeTargetSpecifierSyntax),
-                typeof(AttributeSyntax),
-                typeof(AttributeArgumentListSyntax),
-                typeof(AttributeArgumentSyntax),
-                typeof(NameEqualsSyntax),
-                typeof(TypeParameterListSyntax),
-                typeof(TypeParameterSyntax),
-                typeof(ClassDeclarationSyntax),
-                typeof(StructDeclarationSyntax),
-                typeof(InterfaceDeclarationSyntax),
-                typeof(RecordDeclarationSyntax),
-                typeof(EnumDeclarationSyntax),
-                typeof(DelegateDeclarationSyntax),
-                typeof(EnumMemberDeclarationSyntax),
-                typeof(BaseListSyntax),
-                typeof(SimpleBaseTypeSyntax),
-                typeof(PrimaryConstructorBaseTypeSyntax),
-                typeof(TypeParameterConstraintClauseSyntax),
-                typeof(ConstructorConstraintSyntax),
-                typeof(ClassOrStructConstraintSyntax),
-                typeof(TypeConstraintSyntax),
-                typeof(DefaultConstraintSyntax),
-                typeof(FieldDeclarationSyntax),
-                typeof(EventFieldDeclarationSyntax),
-                typeof(ExplicitInterfaceSpecifierSyntax),
-                typeof(MethodDeclarationSyntax),
-                typeof(OperatorDeclarationSyntax),
-                typeof(ConversionOperatorDeclarationSyntax),
-                typeof(ConstructorDeclarationSyntax),
-                typeof(ConstructorInitializerSyntax),
-                typeof(DestructorDeclarationSyntax),
-                typeof(PropertyDeclarationSyntax),
-                typeof(ArrowExpressionClauseSyntax),
-                typeof(EventDeclarationSyntax),
-                typeof(IndexerDeclarationSyntax),
-                typeof(AccessorListSyntax),
-                typeof(AccessorDeclarationSyntax),
-                typeof(ParameterListSyntax),
-                typeof(BracketedParameterListSyntax),
-                typeof(ParameterSyntax),
-                typeof(FunctionPointerParameterSyntax),
-                typeof(IncompleteMemberSyntax),
-                typeof(SkippedTokensTriviaSyntax),
-                typeof(DocumentationCommentTriviaSyntax),
-                typeof(TypeCrefSyntax),
-                typeof(QualifiedCrefSyntax),
-                typeof(NameMemberCrefSyntax),
-                typeof(IndexerMemberCrefSyntax),
-                typeof(OperatorMemberCrefSyntax),
-                typeof(ConversionOperatorMemberCrefSyntax),
-                typeof(CrefParameterListSyntax),
-                typeof(CrefBracketedParameterListSyntax),
-                typeof(CrefParameterSyntax),
-                typeof(XmlElementSyntax),
-                typeof(XmlElementStartTagSyntax),
-                typeof(XmlElementEndTagSyntax),
-                typeof(XmlEmptyElementSyntax),
-                typeof(XmlNameSyntax),
-                typeof(XmlPrefixSyntax),
-                typeof(XmlTextAttributeSyntax),
-                typeof(XmlCrefAttributeSyntax),
-                typeof(XmlNameAttributeSyntax),
-                typeof(XmlTextSyntax),
-                typeof(XmlCDataSectionSyntax),
-                typeof(XmlProcessingInstructionSyntax),
-                typeof(XmlCommentSyntax),
-                typeof(IfDirectiveTriviaSyntax),
-                typeof(ElifDirectiveTriviaSyntax),
-                typeof(ElseDirectiveTriviaSyntax),
-                typeof(EndIfDirectiveTriviaSyntax),
-                typeof(RegionDirectiveTriviaSyntax),
-                typeof(EndRegionDirectiveTriviaSyntax),
-                typeof(ErrorDirectiveTriviaSyntax),
-                typeof(WarningDirectiveTriviaSyntax),
-                typeof(BadDirectiveTriviaSyntax),
-                typeof(DefineDirectiveTriviaSyntax),
-                typeof(UndefDirectiveTriviaSyntax),
-                typeof(LineDirectiveTriviaSyntax),
-                typeof(LineDirectivePositionSyntax),
-                typeof(LineSpanDirectiveTriviaSyntax),
-                typeof(PragmaWarningDirectiveTriviaSyntax),
-                typeof(PragmaChecksumDirectiveTriviaSyntax),
-                typeof(ReferenceDirectiveTriviaSyntax),
-                typeof(LoadDirectiveTriviaSyntax),
-                typeof(ShebangDirectiveTriviaSyntax),
-                typeof(NullableDirectiveTriviaSyntax),
-            };
     }
 }

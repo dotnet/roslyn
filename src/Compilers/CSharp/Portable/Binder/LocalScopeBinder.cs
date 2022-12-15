@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var parentDepth = next.LocalScopeDepth;
 
-            if (parentDepth != Binder.TopLevelScope)
+            if (parentDepth != Binder.CurrentMethodScope)
             {
                 _localScopeDepth = parentDepth + 1;
             }
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (parentScope is InMethodBinder || parentScope is WithLambdaParametersBinder)
                     {
-                        _localScopeDepth = Binder.TopLevelScope;
+                        _localScopeDepth = Binder.CurrentMethodScope;
                         break;
                     }
 
                     if (parentScope is LocalScopeBinder)
                     {
-                        _localScopeDepth = Binder.TopLevelScope + 1;
+                        _localScopeDepth = Binder.CurrentMethodScope + 1;
                         break;
                     }
 
@@ -241,10 +241,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             kind = LocalDeclarationKind.RegularVariable;
                         }
-                        bool hasScopedModifier = decl.Modifiers.Any(SyntaxKind.ScopedKeyword);
+
                         foreach (var vdecl in decl.Declaration.Variables)
                         {
-                            var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, hasScopedModifier, localDeclarationBinder);
+                            var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, allowScoped: true, localDeclarationBinder);
                             locals.Add(localSymbol);
 
                             // also gather expression-declared variables from the bracketed argument lists and the initializers
@@ -314,17 +314,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind, bool hasScopedModifier, Binder initializerBinderOpt = null)
+        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind, bool allowScoped, Binder initializerBinderOpt = null)
         {
             return SourceLocalSymbol.MakeLocal(
                 this.ContainingMemberOrLambda,
                 this,
-                true,
+                allowRefKind: true,
+                allowScoped: allowScoped,
                 declaration.Type,
                 declarator.Identifier,
                 kind,
                 declarator.Initializer,
-                hasScopedModifier,
                 initializerBinderOpt);
         }
 

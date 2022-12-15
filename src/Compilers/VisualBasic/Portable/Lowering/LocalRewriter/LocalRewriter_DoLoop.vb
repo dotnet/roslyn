@@ -212,6 +212,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-
     End Class
 End Namespace

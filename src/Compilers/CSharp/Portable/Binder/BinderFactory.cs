@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         // This dictionary stores contexts so we don't have to recreate them, which can be
         // expensive. 
         private readonly ConcurrentCache<BinderCacheKey, Binder> _binderCache;
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // more than 50 items added before getting collected.
             _binderCache = new ConcurrentCache<BinderCacheKey, Binder>(50);
 
-            _buckStopsHereBinder = new BuckStopsHereBinder(compilation, syntaxTree);
+            _buckStopsHereBinder = new BuckStopsHereBinder(compilation, FileIdentifier.Create(syntaxTree));
         }
 
         internal SyntaxTree SyntaxTree

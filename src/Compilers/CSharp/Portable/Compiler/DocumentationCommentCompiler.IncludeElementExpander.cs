@@ -542,12 +542,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nameDiagnostics.Free();
             }
 
-
             // NOTE: We're not sharing code with the BinderFactory visitor, because we already have the
             // member symbol in hand, which makes things much easier.
             private static Binder MakeNameBinder(bool isParameter, bool isTypeParameterRef, Symbol memberSymbol, CSharpCompilation compilation, SyntaxTree syntaxTree)
             {
-                Binder binder = new BuckStopsHereBinder(compilation, syntaxTree);
+                Binder binder = new BuckStopsHereBinder(compilation, FileIdentifier.Create(syntaxTree));
 
                 // All binders should have a containing symbol.
                 Symbol containingSymbol = memberSymbol.ContainingSymbol;

@@ -26,6 +26,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
     public class InteractiveBraceHighlightingTests
     {
         private static IEnumerable<T> Enumerable<T>(params T[] array)
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             return context.tagSpans;
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestCurlies()
         {
             var code = "public class C {\r\n}";
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             Assert.True(result.Select(ts => ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(15, 16), Span.FromBounds(18, 19))));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestTouchingItems()
         {
             var code = "public class C {\r\n  public void Goo(){}\r\n}";
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             Enumerable(Span.FromBounds(37, 38), Span.FromBounds(38, 39));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestAngles()
         {
             var code = "/// <summary>Goo</summary>\r\npublic class C<T> {\r\n  void Goo() {\r\n    bool a = b < c;\r\n    bool d = e > f;\r\n  }\r\n} ";
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             await assertNoTags(closeAnglePosition, '>');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestSwitch()
         {
             var code = @"

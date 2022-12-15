@@ -46,7 +46,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(5)").WithArguments("d"));
         }
 
-
         [Fact]
         public void Test13861()
         {
@@ -225,13 +224,13 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'fg' of 'C.F'
+                // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'fg' of 'C.F'
                 //         f(0, fz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f").WithArguments("fg", "C.F").WithLocation(10, 9),
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'my' of 'C.M(int, int, int)'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'my' of 'C.M(int, int, int)'
                 //         M(0, mz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("my", "C.M(int, int, int)").WithLocation(11, 9),
-                // (12,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'cy' of 'C.C(int, int, int)'
+                // (12,13): error CS7036: There is no argument given that corresponds to the required parameter 'cy' of 'C.C(int, int, int)'
                 //         new C(0, cz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("cy", "C.C(int, int, int)").WithLocation(12, 13));
         }
@@ -890,7 +889,6 @@ public struct Vector3
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-
         [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
         public void OptionalValueTypeFromReferencedAssembly()
@@ -1013,7 +1011,7 @@ public class Parent
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
- // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Goo(ref int)'
+ // (8,10): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Parent.Goo(ref int)'
  //          Goo();
  Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("x", "Parent.Goo(ref int)"));
         }
@@ -1427,7 +1425,7 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'D.M(ref object)'
+                // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'D.M(ref object)'
                 //         d.M(); //CS1501
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
         }
@@ -1726,7 +1724,6 @@ one
 }");
         }
 
-
         [Fact]
         public void OmittedComOutParameter()
         {
@@ -1748,7 +1745,7 @@ class P
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-// (11,26): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'I.M(out object)'
+// (11,26): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'I.M(out object)'
 //     static void Q(I i) { i.M(); }
 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "I.M(out object)")
                 );

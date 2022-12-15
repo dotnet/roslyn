@@ -915,8 +915,7 @@ $@"namespace {fixedNamespace1}
             await testState.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58372, "https://github.com/dotnet/roslyn/issues/58372")]
+        [Fact, WorkItem(58372, "https://github.com/dotnet/roslyn/issues/58372")]
         public async Task InvalidProjectName_ChangeNamespace()
         {
             var defaultNamespace = "Invalid-Namespace";

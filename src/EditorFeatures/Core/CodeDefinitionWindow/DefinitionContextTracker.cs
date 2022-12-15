@@ -133,20 +133,18 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
                 // be expensive. This doesn't cause a functional issue, since opening the window clears whatever was previously there
                 // so the user won't notice we weren't doing anything when it was open.
                 if (!await _codeDefinitionWindowService.IsWindowOpenAsync(cancellationToken).ConfigureAwait(false))
-                {
                     return;
-                }
 
-                var document = pointInRoslynSnapshot.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                {
+                var snapshot = pointInRoslynSnapshot.Snapshot;
+                var workspace = snapshot.TextBuffer.GetWorkspace();
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (workspace is null || document is null)
                     return;
-                }
 
                 // Ensure we're off the UI thread for the rest of this since we don't want to be computing locations on the UI thread.
                 await TaskScheduler.Default;
 
-                var locations = await GetContextFromPointAsync(document, pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
+                var locations = await GetContextFromPointAsync(workspace, document, pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
                 await _codeDefinitionWindowService.SetContextAsync(locations, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -161,9 +159,8 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
         /// Internal for testing purposes.
         /// </summary>
         internal async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetContextFromPointAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Workspace workspace, Document document, int position, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
             var navigableItems = await GoToDefinitionHelpers.GetDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (navigableItems?.Any() == true)
             {
@@ -211,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
             else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
                 var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.Services);
-                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
+                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
                 var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
             }

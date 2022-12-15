@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Classification)]
     public class CSharpKeywordHighlighting : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -27,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void Foreach()
         {
             var input = @"class C
@@ -48,7 +49,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Verify("in", ImmutableArray.Create<TextSpan>());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void PreprocessorConditionals()
         {
             var input = @"
@@ -80,7 +81,7 @@ class PurchaseTransaction
             Verify("#endif", spans["else"]);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void PreprocessorRegions()
         {
             var input = @"
@@ -110,7 +111,7 @@ class C
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.KeywordHighlighting);

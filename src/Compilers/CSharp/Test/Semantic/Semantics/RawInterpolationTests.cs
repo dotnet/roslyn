@@ -315,6 +315,58 @@ class Program
                             """""" );
     }
 }";
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(12, 1));
+    }
+
+    [Fact]
+    public void TwoInserts02_A()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine( $""""""
+                            {
+                                    hello
+                            },
+  {
+                            world }.
+                            """""" );
+    }
+}";
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(12, 1));
+    }
+
+    [Fact]
+    public void TwoInserts02_B()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine( $""""""
+                            {
+                                    hello
+                            },
+                            {
+                            world }.
+                            """""" );
+    }
+}";
         string expectedOutput = @"Hello,
 world.";
         CompileAndVerify(source, expectedOutput: expectedOutput);
@@ -980,7 +1032,7 @@ class Program {
         }
     }
 }";
-        CreateEmptyCompilation(text, options: TestOptions.DebugExe)
+        CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe)
         .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
             // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
             //             var s = $"""X = { 1 } """;
@@ -1012,7 +1064,7 @@ class Program {
         }
     }
 }";
-        CreateEmptyCompilation(text, options: TestOptions.DebugExe)
+        CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe)
         .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
             // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
             //             var s = $"""X = { 1 } """;
@@ -1056,7 +1108,7 @@ class Program {
         }
     }
 }";
-        var comp = CreateEmptyCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         var compilation = CompileAndVerify(comp, verify: Verification.Fails);
         compilation.VerifyIL("System.Program.Main",
 @"{
@@ -1263,7 +1315,6 @@ class C
         return $""""""hello + {other}"""""";
     }
 }";
-
 
         CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
             // (6,24): error CS8026: Feature 'raw string literals' is not available in C# 5. Please use language version 11.0 or greater.

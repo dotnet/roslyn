@@ -17,6 +17,21 @@
         <target state="translated">包含类型“{0}”的程序集引用了 .NET Framework，而此操作不受支持。</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">内置运算符名称“{0}”非法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">不支持的内置运算符: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">“{0}”不是有效的内置运算符名称</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">必须在 SourceText 的边界内进行更改</target>
@@ -51,12 +66,12 @@
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
-        <target state="new">Generator</target>
+        <target state="translated">生成器</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorTotalExecutionTime">
         <source>Total generator execution time: {0} seconds.</source>
-        <target state="new">Total generator execution time: {0} seconds.</target>
+        <target state="translated">生成器执行总时间: {0} 秒。</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">

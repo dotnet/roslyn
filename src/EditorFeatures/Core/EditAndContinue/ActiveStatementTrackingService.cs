@@ -355,9 +355,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             return oldSpans.NullToEmpty();
                         }
 
-                        return _trackingSpans[document.FilePath] = hasExistingSpans ?
-                            UpdateTrackingSpans(snapshot, oldSpans, activeStatementSpans) :
-                            CreateTrackingSpans(snapshot, activeStatementSpans);
+                        return _trackingSpans[document.FilePath] = hasExistingSpans
+                            ? UpdateTrackingSpans(snapshot, oldSpans, activeStatementSpans)
+                            : CreateTrackingSpans(snapshot, activeStatementSpans);
                     }
                 }
                 catch (OperationCanceledException)

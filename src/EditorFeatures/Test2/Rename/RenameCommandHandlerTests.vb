@@ -306,8 +306,7 @@ Goo f;
             End Using
         End Function
 
-        <WpfTheory>
-        <WorkItem(851629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851629")>
+        <WpfTheory, WorkItem(851629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851629")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function WordDeleteDuringRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -535,8 +534,7 @@ Goo f;
             End Using
         End Function
 
-        <WpfTheory()>
-        <WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
+        <WpfTheory, WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function DeletingInEditSpanPropagatesEdit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -573,8 +571,7 @@ Goo f;
             End Using
         End Function
 
-        <WpfTheory>
-        <WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
+        <WpfTheory, WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function BackspacingInEditSpanPropagatesEdit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -856,8 +853,7 @@ partial class [|Program|]
             End Using
         End Function
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterDuringRenameCSharp(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -893,8 +889,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterOutsideSpansDuringRenameCSharp(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -933,8 +928,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlShiftEnterDuringRenameCSharp(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -970,8 +964,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterDuringRenameBasic(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1004,8 +997,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlShiftEnterDuringRenameBasic(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1038,8 +1030,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
+        <WpfTheory, WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function SaveDuringRenameCommits(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1078,8 +1069,7 @@ partial class [|Program|]
             End Using
         End Function
 
-        <WpfTheory>
-        <WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
+        <WpfTheory, WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoveSelectedLinesUpDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1089,8 +1079,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
+        <WpfTheory, WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoveSelectedLinesDownDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1100,8 +1089,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
+        <WpfTheory, WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ReorderParametersDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1111,8 +1099,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
+        <WpfTheory, WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RemoveParametersDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1122,8 +1109,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
+        <WpfTheory, WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ExtractInterfaceDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1133,8 +1119,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
+        <WpfTheory, WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EncapsulateFieldDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(

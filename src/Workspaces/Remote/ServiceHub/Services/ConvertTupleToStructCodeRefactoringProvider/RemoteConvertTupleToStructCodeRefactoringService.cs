@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = solution.GetDocument(documentId);
+                var document = solution.GetRequiredDocument(documentId);
 
-                var service = document.GetLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
+                var service = document.GetRequiredLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
 
                 var updatedSolution = await service.ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, cancellationToken).ConfigureAwait(false);
@@ -76,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var docId in changes)
             {
-                var document = newSolution.GetDocument(docId);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var document = newSolution.GetRequiredDocument(docId);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var renamedToken = root.GetAnnotatedTokens(RenameAnnotation.Kind).FirstOrNull();
                 if (renamedToken == null)
                     continue;
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return (docId, renamedToken.Value.Span);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
@@ -95,12 +93,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var docId in changes)
             {
-                var document = newSolution.GetDocument(docId);
+                var document = newSolution.GetRequiredDocument(docId);
 
                 var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
 
-                var cleanedRoot = await cleaned.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 final = final.WithDocumentSyntaxRoot(docId, cleanedRoot);
             }
 

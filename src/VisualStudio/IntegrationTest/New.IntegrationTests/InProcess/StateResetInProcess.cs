@@ -94,7 +94,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     break;
                 }
 
-                await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE);
+                await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, cancellationToken);
                 var nextModalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
                 if (nextModalWindow == modalWindow)
                 {

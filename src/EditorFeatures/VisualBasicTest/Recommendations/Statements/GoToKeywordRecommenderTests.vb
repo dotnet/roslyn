@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class GoToKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GoToInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "GoTo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GoToInMultiLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -19,13 +20,13 @@ Dim x = Sub()
         End Sub</MethodBody>, "GoTo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GoToNotInSingleLineLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub() |</MethodBody>, "GoTo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GoToNotInFinallyBlockTest()
             Dim code =
 <MethodBody>

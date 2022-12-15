@@ -3,115 +3,115 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class TypeOfKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInClassDeclarationTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfNotInStatementTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterReturnTest()
             VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterArgument1Test()
             VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterArgument2Test()
             VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterBinaryExpressionTest()
             VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterNotTest()
             VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterTypeOfTest()
             VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterDoWhileTest()
             VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterDoUntilTest()
             VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterLoopWhileTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterLoopUntilTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterIfTest()
             VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterElseIfTest()
             VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterElseSpaceIfTest()
             VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterErrorTest()
             VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterThrowTest()
             VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterInitializerTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterArrayInitializerSquiggleTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TypeOfAfterArrayInitializerCommaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "TypeOf")
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NotInDelegateCreationTest()
             Dim code =
 <File>

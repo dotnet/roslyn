@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method1 == method2)
             {
                 // direct recursion is diagnosed elsewhere
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             if (_constructorInitializers == null)

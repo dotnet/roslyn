@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -19,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
     public partial class UseSimpleUsingStatementTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseSimpleUsingStatementTests(ITestOutputHelper logger)
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
         private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
         private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestAboveCSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -59,7 +59,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestWithOptionOff()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -79,7 +79,7 @@ new TestParameters(
     options: Option(CSharpCodeStyleOptions.PreferSimpleUsingStatement, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestMultiDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -233,7 +233,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestWithBlockBodyWithContents()
         {
             await TestInRegularAndScriptAsync(
@@ -262,7 +262,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestWithNonBlockBody()
         {
             await TestInRegularAndScriptAsync(
@@ -289,7 +289,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestMultiUsing1()
         {
             await TestInRegularAndScriptAsync(
@@ -320,7 +320,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestMultiUsingOnlyOnTopmostUsing()
         {
             await TestMissingAsync(
@@ -340,7 +340,7 @@ class C
 new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScriptAsync(
@@ -373,7 +373,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScriptAsync(
@@ -406,7 +406,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await TestInRegularAndScriptAsync(
@@ -443,7 +443,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestFixAll4()
         {
             await TestInRegularAndScriptAsync(
@@ -482,7 +482,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestFixAll5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -499,7 +499,7 @@ class C
 new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestFixAll6()
         {
             await TestInRegularAndScriptAsync(
@@ -526,7 +526,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestWithFollowingReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -555,7 +555,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestWithFollowingBreak()
         {
             await TestInRegularAndScriptAsync(
@@ -658,8 +658,7 @@ class C
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestCollision1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -680,8 +679,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestNoCollision1()
         {
             await TestInRegularAndScript1Async(
@@ -714,8 +712,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestCollision2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -737,8 +734,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestNoCollision2()
         {
             await TestInRegularAndScript1Async(
@@ -773,8 +769,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestCollision3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -796,8 +791,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestNoCollision3()
         {
             await TestInRegularAndScript1Async(
@@ -832,8 +826,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestCollision4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -853,8 +846,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestNoCollision4()
         {
             await TestInRegularAndScript1Async(
@@ -887,8 +879,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestCollision5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -910,8 +901,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
         public async Task TestNoCollision5()
         {
             await TestInRegularAndScript1Async(
@@ -946,8 +936,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
         public async Task TestCopyTrivia()
         {
             await TestInRegularAndScript1Async(
@@ -971,8 +960,7 @@ parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
 }");
         }
 
-        [WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
         public async Task TestMultiCopyTrivia()
         {
             await TestInRegularAndScript1Async(
@@ -998,7 +986,7 @@ parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestFixAll_WithTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -1035,8 +1023,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
         public async Task TestCopyCompilerDirectiveTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -1079,8 +1066,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
         public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterRestore()
         {
             await TestInRegularAndScriptAsync(
@@ -1125,8 +1111,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
         public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeRestore()
         {
             await TestInRegularAndScriptAsync(
@@ -1171,8 +1156,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
         public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterDisable()
         {
             await TestInRegularAndScriptAsync(
@@ -1217,8 +1201,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
         public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeDisable()
         {
             await TestInRegularAndScriptAsync(
@@ -1263,8 +1246,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
         public async Task TestCopyCompilerDirectiveTrivia_PreserveCodeBeforeAndAfterDirective()
         {
             await TestInRegularAndScriptAsync(
@@ -1311,8 +1293,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(38842, "https://github.com/dotnet/roslyn/issues/38842")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38842, "https://github.com/dotnet/roslyn/issues/38842")]
         public async Task TestNextLineIndentation1()
         {
             await TestInRegularAndScriptAsync(
@@ -1351,8 +1332,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(38842, "https://github.com/dotnet/roslyn/issues/38842")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38842, "https://github.com/dotnet/roslyn/issues/38842")]
         public async Task TestNextLineIndentation2()
         {
             await TestInRegularAndScriptAsync(
@@ -1387,8 +1367,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
         public async Task TestKeepSurroundingComments()
         {
             await TestInRegularAndScriptAsync(
@@ -1419,8 +1398,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
         public async Task TestKeepSurroundingComments2()
         {
             await TestInRegularAndScriptAsync(
@@ -1455,8 +1433,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
         public async Task TestKeepSurroundingComments3()
         {
             await TestInRegularAndScriptAsync(
@@ -1499,8 +1476,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
         public async Task TestWithBlockBodyWithOpeningBracketOnSameLine()
         {
             await TestInRegularAndScriptAsync(
@@ -1528,8 +1504,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
         public async Task TestWithBlockBodyWithOpeningBracketOnSameLine2()
         {
             await TestInRegularAndScriptAsync(
@@ -1557,8 +1532,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
         public async Task TestWithBlockBodyWithOpeningBracketAndCommentOnSameLine()
         {
             await TestInRegularAndScriptAsync(
@@ -1586,8 +1560,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
         public async Task TestWithBlockBodyWithOpeningBracketOnSameLineWithNoStatements()
         {
             await TestInRegularAndScriptAsync(
@@ -1613,8 +1586,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
         public async Task TestWithBlockBodyWithOpeningBracketOnSameLineAndCommentInBlock()
         {
             await TestInRegularAndScriptAsync(
@@ -1642,8 +1614,7 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-        [WorkItem(58911, "https://github.com/dotnet/roslyn/issues/58911")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(58911, "https://github.com/dotnet/roslyn/issues/58911")]
         public async Task TestUsingWithoutSpace()
         {
             await TestInRegularAndScriptAsync(
@@ -1686,6 +1657,161 @@ parseOptions: CSharp8ParseOptions);
 }
 ",
 parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithConstantReturn1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        return true;
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        using var foo = new MemoryStream();
+
+        return true;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithNonConstantReturn1()
+        {
+            await TestMissingAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        return a > b;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctions1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        using var foo = new MemoryStream();
+
+        void Inner1() { }
+        void Inner2() { }
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctions2()
+        {
+            await TestMissingAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return a > b;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctionsAndConstantReturn()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return true;
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        using var foo = new MemoryStream();
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return true;
+    }
+}
+");
         }
     }
 }

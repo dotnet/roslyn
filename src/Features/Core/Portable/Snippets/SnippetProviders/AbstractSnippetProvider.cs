@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractSnippetProvider : ISnippetProvider
     {
-        public abstract string SnippetIdentifier { get; }
-        public abstract string SnippetDescription { get; }
+        public abstract string Identifier { get; }
+        public abstract string Description { get; }
 
         public virtual ImmutableArray<string> AdditionalFilterTexts => ImmutableArray<string>.Empty;
 
@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Generates the new snippet's TextChanges that are being inserted into the document.
         /// </summary>
         protected abstract Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Method for each snippet to locate the inserted SyntaxNode to reformat.
-        /// </summary>
-        protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the position that we want the caret to be at after all of the indentation/formatting has been done.
@@ -80,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            return new SnippetData(SnippetDescription, SnippetIdentifier, AdditionalFilterTexts);
+            return new SnippetData(Description, Identifier, AdditionalFilterTexts);
         }
 
         /// <summary>
@@ -146,7 +141,11 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            var nodeWithTrivia = node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true),
+            var allTokens = node.DescendantTokens(descendIntoTrivia: true).ToList();
+
+            // Skips the first and last token since
+            // those do not need elastic trivia added to them.
+            var nodeWithTrivia = node.ReplaceTokens(allTokens.Skip(1).Take(allTokens.Count - 2),
                 (oldtoken, _) => oldtoken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
                 .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
                 .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
@@ -218,6 +217,21 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
+        }
+
+        /// <summary>
+        /// Method to added formatting annotations to the created snippet.
+        /// </summary>
+        protected virtual async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
+            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
+            Contract.ThrowIfNull(snippetExpressionNode);
+
+            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
+            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
         protected virtual SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)

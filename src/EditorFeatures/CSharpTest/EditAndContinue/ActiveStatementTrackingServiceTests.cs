@@ -172,7 +172,7 @@ class C
                     new ActiveStatementSpan(0, span21, ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null),
                     new ActiveStatementSpan(1, span22, ActiveStatementFlags.LeafFrame, unmappedDocumentId: null)),
                 "2.cs" => ImmutableArray<ActiveStatementSpan>.Empty,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
             var testDocument1 = new TestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider, filePath: "1.cs");

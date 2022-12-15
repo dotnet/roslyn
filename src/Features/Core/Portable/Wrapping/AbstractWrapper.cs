@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             foreach (var item in nodesAndTokens)
             {
-                if (item == null || item.Span.IsEmpty)
+                if (item == null || item.Span.IsEmpty || item.IsMissing)
                     return true;
 
                 var firstToken = item.IsToken ? item.AsToken() : item.AsNode()!.GetFirstToken();

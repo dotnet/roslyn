@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     continue;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     if (identifierName.Identifier.ValueText == local.Name &&
                         local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
@@ -315,9 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             // Type t = null;
             // t = <anonymous function>
-            if (anonymousFunction.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment) &&
-                assignment.IsParentKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? expressionStatement) &&
-                expressionStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax? block))
+            if (anonymousFunction?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment &&
+                assignment.Parent is ExpressionStatementSyntax expressionStatement &&
+                expressionStatement.Parent is BlockSyntax block)
             {
                 if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
                 {
@@ -330,10 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         {
                             var variableDeclarator = localDeclaration.Declaration.Variables[0];
                             if (variableDeclarator.Initializer == null ||
-                                variableDeclarator.Initializer.Value.IsKind(
-                                    SyntaxKind.NullLiteralExpression,
-                                    SyntaxKind.DefaultLiteralExpression,
-                                    SyntaxKind.DefaultExpression))
+                                variableDeclarator.Initializer.Value.Kind() is
+                                    SyntaxKind.NullLiteralExpression or
+                                    SyntaxKind.DefaultLiteralExpression or
+                                    SyntaxKind.DefaultExpression)
                             {
                                 var identifierName = (IdentifierNameSyntax)assignment.Left;
                                 if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)

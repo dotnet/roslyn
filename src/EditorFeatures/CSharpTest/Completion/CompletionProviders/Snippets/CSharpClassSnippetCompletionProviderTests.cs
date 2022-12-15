@@ -13,11 +13,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class CSharpClassSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
         protected override string ItemToCommit => "class";
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassSnippetInNamespaceTest()
         {
             var markupBeforeCommit =
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassSnippetInFileScopedNamespaceTest()
         {
             var markupBeforeCommit =
@@ -55,7 +56,7 @@ class MyClass
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassSnippetTest()
         {
             var markupBeforeCommit =
@@ -69,7 +70,7 @@ class MyClass
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassTopLevelSnippetTest()
         {
             var markupBeforeCommit =
@@ -78,7 +79,6 @@ $$";
 
             var expectedCodeAfterCommit =
 @"System.Console.WriteLine();
-
 class MyClass
 {
     $$
@@ -86,7 +86,7 @@ class MyClass
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassSnippetInClassTest()
         {
             var markupBeforeCommit =
@@ -106,7 +106,7 @@ class MyClass
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassSnippetInRecordTest()
         {
             var markupBeforeCommit =
@@ -126,7 +126,7 @@ class MyClass
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassSnippetInStructTest()
         {
             var markupBeforeCommit =
@@ -146,7 +146,7 @@ class MyClass
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassSnippetInInterfaceTest()
         {
             var markupBeforeCommit =
@@ -166,7 +166,7 @@ class MyClass
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertClassSnippetWithModifiersTest()
         {
             var markupBeforeCommit =
@@ -195,7 +195,7 @@ public class MyClass
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoClassSnippetInEnumTest()
         {
             var markupBeforeCommit =
@@ -207,7 +207,7 @@ public class MyClass
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoClassSnippetInMethodTest()
         {
             var markupBeforeCommit =
@@ -221,7 +221,7 @@ public class MyClass
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoClassSnippetInConstructorTest()
         {
             var markupBeforeCommit =

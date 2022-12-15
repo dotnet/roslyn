@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
 
         public sealed override bool AreLocalsZeroed
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         internal override bool IsRecord => false;
         internal override bool IsRecordStruct => false;

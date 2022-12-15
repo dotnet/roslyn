@@ -183,27 +183,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddNullableAnnotations(symbol);
 
             if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes) != 0
-                && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { AssociatedSyntaxTree: SyntaxTree tree } internalSymbol })
+                && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { AssociatedFileIdentifier: { } identifier } internalSymbol })
             {
-                var fileDescription = getDisplayFileName(tree) is { Length: not 0 } path
-                    ? path
-                    : $"<tree {internalSymbol.DeclaringCompilation.SyntaxTrees.IndexOf(tree)}>";
+                var fileDescription = identifier.DisplayFilePath is { Length: not 0 } path ? path
+                    : internalSymbol.Locations.FirstOrNone().SourceTree is { } tree ? $"<tree {internalSymbol.DeclaringCompilation.GetSyntaxTreeOrdinal(tree)}>"
+                    : "<unknown>";
 
                 builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));
                 builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileDescription));
-            }
-
-            static string getDisplayFileName(SyntaxTree tree)
-            {
-                if (tree.FilePath.Length == 0)
-                {
-                    return "";
-                }
-
-                var pooledBuilder = PooledStringBuilder.GetInstance();
-                var sb = pooledBuilder.Builder;
-                GeneratedNames.AppendFileName(tree.FilePath, sb);
-                return pooledBuilder.ToStringAndFree();
             }
         }
 

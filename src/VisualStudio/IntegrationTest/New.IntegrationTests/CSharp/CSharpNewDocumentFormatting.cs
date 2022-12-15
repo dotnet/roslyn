@@ -31,8 +31,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Workspace.SetFullSolutionAnalysisAsync(false, HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
-        [WorkItem(1411721, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
+        [IdeFact, WorkItem(1411721, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
         public async Task CreateLegacyProjectWithFileScopedNamespaces()
         {
             await TestServices.Workspace.SetFileScopedNamespaceAsync(true, HangMitigatingCancellationToken);
@@ -139,7 +138,7 @@ csharp_style_namespace_declarations = file_scoped
         private async Task VerifyNoErrorsAsync(CancellationToken cancellationToken)
         {
             await TestServices.ErrorList.ShowErrorListAsync(cancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, cancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(cancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join<string>(Environment.NewLine, Array.Empty<string>()),

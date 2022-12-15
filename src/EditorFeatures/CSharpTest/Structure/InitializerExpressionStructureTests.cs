@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InitializerExpressionSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider()
             => new InitializerExpressionStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestOuterInitializer()
         {
             await VerifyBlockSpansAsync(
@@ -37,7 +38,7 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestInnerInitializer()
         {
             await VerifyBlockSpansAsync(

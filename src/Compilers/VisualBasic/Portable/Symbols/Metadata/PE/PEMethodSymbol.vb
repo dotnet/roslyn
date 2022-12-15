@@ -226,7 +226,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return If(retVal, InterlockedOperations.Initialize(_uncommonFields, CreateUncommonFields()))
         End Function
 
-
 #Region "Signature data"
         Private _lazySignature As SignatureData
 
@@ -1059,7 +1058,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim moduleSymbol = _containingType.ContainingPEModule
                 Dim gpHandles = moduleSymbol.Module.GetGenericParametersForMethodOrThrow(_handle)
 
-
                 If gpHandles.Count = 0 Then
                     Return ImmutableArray(Of TypeParameterSymbol).Empty
                 Else
@@ -1126,7 +1124,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
 
         End Property
-
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             ' Note: m_lazyDocComment is passed ByRef

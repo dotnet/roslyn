@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppression
+    <Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
     Public Class VisualBasicSuppressionAllCodeTests
         Inherits AbstractSuppressionAllCodeTests
 
@@ -27,12 +28,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return New Tuple(Of Analyzer, IConfigurationFixProvider)(New Analyzer(), New VisualBasicSuppressionCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+        <Fact>
         Public Async Function TestPragmaWarningOnEveryNodes() As Task
             Await TestPragmaAsync(TestResource.AllInOneVisualBasicCode, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning", StringComparison.Ordinal) >= 0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+        <Fact>
         Public Async Function TestSuppressionWithAttributeOnEveryNodes() As Task
             Await TestSuppressionWithAttributeAsync(
                 TestResource.AllInOneVisualBasicCode,

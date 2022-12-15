@@ -10,9 +10,9 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.LineCommit)>
     Public Class CommitWithViewTests
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterTypingAndDownArrow()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -30,7 +30,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestDontCrashOnPastingCarriageReturnContainingString()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -52,9 +51,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539305")>
+        <WpfFact, WorkItem(539305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539305")>
         Public Sub TestCommitAfterTypingAndUpArrowInLambdaFooter()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -78,9 +75,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539469")>
+        <WpfFact, WorkItem(539469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539469")>
         Public Sub TestCommitAfterTypingAndUpArrowInLambdaFooter2()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -108,9 +103,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539457")>
+        <WpfFact, WorkItem(539457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539457")>
         Public Sub TestCommitAfterTypingAndUpArrowIntoBlankLine()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -133,9 +126,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539411")>
+        <WpfFact, WorkItem(539411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539411")>
         Public Sub TestCommitAfterTypingInTrivia()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -156,9 +147,7 @@ $$</Document>
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
+        <WpfFact, WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
         <WorkItem(631913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631913")>
         Public Sub TestCommitAfterTypingInTrivia2()
             Using testData = CommitTestData.Create(
@@ -183,9 +172,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
+        <WpfFact, WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Sub TestCommitAfterTypingAttributeOfType()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -205,9 +192,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
+        <WpfFact, WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Sub TestCommitAfterTypingAttributeOfMethod()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -229,9 +214,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
+        <WpfFact, WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Sub TestCommitAfterTypingInMethodNameAndThenMovingToAttribute()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -254,7 +237,6 @@ End Class
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestNoCommitDuringInlineRename()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -277,9 +259,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
+        <WpfFact, WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
         Public Sub TestCommitAfterLeavingStatementAfterLineContinuation()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -311,9 +291,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539318")>
+        <WpfFact, WorkItem(539318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539318")>
         Public Sub TestCommitAfterDeletingIndentationFixesIndentation()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -347,7 +325,6 @@ End Module
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitIfThenOnlyAfterStartingNewBlock()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -373,7 +350,6 @@ End Module
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitEndIfOnlyAfterStartingNewBlock()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -399,7 +375,6 @@ End Module
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitFullIfBlockAfterCommittingElseIf()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -425,7 +400,6 @@ End Module
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitFullIfBlockAfterCommittingEndIf()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -451,7 +425,6 @@ End Module
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitTryBlockAfterCommittingCatch()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -477,7 +450,6 @@ End Module
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitTryBlockAfterCommittingFinally()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -503,7 +475,6 @@ End Module
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitDoLoopBlockAfterCommittingLoop()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -529,7 +500,6 @@ End Module
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitEnumBlockAfterCommittingEndEnum()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -555,7 +525,6 @@ End Namespace
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitGetAccessorBlockAfterCommittingEndGet()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -580,7 +549,6 @@ End Namespace
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitSyncLockBlockAfterCommittingEndSyncLock()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -605,9 +573,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539613")>
+        <WpfFact, WorkItem(539613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539613")>
         Public Sub TestRelativeIndentationBug()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -660,7 +626,6 @@ End Module
         <WorkItem(16493, "DevDiv_Projects/Roslyn")>
         <WorkItem(539544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539544")>
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestBetterStartIndentation()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -715,9 +680,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(544104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544104")>
+        <WpfFact, WorkItem(544104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544104")>
         Public Sub TestCommitAfterMoveDownAfterIfStatement()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -747,7 +710,6 @@ End Class</Code>
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterXmlElementStartTag()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -773,9 +735,7 @@ End Class</Code>
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(545358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545358")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, WorkItem(545358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545358")>
         Public Sub TestCommitWithNextStatementWithMultipleControlVariables()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -809,9 +769,7 @@ End Module</Code>
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(608438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608438")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, WorkItem(608438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608438")>
         Public Sub TestBugfix_608438()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -837,9 +795,7 @@ End Module|]</Document>
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
+        <WpfFact, WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Sub TestMultiLineString1()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -868,9 +824,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
+        <WpfFact, WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Sub TestMultiLineString2()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -899,9 +853,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
+        <WpfFact, WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Sub TestMultiLineString3()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -930,7 +882,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact>
         Public Sub TestEnableWarningDirective1()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -954,7 +906,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact>
         Public Sub TestEnableWarningDirective2()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -978,7 +930,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact>
         Public Sub TestDisableWarningDirective1()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1008,7 +960,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact>
         Public Sub TestDisableWarningDirective2()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1034,7 +986,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact>
         Public Sub TestIncompleteWarningDirective()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1061,7 +1013,7 @@ End Module
         End Sub
 
         <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact>
         Public Sub TestMissingThenInIf()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1096,7 +1048,7 @@ End Class
         End Sub
 
         <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact>
         Public Sub TestMissingThenInElseIf()
             Using testData = CommitTestData.Create(
                 <Workspace>

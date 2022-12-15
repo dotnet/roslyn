@@ -482,14 +482,15 @@ namespace System
 }}
 ";
 
-            var corlibRef = CreateEmptyCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlibRef = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions).EmitToImageReference(expectedWarnings: new[]
             {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var publicLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
-            var internalLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
+            var publicLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }, parseOptions: parseOptions).EmitToImageReference();
+            var internalLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }, parseOptions: parseOptions).EmitToImageReference();
 
             var comp = CreateEmptyCompilation("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
 
@@ -504,7 +505,8 @@ namespace System
 
         private static void ValidateSourceAndMetadata(string source, Action<CSharpCompilation> validate)
         {
-            var comp1 = CreateEmptyCompilation(source);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp1 = CreateEmptyCompilation(source, parseOptions: parseOptions);
             validate(comp1);
 
             var reference = comp1.EmitToImageReference(expectedWarnings: new[]
@@ -513,7 +515,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var comp2 = CreateEmptyCompilation("", new[] { reference });
+            var comp2 = CreateEmptyCompilation("", new[] { reference }, parseOptions: parseOptions);
             validate(comp2);
         }
 
@@ -998,6 +1000,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor:
                     case WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

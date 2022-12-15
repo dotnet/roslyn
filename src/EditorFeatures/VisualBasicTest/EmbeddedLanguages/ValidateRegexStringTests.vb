@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.Lan
 Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
+    <Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
     Public Class ValidateRegexStringTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -21,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return [Option](IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
+        <Fact>
         Public Async Function TestWarning1() As Task
             Await TestDiagnosticInfoAsync("
         imports System.Text.RegularExpressions
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
+        <Fact>
         Public Async Function TestWarning2() As Task
             Await TestDiagnosticInfoAsync("
         imports System.Text.RegularExpressions

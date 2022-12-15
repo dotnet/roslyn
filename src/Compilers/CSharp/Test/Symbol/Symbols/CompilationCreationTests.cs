@@ -2987,7 +2987,6 @@ Console.WriteLine(2);
             Assert.IsType<SourceNamedTypeSymbol>(sourceType);
             Assert.Equal(lib2, sourceType.DeclaringCompilation);
 
-
             var addedModule = sourceAssembly.Modules[1];
             var addedModuleAssembly = addedModule.ContainingAssembly;
             var addedModuleType = addedModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C1");

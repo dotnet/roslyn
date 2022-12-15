@@ -48,10 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsDiscard => false;
 
-        internal override bool IsMetadataIn => RefKind == RefKind.In;
-
-        internal override bool IsMetadataOut => RefKind == RefKind.Out;
-
         public override string Name
         {
             get { return _name; }
@@ -71,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOptional
         {
-            get { return false; }
+            get { return ExplicitDefaultConstantValue != null; }
         }
 
         public override bool IsImplicitlyDeclared
@@ -86,27 +82,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsIDispatchConstant
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsIUnknownConstant
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsCallerLineNumber
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override int CallerArgumentExpressionParameterIndex
@@ -162,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ParameterHelpers.RequiresScopedRefAttribute(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, DeclaredScope));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, EffectiveScope));
             }
 
             if (type.Type.ContainsTupleNames() &&
@@ -182,15 +178,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
+
+            if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+            }
         }
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal sealed override DeclarationScope DeclaredScope => _scope;
+        internal sealed override DeclarationScope EffectiveScope => _scope;
 
-        internal sealed override DeclarationScope EffectiveScope => ParameterHelpers.CalculateEffectiveScopeIgnoringAttributes(this);
+        internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => _container?.UseUpdatedEscapeRules ?? false;
     }
@@ -208,6 +209,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        internal sealed override bool IsMetadataIn => RefKind == RefKind.In;
+
+        internal sealed override bool IsMetadataOut => RefKind == RefKind.Out;
+
         public static ParameterSymbol Create(
             MethodSymbol? container,
             TypeWithAnnotations type,
@@ -215,10 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name = "",
             DeclarationScope scope = DeclarationScope.Unscoped,
+            ConstantValue? defaultValue = null,
             ImmutableArray<CustomModifier> refCustomModifiers = default,
-            SourceComplexParameterSymbolBase? baseParameterForAttributes = null)
+            SourceComplexParameterSymbolBase? baseParameterForAttributes = null,
+            bool isParams = false)
         {
-            if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null)
+            if (!isParams && refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null && defaultValue is null)
             {
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, name);
             }
@@ -229,9 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ordinal,
                 refKind,
                 scope,
+                defaultValue,
                 name,
                 refCustomModifiers.NullToEmpty(),
-                baseParameterForAttributes);
+                baseParameterForAttributes,
+                isParams);
         }
 
         /// <summary>
@@ -255,7 +264,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     oldParam.Ordinal,
                     oldParam.RefKind,
                     oldParam.Name,
-                    oldParam.DeclaredScope,
+                    oldParam.EffectiveScope,
+                    oldParam.ExplicitDefaultConstantValue,
                     oldParam.RefCustomModifiers,
                     baseParameterForAttributes: null));
             }
@@ -280,6 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // The parameter containing attributes to inherit into this synthesized parameter, if any.
         private readonly SourceComplexParameterSymbolBase? _baseParameterForAttributes;
+        private readonly ConstantValue? _defaultValue;
+        private readonly bool _isParams;
 
         public SynthesizedComplexParameterSymbol(
             MethodSymbol? container,
@@ -287,16 +299,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
+            ConstantValue? defaultValue,
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            SourceComplexParameterSymbolBase? baseParameterForAttributes)
+            SourceComplexParameterSymbolBase? baseParameterForAttributes,
+            bool isParams)
             : base(container, type, ordinal, refKind, scope, name)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
-            Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);
+            Debug.Assert(isParams || !refCustomModifiers.IsEmpty || baseParameterForAttributes is object || defaultValue is not null);
+            Debug.Assert(baseParameterForAttributes is null || baseParameterForAttributes.ExplicitDefaultConstantValue == defaultValue);
 
             _refCustomModifiers = refCustomModifiers;
             _baseParameterForAttributes = baseParameterForAttributes;
+            _defaultValue = defaultValue;
+            _isParams = isParams;
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -313,9 +330,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
 
-        internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional == true;
+        public override bool IsParams => _isParams;
 
-        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
+        internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional ?? base.IsMetadataOptional;
+
+        internal override bool IsCallerLineNumber
+        {
+            get => _baseParameterForAttributes?.IsCallerLineNumber ?? false;
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get => _baseParameterForAttributes?.IsCallerFilePath ?? false;
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get => _baseParameterForAttributes?.IsCallerMemberName ?? false;
+        }
+
+        internal override bool IsMetadataIn => RefKind == RefKind.In || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
+
+        internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
+
+        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue ?? _defaultValue;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {

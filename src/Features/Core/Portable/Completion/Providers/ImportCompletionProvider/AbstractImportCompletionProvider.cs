@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportedNamespaces())
+            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportedNamespaces)
                 return;
 
             var cancellationToken = completionContext.CancellationToken;

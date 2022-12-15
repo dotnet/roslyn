@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class EventDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of EventStatementSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New EventDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestEvent() As Task
             Const code = "
 Class C1
@@ -25,7 +26,7 @@ End Class
             Await VerifyNoBlockSpansAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestEventWithComments() As Task
             Const code = "
 Class C1
@@ -39,7 +40,7 @@ End Class
                 Region("span", "' My ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCustomEvent() As Task
             Const code = "
 Class C1
@@ -58,7 +59,7 @@ End Class
                 Region("span", "Custom Event eventName As EventHandler ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestPrivateCustomEvent() As Task
             Const code = "
 Class C1
@@ -77,7 +78,7 @@ End Class
                 Region("span", "Private Custom Event eventName As EventHandler ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCustomEventWithComments() As Task
             Const code = "
 Class C1

@@ -19,22 +19,23 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     /// <threadsafety static="false" instance="false"/>
     internal class PerformanceQueue
     {
-        // we need at least 100 samples for result to be stable
-        private const int MinSampleSize = 100;
-
-        private readonly int _maxSampleSize;
+        private readonly int _maxSampleSize, _minSampleSize;
         private readonly LinkedList<Snapshot> _snapshots;
 
-        public PerformanceQueue(int maxSampleSize)
-        {
-            Contract.ThrowIfFalse(maxSampleSize > MinSampleSize);
+        private int _snapshotsSinceLastReport;
 
-            _maxSampleSize = maxSampleSize;
+        public PerformanceQueue(int minSampleSize)
+        {
+            // We allow at most 3 times the number of samples in the queue and
+            // use sliding window algorithm to choose the latest 'minSampleSize' samples.
+            _maxSampleSize = minSampleSize * 3;
+
+            _minSampleSize = minSampleSize;
             _snapshots = new LinkedList<Snapshot>();
+            _snapshotsSinceLastReport = 0;
         }
 
         public int Count => _snapshots.Count;
-
         public void Add(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData, int unitCount)
         {
             if (_snapshots.Count < _maxSampleSize)
@@ -51,15 +52,19 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 first.Value.Update(rawData, unitCount);
                 _snapshots.AddLast(first);
             }
+
+            _snapshotsSinceLastReport++;
         }
 
-        public void GetPerformanceData(Dictionary<string, (double average, double stddev)> aggregatedPerformanceDataPerAnalyzer)
+        public void GetPerformanceData(List<(string analyzerId, double average, double stddev)> aggregatedPerformanceDataPerAnalyzer)
         {
-            if (_snapshots.Count < MinSampleSize)
+            if (_snapshotsSinceLastReport < _minSampleSize)
             {
                 // we don't have enough data to report this
                 return;
             }
+
+            _snapshotsSinceLastReport = 0;
 
             using var pooledMap = SharedPools.Default<Dictionary<int, string>>().GetPooledObject();
             using var pooledSet = SharedPools.Default<HashSet<int>>().GetPooledObject();
@@ -95,13 +100,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 // data is only stable once we have more than certain set
                 // of samples
-                if (list.Count < MinSampleSize)
+                if (list.Count < _minSampleSize)
                 {
                     continue;
                 }
 
                 // set performance data
-                aggregatedPerformanceDataPerAnalyzer[reverseMap[assignedAnalyzerNumber]] = GetAverageAndAdjustedStandardDeviation(list);
+                var analyzerId = reverseMap[assignedAnalyzerNumber];
+                var (average, stddev) = GetAverageAndAdjustedStandardDeviation(list);
+                aggregatedPerformanceDataPerAnalyzer.Add((analyzerId, average, stddev));
 
                 list.Clear();
             }

@@ -360,7 +360,6 @@ public class C3 : Interface2<Class1>
                 Console.WriteLine(diag);
             }
 
-
             var comp2 = CreateCompilation(
                 new AssemblyIdentity("Assembly2"),
                 new string[]

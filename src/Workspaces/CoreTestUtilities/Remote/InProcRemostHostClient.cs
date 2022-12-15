@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 _inprocServices.ServiceBrokerClient,
                 _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),
-                shutdownCancellationService: null);
+                shutdownCancellationService: null,
+                remoteProcess: null);
         }
 
         public override void Dispose()
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             // This method is currently not needed for our IServiceBroker usage patterns.
             public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor descriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
             {
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteAsynchronousOperationListenerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteTodoCommentsDiscoveryService.Factory());
+                RegisterRemoteBrokeredService(new RemoteTaskListService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDocumentHighlightsService.Factory());
@@ -199,6 +200,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteConvertTupleToStructCodeRefactoringService.Factory());
                 RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
+                RegisterRemoteBrokeredService(new RemoteFullyQualifyService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigationBarItemService.Factory());
@@ -212,7 +214,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
+                RegisterRemoteBrokeredService(new RemoteLegacySolutionEventsAggregationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
+                RegisterRemoteBrokeredService(new RemoteUnitTestingSearchService.Factory());
             }
 
             public void Dispose()

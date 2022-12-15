@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (underlyingMethodSymbol is NativeIntegerMethodSymbol)
             {
                 // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

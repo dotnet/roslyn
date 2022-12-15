@@ -24,8 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Name(nameof(InheritanceMarginViewMarginProvider))]
-    [MarginContainer(PredefinedMarginNames.Left)]
-    [Order(After = PredefinedMarginNames.Glyph)]
+    // Place our margin inside Left Selection Margin Container. And keep it to the left-most location.
+    [MarginContainer(PredefinedMarginNames.LeftSelection)]
+    [Order(After = DefaultOrderings.Lowest)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal class InheritanceMarginViewMarginProvider : IWpfTextViewMarginProvider
     {

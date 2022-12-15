@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 {
     [ExportStatelessXamlLspService(typeof(GoToDefinitionHandler)), Shared]
     [Method(Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandler : IRequestHandler<TextDocumentPositionParams, LSP.Location[]>
+    internal class GoToDefinitionHandler : ILspServiceRequestHandler<TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IGlobalOptionService _globalOptions;
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
         public async Task<LSP.Location[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
@@ -170,11 +170,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             {
                 if (metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
+                    var workspace = context.Workspace;
                     var project = context.Document?.GetCodeProject();
-                    if (project != null)
+                    if (workspace != null && project != null)
                     {
                         var options = globalOptions.GetMetadataAsSourceOptions(project.Services);
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {

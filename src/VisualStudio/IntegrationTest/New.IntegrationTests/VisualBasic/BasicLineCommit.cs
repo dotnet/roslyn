@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
@@ -36,7 +37,7 @@ Dim x = Sub()
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("Sub()", charsOffset: 1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN);
+            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
             Assert.Equal(48, await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken));
         }
 
@@ -50,7 +51,7 @@ End Module", HangMitigatingCancellationToken);
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("    REM", charsOffset: 0, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("sub", VirtualKeyCode.ESCAPE, " goo()", VirtualKeyCode.RETURN);
+            await TestServices.Input.SendAsync(new InputKey[] { "sub", VirtualKeyCode.ESCAPE, " goo()", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module Module1
     Sub Main()
     End Sub
@@ -73,7 +74,7 @@ End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationTo
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("Module1", charsOffset: 0, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, VirtualKeyCode.RETURN);
+            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.DOWN, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module Module1
 
 
@@ -96,10 +97,10 @@ End Module
 ", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("(", charsOffset: 1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("x   As   integer", VirtualKeyCode.TAB);
+            await TestServices.Input.SendAsync(new InputKey[] { "x   As   integer", VirtualKeyCode.TAB }, HangMitigatingCancellationToken);
 
             Assert.False(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
-            await TestServices.Input.SendAsync((VirtualKeyCode.VK_S, VirtualKeyCode.CONTROL));
+            await TestServices.Input.SendAsync((VirtualKeyCode.VK_S, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
             // Wait for async save operations to complete before proceeding
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
@@ -130,10 +131,10 @@ End Module
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("End Sub", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(" ");
+            await TestServices.Input.SendAsync(" ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "TestZ.vb", open: true, cancellationToken: HangMitigatingCancellationToken); // Cause focus lost
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "TestZ.vb", HangMitigatingCancellationToken); // Work around https://github.com/dotnet/roslyn/issues/18488
-            await TestServices.Input.SendAsync("                  ");
+            await TestServices.Input.SendAsync("                  ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.CloseCodeFileAsync(ProjectName, "TestZ.vb", saveFile: false, cancellationToken: HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module M
     Sub M()
@@ -153,10 +154,10 @@ End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationTo
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("End Sub", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(" ");
+            await TestServices.Input.SendAsync(" ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "TestZ.vb", open: true, cancellationToken: HangMitigatingCancellationToken); // Cause focus lost
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "TestZ.vb", HangMitigatingCancellationToken); // Work around https://github.com/dotnet/roslyn/issues/18488
-            await TestServices.Input.SendAsync("                  ");
+            await TestServices.Input.SendAsync("                  ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.CloseCodeFileAsync(ProjectName, "TestZ.vb", saveFile: false, HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module M
     Sub M()

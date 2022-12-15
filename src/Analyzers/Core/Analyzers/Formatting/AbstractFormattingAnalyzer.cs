@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
         }
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(Descriptor);
-
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 

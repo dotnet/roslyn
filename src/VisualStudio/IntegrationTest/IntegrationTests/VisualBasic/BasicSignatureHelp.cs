@@ -13,6 +13,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
     public class BasicSignatureHelp : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -71,7 +72,7 @@ End Class
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void MethodSignatureHelp()
         {
             SetUpEditor(Baseline);
@@ -85,7 +86,7 @@ End Class
                 ("i2", "an integer, anything you like."));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void GenericMethodSignatureHelp1()
         {
             SetUpEditor(Baseline);
@@ -99,7 +100,7 @@ End Class
                 ("i", "Param 1 of type T1"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void GenericMethodSignatureHelp2()
         {
             SetUpEditor(@"
@@ -140,7 +141,7 @@ End Class");
                 ("T1", "Type Parameter"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void GenericMethodSignatureHelp_InvokeSighelp()
         {
             SetUpEditor(@"
@@ -167,7 +168,7 @@ End Class");
                 ("T2", ""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void VerifyActiveParameterChanges()
         {
             SetUpEditor(@"
@@ -185,7 +186,7 @@ End Module");
         }
 
         [WorkItem(741415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void HandleBufferTextChangesDuringComputation()
         {
             SetUpEditor(@"
@@ -207,7 +208,7 @@ Class C
             Assert.False(VisualStudio.Editor.IsSignatureHelpActive());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void JaggedMultidimensionalArray()
         {
             SetUpEditor(Baseline);

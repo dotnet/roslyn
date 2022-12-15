@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
         private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context)
         {
-            if (!nameColon.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
+            if (nameColon.Parent is not ArgumentSyntax argument)
             {
                 return;
             }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
         private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context)
         {
-            if (!nameEquals.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonCtor))
+            if (nameEquals.Parent is not AnonymousObjectMemberDeclaratorSyntax anonCtor)
             {
                 return;
             }

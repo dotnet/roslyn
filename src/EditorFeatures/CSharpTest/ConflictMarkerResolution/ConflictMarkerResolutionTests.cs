@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
 {
     using VerifyCS = CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, CSharpResolveConflictMarkerCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
     public class ConflictMarkerResolutionTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeTop1()
         {
             var source = @"
@@ -72,7 +73,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeBottom1()
         {
             var source = @"
@@ -125,7 +126,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeBoth1()
         {
             var source = @"
@@ -186,7 +187,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestEmptyTop_TakeTop()
         {
             var source = @"
@@ -223,7 +224,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestEmptyTop_TakeBottom()
         {
             var source = @"
@@ -268,7 +269,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestEmptyBottom_TakeTop()
         {
             var source = @"
@@ -313,7 +314,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestEmptyBottom_TakeBottom()
         {
             var source = @"
@@ -350,7 +351,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeTop_WhitespaceInSection()
         {
             var source = @"
@@ -407,7 +408,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeBottom1_WhitespaceInSection()
         {
             var source = @"
@@ -464,7 +465,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeBoth_WhitespaceInSection()
         {
             var source = @"
@@ -533,8 +534,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_TopCommentedOut()
         {
             var source = @"
@@ -575,8 +575,7 @@ public class Class1
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_SecondMiddleAndBottomCommentedOut()
         {
             var source = @"
@@ -615,8 +614,7 @@ public class Class1
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_TopInString()
         {
             var source = @"
@@ -648,8 +646,7 @@ a"";
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeBottom_TopInString()
         {
             var source = @"
@@ -681,8 +678,7 @@ b"";
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestMissingWithMiddleMarkerAtTopOfFile()
         {
             var source = @"{|CS8300:=======|}
@@ -697,8 +693,7 @@ class X {
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestMissingWithMiddleMarkerAtBottomOfFile()
         {
             var source = @"{|CS8300:<<<<<<<|} working copy
@@ -713,7 +708,7 @@ class X {
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestMissingWithFirstMiddleMarkerAtBottomOfFile()
         {
             var source = @"{|CS8300:<<<<<<<|} working copy
@@ -728,8 +723,7 @@ class X {
             }.RunAsync();
         }
 
-        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll1()
         {
             var source = @"
@@ -781,8 +775,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll2()
         {
             var source = @"
@@ -834,8 +827,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll3()
         {
             var source = @"
@@ -893,7 +885,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeTop_WithBaseline()
         {
             var source = @"
@@ -948,7 +940,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeBottom1_WithBaseline()
         {
             var source = @"
@@ -1003,7 +995,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeBoth1_WithBaseline()
         {
             var source = @"
@@ -1066,7 +1058,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestEmptyTop_TakeTop_WithBaseline()
         {
             var source = @"
@@ -1105,7 +1097,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestEmptyTop_TakeBottom_WithBaseline()
         {
             var source = @"
@@ -1152,7 +1144,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestEmptyBottom_TakeTop_WithBaseline()
         {
             var source = @"
@@ -1199,7 +1191,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestEmptyBottom_TakeBottom_WithBaseline()
         {
             var source = @"
@@ -1238,7 +1230,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeTop_TopCommentedOut_WithBaseline()
         {
             var source = @"
@@ -1282,7 +1274,7 @@ public class Class1
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeTop_FirstMiddleAndSecondMiddleAndBottomCommentedOut()
         {
             var source = @"
@@ -1323,7 +1315,7 @@ public class Class1
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeTop_TopInString_WithBaseline()
         {
             var source = @"
@@ -1357,7 +1349,7 @@ a"";
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestTakeBottom_TopInString_WithBaseline()
         {
             var source = @"
@@ -1391,7 +1383,7 @@ b"";
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestMissingWithFirstMiddleMarkerAtTopOfFile()
         {
             var source = @"{|CS8300:||||||||} baseline
@@ -1407,7 +1399,7 @@ class X {
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestFixAll1_WithBaseline()
         {
             var source = @"
@@ -1463,7 +1455,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestFixAll2_WithBaseline()
         {
             var source = @"
@@ -1519,7 +1511,7 @@ namespace N
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        [Fact]
         public async Task TestFixAll3_WithBaseline()
         {
             var source = @"

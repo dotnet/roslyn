@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 var updater = new CompletionListUpdater(session.ApplicableToSpan, sessionData, data, _recentItemsManager, _globalOptions);
-                return updater.UpdateCompletionList(session, cancellationToken);
+                return await updater.UpdateCompletionListAsync(session, cancellationToken).ConfigureAwait(false);
             }
             finally
             {

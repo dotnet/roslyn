@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return base.CanApplyParseOptionChange(oldOptions, newOptions, project);
             }
 
-            protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
+            public override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
             {
                 if (_canApplyCompilationOptions != null)
                 {

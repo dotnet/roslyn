@@ -48,7 +48,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     generateDocumentationComments: true,
                     mergeAttributes: false,
                     autoInsertionLocation: false),
-                new CodeAndImportGenerationOptions(options.GenerationOptions, options.CleanupOptions.AddImportOptions).CreateProvider());
+                new CodeAndImportGenerationOptions()
+                {
+                    GenerationOptions = options.GenerationOptions,
+                    AddImportOptions = options.CleanupOptions.AddImportOptions
+                }.CreateProvider());
 
             // Add the interface of the symbol to the top of the root namespace
             document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(

@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
-                if (!options.ShouldShowItemsFromUnimportedNamespaces())
+                if (!options.ShouldShowItemsFromUnimportedNamespaces)
                 {
                     // No need to trigger expanded providers at all if the feature is disabled, just trigger core providers and return;
                     var (context, list) = await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var completionList = await completionService.GetCompletionsAsync(
                 document, triggerLocation, options, document.Project.Solution.Options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
-            var filterSet = new FilterSet();
+            var filterSet = new FilterSet(document.Project.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);
             var completionItemList = session.CreateCompletionList(
                 completionList.ItemsList.Select(i => Convert(document, i, filterSet, triggerLocation, cancellationToken)));
 

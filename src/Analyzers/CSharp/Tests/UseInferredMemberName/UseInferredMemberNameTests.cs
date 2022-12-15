@@ -55,8 +55,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact]
-        [WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")]
+        [Fact, WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")]
         public async Task TestInferredTupleName_WithAmbiguity()
         {
             await TestMissingAsync(
@@ -151,8 +150,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact]
-        [WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")]
+        [Fact, WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")]
         public async Task TestInferredAnonymousTypeMemberName_WithAmbiguity()
         {
             await TestMissingAsync(

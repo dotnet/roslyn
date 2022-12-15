@@ -42,7 +42,7 @@ class Program
     }
 }";
 
-            CreateCompilation(code).VerifyEmitDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute()).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -190,7 +190,7 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, verify: Verification.Passes, expectedOutput: "3");
+            CompileAndVerify(code, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), verify: Verification.Passes, expectedOutput: "3");
         }
 
         [Fact]
@@ -267,7 +267,7 @@ class Test
         [Fact]
         public void CompilerShouldIgnorePublicEmbeddedAttributesInReferencedAssemblies()
         {
-            var reference = CreateCompilation(assemblyName: "testRef", source: @"
+            var reference = CreateCompilation(assemblyName: "testRef", parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -489,7 +489,7 @@ public class Test
         [Fact]
         public void EmbeddedTypesInAnAssemblyAreNotExposedExternally()
         {
-            var compilation1 = CreateCompilation(@"
+            var compilation1 = CreateCompilation(parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }

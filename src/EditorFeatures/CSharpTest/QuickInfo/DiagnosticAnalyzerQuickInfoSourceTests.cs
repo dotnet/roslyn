@@ -26,10 +26,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public class DiagnosticAnalyzerQuickInfoSourceTests
     {
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ErrorTitleIsShownOnDisablePragma()
         {
             await TestInMethodAsync(
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ErrorTitleIsShownOnRestorePragma()
         {
             await TestInMethodAsync(
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task DisabledWarningNotExistingInCodeIsDisplayedByTitleWithoutCodeDetails()
         {
             await TestInMethodAsync(
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         }
 
         [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfTheory]
         [InlineData("CS0219$$")]
         [InlineData("219$$")]
         [InlineData("0219$$")]
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         }
 
         [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfTheory]
         [InlineData("#pragma warning $$CS0219", null)]
         [InlineData("#pragma warning disable$$", null)]
         [InlineData("#pragma warning disable $$true", null)]
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfTheory]
         [InlineData("#pragma warning disable $$CS0162", (int)ErrorCode.WRN_UnreachableCode)]
         [InlineData("#pragma warning disable $$CS0162, CS0219", (int)ErrorCode.WRN_UnreachableCode)]
         [InlineData("#pragma warning disable $$CS0219", (int)ErrorCode.WRN_UnreferencedVarAssg)]
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ErrorTitleIsShwonInSupressMessageAttribute()
         {
             await TestAsync(
@@ -136,7 +137,7 @@ namespace T
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfTheory]
         [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(""CodeQuality"", ""IDE0051$$"")]", true)]
         [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""CodeQuality"", ""IDE0051$$"")]", true)]
         [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""CodeQuality$$"", ""IDE0051"")]", false)]

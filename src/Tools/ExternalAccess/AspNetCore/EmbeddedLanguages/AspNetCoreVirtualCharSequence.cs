@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 
         /// <inheritdoc cref="VirtualCharSequence.FromBounds"/>
         public static AspNetCoreVirtualCharSequence FromBounds(
-            AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2) =>
-            new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
+            AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2)
+            => new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
 
         /// <inheritdoc cref="VirtualCharSequence.IndexOf"/>
         public int IndexOf(AspNetCoreVirtualChar @char)

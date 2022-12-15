@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             if (isBlockComment)
             {
                 var options = document.Project.Solution.Options;
-                newLine = options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+                newLine = options.GetOption(FormattingOptions2.NewLine, LanguageNames.CSharp);
 
                 var span = trivia.FullSpan;
                 if (span.Start < caretPosition && caretPosition < span.End)

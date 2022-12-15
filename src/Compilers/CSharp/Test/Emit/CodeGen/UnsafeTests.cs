@@ -4114,7 +4114,6 @@ static class FixableExt
 ");
         }
 
-
         [Fact]
         public void SimpleCaseOfCustomFixed_oldVersion()
         {
@@ -8055,8 +8054,6 @@ class PointerArithmetic
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "2", verify: Verification.Fails);
         }
 
-
-
         #endregion Pointer arithmetic tests
 
         #region Checked pointer arithmetic overflow tests
@@ -11327,7 +11324,6 @@ public unsafe class C
 
             var result = CompileAndVerify(compilation, expectedOutput: "5");
         }
-
 
         [Fact, WorkItem(7550, "https://github.com/dotnet/roslyn/issues/7550")]
         public void EnsureNullPointerIsPoppedIfUnused()

@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
     Public Class MissingTypeReferences
@@ -115,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Same(base.ContainingAssembly, baseContainerContainer.ContainingAssembly)
 
         End Sub
-
 
         Private Sub TestMissingTypeReferencesHelper2(assemblies() As AssemblySymbol, Optional reflectionOnly As Boolean = False)
 
@@ -374,7 +372,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal("C6.MissingC7(Of U, V)[missing]", missing2.ToTestDisplayString())
         End Sub
 
-
         <Fact>
         Public Sub Equality()
 
@@ -480,7 +477,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Assert.Empty(DirectCast(missingAssembly, IAssemblySymbol).GetForwardedTypes())
         End Sub
-
 
     End Class
 

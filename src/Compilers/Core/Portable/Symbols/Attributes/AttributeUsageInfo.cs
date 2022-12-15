@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         internal AttributeTargets ValidTargets
         {
             get
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return _flags.GetHashCode();
+            return ((int)_flags).GetHashCode();
         }
 
         internal bool HasValidAttributeTargets

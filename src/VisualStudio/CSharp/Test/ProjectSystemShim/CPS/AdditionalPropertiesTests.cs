@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
@@ -19,10 +20,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class AdditionalPropertiesTests
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task SetProperty_RootNamespace_CPS()
         {
             using (var environment = new TestEnvironment())
@@ -40,7 +41,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfTheory]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [InlineData(LanguageVersion.CSharp7_3)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.CSharp9)]
@@ -97,7 +97,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfTheory]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         // RunAnalyzers: Not set, RunAnalyzersDuringLiveAnalysis: Not set, ExpectedRunAnalyzers = true
         [InlineData("", "", true)]
         // RunAnalyzers: true, RunAnalyzersDuringLiveAnalysis: Not set, ExpectedRunAnalyzers = true
