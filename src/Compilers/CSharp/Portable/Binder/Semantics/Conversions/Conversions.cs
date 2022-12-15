@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
                                 Compilation,
-                                member.Value,
+                                member.GetValueOrDefault(),
                                 ref useSiteInfo);
                         }
                     }
