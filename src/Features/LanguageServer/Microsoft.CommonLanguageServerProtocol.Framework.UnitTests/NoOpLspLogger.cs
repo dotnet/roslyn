@@ -36,8 +36,4 @@ public class NoOpLspLogger : ILspLogger
     public void LogWarning(string message, params object[] @params)
     {
     }
-
-    public void LogDebug(string message, params object[] @params)
-    {
-    }
 }
