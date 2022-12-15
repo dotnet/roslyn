@@ -72,14 +72,14 @@
         <target state="translated">Passer les variables capturées en tant qu'arguments</target>
         <note />
       </trans-unit>
-      <trans-unit id="Place_colon_on_following_line">
-        <source>Place colon on following line</source>
-        <target state="translated">Placer le signe des deux-points sur la ligne suivante</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">Placer l'instruction sur la ligne suivante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_token_on_following_line">
+        <source>Place token on following line</source>
+        <target state="new">Place token on following line</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">

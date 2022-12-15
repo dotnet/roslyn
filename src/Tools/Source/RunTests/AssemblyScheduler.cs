@@ -268,7 +268,6 @@ namespace RunTests
             }
         }
 
-
         private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
         {
             ConsoleUtil.WriteLine($"Built {workItems.Length} work items");

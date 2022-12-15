@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var findUsagesService = document.GetRequiredLanguageService<IFindUsagesService>();
+            var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var findUsagesContext = new SimpleFindUsagesContext(_globalOptions);

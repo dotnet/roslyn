@@ -1102,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.HasAsyncMethodBuilderAttribute(out _))
                 {
-                    hasErrors |= MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                    MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
                 }
 
                 // Avoid checking attributes on containing types to avoid a potential cycle when a lambda

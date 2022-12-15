@@ -841,7 +841,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return GetNthTypeParameter(typeSymbol.ContainingType, n);
                 }
 
-                return typeSymbol.TypeParameters[n - containingTypeParameterCount];
+                var index = n - containingTypeParameterCount;
+                var typeParameters = typeSymbol.TypeParameters;
+                if (index < typeParameters.Length)
+                {
+                    return typeParameters[index];
+                }
+
+                return null;
             }
 
             private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)

@@ -3463,6 +3463,11 @@ Jeśli specyfikator formatu „d” zostanie użyty bez innych indywidualnych sp
         <target state="translated">odrzuć</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="new">else statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">osadzone</target>

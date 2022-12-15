@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                     var configuredCodeStyleOption = codeStyleOption.WithValue(newValue);
 
                     // Try to get the parsed editorconfig string representation of the new code style option value
-                    if (ConfigurationUpdater.TryGetEditorConfigStringParts(configuredCodeStyleOption, editorConfigLocation, optionSet, out var parts))
+                    if (ConfigurationUpdater.TryGetEditorConfigStringParts(editorConfigLocation.GetEditorConfigString(configuredCodeStyleOption), out var parts))
                     {
                         // We expect all code style values for same code style option to have the same editorconfig option name.
                         Debug.Assert(optionName == null || optionName == parts.optionName);

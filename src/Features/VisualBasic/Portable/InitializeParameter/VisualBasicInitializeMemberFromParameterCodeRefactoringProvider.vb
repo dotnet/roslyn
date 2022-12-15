@@ -29,12 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Public Sub New()
         End Sub
 
-        Protected Overrides Function SupportsRecords(options As ParseOptions) As Boolean
-            Return False
-        End Function
-
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
-
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function

@@ -197,10 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
 
-        public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken);
-
-        private ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             Workspace workspace,
             ProjectId projectId,
             DocumentId documentId,
@@ -284,10 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return result.ToImmutable();
         }
 
-        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
-            => GetDiagnosticBuckets(workspace, projectId, documentId, cancellationToken);
-
-        private ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
+        public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
             Workspace workspace,
             ProjectId projectId,
             DocumentId documentId,

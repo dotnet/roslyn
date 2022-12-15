@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
                 $" {d.Message}";
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Theory]
         [CombinatorialData]
         public async Task Proxy(TestHost testHost)
         {
@@ -240,8 +240,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             AssertEx.Equal(new[]
             {
-                $"[{project.Id}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "some error")}",
-                $"[{project.Id}] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "some error")}"
+                $"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "some error")}",
+                $"[{projectId}] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "some error")}"
             }, emitDiagnosticsUpdated.Select(update => Inspect(update.Diagnostics.Single())));
 
             emitDiagnosticsUpdated.Clear();

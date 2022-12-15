@@ -1,4 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿#if false
+
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -57,6 +59,14 @@ namespace Microsoft.CodeAnalysis.TaskList
 
         public void Start()
         {
+<<<<<<< HEAD
+=======
+            // If we're in pull-diagnostics mode, then todo-comments will be handled by LSP.
+            var diagnosticMode = _globalOptions.GetDiagnosticMode();
+            if (diagnosticMode == DiagnosticMode.LspPull)
+                return;
+
+>>>>>>> upstream/main
             var registrationService = _services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             var analyzerProvider = new TaskListIncrementalAnalyzerProvider(this);
 
@@ -149,3 +159,5 @@ namespace Microsoft.CodeAnalysis.TaskList
         }
     }
 }
+
+#endif

@@ -399,7 +399,6 @@ public partial class C1
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
         }
 
-
         [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
         public void BadVisInterfacePartial()
         {
@@ -609,7 +608,6 @@ class U : U.I
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("U.I", ifaces[0].ToTestDisplayString());
         }
-
 
         [Fact]
         public void EricLiCase10()
@@ -1003,7 +1001,6 @@ interface I4 : I1 {}
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-
         [Fact]
         public void CyclicRetargeted4()
         {
@@ -1056,7 +1053,6 @@ public class ClassC : ClassB {}
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
-
 
         [Fact]
         public void CyclicRetargeted5()
@@ -1119,7 +1115,6 @@ public class ClassC : ClassB {}
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-
         [Fact]
         public void CyclicRetargeted6()
         {
@@ -1174,7 +1169,6 @@ public class ClassC : ClassB {}
             Assert.Same(C.BaseType(), B2);
             Assert.Same(B2.BaseType(), A2);
         }
-
 
         [Fact]
         public void CyclicRetargeted7()

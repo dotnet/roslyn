@@ -1508,7 +1508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;
 
-                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod.DiagnosticBag, optimizations, emittingPdb);
+                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
 
                 if (diagnosticsForThisMethod.HasAnyErrors())
                 {
@@ -1828,6 +1828,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
 
+#if DEBUG
+                    Debug.Assert(IsEmptyRewritePossible(methodBody));
+#endif
+
                     switch (methodBody.Kind)
                     {
                         case BoundKind.ConstructorMethodBody:
@@ -1956,6 +1960,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
         }
+
+#if DEBUG
+        private static bool IsEmptyRewritePossible(BoundNode node)
+        {
+            var rewriter = new EmptyRewriter();
+            try
+            {
+                var rewritten = rewriter.Visit(node);
+                return (object)rewritten == node;
+            }
+            catch (BoundTreeVisitor.CancelledByStackGuardException)
+            {
+                return true;
+            }
+        }
+
+        private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuard
+        {
+        }
+#endif
 #nullable disable
 
         private static BoundBlock GetSynthesizedEmptyBody(Symbol symbol)

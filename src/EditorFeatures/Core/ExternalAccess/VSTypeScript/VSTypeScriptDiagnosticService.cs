@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
-            var result = await _service.GetPullDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+            var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
         }
 

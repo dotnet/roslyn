@@ -72,14 +72,14 @@
         <target state="translated">Passa le variabili catturate come argomenti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Place_colon_on_following_line">
-        <source>Place colon on following line</source>
-        <target state="translated">Inserisci due punti nella riga seguente</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">Inserire l'istruzione nella riga seguente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_token_on_following_line">
+        <source>Place token on following line</source>
+        <target state="new">Place token on following line</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">

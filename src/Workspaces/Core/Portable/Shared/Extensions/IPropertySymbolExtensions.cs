@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.SetMethod,
                 property.IsIndexer);
 
-            static bool ShouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] attributesToRemove, ISymbol accessibleWithin) arg) =>
-                arg.attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
+            static bool ShouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] attributesToRemove, ISymbol accessibleWithin) arg)
+                => arg.attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
                 a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
         }
 

@@ -271,6 +271,8 @@ class X
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                         case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                        case ErrorCode.WRN_OptionalParamValueMismatch:
+                        case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

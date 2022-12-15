@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         public override IEntryBucket? CreateBucketForEntry(ITableEntryHandle entry)
         {
             var categoryName = GetCategoryName(entry);
-            return categoryName is not null ? new StringEntryBucket(categoryName) : null;
+            return categoryName is not null ? new StringEntryBucket(categoryName, tooltip: categoryName) : null;
         }
     }
 }

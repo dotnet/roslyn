@@ -15,16 +15,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
+
     /// <summary>
     /// Looks for code of the forms:
-    /// 
+    /// <code>
     ///     var x = o as Type;
     ///     if (x != null) ...
-    /// 
+    /// </code>
     /// and converts it to:
-    /// 
+    /// <code>
     ///     if (o is Type x) ...
-    ///     
+    /// </code>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer

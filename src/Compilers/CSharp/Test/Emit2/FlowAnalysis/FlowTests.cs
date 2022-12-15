@@ -5847,5 +5847,70 @@ class C
             Assert.Equal("A(20, Prop = 50)", attributes[1].Item1.ToString());
             Assert.Equal("A(30, Prop = 60)", attributes[2].Item1.ToString());
         }
+
+        [Fact]
+        public void LocalConstantUsedInLocalFunctionDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int c = 10;
+            static void Local(int arg = c) => Console.WriteLine(arg);
+            
+            Local();
+        }
+
+    }
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalConstantUsedInLambdaDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int c = 10;
+            var f = (int arg = c) => Console.WriteLine(arg);
+            f();
+        }
+    }
+";
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MultipleDependentLocalConstants_LambdaDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int a = 10;
+            const int b = a + 1;
+            const int c = a + b;
+            var f = (int arg = c) => Console.WriteLine(arg);
+            f();
+        }
+    }
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }

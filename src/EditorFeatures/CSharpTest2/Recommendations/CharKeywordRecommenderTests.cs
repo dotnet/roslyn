@@ -738,7 +738,7 @@ class C { }
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task Preselection()
         {
             await VerifyKeywordAsync(@"

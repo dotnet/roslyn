@@ -20,13 +20,6 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-
-    /// <summary>
-    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
-    /// the <see cref="IFindUsagesService"/> is moved down to the features layer and
-    /// we no longer reference VS classified text runs.
-    /// See https://github.com/dotnet/roslyn/issues/55142
-    /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
     internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?>
@@ -57,15 +50,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            var clientCapabilities = context.GetRequiredClientCapabilities();
-            Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
-
             var document = context.Document;
             var workspace = context.Workspace;
             Contract.ThrowIfNull(document);
             Contract.ThrowIfNull(workspace);
 
-            using var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LSP.Location>>(referenceParams.PartialResultToken);
+            using var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LSP.Location>[]>(referenceParams.PartialResultToken);
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(
@@ -78,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             await findUsagesService.FindReferencesAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);
             await findUsagesContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
 
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
     }
 }

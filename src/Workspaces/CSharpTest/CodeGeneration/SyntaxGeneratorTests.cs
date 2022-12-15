@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     public class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-                references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
+            references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;
@@ -213,7 +213,7 @@ public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
 @"using System; 
 public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 @"[MyAttribute(new [] {1, 2, 3})]")),
-@"[global::MyAttribute(new[]{1, 2, 3})]");
+@"[global::MyAttribute(new[] { 1, 2, 3 })]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
 @"using System; 
@@ -382,7 +382,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<ArrayCreationExpressionSyntax>(
                 Generator.ArrayCreationExpression(Generator.IdentifierName("x"), new SyntaxNode[] { Generator.IdentifierName("y"), Generator.IdentifierName("z") }),
-                "new x[]{y, z}");
+                """
+                new x[]
+                {
+                    y,
+                    z
+                }
+                """);
         }
 
         [Fact]
@@ -1153,6 +1159,287 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.AsPublicInterfaceImplementation(pim, Generator.IdentifierName("i2"), "m2"),
                 "public t m2()\r\n{\r\n}");
+
+            #region ExpressionBodyTests
+            VerifySyntax<MethodDeclarationSyntax>(
+                   Generator.AsPublicInterfaceImplementation(
+                   SyntaxFactory.MethodDeclaration(
+                       SyntaxFactory.PredefinedType(
+                           SyntaxFactory.Token(
+                               SyntaxFactory.TriviaList(),
+                               SyntaxKind.ObjectKeyword,
+                               SyntaxFactory.TriviaList(
+                                   SyntaxFactory.Space))),
+                       SyntaxFactory.Identifier("DoSomething"))
+                   .WithExplicitInterfaceSpecifier(
+                        SyntaxFactory.ExplicitInterfaceSpecifier(
+                           SyntaxFactory.IdentifierName("IGeneral")))
+                   .WithParameterList(
+                       SyntaxFactory.ParameterList()
+                        .WithCloseParenToken(
+                           SyntaxFactory.Token(
+                               SyntaxFactory.TriviaList(),
+                               SyntaxKind.CloseParenToken,
+                               SyntaxFactory.TriviaList(
+                                   SyntaxFactory.Space))))
+                   .WithExpressionBody(
+                       SyntaxFactory.ArrowExpressionClause(
+                           SyntaxFactory.ImplicitObjectCreationExpression())
+                       .WithArrowToken(
+                           SyntaxFactory.Token(
+                               SyntaxFactory.TriviaList(),
+                               SyntaxKind.EqualsGreaterThanToken,
+                               SyntaxFactory.TriviaList(
+                                   SyntaxFactory.Space))))
+                   .WithSemicolonToken(
+                       SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                   Generator.IdentifierName("i")),
+                   "public object DoSomething() => new();");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.OperatorDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                    SyntaxFactory.Token(SyntaxKind.PlusToken))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        new[]{
+                            SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                            SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("IGeneral"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName("C"))))))
+                .WithParameterList(
+                    SyntaxFactory.ParameterList(
+                        SyntaxFactory.SeparatedList<ParameterSyntax>(
+                            new SyntaxNodeOrToken[]{
+                                SyntaxFactory.Parameter(
+                                    SyntaxFactory.Identifier("x"))
+                                .WithType(
+                                    SyntaxFactory.IdentifierName("C")),
+                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                SyntaxFactory.Parameter(
+                                    SyntaxFactory.Identifier("y"))
+                                .WithType(
+                                    SyntaxFactory.IdentifierName("C"))})))
+                .WithExpressionBody(
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(0))))
+                .WithSemicolonToken(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public static int operator +(C x, C y) => 0;");
+
+            VerifySyntax<ConversionOperatorDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.ConversionOperatorDeclaration(
+                    SyntaxFactory.Token(
+                        SyntaxFactory.TriviaList(),
+                        SyntaxKind.ImplicitKeyword,
+                        SyntaxFactory.TriviaList(
+                            SyntaxFactory.Space)),
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.StringKeyword)))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(
+                            SyntaxFactory.TriviaList(),
+                            SyntaxKind.StaticKeyword,
+                            SyntaxFactory.TriviaList(
+                                SyntaxFactory.Space))))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("IGeneral"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName("C"))))))
+                .WithOperatorKeyword(
+                    SyntaxFactory.Token(
+                        SyntaxFactory.TriviaList(),
+                        SyntaxKind.OperatorKeyword,
+                        SyntaxFactory.TriviaList(
+                            SyntaxFactory.Space)))
+                .WithParameterList(
+                    SyntaxFactory.ParameterList(
+                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                            SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("x"))
+                            .WithType(
+                                SyntaxFactory.IdentifierName(
+                                    SyntaxFactory.Identifier(
+                                        SyntaxFactory.TriviaList(),
+                                        "C",
+                                        SyntaxFactory.TriviaList(
+                                            SyntaxFactory.Space))))))
+                    .WithCloseParenToken(
+                        SyntaxFactory.Token(
+                            SyntaxFactory.TriviaList(),
+                            SyntaxKind.CloseParenToken,
+                            SyntaxFactory.TriviaList(
+                                SyntaxFactory.Space))))
+                .WithExpressionBody(
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NullLiteralExpression))
+                    .WithArrowToken(
+                        SyntaxFactory.Token(
+                            SyntaxFactory.TriviaList(),
+                            SyntaxKind.EqualsGreaterThanToken,
+                            SyntaxFactory.TriviaList(
+                                SyntaxFactory.Space))))
+                .WithSemicolonToken(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .NormalizeWhitespace(),
+                    Generator.IdentifierName("i")),
+                    "public static implicit operator string (C x) => null;");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.PropertyDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                    SyntaxFactory.Identifier("Num"))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithExpressionBody(
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(0))))
+                .WithSemicolonToken(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public int Num => 0;");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.PropertyDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                    SyntaxFactory.Identifier("Num"))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithAccessorList(
+                    SyntaxFactory.AccessorList(
+                        SyntaxFactory.SingletonList<AccessorDeclarationSyntax>(
+                            SyntaxFactory.AccessorDeclaration(
+                                SyntaxKind.GetAccessorDeclaration)
+                            .WithExpressionBody(
+                                SyntaxFactory.ArrowExpressionClause(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(0))))
+                            .WithSemicolonToken(
+                                SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public int Num { get => 0; }");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.IndexerDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithParameterList(
+                    SyntaxFactory.BracketedParameterList(
+                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                            SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("index"))
+                            .WithType(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+                .WithExpressionBody(
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(0))))
+                .WithSemicolonToken(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public int this[int index] => 0;");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.IndexerDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithParameterList(
+                    SyntaxFactory.BracketedParameterList(
+                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                            SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("index"))
+                            .WithType(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+                .WithAccessorList(
+                    SyntaxFactory.AccessorList(
+                        SyntaxFactory.SingletonList<AccessorDeclarationSyntax>(
+                            SyntaxFactory.AccessorDeclaration(
+                                SyntaxKind.GetAccessorDeclaration)
+                            .WithExpressionBody(
+                                SyntaxFactory.ArrowExpressionClause(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(0))))
+                            .WithSemicolonToken(
+                                SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public int this[int index] { get => 0; }");
+
+            VerifySyntax<EventDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.EventDeclaration(
+                    SyntaxFactory.IdentifierName("EventHandler"),
+                    SyntaxFactory.Identifier("Event"))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithAccessorList(
+                    SyntaxFactory.AccessorList(
+                        SyntaxFactory.List<AccessorDeclarationSyntax>(
+                            new AccessorDeclarationSyntax[] {
+                                SyntaxFactory.AccessorDeclaration(
+                                    SyntaxKind.AddAccessorDeclaration)
+                                .WithExpressionBody(
+                                    SyntaxFactory.ArrowExpressionClause(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.NullLiteralExpression)))
+                                .WithSemicolonToken(
+                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                SyntaxFactory.AccessorDeclaration(
+                                    SyntaxKind.RemoveAccessorDeclaration)
+                                .WithExpressionBody(
+                                    SyntaxFactory.ArrowExpressionClause(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.NullLiteralExpression)))
+                                .WithSemicolonToken(
+                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))})))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public event EventHandler Event { add => null; remove => null; }");
+            #endregion
         }
 
         [Fact]
@@ -1858,6 +2145,50 @@ public class C { } // end").Members[0];
     Utc = 1,
     Local = 2
 }");
+        }
+
+        [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
+        public void TestMethodDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    void M(int i = int.MaxValue) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers("M").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                private void M(global::System.Int32 i = global::System.Int32.MaxValue)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
+        public void TestConstructorDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public C(int i = int.MaxValue) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Single();
+
+            VerifySyntax<ConstructorDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                public C(global::System.Int32 i = global::System.Int32.MaxValue)
+                {
+                }
+                """);
         }
 
         [Fact]

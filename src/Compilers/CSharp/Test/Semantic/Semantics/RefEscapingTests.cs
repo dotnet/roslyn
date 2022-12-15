@@ -6121,9 +6121,9 @@ public struct Vec4
                 // (28,9): error CS8350: This combination of arguments to 'Program.M0(RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
-                // (28,12): error CS8352: Cannot use variable 'scoped RS' in this context because it may expose referenced variables outside of their declaration scope
+                // (28,12): error CS8352: Cannot use variable 'scoped RS rs3' in this context because it may expose referenced variables outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS").WithLocation(28, 12));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS rs3").WithLocation(28, 12));
         }
 
         [Fact]
@@ -6415,6 +6415,78 @@ public struct Vec4
                 //         return rs6; // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rs6").WithArguments("rs6").WithLocation(45, 16)
                 );
+        }
+
+        [Fact, WorkItem(64783, "https://github.com/dotnet/roslyn/issues/64783")]
+        public void OutArgumentsDoNotContributeValEscape_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static Span<byte> M1()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        var ret = OneOutSpanReturnsSpan(out a);
+                        return ret;
+                    }
+
+                    static Span<byte> M2()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        TwoOutSpans(out a, out Span<byte> b);
+                        return b;
+                    }
+
+                    static Span<byte> OneOutSpanReturnsSpan(out Span<byte> a)
+                    {
+                        // 'return a' is illegal until it is overwritten
+                        a = default;
+                        return default;
+                    }
+
+                    static void TwoOutSpans(out Span<byte> a, out Span<byte> b)
+                    {
+                        // 'a = b' and 'b = a' are illegal until one has already been written
+                        a = b = default;
+                    }
+                }
+
+                """;
+
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(56587, "https://github.com/dotnet/roslyn/issues/56587")]
+        public void OutArgumentsDoNotContributeValEscape_02()
+        {
+            // Test that out discard arguments are not treated as inputs.
+            // This means we don't need to take special care to zero-out the variable used for a discard argument between uses.
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static Span<byte> M1()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        TwoOutSpans(out a, out _);
+                        TwoOutSpans(out _, out Span<byte> c);
+                        return c;
+                    }
+
+                    static void TwoOutSpans(out Span<byte> a, out Span<byte> b)
+                    {
+                        // 'a = b' and 'b = a' are illegal until one has already been written
+                        a = b = default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
         }
     }
 }

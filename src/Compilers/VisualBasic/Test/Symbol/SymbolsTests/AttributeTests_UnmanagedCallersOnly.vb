@@ -176,7 +176,6 @@ BC30657: 'M1' has a return type that is not supported or parameter types that ar
 }
 ]]>.Value
 
-
             Dim source =
 <compilation>
     <file><![CDATA[

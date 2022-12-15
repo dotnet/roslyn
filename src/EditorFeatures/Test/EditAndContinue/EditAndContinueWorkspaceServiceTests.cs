@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal sealed class FailingTextLoader : TextLoader
         {
-            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 Assert.True(false, $"Content of document should never be loaded");
                 throw ExceptionUtilities.Unreachable();
@@ -578,9 +578,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 loader: new FailingTextLoader(),
                 filePath: sourceFileD.Path));
 
-            var captureMatchingDocuments = captureAllDocuments ?
-                ImmutableArray<DocumentId>.Empty :
-                (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
+            var captureMatchingDocuments = captureAllDocuments
+                ? ImmutableArray<DocumentId>.Empty
+                : (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
 
             var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments, captureAllDocuments, reportDiagnostics: true, CancellationToken.None);
             var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
@@ -3629,9 +3629,9 @@ class C { int Y => 1; }
             var sourceV1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
 
             // syntax error (missing ';') unless testing out-of-sync document
-            var sourceV2 = isOutOfSync ?
-                "class C { int x; void F() => G(1); void G(int a) => System.Console.WriteLine(2); }" :
-                "class C { int x void F() => G(1); void G(int a) => System.Console.WriteLine(2); }";
+            var sourceV2 = isOutOfSync
+                ? "class C { int x; void F() => G(1); void G(int a) => System.Console.WriteLine(2); }"
+                : "class C { int x void F() => G(1); void G(int a) => System.Console.WriteLine(2); }";
 
             using var _ = CreateWorkspace(out var solution, out var service);
             (solution, var document1) = AddDefaultTestProject(solution, sourceV1);

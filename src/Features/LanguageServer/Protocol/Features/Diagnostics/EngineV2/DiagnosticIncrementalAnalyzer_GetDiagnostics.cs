@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // file doesn't exist in current solution
                     var document = await project.Solution.GetDocumentAsync(
                         documentId,
-                        includeSourceGenerated: project.Solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true,
+                        includeSourceGenerated: project.Solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true,
                         cancellationToken).ConfigureAwait(false);
 
                     if (document == null)
