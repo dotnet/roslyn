@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
             unifiedSymbols.Add(originalSymbol);
 
+            // As we hit symbols, we may have to compute if they have an inheritance relationship to the symbols we're
+            // searching for.  Cache those results so we don't have to continually perform them.
             var hasInheritanceRelationshipCache = new ConcurrentDictionary<(ISymbol searchSymbol, ISymbol candidateSymbol), AsyncLazy<bool>>();
 
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
@@ -75,11 +77,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     await AddGlobalAliasesAsync(
                         project, symbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
 
-                    var documentsInProject = documents.Where(d => d.Project == project);
-                    foreach (var document in documentsInProject)
+                    foreach (var document in documents)
                     {
-                        await PerformSearchInDocumentAsync(
-                            symbols, document, symbolToGlobalAliases).ConfigureAwait(false);
+                        if (document.Project == project))
+                            await PerformSearchInDocumentAsync(symbols, document, symbolToGlobalAliases).ConfigureAwait(false);
                     }
                 }
                 finally
