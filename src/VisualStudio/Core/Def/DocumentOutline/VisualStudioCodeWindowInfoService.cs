@@ -48,11 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             _threadingContext.ThrowIfNotOnUIThread();
             var wpfTextView = GetLastActiveIWpfTextView();
-            if (wpfTextView is null)
-            {
-                return null;
-            }
-
             var textBuffer = wpfTextView.TextBuffer;
             if (_editorAdaptersFactoryService.GetBufferAdapter(textBuffer) is IPersistFileFormat persistFileFormat &&
                 ErrorHandler.Succeeded(persistFileFormat.GetCurFile(out var filePath, out var _)))
@@ -60,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return new DocumentSymbolRequestInfo(textBuffer, filePath);
             }
 
+            // Rosyln language services have been registered for a buffer that does not exist on disk and LSP requires a file path.
             return null;
         }
 
@@ -101,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return newPosition.Point.GetPoint(textBuffer, PositionAffinity.Predecessor);
         }
 
-        public async Task<IWpfTextView?> GetLastActiveIWpfTextViewAsync(CancellationToken token)
+        public async Task<IWpfTextView> GetLastActiveIWpfTextViewAsync(CancellationToken token)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(token);
             return GetLastActiveIWpfTextView();
@@ -113,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Will return either the primary or secondary text view from the code window and nothing else.
         /// Only returns null if this method is called before content has been established for the adapter,
         /// </summary>
-        private IWpfTextView? GetLastActiveIWpfTextView()
+        private IWpfTextView GetLastActiveIWpfTextView()
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
@@ -122,7 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 FailFast.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
             }
 
-            return _editorAdaptersFactoryService.GetWpfTextView(textView);
+            var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+            Assumes.NotNull(wpfTextView);
+            return wpfTextView;
         }
 
         /// <summary>
@@ -141,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             public SnapshotPoint? GetCurrentCaretSnapshotPoint()
                 => _service.GetCurrentCaretSnapshotPoint();
 
-            public IWpfTextView? GetLastActiveIWpfTextView()
+            public IWpfTextView GetLastActiveIWpfTextView()
                 => _service.GetLastActiveIWpfTextView();
         }
     }

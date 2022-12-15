@@ -32,11 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             var textSpan = textSpans.Last();
             var textView = await _visualStudioCodeWindowInfoService.GetLastActiveIWpfTextViewAsync(token).ConfigureAwait(false);
-            if (textView is null)
-            {
-                return;
-            }
-
             var snapShot = textView.TextSnapshot;
             var document = snapShot.GetOpenDocumentInCurrentContextWithChanges();
             if (document is null)

@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal interface IVisualStudioCodeWindowInfoServiceUIThreadOperations
     {
         SnapshotPoint? GetCurrentCaretSnapshotPoint();
-        IWpfTextView? GetLastActiveIWpfTextView();
+        IWpfTextView GetLastActiveIWpfTextView();
         DocumentSymbolRequestInfo? GetDocumentSymbolRequestInfo();
     }
 }

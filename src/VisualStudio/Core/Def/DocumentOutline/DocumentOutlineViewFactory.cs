@@ -43,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             var service = visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
             var wpfView = service.GetLastActiveIWpfTextView();
-            RoslynDebug.AssertNotNull(wpfView);
             var subjectBuffer = wpfView.TextBuffer;
             var textViewEventSource = new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
