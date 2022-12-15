@@ -203,7 +203,6 @@ class C
                     x();
                 }
 
-
                 public class C
                 {
                 }
@@ -231,7 +230,6 @@ class C
                     var x = Extensions.MyExtension;
                     x(c);
                 }
-
 
                 public class C
                 {
@@ -272,6 +270,27 @@ class C
                     // (5,13): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
                     //     var x = this.MyExtension;
                     Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(5, 13));
+        }
+
+        [Fact]
+        public void StaticLocalFunction_CapturingMethodGroup4()
+        {
+            CreateCompilation("""
+                static class Extensions
+                {
+                    static void F()
+                    {
+                        LocalFunc();
+                        static void LocalFunc()
+                        {
+                            var x = MyExtension;
+                            x(null);
+                        }
+                    }
+                    static string MyExtension(this object o)
+                        => string.Empty;
+                }
+                """).VerifyDiagnostics();
         }
     }
 }
