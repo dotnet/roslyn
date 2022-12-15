@@ -95,7 +95,7 @@ class B
             // with the test creating one, and the handler another, we have to unwrap.
             // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual VSInternalReferenceItem
             // so we have to correctly convert the JObject into the expected type.
-            results = progress.GetValues().Select(reference => ((JObject)reference).ToObject<LSP.VSInternalReferenceItem>()).ToArray();
+            results = progress.GetValues().Select(reference => ((JArray)reference).ToObject<LSP.VSInternalReferenceItem[]>()).SelectMany(v => v).ToArray();
 
             Assert.NotNull(results);
             Assert.NotEmpty(results);
