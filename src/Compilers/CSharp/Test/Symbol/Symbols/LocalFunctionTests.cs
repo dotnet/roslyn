@@ -256,6 +256,8 @@ class C
                 {
                     var x = this.MyExtension;
                     x();
+                    var y = base.MyExtension;
+                    y();
                 }
 
                 internal static class Extensions
@@ -269,7 +271,13 @@ class C
                     Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(5, 13),
                     // (5,13): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
                     //     var x = this.MyExtension;
-                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(5, 13));
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(5, 13),
+                    // (7,13): error CS1511: Keyword 'base' is not available in a static method
+                    //     var y = base.MyExtension;
+                    Diagnostic(ErrorCode.ERR_BaseInStaticMeth, "base").WithLocation(7, 13),
+                    // (7,13): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //     var y = base.MyExtension;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(7, 13));
         }
 
         [Fact]
