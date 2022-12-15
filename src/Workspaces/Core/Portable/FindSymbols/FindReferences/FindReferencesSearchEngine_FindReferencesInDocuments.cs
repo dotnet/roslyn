@@ -172,16 +172,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
                     return false;
 
-                // walk upwards from each symbol, seeing if we hit the other symbol.
-                var searchSymbolSet = await SymbolSet.CreateAsync(engine, new() { searchSymbol }, cancellationToken).ConfigureAwait(false);
-                foreach (var symbolUp in searchSymbolSet.GetAllSymbols())
+                // walk up the original symbol's inheritance hierarchy to see if we hit the candidate.
+                var searchSymbolUpSet = await SymbolSet.CreateAsync(engine, new() { searchSymbol }, cancellationToken).ConfigureAwait(false);
+                foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
                 {
                     if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
                         return true;
                 }
 
-                var candidateSymbolSet = await SymbolSet.CreateAsync(engine, new() { candidate }, cancellationToken).ConfigureAwait(false);
-                foreach (var candidateUp in candidateSymbolSet.GetAllSymbols())
+                // walk up the candidate's inheritance hierarchy to see if we hit the original symbol.
+                var candidateSymbolUpSet = await SymbolSet.CreateAsync(engine, new() { candidate }, cancellationToken).ConfigureAwait(false);
+                foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
                 {
                     if (await SymbolFinder.OriginalSymbolsMatchAsync(engine._solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
                         return true;
