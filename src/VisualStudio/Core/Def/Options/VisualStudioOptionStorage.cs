@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -13,14 +12,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices;
+namespace Microsoft.VisualStudio.LanguageServices.Options;
 
 internal abstract class VisualStudioOptionStorage
 {
-    public sealed class RoamingProfileStorage : VisualStudioOptionStorage
+    internal sealed class RoamingProfileStorage : VisualStudioOptionStorage
     {
         public string Key { get; }
         public string? VisualBasicKey { get; }
@@ -49,7 +47,7 @@ internal abstract class VisualStudioOptionStorage
             => persister.TryFetch(optionKey, GetKey(optionKey.Language), out value);
     }
 
-    public sealed class FeatureFlagStorage : VisualStudioOptionStorage
+    internal sealed class FeatureFlagStorage : VisualStudioOptionStorage
     {
         public string FlagName { get; }
 
@@ -65,7 +63,7 @@ internal abstract class VisualStudioOptionStorage
             => persister.TryFetch(optionKey, FlagName, out value);
     }
 
-    public sealed class LocalUserProfileStorage : VisualStudioOptionStorage
+    internal sealed class LocalUserProfileStorage : VisualStudioOptionStorage
     {
         private readonly string _path;
         private readonly string _key;
@@ -83,37 +81,7 @@ internal abstract class VisualStudioOptionStorage
             => persister.TryFetch(optionKey, _path, _key, out value);
     }
 
-    public sealed class CompositeStorage : VisualStudioOptionStorage
-    {
-        private readonly ImmutableArray<VisualStudioOptionStorage> _storages;
-
-        public CompositeStorage(params VisualStudioOptionStorage[] storages)
-        {
-            _storages = storages.ToImmutableArray();
-        }
-
-        public bool TryPersist(VisualStudioOptionPersister persister, OptionKey2 optionKey, object? value)
-            => persister.TryPersist(_storages[0], optionKey, value);
-
-        public bool TryFetch(VisualStudioOptionPersister persister, OptionKey2 optionKey, out object? value)
-        {
-            foreach (var storage in _storages)
-            {
-                if (persister.TryFetch(storage, optionKey, out value))
-                {
-                    return true;
-                }
-            }
-
-            value = null;
-            return false;
-        }
-    }
-
-    public static bool TryGetStorage(string configName, out VisualStudioOptionStorage storage)
-        => s_storages.TryGetValue(configName, out storage);
-
-    private static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> s_storages = new Dictionary<string, VisualStudioOptionStorage>()
+    public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
         {"BlockStructureOptions_CollapseEmptyMetadataImplementationsWhenFirstOpened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened")},
         {"BlockStructureOptions_CollapseImportsWhenFirstOpened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened")},
@@ -154,6 +122,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_indent_case_contents_when_block", new RoamingProfileStorage("TextEditor.CSharp.Specific.IndentSwitchCaseSectionWhenBlock")},
         {"csharp_indent_labels", new RoamingProfileStorage("TextEditor.CSharp.Specific.LabelPositioning")},
         {"csharp_indent_switch_labels", new RoamingProfileStorage("TextEditor.CSharp.Specific.IndentSwitchSection")},
+        {"csharp_new_line_before_open_brace", new RoamingProfileStorage("TextEditor.CSharp.Specific.csharp_new_line_before_open_brace") },
         {"csharp_new_line_before_catch", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLineForCatch")},
         {"csharp_new_line_before_else", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLineForElse")},
         {"csharp_new_line_before_finally", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLineForFinally")},
@@ -187,6 +156,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_space_between_method_declaration_empty_parameter_list_parentheses", new RoamingProfileStorage("TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodDeclarationParentheses")},
         {"csharp_space_between_method_declaration_name_and_open_parenthesis", new RoamingProfileStorage("TextEditor.CSharp.Specific.SpacingAfterMethodDeclarationName")},
         {"csharp_space_between_method_declaration_parameter_list_parentheses", new RoamingProfileStorage("TextEditor.CSharp.Specific.SpaceWithinMethodDeclarationParenthesis")},
+        {"csharp_space_between_parentheses", new RoamingProfileStorage("TextEditor.CSharp.Specific.csharp_space_between_parentheses") },
         {"csharp_space_between_square_brackets", new RoamingProfileStorage("TextEditor.CSharp.Specific.SpaceWithinSquareBrackets")},
         {"csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", new RoamingProfileStorage("TextEditor.CSharp.Specific.AllowBlankLineAfterColonInConstructorInitializer")},
         {"csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental", new RoamingProfileStorage("TextEditor.CSharp.Specific.AllowBlankLineAfterTokenInArrowExpressionClause")},
@@ -222,7 +192,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_tuple_swap", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTupleSwap")},
         {"csharp_style_prefer_utf8_string_literals", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferUtf8StringLiterals")},
         {"csharp_style_throw_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferThrowExpression")},
-        {"csharp_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedValueAssignmentPreference")},
+        {"csharp_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.CSharp.Specific.UnusedValueAssignmentPreference")},
         {"csharp_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedValueExpressionStatementPreference")},
         {"csharp_style_var_elsewhere", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeWherePossible")},
         {"csharp_style_var_for_built_in_types", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes")},
@@ -393,7 +363,7 @@ internal abstract class VisualStudioOptionStorage
         {"RegularExpressionsOptions_ReportInvalidRegexPatterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns")},
         {"ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose")},
         {"SignatureHelpOptions_ShowSignatureHelp", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Auto List Params")},
-        {"SimplificationOptions_NamingPreferences", new CompositeStorage(new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NamingPreferences5"), new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NamingPreferences"))},
+        {"SimplificationOptions_NamingPreferences", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NamingPreferences5")},
         {"SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
         {"SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
         {"SplitCommentOptions_Enabled", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
@@ -409,11 +379,11 @@ internal abstract class VisualStudioOptionStorage
         {"TaskListOptionsStorage_Descriptors", new RoamingProfileStorage("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens")},
         {"UseConditionalExpressionOptions_ConditionalExpressionWrappingLength", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength")},
         {"ValidateFormatStringOption_ReportInvalidPlaceholdersInStringDotFormatCalls", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls")},
-        {"visual_basic_preferred_modifier_order", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferredModifierOrder")},
-        {"visual_basic_style_prefer_isnot_expression", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferIsNotExpression")},
-        {"visual_basic_style_prefer_simplified_object_creation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferSimplifiedObjectCreation")},
-        {"visual_basic_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedValueAssignmentPreference")},
-        {"visual_basic_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedValueExpressionStatementPreference")},
+        {"visual_basic_preferred_modifier_order", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferredModifierOrder")},
+        {"visual_basic_style_prefer_isnot_expression", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferIsNotExpression")},
+        {"visual_basic_style_prefer_simplified_object_creation", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferSimplifiedObjectCreation")},
+        {"visual_basic_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueAssignmentPreference")},
+        {"visual_basic_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueExpressionStatementPreference")},
         {"VisualStudioNavigationOptions_NavigateToObjectBrowser", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser")},
         {"VisualStudioWorkspaceStatusService_PartialLoadModeFeatureFlag", new FeatureFlagStorage(@"Roslyn.PartialLoadMode")},
         {"WorkspaceConfigurationOptions_DisableBackgroundCompilation", new FeatureFlagStorage(@"Roslyn.DisableBackgroundCompilation")},

@@ -20,7 +20,8 @@ internal readonly record struct OptionsTestInfo(IOption2 Option, string? Contain
         foreach (var file in Directory.EnumerateFiles(directory, "*.dll", SearchOption.TopDirectoryOnly))
         {
             var fileName = Path.GetFileNameWithoutExtension(file);
-            if (fileName.StartsWith("Microsoft.CodeAnalysis") || fileName.StartsWith("Microsoft.VisualStudio.LanguageServices"))
+            if ((fileName.StartsWith("Microsoft.CodeAnalysis") || fileName.StartsWith("Microsoft.VisualStudio.LanguageServices")) &&
+                !fileName.Contains("Test"))
             {
                 Type[] types;
                 try

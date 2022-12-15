@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.Options;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
@@ -40,7 +41,7 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
             var option = optionInfo.Option;
             foreach (var language in option.IsPerLanguage ? allLanguages : noLanguages)
             {
-                if (!VisualStudioOptionStorage.TryGetStorage(configName, out var storage))
+                if (!VisualStudioOptionStorage.Storages.TryGetValue(configName, out var storage))
                 {
                     continue;
                 }
