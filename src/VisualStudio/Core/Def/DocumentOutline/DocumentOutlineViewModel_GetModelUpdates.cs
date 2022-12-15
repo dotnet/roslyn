@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private readonly AsyncBatchingWorkQueue<DocumentSymbolRequestInfo, DocumentSymbolDataModel?> _documentSymbolQueue;
 
-        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<DocumentSymbolRequestInfo> infos, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<DocumentSymbolRequestInfo> documentSymbolRequestInfos, CancellationToken cancellationToken)
         {
-            var (textBuffer, filePath) = infos.Last();
+            var (textBuffer, filePath) = documentSymbolRequestInfos.Last();
 
             cancellationToken.ThrowIfCancellationRequested();
 
