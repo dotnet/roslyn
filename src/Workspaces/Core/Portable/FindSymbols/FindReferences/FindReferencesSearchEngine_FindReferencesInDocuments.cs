@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
             {
                 // We're doing to do all of our processing of this document at once.  This will necessitate all the
-                // appropriate finders checking this document for hits.  We're likely going to need to checks in this
-                // file, which will require syntax and semantics.  So just grab those once here and hold onto them for
-                // the lifetime of this call.
+                // appropriate finders checking this document for hits.  We're likely going to need to perform syntax
+                // and semantics checks in this file.  So just grab those once here and hold onto them for the lifetime
+                // of this call.
                 var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var cache = FindReferenceCache.GetCache(model);
