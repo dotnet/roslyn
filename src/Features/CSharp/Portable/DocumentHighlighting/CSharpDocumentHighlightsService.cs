@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
 {
@@ -51,10 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
             if (symbol is INamedTypeSymbol && symbol.Name != "var")
             {
                 var originalSymbol = symbol.OriginalDefinition;
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var descendants = root.DescendantNodes();
-                var semanticModel = (SemanticModel)null;
+                var semanticModel = (SemanticModel?)null;
 
                 foreach (var type in descendants.OfType<IdentifierNameSyntax>())
                 {
