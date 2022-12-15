@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal virtual ConstantValue? DefaultValueFromAttributes => null;
+
         internal override bool IsIDispatchConstant
         {
             get { throw ExceptionUtilities.Unreachable(); }
@@ -177,6 +179,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.RefKind == RefKind.RefReadOnly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
+            // Synthesize `ParamArrayAttribute`.
+            if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+            }
+
+            // Synthesize `*ConstantAttribute`.
+            var defaultValue = this.ExplicitDefaultConstantValue;
+            if (defaultValue != ConstantValue.NotAvailable &&
+                DefaultValueFromAttributes == ConstantValue.NotAvailable &&
+                this.ContainingSymbol is SynthesizedDelegateInvokeMethod or SynthesizedClosureMethod)
+            {
+                var attrData = defaultValue.SpecialType switch
+                {
+                    SpecialType.System_Decimal => compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue),
+                    SpecialType.System_DateTime => compilation.SynthesizeDateTimeConstantAttribute(defaultValue.DateTimeValue),
+                    _ => null
+                };
+                AddSynthesizedAttribute(ref attributes, attrData);
             }
         }
 
@@ -350,6 +373,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue ?? _defaultValue;
 
+        internal override ConstantValue? DefaultValueFromAttributes => _baseParameterForAttributes?.DefaultValueFromAttributes;
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get
@@ -365,41 +390,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(_baseParameterForAttributes is null);
                 return base.NotNullIfParameterNotNull;
-            }
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            if (_baseParameterForAttributes is not null)
-            {
-                _baseParameterForAttributes.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            }
-            else
-            {
-                Debug.Assert(this.ContainingSymbol is SynthesizedDelegateInvokeMethod);
-
-                base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-                var compilation = this.DeclaringCompilation;
-
-                // Synthesize `ParamArrayAttribute`.
-                if (this.IsParams)
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
-                }
-
-                // Synthesize `*ConstantAttribute`.
-                var defaultValue = this.ExplicitDefaultConstantValue;
-                if (defaultValue != ConstantValue.NotAvailable)
-                {
-                    var attrData = defaultValue.SpecialType switch
-                    {
-                        SpecialType.System_Decimal => compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue),
-                        SpecialType.System_DateTime => compilation.SynthesizeDateTimeConstantAttribute(defaultValue.DateTimeValue),
-                        _ => null
-                    };
-                    AddSynthesizedAttribute(ref attributes, attrData);
-                }
             }
         }
     }
