@@ -1730,7 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
 
-            var returnsWritableRefToRefStruct = ReturnsWritableRefToRefStruct(symbol);
+            var returnsWritableRefToRefStruct = ReturnsRefToRefStruct(symbol);
             foreach (var (param, argument, _, isArgumentRefEscape) in argsAndParamsAll)
             {
                 // SPEC:
@@ -1738,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
                 //
                 if (!returnsWritableRefToRefStruct
-                    || (param?.RefKind.IsWritableReference() == true && param.Type.IsRefLikeType && isArgumentRefEscape == isRefEscape))
+                    || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape))
                 {
                     uint argEscape = isArgumentRefEscape ?
                         GetRefEscape(argument, scopeOfTheContainingExpression) :
@@ -1757,7 +1757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return escapeScope;
         }
 
-        private static bool ReturnsWritableRefToRefStruct(Symbol symbol)
+        private static bool ReturnsRefToRefStruct(Symbol symbol)
         {
             var method = symbol switch
             {
@@ -1767,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol p => p.GetMethod,
                 _ => null
             };
-            return method is { ReturnsByRef: true, ReturnType.IsRefLikeType: true };
+            return method is ({ ReturnsByRef: true } or { ReturnsByRefReadonly: true }) and { ReturnType.IsRefLikeType: true };
         }
 
         /// <summary>
@@ -1892,18 +1892,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
 
-            var returnsWritableRefToRefStruct = ReturnsWritableRefToRefStruct(symbol);
-            foreach (var argAndParam in argsAndParamsAll)
+            var returnsWritableRefToRefStruct = ReturnsRefToRefStruct(symbol);
+            foreach (var (param, argument, _, isArgumentRefEscape) in argsAndParamsAll)
             {
                 // SPEC:
-                // If `M()` does return ref-to-ref-struct, the *safe-to-escape* is the same as the *safe-to-escape* of all arguments which are ref-to-ref-struct.
+                // If `M()` does return ref-to-ref-struct, the *safe-to-escape* is the same as the *safe-to-escape* of all arguments which are ref-to-ref-struct. It is an error if there are multiple arguments with different *safe-to-escape* because of *method arguments must match*.
                 // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
                 //
                 if (!returnsWritableRefToRefStruct
-                    || (argAndParam.Parameter?.RefKind.IsWritableReference() == true && argAndParam.Parameter.Type.IsRefLikeType && argAndParam.IsRefEscape == isRefEscape))
+                    || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape))
                 {
-                    var argument = argAndParam.Argument;
-                    bool valid = argAndParam.IsRefEscape ?
+                    bool valid = isArgumentRefEscape ?
                         CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics) :
                         CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics);
 
@@ -1914,7 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // will have reported a specific escape error for the receiver though.)
                         if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != receiver)
                         {
-                            ReportInvocationEscapeError(syntax, symbol, argAndParam.Parameter, checkingReceiver, diagnostics);
+                            ReportInvocationEscapeError(syntax, symbol, param, checkingReceiver, diagnostics);
                         }
                         result = false;
                         break;

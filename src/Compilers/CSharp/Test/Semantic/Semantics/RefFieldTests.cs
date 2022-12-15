@@ -26767,9 +26767,9 @@ ref struct R
                 // (4,37): error CS8347: Cannot use a result of 'R.F<int>(in Span<int>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc int[1])").WithArguments("R.F<int>(in System.Span<int>)", "s").WithLocation(4, 37),
-                // (4,39): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                // (4,39): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(4, 39));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "stackalloc int[1]").WithLocation(4, 39));
         }
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
@@ -27135,7 +27135,7 @@ Block[B2] - Exit
 
                 public class Repro
                 {
-                    private static void Bad1(ref RefStruct s1, int value)
+                    private static void Bad1(scoped ref RefStruct s1, int value)
                     {
                         s1.RefField = ref value; // 1
                     }
@@ -27194,6 +27194,13 @@ Block[B2] - Exit
                         s1.RefMethod() = new RefStruct(ref value); // 3
                     }
 
+                    private static void Bad4(scoped ref RefStruct s1, int value)
+                    {
+                        GetRef(ref s1) = new RefStruct(ref value); // 4
+                    }
+
+                    private static ref RefStruct GetRef(ref RefStruct s) => ref s;
+
                     private ref struct RefStruct
                     {
                         public RefStruct(ref int i) => RefField = ref i;
@@ -27222,7 +27229,13 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(17, 26),
                 // (17,44): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
                 //         s1.RefMethod() = new RefStruct(ref value); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(17, 44));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(17, 44),
+                // (22,26): error CS8347: Cannot use a result of 'Repro.RefStruct.RefStruct(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         GetRef(ref s1) = new RefStruct(ref value); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(22, 26),
+                // (22,44): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         GetRef(ref s1) = new RefStruct(ref value); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(22, 44));
         }
 
         [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
@@ -27301,6 +27314,99 @@ Block[B2] - Exit
                 //         return ref M1(ref s1, ref s2); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "s2").WithArguments("s2").WithLocation(14, 35)
                 );
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_RefEscape_02()
+        {
+            var source = """
+                public class Repro
+                {
+                    private static ref RefStruct M1(ref RefStruct s1, RefStruct s2)
+                    {
+                        return ref s1;
+                    }
+
+                    private static ref RefStruct M2(ref RefStruct s1, int param)
+                    {
+                        RefStruct s2 = new RefStruct(ref param);
+                        // RSTE of s1 is ReturnOnly
+                        // STE of s2 is CurrentMethod, but this is not contributed to the call to M1.
+                        // We error due to arg mixing, not due to the return value.
+                        return ref M1(ref s1, s2);
+                    }
+
+                    private ref struct RefStruct
+                    {
+                        public RefStruct(ref int i) { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (14,20): error CS8350: This combination of arguments to 'Repro.M1(ref Repro.RefStruct, Repro.RefStruct)' is disallowed because it may expose variables referenced by parameter 's2' outside of their declaration scope
+                //         return ref M1(ref s1, s2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(ref s1, s2)").WithArguments("Repro.M1(ref Repro.RefStruct, Repro.RefStruct)", "s2").WithLocation(14, 20),
+                // (14,31): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref M1(ref s1, s2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(14, 31)
+                );
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_VariousInputAndOutputRefKinds()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Repro
+                {
+                    private static void Bad1(int value)
+                    {
+                        RefStruct s1 = new RefStruct();
+                        GetReference1(ref s1).RefField = ref value; // 1
+                        GetReference2(in s1).RefField = ref value; // 2
+                        GetReference3(out s1).RefField = ref value; // 3
+
+                        GetReadonlyReference1(ref s1).RefField = ref value; // 4
+                        GetReadonlyReference2(in s1).RefField = ref value; // 5
+                        GetReadonlyReference3(out s1).RefField = ref value; // 6
+                    }
+
+                    static ref RefStruct GetReference1(ref RefStruct rs) => throw null!;
+                    static ref RefStruct GetReference2(in RefStruct rs) => throw null!;
+                    static ref RefStruct GetReference3([UnscopedRef] out RefStruct rs) => throw null!;
+
+                    static ref readonly RefStruct GetReadonlyReference1(ref RefStruct rs) => throw null!;
+                    static ref readonly RefStruct GetReadonlyReference2(in RefStruct rs) => throw null!;
+                    static ref readonly RefStruct GetReadonlyReference3([UnscopedRef] out RefStruct rs) => throw null!;
+
+                    private ref struct RefStruct
+                    {
+                        public ref int RefField;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         GetReference1(ref s1).RefField = ref value; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "GetReference1(ref s1).RefField = ref value").WithArguments("RefField", "value").WithLocation(8, 9),
+                // (9,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         GetReference2(in s1).RefField = ref value; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "GetReference2(in s1).RefField = ref value").WithArguments("RefField", "value").WithLocation(9, 9),
+                // (10,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         GetReference3(out s1).RefField = ref value; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "GetReference3(out s1).RefField = ref value").WithArguments("RefField", "value").WithLocation(10, 9),
+                // (12,9): error CS8332: Cannot assign to a member of method 'GetReadonlyReference1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         GetReadonlyReference1(ref s1).RefField = ref value; // 4
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference1(ref s1).RefField").WithArguments("method", "GetReadonlyReference1").WithLocation(12, 9),
+                // (13,9): error CS8332: Cannot assign to a member of method 'GetReadonlyReference2' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         GetReadonlyReference2(in s1).RefField = ref value; // 5
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference2(in s1).RefField").WithArguments("method", "GetReadonlyReference2").WithLocation(13, 9),
+                // (14,9): error CS8332: Cannot assign to a member of method 'GetReadonlyReference3' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         GetReadonlyReference3(out s1).RefField = ref value; // 6
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference3(out s1).RefField").WithArguments("method", "GetReadonlyReference3").WithLocation(14, 9));
         }
     }
 }
