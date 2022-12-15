@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     foreach (var document in documents)
                     {
-                        if (document.Project == project))
+                        if (document.Project == project)
                             await PerformSearchInDocumentAsync(symbols, document, symbolToGlobalAliases).ConfigureAwait(false);
                     }
                 }
