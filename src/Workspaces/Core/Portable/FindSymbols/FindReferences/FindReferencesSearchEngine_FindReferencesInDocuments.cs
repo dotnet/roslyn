@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return;
 
-            async Task PerformSearchInProjectAsync(
-                ImmutableArray<ISymbol> symbols, Project project)
+            async Task PerformSearchInProjectAsync(ImmutableArray<ISymbol> symbols, Project project)
             {
                 using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
                 try
