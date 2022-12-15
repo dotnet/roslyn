@@ -11,9 +11,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public MetadataUnifyingSymbolHashSet() : base(MetadataUnifyingEquivalenceComparer.Instance)
         {
         }
-
-        public MetadataUnifyingSymbolHashSet(IEnumerable<ISymbol> collection) : base(collection, MetadataUnifyingEquivalenceComparer.Instance)
-        {
-        }
     }
 }
