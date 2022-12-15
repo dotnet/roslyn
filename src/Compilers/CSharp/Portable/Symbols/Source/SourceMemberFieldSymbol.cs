@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
         }
 
-        protected sealed override void CheckConstantValue(ConstantValue? value, BindingDiagnosticBag diagnostics)
+        protected sealed override void CheckConstantValue(ConstantValue value, BindingDiagnosticBag diagnostics)
         {
             var equalsValueNode = VariableDeclaratorNode.Initializer;
 

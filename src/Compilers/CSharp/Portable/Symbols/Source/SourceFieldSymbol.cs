@@ -406,6 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        protected virtual void CheckConstantValue(ConstantValue? value, BindingDiagnosticBag diagnostics) { }
+        protected virtual void CheckConstantValue(ConstantValue value, BindingDiagnosticBag diagnostics) { }
     }
 }
