@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             options = options with { UnidirectionalHierarchyCascade = true };
 
             var finders = ReferenceFinders.DefaultReferenceFinders;
-            progress ??= NoOpStreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
                 solution, documents, finders, progress, options);
             return engine.FindReferencesInDocumentsAsync(symbol, documents, cancellationToken);
