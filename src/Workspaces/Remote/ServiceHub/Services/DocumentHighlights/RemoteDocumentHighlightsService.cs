@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -37,10 +36,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                var documentsToSearch = await documentIdsToSearch
-                    .SelectAsArrayAsync(async id => await solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false))
-                    .ConfigureAwait(false);
-                var documentsToSearchSet = documentsToSearch.WhereNotNull().ToImmutableHashSet();
+                var documentsToSearch = await documentIdsToSearch.SelectAsArrayAsync(id => solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken)).ConfigureAwait(false);
+                var documentsToSearchSet = ImmutableHashSet.CreateRange(documentsToSearch.WhereNotNull());
 
                 var service = document.GetRequiredLanguageService<IDocumentHighlightsService>();
                 var result = await service.GetDocumentHighlightsAsync(
