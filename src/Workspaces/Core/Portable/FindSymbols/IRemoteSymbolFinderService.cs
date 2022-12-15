@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         ValueTask FindReferencesAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId symbolAndProjectIdArg, ImmutableArray<DocumentId> documentArgs,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        ValueTask FindReferencesInDocumentsAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId symbolAndProjectIdArg, ImmutableArray<DocumentId> documentArgs,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken);
-
         ValueTask FindLiteralReferencesAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, object value, TypeCode typeCode, CancellationToken cancellationToken);
 
         ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(

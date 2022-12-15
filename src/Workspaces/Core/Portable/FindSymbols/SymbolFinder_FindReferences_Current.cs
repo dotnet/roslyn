@@ -71,44 +71,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return engine.FindReferencesAsync(symbol, cancellationToken);
         }
 
-        internal static async Task FindReferencesInDocumentsAsync(
-            ISymbol symbol,
-            Solution solution,
-            IStreamingFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
-            {
-                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
-                {
-                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-                    if (client != null)
-                    {
-                        // Create a callback that we can pass to the server process to hear about the 
-                        // results as it finds them.  When we hear about results we'll forward them to
-                        // the 'progress' parameter which will then update the UI.
-                        var serverCallback = new FindReferencesServerCallback(solution, progress);
-                        var documentIds = documents.SelectAsArray(d => d.Id);
-
-                        await client.TryInvokeAsync<IRemoteSymbolFinderService>(
-                            solution,
-                            (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesInDocumentsAsync(solutionInfo, callbackId, serializedSymbol, documentIds, options, cancellationToken),
-                            serverCallback,
-                            cancellationToken).ConfigureAwait(false);
-
-                        return;
-                    }
-                }
-
-                // Couldn't effectively search in OOP. Perform the search in-proc.
-                await FindReferencesInDocumentsInCurrentProcessAsync(
-                    symbol, solution, progress,
-                    documents, options, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
         internal static Task FindReferencesInDocumentsInCurrentProcessAsync(
             ISymbol symbol,
             Solution solution,

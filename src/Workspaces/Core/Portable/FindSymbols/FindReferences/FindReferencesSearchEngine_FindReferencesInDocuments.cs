@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ISymbol symbol, SymbolInfo symbolInfo)
             {
                 if (await HasInheritanceRelationshipSingleAsync(symbol, symbolInfo.Symbol).ConfigureAwait(false))
-                    return (matched: true, symbolInfo.Symbol, CandidateReason.None);
+                    return (matched: true, symbolInfo.Symbol!, CandidateReason.None);
 
                 foreach (var candidate in symbolInfo.CandidateSymbols)
                 {
