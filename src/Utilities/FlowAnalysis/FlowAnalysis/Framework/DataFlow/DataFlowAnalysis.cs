@@ -593,6 +593,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             {
                                 return block.EnclosingRegion.EnclosingRegion;
                             }
+
                             break;
 
                         case ControlFlowRegionKind.Filter:
@@ -601,6 +602,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             {
                                 return block.EnclosingRegion.EnclosingRegion.EnclosingRegion;
                             }
+
                             break;
                     }
                 }

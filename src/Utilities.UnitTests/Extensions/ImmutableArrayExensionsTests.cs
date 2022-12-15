@@ -46,6 +46,7 @@ namespace Analyzer.Utilities.Extensions
                 builder.AddRange(Enumerable.Range(0, count));
                 return builder.ToImmutable();
             }
+
             return ImmutableArray<int>.Empty;
         }
     }

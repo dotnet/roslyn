@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private const string BailOnMissingPublicApiFilesEditorConfigOptionName = $"{BaseEditorConfigPath}.require_api_files";
         private const string NamespaceToIgnoreInTrackingEditorConfigOptionName = $"{BaseEditorConfigPath}.skip_namespaces";
 
-
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
             new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,

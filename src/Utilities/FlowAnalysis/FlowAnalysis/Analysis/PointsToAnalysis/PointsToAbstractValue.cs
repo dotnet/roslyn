@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     return NullLocation;
                 }
+
                 if (location.IsNoLocation)
                 {
                     return NoLocation;

@@ -23,8 +23,8 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         private sealed class CodeBlockStartedAnalyzer : AbstractCodeBlockStartedAnalyzer<SyntaxKind>
         {
-            public CodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol) :
-                base(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
+            public CodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
+                : base(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
             {
             }
 
@@ -36,8 +36,8 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         private sealed class SyntaxAnalyzer : AbstractSyntaxAnalyzer
         {
-            public SyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol) :
-                base(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
+            public SyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
+                : base(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
             {
             }
 

@@ -167,7 +167,8 @@ namespace Analyzer.Utilities
 
         private static int Height(AvlNode? node)
         {
-            if (node == null) return 0;
+            if (node == null)
+                return 0;
 
             int a = Height(node.Left);
             int b = Height(node.Right);
@@ -290,7 +291,8 @@ namespace Analyzer.Utilities
             public static int AssertBalanced(AvlNode? V)
 #pragma warning restore CA1000 // Do not declare static members on generic types
             {
-                if (V == null) return 0;
+                if (V == null)
+                    return 0;
 
                 int a = AssertBalanced(V.Left);
                 int b = AssertBalanced(V.Right);

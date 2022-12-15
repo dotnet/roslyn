@@ -35,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes
                     If invocation Is Nothing Then
                         Return binaryExpression
                     End If
+
                     Dim newInvocation = invocation _
                         .WithExpression(ConvertKindNameToIsKind(invocation.Expression)) _
                         .AddArgumentListArguments(SyntaxFactory.SimpleArgument(binaryExpression.Right.WithoutTrailingTrivia())) _

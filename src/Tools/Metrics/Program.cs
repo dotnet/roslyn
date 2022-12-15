@@ -229,6 +229,7 @@ Display this help message.");
                         {
                             Console.WriteLine($"Writing output to '{outputFile}'...");
                         }
+
                         metricFile = new XmlTextWriter(outputFile, Encoding.UTF8);
                     }
                     else

@@ -274,6 +274,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         {
                             goto case DisposeMethodKind.Dispose;
                         }
+
                         break;
 
                     default:

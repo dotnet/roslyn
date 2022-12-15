@@ -140,6 +140,7 @@ namespace Analyzer.Utilities
                     {
                         wildcardNamesBuilder.Add(AllKinds, PooledDictionary<string, TValue>.GetInstance());
                     }
+
                     wildcardNamesBuilder[AllKinds].Add(parts.SymbolName[0..^1], parts.AssociatedValue);
                     return;
                 }
@@ -161,6 +162,7 @@ namespace Analyzer.Utilities
                     {
                         wildcardNamesBuilder.Add(symbolKind.Value, PooledDictionary<string, TValue>.GetInstance());
                     }
+
                     wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName[2..^1], parts.AssociatedValue);
                 }
             }
