@@ -236,10 +236,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 else
                 {
-                    var overrrides = await SymbolFinder.FindOverridesArrayAsync(
+                    var overrides = await SymbolFinder.FindOverridesArrayAsync(
                         symbol, solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    await AddCascadedAndLinkedSymbolsToAsync(engine, overrrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(engine, overrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
             }
 
