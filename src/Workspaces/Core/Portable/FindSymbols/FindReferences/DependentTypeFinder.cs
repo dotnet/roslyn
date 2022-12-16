@@ -220,21 +220,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 break;
                             case SpecialType.System_ValueType:
                                 await AddMatchingTypesAsync(
-                                    projectIndex.ValueTypes,
-                                    tempBuffer,
-                                    predicateOpt: null).ConfigureAwait(false);
+                                    projectIndex.ValueTypes, tempBuffer, predicateOpt: null).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_Enum:
                                 await AddMatchingTypesAsync(
-                                    projectIndex.Enums,
-                                    tempBuffer,
-                                    predicateOpt: null).ConfigureAwait(false);
+                                    projectIndex.Enums, tempBuffer, predicateOpt: null).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_MulticastDelegate:
                                 await AddMatchingTypesAsync(
-                                    projectIndex.Delegates,
-                                    tempBuffer,
-                                    predicateOpt: null).ConfigureAwait(false);
+                                    projectIndex.Delegates, tempBuffer, predicateOpt: null).ConfigureAwait(false);
                                 break;
                         }
 
