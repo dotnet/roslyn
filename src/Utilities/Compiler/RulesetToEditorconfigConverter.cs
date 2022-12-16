@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig
                 var ruleSetDocument = XDocument.Load(xmlReader);
 
                 // Find the top level rule set node
-                var rulesetNode = ruleSetDocument.Elements(RuleSetNodeName).FirstOrDefault();
+                var rulesetNode = ruleSetDocument.Elements(RuleSetNodeName).First();
                 Debug.Assert(rulesetNode.Name == RuleSetNodeName);
                 return rulesetNode;
             }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig
                         if (node is XElement ruleNode &&
                             ruleNode.Name == RuleNodeName)
                         {
-                            XAttribute ruleId = ruleNode.Attribute(RuleIdAttributeName);
+                            XAttribute? ruleId = ruleNode.Attribute(RuleIdAttributeName);
                             if (ruleId != null)
                             {
                                 foreach (var comment in ruleNode.Nodes().OfType<XComment>())
