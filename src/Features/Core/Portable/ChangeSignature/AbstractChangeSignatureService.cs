@@ -917,10 +917,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
-            var options = RecommendationServiceOptions.From(document.Project);
+            var recommendationOptions = new RecommendationServiceOptions()
+            {
+                HideAdvancedMembers = false,
+                FilterOutOfScopeLocals = true,
+            };
 
             var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            var recommendations = recommender.GetRecommendedSymbolsInContext(context, options, cancellationToken).NamedSymbols;
+            var recommendations = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken).NamedSymbols;
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 

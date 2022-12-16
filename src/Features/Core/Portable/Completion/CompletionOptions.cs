@@ -36,9 +36,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionOptions Default = new();
 
         public RecommendationServiceOptions ToRecommendationServiceOptions()
-            => new(
-                FilterOutOfScopeLocals: FilterOutOfScopeLocals,
-                HideAdvancedMembers: HideAdvancedMembers);
+            => new()
+            {
+                FilterOutOfScopeLocals = FilterOutOfScopeLocals,
+                HideAdvancedMembers = HideAdvancedMembers
+            };
 
         /// <summary>
         /// Whether items from unimported namespaces should be included in the completion list.
