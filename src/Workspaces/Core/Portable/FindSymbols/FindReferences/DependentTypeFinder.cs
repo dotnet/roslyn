@@ -133,90 +133,72 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (project.SupportsCompilation)
-                {
-                    await DescendInheritanceTreeInProjectAsync(
-                        searchInMetadata, result,
-                        currentMetadataTypes, currentSourceAndMetadataTypes, seenPEReferences,
-                        project,
-                        typeMatches,
-                        shouldContinueSearching,
-                        transitive, cancellationToken).ConfigureAwait(false);
-                }
+                    await DescendInheritanceTreeInProjectAsync(project).ConfigureAwait(false);
             }
 
             return result.ToImmutableArray();
-        }
 
-        private static async Task DescendInheritanceTreeInProjectAsync(
-            bool searchInMetadata,
-            SymbolSet result,
-            SymbolSet currentMetadataTypes,
-            SymbolSet currentSourceAndMetadataTypes,
-            HashSet<PortableExecutableReference> seenPEReferences,
-            Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Debug.Assert(project.SupportsCompilation);
-
-            // First see what derived metadata types we might find in this project. This is only necessary if we
-            // started with a metadata type (i.e. a source type could not have a descendant type found in metadata,
-            // but a metadata type could have descendant types in source and metadata).
-            if (searchInMetadata)
+            async Task DescendInheritanceTreeInProjectAsync(Project project)
             {
-                using var _ = GetSymbolSet(out var tempBuffer);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                await AddDescendantMetadataTypesInProjectAsync(
-                    result: tempBuffer,
-                    currentMetadataTypes,
-                    seenPEReferences,
-                    project,
-                    typeMatches,
-                    shouldContinueSearching,
-                    transitive,
-                    cancellationToken).ConfigureAwait(false);
+                Debug.Assert(project.SupportsCompilation);
 
-                // Add all the matches we found to the result set.
-                AssertContents(tempBuffer, assert: s_isInMetadata, "Found type was not from metadata");
-                AddRange(tempBuffer, result);
-
-                // Now, if we're doing a transitive search, add these found types to the 'current' sets we're
-                // searching for more results for. These will then be used when searching for more types in the next
-                // project (which our caller controls).
-                if (transitive)
+                // First see what derived metadata types we might find in this project. This is only necessary if we
+                // started with a metadata type (i.e. a source type could not have a descendant type found in metadata,
+                // but a metadata type could have descendant types in source and metadata).
+                if (searchInMetadata)
                 {
-                    AddRange(tempBuffer, currentMetadataTypes, shouldContinueSearching);
-                    AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
+                    using var _ = GetSymbolSet(out var tempBuffer);
+
+                    await AddDescendantMetadataTypesInProjectAsync(
+                        result: tempBuffer,
+                        currentMetadataTypes,
+                        seenPEReferences,
+                        project,
+                        typeMatches,
+                        shouldContinueSearching,
+                        transitive,
+                        cancellationToken).ConfigureAwait(false);
+
+                    // Add all the matches we found to the result set.
+                    AssertContents(tempBuffer, assert: s_isInMetadata, "Found type was not from metadata");
+                    AddRange(tempBuffer, result);
+
+                    // Now, if we're doing a transitive search, add these found types to the 'current' sets we're
+                    // searching for more results for. These will then be used when searching for more types in the next
+                    // project (which our caller controls).
+                    if (transitive)
+                    {
+                        AddRange(tempBuffer, currentMetadataTypes, shouldContinueSearching);
+                        AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
+                    }
                 }
-            }
 
-            {
-                using var _ = GetSymbolSet(out var tempBuffer);
+                {
+                    using var _ = GetSymbolSet(out var tempBuffer);
 
-                // Now search the project and see what source types we can find.
-                await AddDescendantSourceTypesInProjectAsync(
-                    currentSourceAndMetadataTypes,
-                    result: tempBuffer,
-                    project,
-                    typeMatches,
-                    shouldContinueSearching,
-                    transitive,
-                    cancellationToken).ConfigureAwait(false);
+                    // Now search the project and see what source types we can find.
+                    await AddDescendantSourceTypesInProjectAsync(
+                        currentSourceAndMetadataTypes,
+                        result: tempBuffer,
+                        project,
+                        typeMatches,
+                        shouldContinueSearching,
+                        transitive,
+                        cancellationToken).ConfigureAwait(false);
 
-                // Add all the matches we found to the result set.
-                AssertContents(tempBuffer, assert: s_isInSource, "Found type was not from source");
-                AddRange(tempBuffer, result);
+                    // Add all the matches we found to the result set.
+                    AssertContents(tempBuffer, assert: s_isInSource, "Found type was not from source");
+                    AddRange(tempBuffer, result);
 
-                // Now, if we're doing a transitive search, add these types to the currentSourceAndMetadataTypes
-                // set. These will then be used when searching for more types in the next project (which our caller
-                // controls).  We don't have to add this to currentMetadataTypes since these will all be
-                // source types.
-                if (transitive)
-                    AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
+                    // Now, if we're doing a transitive search, add these types to the currentSourceAndMetadataTypes
+                    // set. These will then be used when searching for more types in the next project (which our caller
+                    // controls).  We don't have to add this to currentMetadataTypes since these will all be
+                    // source types.
+                    if (transitive)
+                        AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
+                }
             }
         }
 
