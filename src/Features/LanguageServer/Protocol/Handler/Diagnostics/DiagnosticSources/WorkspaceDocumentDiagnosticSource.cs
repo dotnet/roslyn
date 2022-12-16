@@ -11,8 +11,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed record WorkspaceDocumentDiagnosticSource(TextDocument Document) : AbstractDocumentDiagnosticSource<TextDocument>(Document)
+internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
+    public WorkspaceDocumentDiagnosticSource(TextDocument document)
+        : base(document)
+    {
+    }
+
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
