@@ -57,10 +57,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PropertySetAnalysisParameters propertySetAnalysisParameters,
             params (int Line, int Column, string Method, HazardousUsageEvaluationResult Result)[] expectedResults)
         {
-            if (expectedResults == null)
-            {
-                expectedResults = Array.Empty<(int Line, int Column, string MethodName, HazardousUsageEvaluationResult Result)>();
-            }
+            expectedResults ??= Array.Empty<(int Line, int Column, string MethodName, HazardousUsageEvaluationResult Result)>();
 
             Project project = CreateProject(new string[] { source, TestTypeToTrackSource });
             Compilation compilation = project.GetCompilationAsync().Result;
@@ -1361,10 +1358,7 @@ class TestClass
 
         protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
         {
-            if (synList == null)
-            {
-                synList = new List<SyntaxNode>();
-            }
+            synList ??= new List<SyntaxNode>();
 
             synList.Add(node);
 

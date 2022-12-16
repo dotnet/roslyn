@@ -331,19 +331,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     if (file.IsShipping)
                     {
-                        if (shippedText is null)
-                        {
-                            shippedText = new();
-                        }
+                        shippedText ??= new();
 
                         shippedText.Add(data);
                     }
                     else
                     {
-                        if (unshippedText is null)
-                        {
-                            unshippedText = new();
-                        }
+                        unshippedText ??= new();
 
                         unshippedText.Add(data);
                     }

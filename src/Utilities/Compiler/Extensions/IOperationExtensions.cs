@@ -143,9 +143,9 @@ namespace Analyzer.Utilities.Extensions
                         builder.AddRange(operations, i);
                     }
                 }
-                else if (builder != null)
+                else
                 {
-                    builder.Add(operation);
+                    builder?.Add(operation);
                 }
             }
 
