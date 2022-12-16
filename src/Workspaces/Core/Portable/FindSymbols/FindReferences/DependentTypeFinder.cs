@@ -214,35 +214,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             case SpecialType.System_Object:
                                 await AddMatchingTypesAsync(
-                                    cachedModels,
                                     projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
                                     result: tempBuffer,
-                                    predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object,
-                                    cancellationToken).ConfigureAwait(false);
+                                    predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_ValueType:
                                 await AddMatchingTypesAsync(
-                                    cachedModels,
                                     projectIndex.ValueTypes,
                                     result: tempBuffer,
-                                    predicateOpt: null,
-                                    cancellationToken).ConfigureAwait(false);
+                                    predicateOpt: null).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_Enum:
                                 await AddMatchingTypesAsync(
-                                    cachedModels,
                                     projectIndex.Enums,
                                     result: tempBuffer,
-                                    predicateOpt: null,
-                                    cancellationToken).ConfigureAwait(false);
+                                    predicateOpt: null).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_MulticastDelegate:
                                 await AddMatchingTypesAsync(
-                                    cachedModels,
                                     projectIndex.Delegates,
                                     result: tempBuffer,
-                                    predicateOpt: null,
-                                    cancellationToken).ConfigureAwait(false);
+                                    predicateOpt: null).ConfigureAwait(false);
                                 break;
                         }
 
@@ -258,6 +250,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     PropagateTemporaryResults(
                         result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
+                }
+
+                async Task AddMatchingTypesAsync(
+                    MultiDictionary<Document, DeclaredSymbolInfo> documentToInfos,
+                    SymbolSet result,
+                    Func<INamedTypeSymbol, bool>? predicateOpt)
+                {
+                    foreach (var (document, infos) in documentToInfos)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        Debug.Assert(infos.Count > 0);
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        cachedModels.Add(semanticModel);
+
+                        foreach (var info in infos)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            var resolvedSymbol = info.TryResolve(semanticModel, cancellationToken);
+                            if (resolvedSymbol is INamedTypeSymbol namedType)
+                            {
+                                if (predicateOpt == null ||
+                                    predicateOpt(namedType))
+                                {
+                                    result.Add(namedType);
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -552,38 +574,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     typeMatches(namedType, typesToSearchFor))
                 {
                     result.Add(namedType);
-                }
-            }
-        }
-
-        private static async Task AddMatchingTypesAsync(
-            ConcurrentSet<SemanticModel> cachedModels,
-            MultiDictionary<Document, DeclaredSymbolInfo> documentToInfos,
-            SymbolSet result,
-            Func<INamedTypeSymbol, bool>? predicateOpt,
-            CancellationToken cancellationToken)
-        {
-            foreach (var (document, infos) in documentToInfos)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                Debug.Assert(infos.Count > 0);
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                cachedModels.Add(semanticModel);
-
-                foreach (var info in infos)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var resolvedSymbol = info.TryResolve(semanticModel, cancellationToken);
-                    if (resolvedSymbol is INamedTypeSymbol namedType)
-                    {
-                        if (predicateOpt == null ||
-                            predicateOpt(namedType))
-                        {
-                            result.Add(namedType);
-                        }
-                    }
                 }
             }
         }
