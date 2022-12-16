@@ -215,37 +215,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             case SpecialType.System_Object:
                                 await AddMatchingTypesAsync(
                                     projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
-                                    result: tempBuffer,
+                                    tempBuffer,
                                     predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_ValueType:
                                 await AddMatchingTypesAsync(
                                     projectIndex.ValueTypes,
-                                    result: tempBuffer,
+                                    tempBuffer,
                                     predicateOpt: null).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_Enum:
                                 await AddMatchingTypesAsync(
                                     projectIndex.Enums,
-                                    result: tempBuffer,
+                                    tempBuffer,
                                     predicateOpt: null).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_MulticastDelegate:
                                 await AddMatchingTypesAsync(
                                     projectIndex.Delegates,
-                                    result: tempBuffer,
+                                    tempBuffer,
                                     predicateOpt: null).ConfigureAwait(false);
                                 break;
                         }
 
-                        await AddSourceTypesThatDeriveFromNameAsync(
-                            typeMatches,
-                            cachedModels,
-                            typesToSearchFor,
-                            projectIndex,
-                            result: tempBuffer,
-                            type.Name,
-                            cancellationToken).ConfigureAwait(false);
+                        await AddSourceTypesThatDeriveFromNameAsync(tempBuffer, type.Name).ConfigureAwait(false);
                     }
 
                     PropagateTemporaryResults(
@@ -278,6 +271,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     result.Add(namedType);
                                 }
                             }
+                        }
+                    }
+                }
+
+                async Task AddSourceTypesThatDeriveFromNameAsync(SymbolSet result, string name)
+                {
+                    foreach (var (document, info) in projectIndex.NamedTypes[name])
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        cachedModels.Add(semanticModel);
+
+                        var resolvedType = info.TryResolve(semanticModel, cancellationToken);
+                        if (resolvedType is INamedTypeSymbol namedType &&
+                            typeMatches(namedType, typesToSearchFor))
+                        {
+                            result.Add(namedType);
                         }
                     }
                 }
@@ -551,31 +562,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             tempBuffer.Clear();
-        }
-
-        private static async Task AddSourceTypesThatDeriveFromNameAsync(
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            ConcurrentSet<SemanticModel> cachedModels,
-            SymbolSet typesToSearchFor,
-            ProjectIndex index,
-            SymbolSet result,
-            string name,
-            CancellationToken cancellationToken)
-        {
-            foreach (var (document, info) in index.NamedTypes[name])
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                cachedModels.Add(semanticModel);
-
-                var resolvedType = info.TryResolve(semanticModel, cancellationToken);
-                if (resolvedType is INamedTypeSymbol namedType &&
-                    typeMatches(namedType, typesToSearchFor))
-                {
-                    result.Add(namedType);
-                }
-            }
         }
 
         public static PooledDisposer<PooledHashSet<INamedTypeSymbol>> GetSymbolSet(out SymbolSet instance)
