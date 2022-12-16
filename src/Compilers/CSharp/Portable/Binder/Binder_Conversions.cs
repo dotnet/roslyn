@@ -774,16 +774,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Warns for defaults/`params` mismatch.
-        /// </summary>
         private static void CheckLambdaConversion(LambdaSymbol lambdaSymbol, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
         {
-            if (lambdaSymbol.SyntaxNode.IsKind(SyntaxKind.AnonymousMethodExpression))
-            {
-                return;
-            }
-
             var delegateType = targetType.GetDelegateType();
             Debug.Assert(delegateType is not null);
             var delegateParameters = delegateType.DelegateParameters();
@@ -794,21 +786,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambdaParameter = lambdaSymbol.Parameters[p];
                 var delegateParameter = delegateParameters[p];
 
-                if (lambdaParameter.HasExplicitDefaultValue &&
-                    lambdaParameter.ExplicitDefaultConstantValue is { IsBad: false } lambdaParamDefault)
+                // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                // check that the corresponding `*ConstantAttribute` is available.
+                var defaultValue = delegateParameter.ExplicitDefaultConstantValue;
+                if (defaultValue != ConstantValue.NotAvailable)
                 {
-                    var delegateParamDefault = delegateParameter.HasExplicitDefaultValue ? delegateParameter.ExplicitDefaultConstantValue : null;
-                    if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
+                    WellKnownMember? member = defaultValue.SpecialType switch
                     {
-                        // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
-                        Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
+                        SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                        SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                        _ => null
+                    };
+                    if (member != null)
+                    {
+                        ReportUseSiteDiagnosticForSynthesizedAttribute(
+                            lambdaSymbol.DeclaringCompilation,
+                            member.GetValueOrDefault(),
+                            diagnostics,
+                            lambdaParameter.Locations.FirstOrDefault() ?? lambdaSymbol.SyntaxNode.Location);
                     }
                 }
 
-                if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1 && lambdaParameter.Type.IsSZArray())
+                // Warn for defaults/`params` mismatch.
+                if (!lambdaSymbol.SyntaxNode.IsKind(SyntaxKind.AnonymousMethodExpression))
                 {
-                    // Parameter {0} has params modifier in lambda but not in target delegate type.
-                    Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
+                    if (lambdaParameter.HasExplicitDefaultValue &&
+                        lambdaParameter.ExplicitDefaultConstantValue is { IsBad: false } lambdaParamDefault)
+                    {
+                        var delegateParamDefault = delegateParameter.HasExplicitDefaultValue ? delegateParameter.ExplicitDefaultConstantValue : null;
+                        if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
+                        {
+                            // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
+                            Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
+                        }
+                    }
+
+                    if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1 && lambdaParameter.Type.IsSZArray())
+                    {
+                        // Parameter {0} has params modifier in lambda but not in target delegate type.
+                        Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
+                    }
                 }
             }
         }
