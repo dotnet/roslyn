@@ -34,21 +34,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptions;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public BlockCommentEditingCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptions)
+            EditorOptionsService editorOptionsService)
         {
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
 
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptions = editorOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         private bool TryHandleReturnKey(ITextBuffer subjectBuffer, ITextView textView, CancellationToken cancellationToken)
         {
-            if (!_editorOptions.GlobalOptions.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp))
+            if (!_editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp))
                 return false;
 
             var caretPosition = textView.GetCaretPoint(subjectBuffer);
             if (caretPosition == null)
                 return false;
 
-            var textToInsert = GetTextToInsert(caretPosition.Value, subjectBuffer, _editorOptions, cancellationToken);
+            var textToInsert = GetTextToInsert(caretPosition.Value, subjectBuffer, _editorOptionsService, cancellationToken);
             if (textToInsert == null)
                 return false;
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             return Span.FromBounds(start, end);
         }
 
-        private static string? GetTextToInsert(SnapshotPoint caretPosition, ITextBuffer buffer, EditorOptionsService editorOptions, CancellationToken cancellationToken)
+        private static string? GetTextToInsert(SnapshotPoint caretPosition, ITextBuffer buffer, EditorOptionsService editorOptionsService, CancellationToken cancellationToken)
         {
             var currentLine = caretPosition.GetContainingLine();
             var firstNonWhitespacePosition = currentLine.GetFirstNonWhitespacePosition() ?? -1;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             }
 
             // Now do more expensive syntactic check to see if we're actually in the block comment.
-            if (!IsCaretInsideBlockCommentSyntax(caretPosition, buffer, editorOptions, out var blockComment, out var newLine, cancellationToken))
+            if (!IsCaretInsideBlockCommentSyntax(caretPosition, buffer, editorOptionsService, out var blockComment, out var newLine, cancellationToken))
                 return null;
 
             var textSnapshot = caretPosition.Snapshot;
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
         public static bool IsCaretInsideBlockCommentSyntax(
             SnapshotPoint caretPosition,
             ITextBuffer buffer,
-            EditorOptionsService editorOptions,
+            EditorOptionsService editorOptionsService,
             out SyntaxTrivia trivia,
             [NotNullWhen(true)] out string? newLine,
             CancellationToken cancellationToken)
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
             if (isBlockComment)
             {
-                newLine = buffer.GetLineFormattingOptions(editorOptions, explicitFormat: false).NewLine;
+                newLine = buffer.GetLineFormattingOptions(editorOptionsService, explicitFormat: false).NewLine;
 
                 var span = trivia.FullSpan;
                 if (span.Start < caretPosition && caretPosition < span.End)
