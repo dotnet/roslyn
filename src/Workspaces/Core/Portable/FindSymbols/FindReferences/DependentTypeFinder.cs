@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<Location, bool> s_isInMetadata = static loc => loc.IsInMetadata;
         private static readonly Func<Location, bool> s_isInSource = static loc => loc.IsInSource;
 
-        private static readonly Func<INamedTypeSymbol, bool> s_isInterface = t => t?.TypeKind == TypeKind.Interface;
-        private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
-        private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass = t => s_isInterface(t) || s_isNonSealedClass(t);
+        private static readonly Func<INamedTypeSymbol, bool> s_isInterface = static t => t is { TypeKind: TypeKind.Interface };
+        private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = static t => t is { TypeKind: TypeKind.Class, IsSealed: false };
+        private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass = static t => s_isInterface(t) || s_isNonSealedClass(t);
 
         private static readonly ObjectPool<PooledHashSet<INamedTypeSymbol>> s_symbolSetPool = PooledHashSet<INamedTypeSymbol>.CreatePool(SymbolEquivalenceComparer.Instance);
 
