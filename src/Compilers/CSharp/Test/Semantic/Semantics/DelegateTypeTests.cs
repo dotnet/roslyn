@@ -15112,6 +15112,29 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 9));
         }
 
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_ExternalMethodGroup_CustomType(string type)
+        {
+            var source1 = $$"""
+                public delegate void Del({{type}} d = 1.1m);
+
+                public class C
+                {
+                    public static void M({{type}} d = 1.1m) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                Del m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp2.VerifyEmitDiagnostics();
+        }
+
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         public void MissingDecimalConstantAttribute_Field()
         {
