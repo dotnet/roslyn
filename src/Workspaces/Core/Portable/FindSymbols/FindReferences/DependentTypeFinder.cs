@@ -171,14 +171,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     using var _ = GetSymbolSet(out var tempBuffer);
 
                     // Now search the project and see what source types we can find.
-                    await AddDescendantSourceTypesInProjectAsync(
-                        currentSourceAndMetadataTypes,
-                        result: tempBuffer,
-                        project,
-                        typeMatches,
-                        shouldContinueSearching,
-                        transitive,
-                        cancellationToken).ConfigureAwait(false);
+                    await AddDescendantSourceTypesInProjectAsync(tempBuffer, project).ConfigureAwait(false);
 
                     // Add all the matches we found to the result set.
                     AssertContents(tempBuffer, assert: s_isInSource, "Found type was not from source");
@@ -190,6 +183,81 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // source types.
                     if (transitive)
                         AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
+                }
+            }
+
+            async Task AddDescendantSourceTypesInProjectAsync(SymbolSet result, Project project)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // We're going to be sweeping over this project over and over until we reach a 
+                // fixed point.  In order to limit GC and excess work, we cache all the semantic
+                // models and DeclaredSymbolInfo for the documents we look at.
+                // Because we're only processing a project at a time, this is not an issue.
+                var cachedModels = new ConcurrentSet<SemanticModel>();
+
+                using var _1 = GetSymbolSet(out var typesToSearchFor);
+                using var _2 = GetSymbolSet(out var tempBuffer);
+
+                typesToSearchFor.AddAll(currentSourceAndMetadataTypes);
+
+                var projectIndex = await ProjectIndex.GetIndexAsync(project, cancellationToken).ConfigureAwait(false);
+
+                // As long as there are new types to search for, keep looping.
+                while (typesToSearchFor.Count > 0)
+                {
+                    foreach (var type in typesToSearchFor)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        switch (type.SpecialType)
+                        {
+                            case SpecialType.System_Object:
+                                await AddMatchingTypesAsync(
+                                    cachedModels,
+                                    projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
+                                    result: tempBuffer,
+                                    predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object,
+                                    cancellationToken).ConfigureAwait(false);
+                                break;
+                            case SpecialType.System_ValueType:
+                                await AddMatchingTypesAsync(
+                                    cachedModels,
+                                    projectIndex.ValueTypes,
+                                    result: tempBuffer,
+                                    predicateOpt: null,
+                                    cancellationToken).ConfigureAwait(false);
+                                break;
+                            case SpecialType.System_Enum:
+                                await AddMatchingTypesAsync(
+                                    cachedModels,
+                                    projectIndex.Enums,
+                                    result: tempBuffer,
+                                    predicateOpt: null,
+                                    cancellationToken).ConfigureAwait(false);
+                                break;
+                            case SpecialType.System_MulticastDelegate:
+                                await AddMatchingTypesAsync(
+                                    cachedModels,
+                                    projectIndex.Delegates,
+                                    result: tempBuffer,
+                                    predicateOpt: null,
+                                    cancellationToken).ConfigureAwait(false);
+                                break;
+                        }
+
+                        await AddSourceTypesThatDeriveFromNameAsync(
+                            typeMatches,
+                            cachedModels,
+                            typesToSearchFor,
+                            projectIndex,
+                            result: tempBuffer,
+                            type.Name,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+
+                    PropagateTemporaryResults(
+                        result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
                 }
             }
 
@@ -430,88 +498,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return false;
-        }
-
-        private static async Task AddDescendantSourceTypesInProjectAsync(
-            SymbolSet currentSourceAndMetadataTypes,
-            SymbolSet result,
-            Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // We're going to be sweeping over this project over and over until we reach a 
-            // fixed point.  In order to limit GC and excess work, we cache all the semantic
-            // models and DeclaredSymbolInfo for the documents we look at.
-            // Because we're only processing a project at a time, this is not an issue.
-            var cachedModels = new ConcurrentSet<SemanticModel>();
-
-            using var _1 = GetSymbolSet(out var typesToSearchFor);
-            using var _2 = GetSymbolSet(out var tempBuffer);
-
-            typesToSearchFor.AddAll(currentSourceAndMetadataTypes);
-
-            var projectIndex = await ProjectIndex.GetIndexAsync(project, cancellationToken).ConfigureAwait(false);
-
-            // As long as there are new types to search for, keep looping.
-            while (typesToSearchFor.Count > 0)
-            {
-                foreach (var type in typesToSearchFor)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    switch (type.SpecialType)
-                    {
-                        case SpecialType.System_Object:
-                            await AddMatchingTypesAsync(
-                                cachedModels,
-                                projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
-                                result: tempBuffer,
-                                predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object,
-                                cancellationToken).ConfigureAwait(false);
-                            break;
-                        case SpecialType.System_ValueType:
-                            await AddMatchingTypesAsync(
-                                cachedModels,
-                                projectIndex.ValueTypes,
-                                result: tempBuffer,
-                                predicateOpt: null,
-                                cancellationToken).ConfigureAwait(false);
-                            break;
-                        case SpecialType.System_Enum:
-                            await AddMatchingTypesAsync(
-                                cachedModels,
-                                projectIndex.Enums,
-                                result: tempBuffer,
-                                predicateOpt: null,
-                                cancellationToken).ConfigureAwait(false);
-                            break;
-                        case SpecialType.System_MulticastDelegate:
-                            await AddMatchingTypesAsync(
-                                cachedModels,
-                                projectIndex.Delegates,
-                                result: tempBuffer,
-                                predicateOpt: null,
-                                cancellationToken).ConfigureAwait(false);
-                            break;
-                    }
-
-                    await AddSourceTypesThatDeriveFromNameAsync(
-                        typeMatches,
-                        cachedModels,
-                        typesToSearchFor,
-                        projectIndex,
-                        result: tempBuffer,
-                        type.Name,
-                        cancellationToken).ConfigureAwait(false);
-                }
-
-                PropagateTemporaryResults(
-                    result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
-            }
         }
 
         /// <summary>
