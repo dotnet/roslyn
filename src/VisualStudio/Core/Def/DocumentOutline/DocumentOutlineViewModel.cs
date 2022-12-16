@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -22,75 +23,42 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// <summary>
     /// Responsible for updating data related to Document outline.
     /// It is expected that all operations this type do not need to be on the UI thread.
-    /// The only exception is the constructor which should be initialized on the UI thread.
-    /// Any operations that do need to happen on a specific thread should be delegated out
-    /// to some other service such as <see cref="VisualStudioCodeWindowInfoService"/>.
     /// </summary>
     internal partial class DocumentOutlineViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
-        private readonly VisualStudioCodeWindowInfoService _visualStudioCodeWindowInfoService;
         private readonly CompilationAvailableTaggerEventSource _textViewEventSource;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly IDocumentNavigationService _navigationService;
-        private readonly Workspace _workspace;
+        private readonly ITextBuffer _textBuffer;
+
         private CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
             IAsynchronousOperationListener asyncListener,
-            VisualStudioCodeWindowInfoService visualStudioCodeWindowInfoService,
             CompilationAvailableTaggerEventSource textViewEventSource,
-            Workspace workspace,
-            IDocumentNavigationService documentNavigationService)
+            ITextBuffer textBuffer)
         {
             _languageServiceBroker = languageServiceBroker;
-            _visualStudioCodeWindowInfoService = visualStudioCodeWindowInfoService;
             _textViewEventSource = textViewEventSource;
-            _workspace = workspace;
-            _navigationService = documentNavigationService;
+            _textBuffer = textBuffer;
             _cancellationTokenSource = new CancellationTokenSource();
 
             // initialize public properties
             _sortOption = SortOption.Location;
             _documentSymbolViewModelItems = new ObservableCollection<DocumentSymbolDataViewModel>();
 
-            // event queues for updating view model state
-            _expandCollapseQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
-                DelayTimeSpan.NearImmediate,
-                ExpandOrCollapseItemsAsync,
-                asyncListener,
-                CancellationToken);
-
-            _selectTreeNodeQueue = new AsyncBatchingWorkQueue<CaretPosition>(
-                DelayTimeSpan.Short,
-                SelectTreeNodeAsync,
-                asyncListener,
-                CancellationToken);
-
-            _navigationQueue = new AsyncBatchingWorkQueue<TextSpan>(
-                DelayTimeSpan.NearImmediate,
-                NavigateToTextSpanAsync,
-                asyncListener,
-                CancellationToken);
-
-            _filterQueue = new AsyncBatchingWorkQueue<string>(
-                DelayTimeSpan.Short,
-                FilterTreeAsync,
-                asyncListener,
-                CancellationToken);
-
-            // work queues for refreshing LSP data
-            _documentSymbolRequestInfoQueue = new AsyncBatchingResultQueue<DocumentSymbolRequestInfo?>(
-                DelayTimeSpan.Short,
-                GetDocumentSymbolRequestInfoAsync,
-                asyncListener,
-                CancellationToken);
-
-            _documentSymbolQueue = new AsyncBatchingWorkQueue<DocumentSymbolRequestInfo, DocumentSymbolDataModel?>(
+            // work queue for refreshing LSP data
+            _documentSymbolQueue = new AsyncBatchingResultQueue<DocumentSymbolDataModel>(
                 DelayTimeSpan.Short,
                 GetDocumentSymbolAsync,
-                EqualityComparer<DocumentSymbolRequestInfo>.Default,
+                asyncListener,
+                CancellationToken);
+
+            // work queue for updating UI state
+            _updateViewModelStateQueue = new AsyncBatchingWorkQueue<ViewModelStateData>(
+                DelayTimeSpan.Short,
+                UpdateViewModelStateAsync,
                 asyncListener,
                 CancellationToken);
 
@@ -98,10 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _textViewEventSource.Connect();
 
             // queue initial model update
-            var service = _visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
-            var info = service.GetDocumentSymbolRequestInfo();
-            Assumes.NotNull(info);
-            _documentSymbolQueue.AddWork(info, cancelExistingWork: true);
+            _documentSymbolQueue.AddWork(cancelExistingWork: true);
         }
 
         private SortOption _sortOption;
@@ -111,16 +76,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             set => SetProperty(ref _sortOption, value);
         }
 
-        private readonly SemaphoreSlim _guard = new(1);
         private ObservableCollection<DocumentSymbolDataViewModel> _documentSymbolViewModelItems;
         public ObservableCollection<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
         {
             get => _documentSymbolViewModelItems;
-            set => SetProperty(ref _documentSymbolViewModelItems, value);
+            set
+            {
+                // Unselect any currently selected items or WPF will believe it needs to select the root node.
+                DocumentOutlineHelper.UnselectAll(_documentSymbolViewModelItems);
+                SetProperty(ref _documentSymbolViewModelItems, value);
+            }
         }
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            => _documentSymbolRequestInfoQueue.AddWork(cancelExistingWork: true);
+            => _documentSymbolQueue.AddWork(cancelExistingWork: true);
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

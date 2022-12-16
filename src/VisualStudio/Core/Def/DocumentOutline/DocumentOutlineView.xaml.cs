@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -24,19 +25,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal partial class DocumentOutlineView : UserControl, IVsCodeWindowEvents, IDisposable
     {
+        private readonly IVsCodeWindow _codeWindow;
         private readonly DocumentOutlineViewModel _viewModel;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
         private readonly ComEventSink _codeWindowEventsSink;
-        private bool _isNavigating = false;
+        private bool _isNavigating;
 
         public DocumentOutlineView(
             DocumentOutlineViewModel viewModel,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IVsCodeWindow codeWindow)
         {
+            _codeWindow = codeWindow;
             _viewModel = viewModel;
-            _viewModel.NavigationCompleted += NavigationCompleted;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             DataContext = _viewModel;
             InitializeComponent();
@@ -56,14 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-        }
-
-        /// <summary>
-        /// Called by our View Model to tell us that navigation in the document has completed
-        /// </summary>
-        private void NavigationCompleted(object sender, EventArgs e)
-        {
-            _isNavigating = false;
         }
 
         private int StartTrackingView(IVsTextView textView)
@@ -132,7 +126,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolDataViewModel symbol)
             {
                 _isNavigating = true;
-                _viewModel.EnqueueNavigation(symbol.SelectionRangeSpan.Span.ToTextSpan());
+                _codeWindow.GetLastActiveView(out var textView);
+                Assumes.NotNull(textView);
+                var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+                Assumes.NotNull(wpfTextView);
+                wpfTextView.TryMoveCaretToAndEnsureVisible(
+                    symbol.SelectionRangeSpan.Start.TranslateTo(wpfTextView.TextSnapshot, PointTrackingMode.Negative));
+                _isNavigating = false;
             }
         }
 

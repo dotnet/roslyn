@@ -155,6 +155,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         {
             var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
             var currentTextSnapshotLines = mocks.TextBuffer.CurrentSnapshot.Lines;
+            AssertEx.NotNull(model.OriginalSnapshot);
 
             // Click between 2 parent nodes (no symbol is selected)
             var caretPosition = currentTextSnapshotLines.ElementAt(11).End;

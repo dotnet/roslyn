@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
@@ -26,24 +26,28 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IVsCodeWindow codeWindow,
-            Workspace workspace,
-            IDocumentNavigationService documentNavigationService)
+            IVsCodeWindow codeWindow)
         {
             threadingContext.ThrowIfNotOnUIThread();
-            var visualStudioCodeWindowInfoService = new VisualStudioCodeWindowInfoService(codeWindow, editorAdaptersFactoryService, threadingContext);
-            var textViewEventSource = CreateEventSource(asyncListener, visualStudioCodeWindowInfoService);
-            var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, visualStudioCodeWindowInfoService, textViewEventSource, workspace, documentNavigationService);
+            var (textViewEventSource, textBuffer) = CreateEventSource(asyncListener, editorAdaptersFactoryService, codeWindow);
+            var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, textViewEventSource, textBuffer);
             return new DocumentOutlineView(viewModel, editorAdaptersFactoryService, codeWindow);
         }
 
-        private static CompilationAvailableTaggerEventSource CreateEventSource(
+        private static (CompilationAvailableTaggerEventSource, ITextBuffer) CreateEventSource(
             IAsynchronousOperationListener asyncListener,
-            VisualStudioCodeWindowInfoService visualStudioCodeWindowInfoService)
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            IVsCodeWindow codeWindow)
         {
-            var service = visualStudioCodeWindowInfoService.GetServiceAndThrowIfNotOnUIThread();
-            var wpfView = service.GetLastActiveIWpfTextView();
-            var subjectBuffer = wpfView.TextBuffer;
+            if (ErrorHandler.Failed(codeWindow.GetLastActiveView(out var textView)))
+            {
+                FailFast.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
+            }
+
+            var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
+            Assumes.NotNull(wpfTextView);
+
+            var subjectBuffer = wpfTextView.TextBuffer;
             var textViewEventSource = new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
                 asyncListener,
@@ -55,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
                 // Once we hook this buffer up to the workspace, then we can start computing the document symbols.
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
-            return textViewEventSource;
+            return (textViewEventSource, subjectBuffer);
         }
     }
 }

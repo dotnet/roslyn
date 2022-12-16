@@ -277,15 +277,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <param name="currentDocumentSymbolItems"/> is used to reference the current node expansion in the view.
         /// </summary>
         public static void SetIsExpandedOnNewItems(
-            ImmutableArray<DocumentSymbolDataViewModel> newDocumentSymbolItems,
+            IEnumerable<DocumentSymbolDataViewModel> newDocumentSymbolItems,
             IEnumerable<DocumentSymbolDataViewModel> currentDocumentSymbolItems)
         {
-            using var _ = PooledHashSet<DocumentSymbolDataViewModel>.GetInstance(out var hashset);
-            hashset.AddRange(newDocumentSymbolItems);
+            using var _ = PooledHashSet<DocumentSymbolDataViewModel>.GetInstance(out var hashSet);
+            hashSet.AddRange(newDocumentSymbolItems);
 
             foreach (var item in currentDocumentSymbolItems)
             {
-                if (!hashset.TryGetValue(item, out var newItem))
+                if (!hashSet.TryGetValue(item, out var newItem))
                 {
                     continue;
                 }
@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        internal static bool AreAllCollapsed(IEnumerable<DocumentSymbolDataViewModel> documentSymbolViewModelItems)
+        internal static bool AreAllTopLevelItemsCollapsed(IEnumerable<DocumentSymbolDataViewModel> documentSymbolViewModelItems)
         {
             if (!documentSymbolViewModelItems.Any())
             {

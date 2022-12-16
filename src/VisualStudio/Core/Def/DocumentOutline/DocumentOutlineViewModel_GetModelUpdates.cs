@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -18,13 +19,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// Queue that uses the language-server-protocol to get document symbol information.
         /// This queue can return null if it is called before and LSP server is registered for our document.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<DocumentSymbolRequestInfo, DocumentSymbolDataModel?> _documentSymbolQueue;
+        private readonly AsyncBatchingResultQueue<DocumentSymbolDataModel> _documentSymbolQueue;
 
-        private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(ImmutableSegmentedList<DocumentSymbolRequestInfo> documentSymbolRequestInfos, CancellationToken cancellationToken)
+        private async ValueTask<DocumentSymbolDataModel> GetDocumentSymbolAsync(CancellationToken cancellationToken)
         {
-            var (textBuffer, filePath) = documentSymbolRequestInfos.Last();
-
             cancellationToken.ThrowIfCancellationRequested();
+
+            var textBuffer = _textBuffer;
+            var filePath = _textBuffer.GetRelatedDocuments().FirstOrDefault(static d => d.FilePath is not null)?.FilePath;
+            if (filePath is null)
+            {
+                // text buffer is not saved to disk
+                // LSP does not support calls without URIs
+                // and Visual Studio does not have a URI concept other than the file path.
+                return DocumentSymbolDataModel.Empty;
+            }
 
             // Obtain the LSP response and text snapshot used.
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
@@ -35,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // response here, but we don't know that in general for all languages.
             if (response is null)
             {
-                return null;
+                return DocumentSymbolDataModel.Empty;
             }
 
             var responseBody = response.Value.response.ToObject<DocumentSymbol[]>();
@@ -44,26 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
-            var documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
-
-            // lock while we update the collection
-            using (await _guard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                DocumentOutlineHelper.UnselectAll(DocumentSymbolViewModelItems);
-                var allCollapsed = DocumentOutlineHelper.AreAllCollapsed(DocumentSymbolViewModelItems);
-                DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolDataViewModel>(documentSymbolViewModelItems);
-
-                if (_currentlySelectedSymbolCaretPosition.HasValue)
-                {
-                    // if we previously had a node selected, select that node in the new tree
-                    EnqueueSelectTreeNode(_currentlySelectedSymbolCaretPosition.Value);
-                }
-                else if (allCollapsed)
-                {
-                    // we previously had all nodes collapsed, so maintain that
-                    EnqueueExpandOrCollapse(ExpansionOption.Collapse);
-                }
-            }
+            _updateViewModelStateQueue.AddWork(new ViewModelStateData(null, null, null, true));
 
             return model;
         }
