@@ -324,6 +324,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
                 }
 
+                // Mark all these references as having been seen.  We don't need to examine it in future projects.
                 seenPEReferences.AddRange(compilation.References.OfType<PortableExecutableReference>());
             }
 
