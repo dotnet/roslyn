@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Same as above, but contains source types as well.
             using var _3 = GetSymbolSet(out var currentSourceAndMetadataTypes);
 
+            // The set of PEReferences we've examined.  We only need to examine a reference once when we encounter it
+            // while walking projects.  PEReferences cannot reference source symbols, so the results from them cannot 
+            // change as we examine further projects.
+            using var _4 = PooledHashSet<PortableExecutableReference>.GetInstance(out var seenPEReferences);
+
             currentSourceAndMetadataTypes.Add(type);
             if (searchInMetadata)
                 currentMetadataTypes.Add(type);
@@ -131,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     await DescendInheritanceTreeInProjectAsync(
                         searchInMetadata, result,
-                        currentMetadataTypes, currentSourceAndMetadataTypes,
+                        currentMetadataTypes, currentSourceAndMetadataTypes, seenPEReferences,
                         project,
                         typeMatches,
                         shouldContinueSearching,
@@ -147,6 +152,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolSet result,
             SymbolSet currentMetadataTypes,
             SymbolSet currentSourceAndMetadataTypes,
+            HashSet<PortableExecutableReference> seenPEReferences,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
@@ -165,8 +171,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using var _ = GetSymbolSet(out var tempBuffer);
 
                 await AddDescendantMetadataTypesInProjectAsync(
-                    currentMetadataTypes,
                     result: tempBuffer,
+                    currentMetadataTypes,
+                    seenPEReferences,
                     project,
                     typeMatches,
                     shouldContinueSearching,
@@ -355,8 +362,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDescendantMetadataTypesInProjectAsync(
-            SymbolSet currentMetadataTypes,
             SymbolSet result,
+            SymbolSet currentMetadataTypes,
+            HashSet<PortableExecutableReference> seenPEReferences,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
@@ -383,6 +391,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (reference is not PortableExecutableReference peReference)
                         continue;
 
+                    // Don't look inside this reference if we already looked inside it in another project.
+                    if (seenPEReferences.Contains(peReference))
+                        continue;
+
                     cancellationToken.ThrowIfCancellationRequested();
 
                     await AddMatchingMetadataTypesInMetadataReferenceAsync(
@@ -394,6 +406,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 PropagateTemporaryResults(
                     result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
             }
+
+            seenPEReferences.AddRange(compilation.References.OfType<PortableExecutableReference>());
         }
 
         private static async Task AddMatchingMetadataTypesInMetadataReferenceAsync(
