@@ -260,25 +260,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
 
-                            // Ensure availability of `*ConstantAttribute`.
-                            // Ignoring lambdas to avoid duplicate errors with `Binder.BindToInferredDelegateType`.
-                            if (DefaultValueFromAttributes == ConstantValue.NotAvailable &&
-                                this is not LambdaParameterSymbol)
+                            // Ensure availability of `DecimalConstantAttribute`.
+                            if (_lazyDefaultSyntaxValue.IsDecimal &&
+                                DefaultValueFromAttributes == ConstantValue.NotAvailable)
                             {
-                                if (_lazyDefaultSyntaxValue.IsDecimal)
-                                {
-                                    Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
-                                        WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
-                                        diagnostics,
-                                        parameterEqualsValue.Value.Syntax.Location);
-                                }
-                                else if (_lazyDefaultSyntaxValue.IsDateTime)
-                                {
-                                    Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
-                                        WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
-                                        diagnostics,
-                                        parameterEqualsValue.Value.Syntax.Location);
-                                }
+                                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                                    diagnostics,
+                                    parameterEqualsValue.Value.Syntax.Location);
                             }
                         }
                     }
