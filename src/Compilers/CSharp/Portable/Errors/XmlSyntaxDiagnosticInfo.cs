@@ -28,6 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _xmlErrorCode = code;
         }
 
+        private XmlSyntaxDiagnosticInfo(XmlSyntaxDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _xmlErrorCode = original._xmlErrorCode;
+        }
+
+        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        {
+            return new XmlSyntaxDiagnosticInfo(this, severity);
+        }
+
         #region Serialization
 
         protected override void WriteTo(ObjectWriter writer)
