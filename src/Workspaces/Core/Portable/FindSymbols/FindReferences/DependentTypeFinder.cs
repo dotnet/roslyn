@@ -222,9 +222,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         cancellationToken.ThrowIfCancellationRequested();
 
                         await AddMatchingMetadataTypesInMetadataReferenceAsync(
-                            typesToSearchFor, project, typeMatches,
-                            compilation, peReference, tempBuffer,
-                            cancellationToken).ConfigureAwait(false);
+                            typesToSearchFor, project, compilation, peReference, tempBuffer).ConfigureAwait(false);
                     }
 
                     PropagateTemporaryResults(
@@ -232,6 +230,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 seenPEReferences.AddRange(compilation.References.OfType<PortableExecutableReference>());
+            }
+
+            async Task AddMatchingMetadataTypesInMetadataReferenceAsync(
+                SymbolSet metadataTypes,
+                Project project,
+                Compilation compilation,
+                PortableExecutableReference reference,
+                SymbolSet result)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // We store an index in SymbolTreeInfo of the *simple* metadata type name to the names of the all the types
+                // that either immediately derive or implement that type.  Because the mapping is from the simple name we
+                // might get false positives.  But that's fine as we still use 'tpeMatches' to make sure the match is
+                // correct.
+                var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
+
+                Contract.ThrowIfNull(symbolTreeInfo);
+
+                // For each type we care about, see if we can find any derived types
+                // in this index.
+                foreach (var metadataType in metadataTypes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var baseTypeName = metadataType.Name;
+
+                    // For each derived type we find, see if we can map that back 
+                    // to an actual symbol.  Then check if that symbol actually fits
+                    // our criteria.
+                    foreach (var derivedType in symbolTreeInfo.GetDerivedMetadataTypes(baseTypeName, compilation, cancellationToken))
+                    {
+                        if (derivedType != null &&
+                            derivedType.Locations.Any(s_isInMetadata) &&
+                            typeMatches(derivedType, metadataTypes))
+                        {
+                            result.Add(derivedType);
+                        }
+                    }
+                }
             }
         }
 
@@ -374,49 +413,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
                                                  .Select(solution.GetRequiredProject)
                                                  .ToImmutableArray();
-        }
-
-        private static async Task AddMatchingMetadataTypesInMetadataReferenceAsync(
-            SymbolSet metadataTypes,
-            Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            Compilation compilation,
-            PortableExecutableReference reference,
-            SymbolSet result,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // We store an index in SymbolTreeInfo of the *simple* metadata type name to the names of the all the types
-            // that either immediately derive or implement that type.  Because the mapping is from the simple name we
-            // might get false positives.  But that's fine as we still use 'tpeMatches' to make sure the match is
-            // correct.
-            var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
-
-            Contract.ThrowIfNull(symbolTreeInfo);
-
-            // For each type we care about, see if we can find any derived types
-            // in this index.
-            foreach (var metadataType in metadataTypes)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var baseTypeName = metadataType.Name;
-
-                // For each derived type we find, see if we can map that back 
-                // to an actual symbol.  Then check if that symbol actually fits
-                // our criteria.
-                foreach (var derivedType in symbolTreeInfo.GetDerivedMetadataTypes(baseTypeName, compilation, cancellationToken))
-                {
-                    if (derivedType != null &&
-                        derivedType.Locations.Any(s_isInMetadata) &&
-                        typeMatches(derivedType, metadataTypes))
-                    {
-                        result.Add(derivedType);
-                    }
-                }
-            }
         }
 
         private static bool TypeHasBaseTypeInSet(INamedTypeSymbol type, SymbolSet set)
