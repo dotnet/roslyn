@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
+            LineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -395,6 +396,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         potentiallyUpdatedNode,
                         originalNode,
                         UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(definitionToUse[originalNode], options.UpdatedSignature),
+                        context.FallbackOptions,
                         cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                 });
 
@@ -952,12 +954,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return null;
         }
 
-        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)
+        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes, LanguageServices services, LineFormattingOptions options)
         {
             var updatedLeadingTrivia = ImmutableArray.CreateBuilder<SyntaxTrivia>();
             var index = 0;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = services.GetRequiredService<ISyntaxFactsService>();
 
             foreach (var trivia in node.GetLeadingTrivia())
             {
@@ -1015,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var extraDocComments = Generator.DocumentationCommentTrivia(
                     extraNodeList,
                     node.GetTrailingTrivia(),
-                    document.Project.Solution.Options.GetOption(FormattingOptions2.NewLine, document.Project.Language));
+                    options.NewLine);
                 var newTrivia = Generator.Trivia(extraDocComments);
 
                 updatedLeadingTrivia.Add(newTrivia);
