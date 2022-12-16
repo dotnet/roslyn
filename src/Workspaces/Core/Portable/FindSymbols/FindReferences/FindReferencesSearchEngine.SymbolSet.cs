@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </remarks>
             public abstract Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken);
 
-            private static bool InvolvesInheritance(ISymbol symbol)
-                => symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event;
-
             public static async Task<SymbolSet> CreateAsync(
                 FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
             {
@@ -134,7 +131,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// multi-targeting/shared-project documents.  This will not include symbols up or down the inheritance
             /// hierarchy.
             /// </summary>
-            private static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialSearchSymbolsAsync(
+            public static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialSearchSymbolsAsync(
                 FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
             {
                 var result = new MetadataUnifyingSymbolHashSet();
@@ -239,10 +236,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 else
                 {
-                    var overrrides = await SymbolFinder.FindOverridesArrayAsync(
+                    var overrides = await SymbolFinder.FindOverridesArrayAsync(
                         symbol, solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    await AddCascadedAndLinkedSymbolsToAsync(engine, overrrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(engine, overrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
             }
 

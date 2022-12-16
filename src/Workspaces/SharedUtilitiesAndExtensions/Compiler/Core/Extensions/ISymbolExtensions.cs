@@ -560,13 +560,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => (symbol as IMethodSymbol)?.MethodKind.IsPropertyAccessor() == true;
 
         public static bool IsEventAccessor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            var method = symbol as IMethodSymbol;
-            return method != null &&
-                (method.MethodKind == MethodKind.EventAdd ||
-                 method.MethodKind == MethodKind.EventRaise ||
-                 method.MethodKind == MethodKind.EventRemove);
-        }
+            => symbol is IMethodSymbol { MethodKind: MethodKind.EventAdd or MethodKind.EventRaise or MethodKind.EventRemove };
 
         public static bool IsFromSource(this ISymbol symbol)
             => symbol.Locations.Any() && symbol.Locations.All(location => location.IsInSource);
