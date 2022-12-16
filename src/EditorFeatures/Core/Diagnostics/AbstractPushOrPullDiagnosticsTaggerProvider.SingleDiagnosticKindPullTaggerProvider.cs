@@ -109,6 +109,17 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
             try
             {
+                // If this is not the tagger for compiler-syntax, then suppress diagnostics until the project has fully
+                // loaded.  This prevents the user from seeing spurious diagnostics while the project is in the process
+                // of loading.  We do keep compiler-syntax as that's based purely on the parse tree, and doesn't need
+                // correct project info to get reasonable results.
+                if (_diagnosticKind != DiagnosticKind.CompilerSyntax)
+                {
+                    var hasSuccessfullyLoaded = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                    if (!hasSuccessfullyLoaded)
+                        return;
+                }
+
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
                     document,
                     documentSpanToTag.SnapshotSpan.Span.ToTextSpan(),
