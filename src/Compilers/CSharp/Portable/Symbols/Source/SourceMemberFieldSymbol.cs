@@ -128,6 +128,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+
+            // Ensure availability of `DecimalConstantAttribute`.
+            if (IsConst && Type.SpecialType == SpecialType.System_Decimal &&
+                GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false) is { } value &&
+                !(decodedData is FieldWellKnownAttributeData fieldData && fieldData.ConstValue != CodeAnalysis.ConstantValue.Unset))
+            {
+                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                    diagnostics,
+                    syntax: SyntaxNode);
+            }
+        }
+
         public override Symbol AssociatedSymbol
         {
             get
@@ -634,23 +650,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
-        }
-
-        protected sealed override void CheckConstantValue(ConstantValue value, BindingDiagnosticBag diagnostics)
-        {
-            var equalsValueNode = VariableDeclaratorNode.Initializer;
-
-            // Ensure availability of `DecimalConstantAttribute`.
-            if (equalsValueNode != null &&
-                value is { IsDecimal: true } &&
-                (GetDecodedWellKnownAttributeData() is not { } attrData ||
-                attrData.ConstValue == CodeAnalysis.ConstantValue.Unset))
-            {
-                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
-                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
-                    diagnostics,
-                    syntax: equalsValueNode.Value);
-            }
         }
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
