@@ -26,6 +26,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             _info = info;
         }
 
+        private LazyMissingNonNullTypesContextDiagnosticInfo(LazyMissingNonNullTypesContextDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _type = original._type;
+            _info = original._info;
+        }
+
+        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        {
+            return new LazyMissingNonNullTypesContextDiagnosticInfo(this, severity);
+        }
+
 #nullable enable
         /// <summary>
         /// A `?` annotation on a type that isn't a value type causes:
