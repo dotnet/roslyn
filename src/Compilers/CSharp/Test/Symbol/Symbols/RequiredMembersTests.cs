@@ -3806,6 +3806,30 @@ class C
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_09()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class C
+{
+    public required string Prop1 { get => Prop2; [MemberNotNull(nameof(Prop2))] set => Prop2 = value; }
+    public string Prop2 { get => Prop3; [MemberNotNull(nameof(Prop3))] set => Prop3 = value; }
+    public string Prop3 { get; set; }
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (8,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop3").WithLocation(8, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_01()
     {
         var code = """

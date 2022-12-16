@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
                         bool constructorEnforcesRequiredMembers = method.ShouldCheckRequiredMembers();
 
-                        // Required properties can be attributed MemberNotNull, indicating that the property is set, the field will be set as well.
+                        // Required properties can be attributed MemberNotNull, indicating that if the property is set, the field will be set as well.
                         // If we're enforcing required members (ie, the constructor is not attributed with SetsRequiredMembers), we also want to
                         // not warn for members named in such attributes.
                         var membersWithStateEnforcedByRequiredMembers = constructorEnforcesRequiredMembers
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 predicate: member => member is PropertySymbol { IsRequired: true },
                                 selector: member =>
                                 {
-                                    var property = ((PropertySymbol)member);
+                                    var property = (PropertySymbol)member;
                                     return property.SetMethod?.NotNullMembers ?? property.NotNullMembers;
                                 })
                             : ImmutableArray<string>.Empty;
@@ -1013,32 +1013,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return builder.ToImmutableAndFree();
                         }
 
-                        static ImmutableArray<Symbol> getAllMembersToBeDefaulted(Symbol requiredMember)
+                        static IEnumerable<Symbol> getAllMembersToBeDefaulted(Symbol requiredMember)
                         {
                             Debug.Assert(requiredMember.IsRequired());
 
                             if (requiredMember is FieldSymbol)
                             {
-                                return ImmutableArray.Create<Symbol>(getFieldSymbolToBeInitialized(requiredMember));
+                                yield return requiredMember;
                             }
                             else
                             {
                                 var property = (PropertySymbol)requiredMember;
+                                yield return getFieldSymbolToBeInitialized(property);
+
                                 // If the set method is null (ie missing), that's an error, but we'll recover as best we can
-                                var setMethodNotNullMembers = property.SetMethod?.NotNullMembers ?? property.NotNullMembers;
-                                var builder = ArrayBuilder<Symbol>.GetInstance(1 + setMethodNotNullMembers.Length);
-
-                                builder.Add(getFieldSymbolToBeInitialized(property));
-
-                                foreach (var notNullMemberName in setMethodNotNullMembers)
+                                foreach (var notNullMemberName in (property.SetMethod?.NotNullMembers ?? property.NotNullMembers))
                                 {
                                     foreach (var member in property.ContainingType.GetMembers(notNullMemberName))
                                     {
-                                        builder.Add(getFieldSymbolToBeInitialized(member));
+                                        yield return getFieldSymbolToBeInitialized(member);
                                     }
                                 }
-
-                                return builder.ToImmutableAndFree();
                             }
                         }
 
