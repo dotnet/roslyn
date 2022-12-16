@@ -352,6 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var data = lambda.Data;
             if (data.HasExplicitlyTypedParameterList)
             {
+                var delegateType = lambda.FunctionType?.GetInternalDelegateType();
+                var delegateParameters = delegateType?.DelegateParameters() ?? default;
+                Debug.Assert(delegateParameters.IsDefault || delegateParameters.Length == lambda.ParameterCount);
+
                 int firstDefault = -1;
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
@@ -369,6 +373,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // UNDONE: Where do we report improper use of pointer types?
                     ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
                          lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+
+                    // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                    // check that the corresponding `*ConstantAttribute` is available.
+                    if (!delegateParameters.IsDefault && delegateParameters[i].ExplicitDefaultConstantValue is { } defaultValue)
+                    {
+                        WellKnownMember? member = defaultValue.SpecialType switch
+                        {
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            _ => null
+                        };
+                        if (member != null)
+                        {
+                            ReportUseSiteDiagnosticForSynthesizedAttribute(
+                                Compilation,
+                                member.GetValueOrDefault(),
+                                diagnostics,
+                                paramSyntax?.Location ?? syntax.Location);
+                        }
+                    }
                 }
             }
 
