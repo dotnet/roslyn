@@ -117,7 +117,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                 // correct project info to get reasonable results.
                 if (_diagnosticKind != DiagnosticKind.CompilerSyntax)
                 {
-                    using var _ = PooledHashSet<Project>.GetInstance(out var seenProjects)
+                    using var _ = PooledHashSet<Project>.GetInstance(out var seenProjects);
                     var hasSuccessfullyLoaded = HasSuccessfullyLoaded(document.Project, seenProjects);
                     if (!hasSuccessfullyLoaded)
                         return;
