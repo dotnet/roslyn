@@ -151,15 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     using var _ = GetSymbolSet(out var tempBuffer);
 
-                    await AddDescendantMetadataTypesInProjectAsync(
-                        result: tempBuffer,
-                        currentMetadataTypes,
-                        seenPEReferences,
-                        project,
-                        typeMatches,
-                        shouldContinueSearching,
-                        transitive,
-                        cancellationToken).ConfigureAwait(false);
+                    await AddDescendantMetadataTypesInProjectAsync(tempBuffer, project).ConfigureAwait(false);
 
                     // Add all the matches we found to the result set.
                     AssertContents(tempBuffer, assert: s_isInMetadata, "Found type was not from metadata");
@@ -199,6 +191,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (transitive)
                         AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
                 }
+            }
+
+            async Task AddDescendantMetadataTypesInProjectAsync(SymbolSet result, Project project)
+            {
+                Debug.Assert(project.SupportsCompilation);
+
+                if (currentMetadataTypes.Count == 0)
+                    return;
+
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                using var _1 = GetSymbolSet(out var typesToSearchFor);
+                using var _2 = GetSymbolSet(out var tempBuffer);
+
+                typesToSearchFor.AddAll(currentMetadataTypes);
+
+                // As long as there are new types to search for, keep looping.
+                while (typesToSearchFor.Count > 0)
+                {
+                    foreach (var reference in compilation.References)
+                    {
+                        if (reference is not PortableExecutableReference peReference)
+                            continue;
+
+                        // Don't look inside this reference if we already looked inside it in another project.
+                        if (seenPEReferences.Contains(peReference))
+                            continue;
+
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        await AddMatchingMetadataTypesInMetadataReferenceAsync(
+                            typesToSearchFor, project, typeMatches,
+                            compilation, peReference, tempBuffer,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+
+                    PropagateTemporaryResults(
+                        result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
+                }
+
+                seenPEReferences.AddRange(compilation.References.OfType<PortableExecutableReference>());
             }
         }
 
@@ -341,55 +374,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
                                                  .Select(solution.GetRequiredProject)
                                                  .ToImmutableArray();
-        }
-
-        private static async Task AddDescendantMetadataTypesInProjectAsync(
-            SymbolSet result,
-            SymbolSet currentMetadataTypes,
-            HashSet<PortableExecutableReference> seenPEReferences,
-            Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            Debug.Assert(project.SupportsCompilation);
-
-            if (currentMetadataTypes.Count == 0)
-                return;
-
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            using var _1 = GetSymbolSet(out var typesToSearchFor);
-            using var _2 = GetSymbolSet(out var tempBuffer);
-
-            typesToSearchFor.AddAll(currentMetadataTypes);
-
-            // As long as there are new types to search for, keep looping.
-            while (typesToSearchFor.Count > 0)
-            {
-                foreach (var reference in compilation.References)
-                {
-                    if (reference is not PortableExecutableReference peReference)
-                        continue;
-
-                    // Don't look inside this reference if we already looked inside it in another project.
-                    if (seenPEReferences.Contains(peReference))
-                        continue;
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    await AddMatchingMetadataTypesInMetadataReferenceAsync(
-                        typesToSearchFor, project, typeMatches,
-                        compilation, peReference, tempBuffer,
-                        cancellationToken).ConfigureAwait(false);
-                }
-
-                PropagateTemporaryResults(
-                    result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
-            }
-
-            seenPEReferences.AddRange(compilation.References.OfType<PortableExecutableReference>());
         }
 
         private static async Task AddMatchingMetadataTypesInMetadataReferenceAsync(
