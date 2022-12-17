@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,8 +48,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TExpressionStatementSyntax : TStatementSyntax
         where TElementBindingArgumentListSyntax : SyntaxNode
     {
-        protected abstract bool IsBlockSyntax(SyntaxNode? node);
-        protected abstract TStatementSyntax Block(TStatementSyntax innerStatement);
+        protected abstract bool TryGetBlock(SyntaxNode? node, [NotNullWhen(true)] out TStatementSyntax? block);
+        protected abstract TStatementSyntax ReplaceBlockStatements(TStatementSyntax block, TStatementSyntax newInnerStatement);
         protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
         public override ImmutableArray<string> FixableDiagnosticIds
@@ -169,9 +170,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             // }
             // Applies only to C# since VB doesn't have a general-purpose block syntax
             if (syntaxFacts.IsElseClause(originalIfStatement.Parent) &&
-                IsBlockSyntax(whenTrueStatement.Parent))
+                TryGetBlock(whenTrueStatement.Parent, out var block))
             {
-                newWhenTrueStatement = Block(newWhenTrueStatement).WithAdditionalAnnotations(Formatter.Annotation);
+                newWhenTrueStatement = ReplaceBlockStatements(block, newWhenTrueStatement).WithAdditionalAnnotations(Formatter.Annotation);
             }
 
             // If there's leading trivia on the original inner statement, then combine that with the leading

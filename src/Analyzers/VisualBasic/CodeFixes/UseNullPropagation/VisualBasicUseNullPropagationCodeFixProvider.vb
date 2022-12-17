@@ -31,11 +31,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Public Sub New()
         End Sub
 
-        Protected Overrides Function IsBlockSyntax(node As SyntaxNode) As Boolean
+        Protected Overrides Function TryGetBlock(node As SyntaxNode, ByRef block As ExecutableStatementSyntax) As Boolean
             Return False
         End Function
 
-        Protected Overrides Function Block(innerStatement As ExecutableStatementSyntax) As ExecutableStatementSyntax
+        Protected Overrides Function ReplaceBlockStatements(block As ExecutableStatementSyntax, newInnerStatement As ExecutableStatementSyntax) As ExecutableStatementSyntax
             Throw ExceptionUtilities.Unreachable()
         End Function
 
