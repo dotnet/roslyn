@@ -220,7 +220,9 @@ function BuildSolution() {
   }
 
   $projects = Join-Path $RepoRoot $solution
+  Write-Host "Initialize toolset in build solution"
   $toolsetBuildProj = InitializeToolset
+  Write-Host "toolset build proj $toolsetBuildProj"
 
   $ibcDropName = GetIbcDropName
 

@@ -151,6 +151,7 @@ function Exec-BlockVerbosely([scriptblock] $block) {
 # as dot sourcing isn't possible.
 function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   if (Test-Path variable:global:_DotNetInstallDir) {
+    Write-Host "Using global dotnet install dir $global:_DotNetInstallDir"
     return $global:_DotNetInstallDir
   }
 
@@ -185,6 +186,7 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   # Use dotnet installation specified in DOTNET_INSTALL_DIR if it contains the required SDK version,
   # otherwise install the dotnet CLI and SDK to repo local .dotnet directory to avoid potential permission issues.
   if ((-not $globalJsonHasRuntimes) -and (-not [string]::IsNullOrEmpty($env:DOTNET_INSTALL_DIR)) -and (Test-Path(Join-Path $env:DOTNET_INSTALL_DIR "sdk\$dotnetSdkVersion"))) {
+    Write-Host "Using env var $env:DOTNET_INSTALL_DIR"
     $dotnetRoot = $env:DOTNET_INSTALL_DIR
   } else {
     $dotnetRoot = Join-Path $RepoRoot '.dotnet'
@@ -652,7 +654,10 @@ function InitializeNativeTools() {
 }
 
 function InitializeToolset() {
+  $callstack = get-pscallstack
+  Write-Host "call stack $callstack"
   if (Test-Path variable:global:_ToolsetBuildProj) {
+    Write-Host "Usign toolsetbuildproj"
     return $global:_ToolsetBuildProj
   }
 
@@ -664,6 +669,7 @@ function InitializeToolset() {
   if (Test-Path $toolsetLocationFile) {
     $path = Get-Content $toolsetLocationFile -TotalCount 1
     if (Test-Path $path) {
+      Write-Host "Usign toolset location file $path"
       return $global:_ToolsetBuildProj = $path
     }
   }
@@ -673,6 +679,7 @@ function InitializeToolset() {
     ExitWithExitCode 1
   }
 
+  Write-Host "From InitializeToolset, initialize build tool"
   $buildTool = InitializeBuildTool
 
   $proj = Join-Path $ToolsetDir 'restore.proj'
@@ -680,6 +687,7 @@ function InitializeToolset() {
 
   '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' | Set-Content $proj
 
+  Write-Host "MSBuild-Core with toolsetrestore.binlog"
   MSBuild-Core $proj $bl /t:__WriteToolsetLocation /clp:ErrorsOnly`;NoSummary /p:__ToolsetLocationOutputFile=$toolsetLocationFile
 
   $path = Get-Content $toolsetLocationFile -Encoding UTF8 -TotalCount 1
@@ -722,6 +730,7 @@ function Stop-Processes() {
 #
 function MSBuild() {
   if ($pipelinesLog) {
+    Write-Host "Initialize buildtool from msbuild"
     $buildTool = InitializeBuildTool
 
     if ($ci -and $buildTool.Tool -eq 'dotnet') {
@@ -733,6 +742,7 @@ function MSBuild() {
 
     Enable-Nuget-EnhancedRetry
 
+    Write-Host "Initialize toolset from msbuild"
     $toolsetBuildProject = InitializeToolset
     $basePath = Split-Path -parent $toolsetBuildProject
     $possiblePaths = @(
