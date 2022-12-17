@@ -27726,7 +27726,7 @@ Block[B2] - Exit
         }
 
         [Fact]
-        public void UnsafeContext_LocalFunction()
+        public void UnsafeContext_LocalFunction_01()
         {
             var source = """
                 #pragma warning disable 8321
@@ -27777,6 +27777,51 @@ Block[B2] - Exit
                 // (26,43): warning CS9087: This returns a parameter by reference 'y4' but it is not a ref parameter
                 //                 return ref F0(ref x4, ref y4);
                 Diagnostic(ErrorCode.WRN_RefReturnParameter, "y4").WithArguments("y4").WithLocation(26, 43));
+        }
+
+        [Fact]
+        public void UnsafeContext_LocalFunction_02()
+        {
+            var source = """
+                #pragma warning disable 8321
+                class A
+                {
+                    internal static ref int F0(ref int x, ref int y)
+                    {
+                        return ref x;
+                    }
+                }
+                class B1 : A
+                {
+                    unsafe static void F1()
+                    {
+                        static ref int Local1(ref int x1, int y1)
+                        {
+                            return ref F0(ref x1, ref y1);
+                        }
+                }
+                unsafe class B2 : A
+                {
+                    static void F2()
+                    {
+                        static ref int Local2(ref int x2, int y2)
+                        {
+                            return ref F0(ref x2, ref y2);
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (15,39): warning CS9087: This returns a parameter by reference 'y1' but it is not a ref parameter
+                //             return ref F0(ref x1, ref y1);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y1").WithArguments("y1").WithLocation(15, 39),
+                // (24,39): warning CS9087: This returns a parameter by reference 'y2' but it is not a ref parameter
+                //             return ref F0(ref x2, ref y2);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y2").WithArguments("y2").WithLocation(24, 39),
+                // (27,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
         }
     }
 }

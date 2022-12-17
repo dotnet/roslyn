@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
-            (TypeSymbol inputType, uint valEscape) = _switchExpressionBinder.GetInputTypeAndValEscape();
-            return BindSwitchExpressionArm(node, inputType, valEscape, diagnostics);
+            TypeSymbol inputType = _switchExpressionBinder.GetInputType();
+            return BindSwitchExpressionArm(node, inputType, diagnostics);
         }
 
-        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, uint switchGoverningValEscape, BindingDiagnosticBag diagnostics)
+        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
             Binder armBinder = this.GetRequiredBinder(node);
