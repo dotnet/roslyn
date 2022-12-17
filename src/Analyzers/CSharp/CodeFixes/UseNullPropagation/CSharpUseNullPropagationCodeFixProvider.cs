@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         {
         }
 
+        protected override bool IsBlockSyntax(SyntaxNode? statement)
+            => statement is BlockSyntax;
+
+        protected override StatementSyntax Block(StatementSyntax innerStatement)
+            => SyntaxFactory.Block(innerStatement);
+
         protected override ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
             => SyntaxFactory.ElementBindingExpression(argumentList);
     }

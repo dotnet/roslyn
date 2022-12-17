@@ -2069,5 +2069,68 @@ class C
     Action<int> M(List<int> p) => p is null ? null : p.Add;
 }");
         }
+
+        [Fact, WorkItem(66036, "https://github.com/dotnet/roslyn/issues/66036")]
+        public async Task TestElseIfStatement1()
+        {
+            await TestInRegularAndScript1Async("""
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else [|if|] (s != null)
+                        {
+                            s.ToString();
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else
+                        {
+                            s?.ToString();
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66036, "https://github.com/dotnet/roslyn/issues/66036")]
+        public async Task TestElseIfStatement2()
+        {
+            await TestInRegularAndScript1Async("""
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else [|if|] (s != null)
+                            s.ToString();
+                    }
+                }
+                """, """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else s?.ToString();
+                    }
+                }
+                """);
+        }
     }
 }

@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TExpressionStatementSyntax : TStatementSyntax
         where TElementBindingArgumentListSyntax : SyntaxNode
     {
+        protected abstract bool IsBlockSyntax(SyntaxNode? node);
+        protected abstract TStatementSyntax Block(TStatementSyntax innerStatement);
         protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
         public override ImmutableArray<string> FixableDiagnosticIds
@@ -142,7 +144,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
-            var whenTrueStatement = (TExpressionStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
+            var originalIfStatement = (TStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+            var whenTrueStatement = (TStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
             var match = (TExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
 
             var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
@@ -152,6 +155,24 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var newWhenTrueStatement = CreateConditionalAccessExpression(
                 syntaxFacts, generator, whenPartIsNullable, whenTrueStatement, match);
             Contract.ThrowIfNull(newWhenTrueStatement);
+
+            // If we have code like:
+            // ...
+            // else if (v != null)
+            // {
+            //     v.M();
+            // }
+            // then we want to keep the result statement in a block:
+            // else
+            // {
+            //     v?.M();
+            // }
+            // Applies only to C# since VB doesn't have a general-purpose block syntax
+            if (syntaxFacts.IsElseClause(originalIfStatement.Parent) &&
+                IsBlockSyntax(whenTrueStatement.Parent))
+            {
+                newWhenTrueStatement = Block(newWhenTrueStatement).WithAdditionalAnnotations(Formatter.Annotation);
+            }
 
             // If there's leading trivia on the original inner statement, then combine that with the leading
             // trivia on the if-statement.  We'll need to add a formatting annotation so that the leading comments

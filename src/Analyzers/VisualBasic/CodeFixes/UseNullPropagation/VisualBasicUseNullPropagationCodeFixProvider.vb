@@ -31,6 +31,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsBlockSyntax(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function Block(innerStatement As ExecutableStatementSyntax) As ExecutableStatementSyntax
+            Throw ExceptionUtilities.Unreachable()
+        End Function
+
         Protected Overrides Function ElementBindingExpression(argumentList As ArgumentListSyntax) As InvocationExpressionSyntax
             Return SyntaxFactory.InvocationExpression(Nothing, argumentList)
         End Function
