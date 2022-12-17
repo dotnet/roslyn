@@ -2169,5 +2169,37 @@ class C
                 }
                 """);
         }
+
+        [Fact, WorkItem(66036, "https://github.com/dotnet/roslyn/issues/66036")]
+        public async Task TestElseIfStatement_KeepBracePlacementStyle()
+        {
+            await TestInRegularAndScript1Async("""
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else [|if|] (s != null) {
+                            s.ToString();
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else {
+                            s?.ToString();
+                        }
+                    }
+                }
+                """);
+        }
     }
 }

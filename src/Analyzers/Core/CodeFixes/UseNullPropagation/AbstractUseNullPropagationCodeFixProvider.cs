@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             if (isElseIf &&
                 TryGetBlock(whenTrueStatement.Parent, out var block))
             {
-                newWhenTrueStatement = ReplaceBlockStatements(block, newWhenTrueStatement).WithAdditionalAnnotations(Formatter.Annotation);
+                newWhenTrueStatement = ReplaceBlockStatements(block, newWhenTrueStatement);
             }
 
             // If there's leading trivia on the original inner statement, then combine that with the leading
