@@ -1104,5 +1104,20 @@ public class C
     end sub
 end class")
         End Function
+
+        <Fact>
+        Public Async Function TestElseIf() As Task
+            ' Subject to improve
+            Await TestMissingInRegularAndScriptAsync(
+"
+Class C
+    Sub M(s as String)
+        If True Then
+        ElseIf s [||]IsNot Nothing
+            s.ToString()
+        End If
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
