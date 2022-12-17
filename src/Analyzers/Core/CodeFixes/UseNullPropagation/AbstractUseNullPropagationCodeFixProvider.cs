@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     {
         protected abstract bool TryGetBlock(SyntaxNode? node, [NotNullWhen(true)] out TStatementSyntax? block);
         protected abstract TStatementSyntax ReplaceBlockStatements(TStatementSyntax block, TStatementSyntax newInnerStatement);
+        protected abstract SyntaxNode PostProcessElseIf(TIfStatementSyntax ifStatement, TStatementSyntax newWhenTrueStatement);
         protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
         public override ImmutableArray<string> FixableDiagnosticIds
@@ -145,17 +146,21 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
-            var originalIfStatement = (TStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
             var whenTrueStatement = (TStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
             var match = (TExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
 
             var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
+
+            SyntaxNode nodeToBeReplaced = ifStatement;
+            SyntaxNode? replacementNode = null;
 
             // we have `if (x != null) x.Y();`.  Update `x.Y()` to be `x?.Y()`, then replace the entire
             // if-statement with that expression statement.
             var newWhenTrueStatement = CreateConditionalAccessExpression(
                 syntaxFacts, generator, whenPartIsNullable, whenTrueStatement, match);
             Contract.ThrowIfNull(newWhenTrueStatement);
+
+            var isElseIf = syntaxFacts.IsElseClause(ifStatement.Parent);
 
             // If we have code like:
             // ...
@@ -169,7 +174,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             //     v?.M();
             // }
             // Applies only to C# since VB doesn't have a general-purpose block syntax
-            if (syntaxFacts.IsElseClause(originalIfStatement.Parent) &&
+            if (isElseIf &&
                 TryGetBlock(whenTrueStatement.Parent, out var block))
             {
                 newWhenTrueStatement = ReplaceBlockStatements(block, newWhenTrueStatement).WithAdditionalAnnotations(Formatter.Annotation);
@@ -186,15 +191,23 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
             else
             {
-                newWhenTrueStatement = newWhenTrueStatement.WithLeadingTrivia(ifStatement.GetLeadingTrivia());
+                if (isElseIf)
+                {
+                    nodeToBeReplaced = ifStatement.Parent!;
+                    replacementNode = PostProcessElseIf(ifStatement, newWhenTrueStatement);
+                }
+                else
+                {
+                    newWhenTrueStatement = newWhenTrueStatement.WithLeadingTrivia(ifStatement.GetLeadingTrivia());
+                }
             }
 
             // If there's trailing comments on the original inner statement, then preserve that.  Otherwise,
             // replace it with the trailing trivia of hte original if-statement.
-            if (!newWhenTrueStatement.GetTrailingTrivia().Any(syntaxFacts.IsRegularComment))
+            if (!newWhenTrueStatement.GetTrailingTrivia().Any(syntaxFacts.IsRegularComment) && !isElseIf)
                 newWhenTrueStatement = newWhenTrueStatement.WithTrailingTrivia(ifStatement.GetTrailingTrivia());
 
-            editor.ReplaceNode(ifStatement, newWhenTrueStatement);
+            editor.ReplaceNode(nodeToBeReplaced, replacementNode ?? newWhenTrueStatement);
         }
 
         private TContainer? CreateConditionalAccessExpression<TContainer>(

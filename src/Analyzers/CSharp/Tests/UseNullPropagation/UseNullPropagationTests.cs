@@ -2127,7 +2127,44 @@ class C
                         if (true)
                         {
                         }
-                        else s?.ToString();
+                        else
+                            s?.ToString();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66036, "https://github.com/dotnet/roslyn/issues/66036")]
+        public async Task TestElseIfStatement_Trivia()
+        {
+            await TestInRegularAndScript1Async("""
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else [|if|] (s != null)
+                        {
+                            // comment
+                            s.ToString();
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (true)
+                        {
+                        }
+                        else
+                        {
+                            // comment
+                            s?.ToString();
+                        }
                     }
                 }
                 """);

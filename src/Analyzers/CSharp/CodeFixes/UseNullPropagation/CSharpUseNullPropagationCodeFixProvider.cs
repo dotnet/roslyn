@@ -6,6 +6,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseNullPropagation;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
@@ -48,6 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         {
             var newStatementList = SyntaxFactory.List(new[] { newInnerStatement });
             return ((BlockSyntax)block).WithStatements(newStatementList);
+        }
+
+        protected override SyntaxNode PostProcessElseIf(IfStatementSyntax ifStatement, StatementSyntax newWhenTrueStatement)
+        {
+            var elseClauseSyntax = (ElseClauseSyntax)ifStatement.Parent!;
+            return elseClauseSyntax
+                    .WithElseKeyword(elseClauseSyntax.ElseKeyword.WithTrailingTrivia())
+                    .WithStatement(newWhenTrueStatement.WithPrependedLeadingTrivia(ifStatement.CloseParenToken.TrailingTrivia));
         }
 
         protected override ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
