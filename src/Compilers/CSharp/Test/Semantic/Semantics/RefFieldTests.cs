@@ -27150,6 +27150,36 @@ Block[B2] - Exit
                         s1.RefMethod().RefField = ref value; // 3
                     }
 
+                    private static void Bad4(scoped in RefStruct s1, int value)
+                    {
+                        s1.RefField = ref value; // 4
+                    }
+
+                    private static void Bad5(scoped in RefStruct s1, int value)
+                    {
+                        s1.RefProperty.RefField = ref value; // 5
+                    }
+
+                    private static void Bad6(scoped in RefStruct s1, int value)
+                    {
+                        s1.RefMethod().RefField = ref value; // 6
+                    }
+
+                    private static void Bad7(in RefStruct s1, int value)
+                    {
+                        s1.RefField = ref value; // 7
+                    }
+
+                    private static void Bad8(in RefStruct s1, int value)
+                    {
+                        s1.RefProperty.RefField = ref value; // 8
+                    }
+
+                    private static void Bad9(in RefStruct s1, int value)
+                    {
+                        s1.RefMethod().RefField = ref value; // 9
+                    }
+
                     private ref struct RefStruct
                     {
                         public ref int RefField;
@@ -27158,6 +27188,9 @@ Block[B2] - Exit
                     }
                 }
                 """;
+
+            // NB: 8 and 9 are not strictly necessary here because they are assigning to an implicit copy of a readonly variable, not to the original variable.
+            // However, it is not deeply problematic that an error is given here.
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
@@ -27168,7 +27201,25 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(12, 9),
                 // (17,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
                 //         s1.RefMethod().RefField = ref value; // 3
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(17, 9));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(17, 9),
+                // (22,9): error CS8332: Cannot assign to a member of variable 's1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         s1.RefField = ref value; // 4
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "s1.RefField").WithArguments("variable", "s1").WithLocation(22, 9),
+                // (27,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 5
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(27, 9),
+                // (32,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 6
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(32, 9),
+                // (37,9): error CS8332: Cannot assign to a member of variable 's1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         s1.RefField = ref value; // 7
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "s1.RefField").WithArguments("variable", "s1").WithLocation(37, 9),
+                // (42,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 8
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(42, 9),
+                // (47,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 9
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(47, 9));
         }
 
         [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]

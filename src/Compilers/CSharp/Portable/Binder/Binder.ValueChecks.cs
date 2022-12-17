@@ -1767,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol p => p.GetMethod,
                 _ => null
             };
-            return method is ({ ReturnsByRef: true } or { ReturnsByRefReadonly: true }) and { ReturnType.IsRefLikeType: true };
+            return method is { RefKind: not RefKind.None, ReturnType.IsRefLikeType: true };
         }
 
         /// <summary>
