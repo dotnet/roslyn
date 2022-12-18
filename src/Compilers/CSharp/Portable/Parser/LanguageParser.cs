@@ -4385,17 +4385,17 @@ tryAgain:
                     attributes, modifiers.ToList(), type: null, this.EatToken(SyntaxKind.ArgListKeyword), @default: null);
             }
 
-                var type = this.ParseType(mode: ParseTypeMode.Parameter);
-                SyntaxToken identifier;
+            var type = this.ParseType(mode: ParseTypeMode.Parameter);
+            SyntaxToken identifier;
 
-                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsCurrentTokenWhereOfConstraintClause())
-                {
-                    identifier = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
-                }
-                else
-                {
-                    identifier = this.ParseIdentifierToken();
-                }
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsCurrentTokenWhereOfConstraintClause())
+            {
+                identifier = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+            }
+            else
+            {
+                identifier = this.ParseIdentifierToken();
+            }
 
             // When the user type "int goo[]", give them a useful error
             if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
