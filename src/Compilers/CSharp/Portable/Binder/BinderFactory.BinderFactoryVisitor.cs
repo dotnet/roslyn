@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitDestructorDeclaration(DestructorDeclarationSyntax parent)
             {
                 // If the position isn't in the scope of the method, then proceed to the parent syntax node.
-                if (!LookupPosition.IsInMethodDeclaration(_position, parent))
+                if (!LookupPosition.IsInBody(_position, parent))
                 {
                     return VisitCore(parent.Parent);
                 }
@@ -726,6 +726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+                            resultBinder = new WithPrimaryConstructorParametersBinder(typeSymbol, resultBinder);
+
                             resultBinder = new InContainerBinder(typeSymbol, resultBinder);
 
                             if (parent.TypeParameterList != null)
@@ -1190,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
-                    var primaryConstructor = type.GetMembersUnordered().OfType<SynthesizedPrimaryConstructor>().SingleOrDefault();
+                    var primaryConstructor = type.PrimaryConstructor;
 
                     if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
                         primaryConstructor.GetSyntax() == memberSyntax)

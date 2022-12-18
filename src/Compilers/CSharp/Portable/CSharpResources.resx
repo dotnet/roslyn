@@ -7409,4 +7409,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeaturePrimaryConstructors" xml:space="preserve">
     <value>primary constructors</value>
   </data>
+  <data name="ERR_InvalidPrimaryConstructorParameterReference" xml:space="preserve">
+    <value>Cannot use primary constructor parameter '{0}' in this context.</value>
+  </data>
 </root>

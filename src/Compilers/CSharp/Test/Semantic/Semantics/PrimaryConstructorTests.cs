@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -20,6 +21,25 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
+    using static TestFlags;
+
+    [Flags]
+    public enum TestFlags
+    {
+        Success = 0,
+        Captured = 1 << 0,
+        BadReference = 1 << 1,
+        NotUsedWarning = 1 << 2,
+        BadAttributeValue = 1 << 3,
+        BadConstant = 1 << 4,
+        BadDefaultValue = 1 << 5,
+        TwoBodies = 1 << 6,
+        Shadows = 1 << 7,
+        InNestedMethod = 1 << 8,
+        AttributesNotAllowed = 1 << 9,
+        NotInScope = 1 << 10,
+    }
+
     public class PrimaryConstructorTests : CompilingTestBase
     {
         [Theory]
@@ -1778,7 +1798,7 @@ partial class C
 }
 ");
 
-            var comp = CreateCompilation(src);
+            var comp = (CSharpCompilation)verifier.Compilation;
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -1793,6 +1813,8 @@ partial class C
             Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
+
+            Assert.Empty(((SynthesizedPrimaryConstructor)symbol.GetSymbol().ContainingSymbol).GetCapturedParameters());
         }
 
         [Fact]
@@ -2485,9 +2507,9 @@ using System;
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (6,20): error CS0103: The name 'X' does not exist in the current context
+                // (6,20): error CS9500: Cannot use primary constructor parameter 'int X' in this context.
                 //     static int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "X").WithArguments("X").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(6, 20)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2497,10 +2519,12 @@ using System;
             Assert.Equal("= X + 1", x.Parent.Parent.ToString());
 
             var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Null(symbol);
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
-            Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
-            Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
         }
 
         [Theory]
@@ -2517,9 +2541,12 @@ using System;
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (6,19): error CS0103: The name 'X' does not exist in the current context
+                // (6,19): error CS9500: Cannot use primary constructor parameter 'int X' in this context.
                 //     const int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "X").WithArguments("X").WithLocation(6, 19)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(6, 19),
+                // (6,19): error CS0133: The expression being assigned to 'C.Z' must be constant
+                //     const int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "X + 1").WithArguments("C.Z").WithLocation(6, 19)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2529,10 +2556,12 @@ using System;
             Assert.Equal("= X + 1", x.Parent.Parent.ToString());
 
             var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Null(symbol);
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
-            Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
-            Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
         }
 
         [Theory]
@@ -2627,6 +2656,11 @@ public class C
 }
 
 " + keyword + @" R2(ref int P2);
+
+" + keyword + @" R3(ref int P3)
+{
+    public int P3 {get;} = (P3 = 1);
+}
 ";
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
@@ -5351,7 +5385,17 @@ public " + keyword + @" C(int I1)
 {
     /// <summary>Summary</summary>
     /// <param name=""x"">Description for <see cref=""x""/></param>
-    public void M(int x) { }
+    public void M1(int x) { }
+
+    /// <summary>Summary</summary>
+    /// <param name=""x"">Description for <see cref=""x""/></param>
+    /// <param name=""y""/>
+    public void M2(int y) { }
+
+    /// <summary>Summary</summary>
+    /// <param name=""I1"">Description for <see cref=""I1""/></param>
+    /// <param name=""z""/>
+    public void M3(int z) { }
 }
 ";
 
@@ -5365,7 +5409,19 @@ public " + keyword + @" C(int I1)
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "I1").WithArguments("I1").WithLocation(3, 49),
                 // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
                 //     /// <param name="x">Description for <see cref="x"/></param>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(7, 52)
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(7, 52),
+                // (11,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
+                //     /// <param name="x">Description for <see cref="x"/></param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x").WithLocation(11, 22),
+                // (11,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
+                //     /// <param name="x">Description for <see cref="x"/></param>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(11, 52),
+                // (16,22): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
+                //     /// <param name="I1">Description for <see cref="I1"/></param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(16, 22),
+                // (16,53): warning CS1574: XML comment has cref attribute 'I1' that could not be resolved
+                //     /// <param name="I1">Description for <see cref="I1"/></param>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "I1").WithArguments("I1").WithLocation(16, 53)
                 );
         }
 
@@ -5454,6 +5510,33 @@ public " + keyword + @" C(int I1);
                 // (2,38): warning CS1734: XML comment on 'C.C(int)' has a paramref tag for 'Error', but there is no parameter by that name
                 // /// <summary>Summary <paramref name="Error"/></summary>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "Error").WithArguments("Error", "C.C(int)").WithLocation(2, 38)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void XmlDoc_ParamRef_InsideType([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+/// <summary></summary>
+public " + keyword + @" C(int I1)
+{
+    /// <summary>Summary <paramref name=""I1""/></summary>
+    void M1(int x) {}
+
+    /// <summary>Summary <paramref name=""x""/></summary>
+    void M2(int y) {}
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            comp.VerifyDiagnostics(
+                // (5,42): warning CS1734: XML comment on 'C.M1(int)' has a paramref tag for 'I1', but there is no parameter by that name
+                //     /// <summary>Summary <paramref name="I1"/></summary>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "I1").WithArguments("I1", "C.M1(int)").WithLocation(5, 42),
+                // (8,42): warning CS1734: XML comment on 'C.M2(int)' has a paramref tag for 'x', but there is no parameter by that name
+                //     /// <summary>Summary <paramref name="x"/></summary>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "C.M2(int)").WithLocation(8, 42)
                 );
         }
 
@@ -6311,6 +6394,2017 @@ struct Example()
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
+        }
+
+        public static IEnumerable<object[]> ParameterScope_MemberData()
+        {
+            var data = new (string tag, TestFlags flags, string nestedSource)[]
+                {
+                    // Simple references in members    
+                    ("0001", Success | Shadows, "public int F = p1;"),
+                    ("0002", Success | Shadows, "public int P {get;} = p1;"),
+                    ("0003", Success | Shadows, "public event System.Action E = () => p1.ToString();"),
+                    ("0004", BadReference | NotUsedWarning | Shadows, "public static int F = p1;"),
+                    ("0005", BadReference | NotUsedWarning | Shadows | BadConstant, "public const int F = p1;"),
+                    ("0006", BadReference | NotUsedWarning | Shadows, "public static int P {get;} = p1;"),
+                    ("0007", BadReference | NotUsedWarning | Shadows, "public static event System.Action E = () => p1.ToString();"),
+                    ("0008", BadReference | NotUsedWarning, "static C1() { p1 = 0; }"),
+                    ("0009", BadReference | NotUsedWarning, "static void M() { p1 = 0; }"),
+                    ("0011", BadReference | NotUsedWarning, "static int P { get { return p1; } }"),
+                    ("0012", BadReference | NotUsedWarning, "static int P { set { p1 = 0; } }"),
+                    ("0013", BadReference | NotUsedWarning, "static int P { set {} get { return p1; } }"),
+                    ("0014", BadReference | NotUsedWarning, "static int P { get => 0; set { p1 = 0; } }"),
+                    ("0015", BadReference | NotUsedWarning, "static event System.Action E { add { p1 = 0; } remove {} }"),
+                    ("0016", BadReference | NotUsedWarning, "static event System.Action E { add {} remove { p1 = 0; } }"),
+                    ("0017", Captured | Success, "void M() { p1 = 0; }"),
+                    ("0018", Captured | Success, "int P { get { return p1; } }"),
+                    ("0019", Captured | Success, "int P { set { p1 = 0; } }"),
+                    ("0020", Captured | Success, "int P { set {} get { return p1; } }"),
+                    ("0021", Captured | Success, "int P { get => 0; set { p1 = 0; } }"),
+                    ("0022", Captured | Success, "event System.Action E { add { p1 = 0; } remove {} }"),
+                    ("0023", Captured | Success, "event System.Action E { add {} remove { p1 = 0; } }"),
+                    ("0024", Captured | Success, "int this[int x] { get { return p1; } }"),
+                    ("0025", Captured | Success, "int this[int x] { set { p1 = 0; } }"),
+                    ("0026", Captured | Success, "int this[int x] { set {} get { return p1; } }"),
+                    ("0027", Captured | Success, "int this[int x] { get => 0; set { p1 = 0; } }"),
+                    ("0028", Captured | Success, "~C1() { p1 = 0; }"),
+                    ("0029", Captured | BadReference, "public C1() : this(p1) {}"),
+
+                    // Same in a nested type
+                    ("0101", BadReference | NotUsedWarning, "class Nested { public int F = p1; }"),
+                    ("0102", BadReference | NotUsedWarning, "class Nested { public int P {get;} = p1; }"),
+                    ("0103", BadReference | NotUsedWarning, "class Nested { public event System.Action E = () => p1.ToString(); }"),
+                    ("0104", BadReference | NotUsedWarning, "class Nested { public static int F = p1; }"),
+                    ("0106", BadReference | NotUsedWarning, "class Nested { public static int P {get;} = p1; }"),
+                    ("0107", BadReference | NotUsedWarning, "class Nested { public static event System.Action E = () => p1.ToString(); }"),
+                    ("0108", BadReference | NotUsedWarning, "class Nested { static Nested() { p1 = 0; } }"),
+                    ("0109", BadReference | NotUsedWarning, "class Nested { static void M() { p1 = 0; } }"),
+                    ("0111", BadReference | NotUsedWarning, "class Nested { static int P { get { return p1; } } }"),
+                    ("0112", BadReference | NotUsedWarning, "class Nested { static int P { set { p1 = 0; } } }"),
+                    ("0113", BadReference | NotUsedWarning, "class Nested { static int P { set {} get { return p1; } } }"),
+                    ("0114", BadReference | NotUsedWarning, "class Nested { static int P { get => 0; set { p1 = 0; } } }"),
+                    ("0115", BadReference | NotUsedWarning, "class Nested { static event System.Action E { add { p1 = 0; } remove {} } }"),
+                    ("0116", BadReference | NotUsedWarning, "class Nested { static event System.Action E { add {} remove { p1 = 0; } } }"),
+                    ("0117", BadReference | NotUsedWarning, "class Nested { void M() { p1 = 0; } }"),
+                    ("0118", BadReference | NotUsedWarning, "class Nested { int P { get { return p1; } } }"),
+                    ("0119", BadReference | NotUsedWarning, "class Nested { int P { set { p1 = 0; } } }"),
+                    ("0120", BadReference | NotUsedWarning, "class Nested { int P { set {} get { return p1; } } }"),
+                    ("0121", BadReference | NotUsedWarning, "class Nested { int P { get => 0; set { p1 = 0; } } }"),
+                    ("0122", BadReference | NotUsedWarning, "class Nested { event System.Action E { add { p1 = 0; } remove {} } }"),
+                    ("0123", BadReference | NotUsedWarning, "class Nested { event System.Action E { add {} remove { p1 = 0; } } }"),
+                    ("0124", BadReference | NotUsedWarning, "class Nested { int this[int x] { get { return p1; } } }"),
+                    ("0125", BadReference | NotUsedWarning, "class Nested { int this[int x] { set { p1 = 0; } } }"),
+                    ("0126", BadReference | NotUsedWarning, "class Nested { int this[int x] { set {} get { return p1; } } }"),
+                    ("0127", BadReference | NotUsedWarning, "class Nested { int this[int x] { get => 0; set { p1 = 0; } } }"),
+                    ("0128", BadReference | NotUsedWarning, "class Nested { ~Nested() { p1 = 0; } }"),
+                    ("0129", BadReference | NotUsedWarning, "class Nested { public Nested() : this(p1) {} Nested(int x) {} }"),
+                    ("0130", BadReference | NotUsedWarning, "class Nested { public Nested() { p1 = 0; } }"),
+
+                    // In attributes on members
+                    ("0301", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] public int F = 0;"),
+                    ("0302", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] public int P {get;} = 0;"),
+                    ("0303", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] public event System.Action E = () => 0.ToString();"),
+                    ("0304", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] public static int F = 0;"),
+                    ("0305", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] public const int F = 0;"),
+                    ("0306", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] public static int P {get;} = 0;"),
+                    ("0307", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] public static event System.Action E = () => 0.ToString();"),
+                    ("0308", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] static C1() {}"),
+                    ("0309", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] static void M() {}"),
+                    ("0311", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] static int P { get { return 0; } }"),
+                    ("0312", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] static int P { set {} }"),
+                    ("0313", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] static int P { set {} get { return 0; } }"),
+                    ("0314", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] static int P { get => 0; set {} }"),
+                    ("0315", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] static event System.Action E { add {} remove {} }"),
+                    ("0316", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] static event System.Action E { add {} remove {} }"),
+                    ("0317", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] void M() {}"),
+                    ("0318", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] int P { get { return 0; } }"),
+                    ("0319", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] int P { set {} }"),
+                    ("0320", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] int P { set {} get { return 0; } }"),
+                    ("0321", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] int P { get => 0; set {} }"),
+                    ("0322", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] event System.Action E { add {} remove {} }"),
+                    ("0323", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] event System.Action E { add {} remove {} }"),
+                    ("0324", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] int this[int x] { get { return 0; } }"),
+                    ("0325", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] int this[int x] { set {} }"),
+                    ("0326", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] int this[int x] { set {} get { return 0; } }"),
+                    ("0327", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] int this[int x] { get => 0; set {} }"),
+                    ("0328", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] ~C1() {}"),
+                    ("0329", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] public C1() : this(0) {}"),
+                    ("0330", BadReference | NotUsedWarning | BadAttributeValue, "static int P { [Attr1(p1)] get { return 0; } }"),
+                    ("0331", BadReference | NotUsedWarning | BadAttributeValue, "static int P { [Attr1(p1)] set {} }"),
+                    ("0332", BadReference | NotUsedWarning | BadAttributeValue, "static event System.Action E { [Attr1(p1)] add {} remove {} }"),
+                    ("0333", BadReference | NotUsedWarning | BadAttributeValue, "static event System.Action E { add {} [Attr1(p1)] remove {} }"),
+                    ("0334", BadReference | NotUsedWarning | BadAttributeValue, "[Attr1(p1)] class Nested {}"),
+                    ("0335", BadReference | NotUsedWarning | BadAttributeValue, "class Nested([Attr1(p1)] int p2) { public int F = p2; }"),
+
+                    // Same in nested type
+                    ("0401", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] public int F = 0; }"),
+                    ("0402", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] public int P {get;} = 0; }"),
+                    ("0403", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] public event System.Action E = () => 0.ToString(); }"),
+                    ("0404", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] public static int F = 0; }"),
+                    ("0406", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] public static int P {get;} = 0; }"),
+                    ("0407", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] public static event System.Action E = () => 0.ToString(); }"),
+                    ("0408", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] static Nested() {} }"),
+                    ("0409", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] static void M() {} }"),
+                    ("0411", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] static int P { get { return 0; } } }"),
+                    ("0412", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] static int P { set {} } }"),
+                    ("0413", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] static int P { set {} get { return 0; } } }"),
+                    ("0414", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] static int P { get => 0; set {} } }"),
+                    ("0415", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] static event System.Action E { add {} remove {} } }"),
+                    ("0416", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] static event System.Action E { add {} remove {} } }"),
+                    ("0417", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] void M() {} }"),
+                    ("0418", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] int P { get { return 0; } } }"),
+                    ("0419", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] int P { set {} } }"),
+                    ("0420", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] int P { set {} get { return 0; } } }"),
+                    ("0421", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] int P { get => 0; set {} } }"),
+                    ("0422", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] event System.Action E { add {} remove {} } }"),
+                    ("0423", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] event System.Action E { add {} remove {} } }"),
+                    ("0424", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] int this[int x] { get { return 0; } } }"),
+                    ("0425", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] int this[int x] { set {} } }"),
+                    ("0426", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] int this[int x] { set {} get { return 0; } } }"),
+                    ("0427", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] int this[int x] { get => 0; set {} } }"),
+                    ("0428", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] ~Nested() {} }"),
+                    ("0430", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] public Nested() {} }"),
+                    ("0431", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { static int P { [Attr1(p1)] get { return 0; } } }"),
+                    ("0432", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { static int P { [Attr1(p1)] set {} } }"),
+                    ("0433", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { static event System.Action E { [Attr1(p1)] add {} remove {} } }"),
+                    ("0434", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { static event System.Action E { add {} [Attr1(p1)] remove {} } }"),
+                    ("0435", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { [Attr1(p1)] class Nested2 {} }"),
+                    ("0436", BadReference | NotUsedWarning | BadAttributeValue, "class Nested { class Nested2([Attr1(p1)] int p2) { public int F = p2; } }"),
+
+                    // In nameof in attributes on members
+                    ("0501", NotUsedWarning, "[Attr1(nameof(p1))] public int F = 0;"),
+                    ("0502", NotUsedWarning, "[Attr1(nameof(p1))] public int P {get;} = 0;"),
+                    ("0503", NotUsedWarning, "[Attr1(nameof(p1))] public event System.Action E = () => 0.ToString();"),
+                    ("0504", NotUsedWarning, "[Attr1(nameof(p1))] public static int F = 0;"),
+                    ("0505", NotUsedWarning, "[Attr1(nameof(p1))] public const int F = 0;"),
+                    ("0506", NotUsedWarning, "[Attr1(nameof(p1))] public static int P {get;} = 0;"),
+                    ("0507", NotUsedWarning, "[Attr1(nameof(p1))] public static event System.Action E = () => 0.ToString();"),
+                    ("0508", NotUsedWarning, "[Attr1(nameof(p1))] static C1() {}"),
+                    ("0509", NotUsedWarning, "[Attr1(nameof(p1))] static void M() {}"),
+                    ("0511", NotUsedWarning, "[Attr1(nameof(p1))] static int P { get { return 0; } }"),
+                    ("0512", NotUsedWarning, "[Attr1(nameof(p1))] static int P { set {} }"),
+                    ("0513", NotUsedWarning, "[Attr1(nameof(p1))] static int P { set {} get { return 0; } }"),
+                    ("0514", NotUsedWarning, "[Attr1(nameof(p1))] static int P { get => 0; set {} }"),
+                    ("0515", NotUsedWarning, "[Attr1(nameof(p1))] static event System.Action E { add {} remove {} }"),
+                    ("0516", NotUsedWarning, "[Attr1(nameof(p1))] static event System.Action E { add {} remove {} }"),
+                    ("0517", NotUsedWarning, "[Attr1(nameof(p1))] void M() {}"),
+                    ("0518", NotUsedWarning, "[Attr1(nameof(p1))] int P { get { return 0; } }"),
+                    ("0519", NotUsedWarning, "[Attr1(nameof(p1))] int P { set {} }"),
+                    ("0520", NotUsedWarning, "[Attr1(nameof(p1))] int P { set {} get { return 0; } }"),
+                    ("0521", NotUsedWarning, "[Attr1(nameof(p1))] int P { get => 0; set {} }"),
+                    ("0522", NotUsedWarning, "[Attr1(nameof(p1))] event System.Action E { add {} remove {} }"),
+                    ("0523", NotUsedWarning, "[Attr1(nameof(p1))] event System.Action E { add {} remove {} }"),
+                    ("0524", NotUsedWarning, "[Attr1(nameof(p1))] int this[int x] { get { return 0; } }"),
+                    ("0525", NotUsedWarning, "[Attr1(nameof(p1))] int this[int x] { set {} }"),
+                    ("0526", NotUsedWarning, "[Attr1(nameof(p1))] int this[int x] { set {} get { return 0; } }"),
+                    ("0527", NotUsedWarning, "[Attr1(nameof(p1))] int this[int x] { get => 0; set {} }"),
+                    ("0528", NotUsedWarning, "[Attr1(nameof(p1))] ~C1() {}"),
+                    ("0529", NotUsedWarning, "[Attr1(nameof(p1))] public C1() : this(0) {}"),
+                    ("0530", NotUsedWarning, "static int P { [Attr1(nameof(p1))] get { return 0; } }"),
+                    ("0531", NotUsedWarning, "static int P { [Attr1(nameof(p1))] set {} }"),
+                    ("0532", NotUsedWarning, "static event System.Action E { [Attr1(nameof(p1))] add {} remove {} }"),
+                    ("0533", NotUsedWarning, "static event System.Action E { add {} [Attr1(nameof(p1))] remove {} }"),
+                    ("0534", NotUsedWarning, "[Attr1(nameof(p1))] class Nested {}"),
+                    ("0535", NotUsedWarning, "class Nested([Attr1(nameof(p1))] int p2) { public int F = p2; }"),
+
+                    // Same in nested type
+                    ("0601", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] public int F = 0; }"),
+                    ("0602", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] public int P {get;} = 0; }"),
+                    ("0603", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] public event System.Action E = () => 0.ToString(); }"),
+                    ("0604", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] public static int F = 0; }"),
+                    ("0606", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] public static int P {get;} = 0; }"),
+                    ("0607", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] public static event System.Action E = () => 0.ToString(); }"),
+                    ("0608", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] static Nested() {} }"),
+                    ("0609", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] static void M() {} }"),
+                    ("0611", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] static int P { get { return 0; } } }"),
+                    ("0612", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] static int P { set {} } }"),
+                    ("0613", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] static int P { set {} get { return 0; } } }"),
+                    ("0614", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] static int P { get => 0; set {} } }"),
+                    ("0615", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] static event System.Action E { add {} remove {} } }"),
+                    ("0616", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] static event System.Action E { add {} remove {} } }"),
+                    ("0617", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] void M() {} }"),
+                    ("0618", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] int P { get { return 0; } } }"),
+                    ("0619", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] int P { set {} } }"),
+                    ("0620", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] int P { set {} get { return 0; } } }"),
+                    ("0621", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] int P { get => 0; set {} } }"),
+                    ("0622", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] event System.Action E { add {} remove {} } }"),
+                    ("0623", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] event System.Action E { add {} remove {} } }"),
+                    ("0624", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] int this[int x] { get { return 0; } } }"),
+                    ("0625", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] int this[int x] { set {} } }"),
+                    ("0626", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] int this[int x] { set {} get { return 0; } } }"),
+                    ("0627", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] int this[int x] { get => 0; set {} } }"),
+                    ("0628", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] ~Nested() {} }"),
+                    ("0630", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] public Nested() {} }"),
+                    ("0631", NotUsedWarning, "class Nested { static int P { [Attr1(nameof(p1))] get { return 0; } } }"),
+                    ("0632", NotUsedWarning, "class Nested { static int P { [Attr1(nameof(p1))] set {} } }"),
+                    ("0633", NotUsedWarning, "class Nested { static event System.Action E { [Attr1(nameof(p1))] add {} remove {} } }"),
+                    ("0634", NotUsedWarning, "class Nested { static event System.Action E { add {} [Attr1(nameof(p1))] remove {} } }"),
+                    ("0635", NotUsedWarning, "class Nested { [Attr1(nameof(p1))] class Nested2 {} }"),
+                    ("0636", NotUsedWarning, "class Nested { class Nested2([Attr1(nameof(p1))] int p2) { public int F = p2; } }"),
+
+                    // In default parameter values in members
+                    ("0709", BadReference | NotUsedWarning | BadDefaultValue, "static void M(int x = p1) {}"),
+                    ("0717", BadReference | NotUsedWarning | BadDefaultValue, "void M(int x = p1) {}"),
+                    ("0724", BadReference | NotUsedWarning | BadDefaultValue, "int this[int y, int x = p1] { get { return x; } }"),
+                    ("0730", BadReference | NotUsedWarning | BadDefaultValue, "public C1(int y, int x = p1) : this(0) {}"),
+                    ("0731", BadReference | NotUsedWarning | BadDefaultValue, "class Nested(int y, int x = p1) { public int F = x + y; }"),
+
+                    // Same in nested type
+                    ("0809", BadReference | NotUsedWarning | BadDefaultValue, "class Nested { static void M(int x = p1) {} }"),
+                    ("0817", BadReference | NotUsedWarning | BadDefaultValue, "class Nested { void M(int x = p1) {} }"),
+                    ("0824", BadReference | NotUsedWarning | BadDefaultValue, "class Nested { int this[int y, int x = p1] { get { return x; } } }"),
+                    ("0830", BadReference | NotUsedWarning | BadDefaultValue, "class Nested { public Nested(int x = p1) {} }"),
+                    ("0831", BadReference | NotUsedWarning | BadDefaultValue, "class Nested { class Nested2(int y, int x = p1) { public int F = x + y; } }"),
+
+                    // In nameof default parameter values in members
+                    ("0909", NotUsedWarning, "static void M(string x = nameof(p1)) {}"),
+                    ("0917", NotUsedWarning, "void M(string x = nameof(p1)) {}"),
+                    ("0924", NotUsedWarning, "int this[int y, string x = nameof(p1)] { get { return y; } }"),
+                    ("0930", NotUsedWarning, "public C1(int y, string x = nameof(p1)) : this(0) {}"),
+                    ("0931", NotUsedWarning, "class Nested(int y, string x = nameof(p1)) { public int F = x.Length + y; }"),
+
+                    // Same in nested type
+                    ("1009", NotUsedWarning, "class Nested { static void M(string x = nameof(p1)) {} }"),
+                    ("1017", NotUsedWarning, "class Nested { void M(string x = nameof(p1)) {} }"),
+                    ("1024", NotUsedWarning, "class Nested { int this[int y, string x = nameof(p1)] { get { return y; } } }"),
+                    ("1030", NotUsedWarning, "class Nested { public Nested(string x = nameof(p1)) {} }"),
+                    ("1031", NotUsedWarning, "class Nested { class Nested2(int y, string x = nameof(p1)) { public int F = x.Length + y; } }"),
+
+                    // In lambdas
+
+                    // PROTOTYPE(PrimaryConstructors): should pass once we will be able to detect capturing in lambdas.
+                    //("1101", Captured | BadReference | InNestedMethod, "public C1() : this(() => p1) {} C1(System.Func<int> x) : this(0) {}"),
+                    //("1102", Captured | BadReference | InNestedMethod, "public C1() : this(() => (System.Func<int>)(() => p1)) {} C1(System.Func<System.Func<int>> x) : this(0) {}"),
+                    //("1103", Captured | BadReference | InNestedMethod, "public C1() : this(() => { return local(); int local() => p1; }) {} C1(System.Func<int> x) : this(0) {}"),
+
+                    ("1401", Success | Shadows, "public System.Func<int> F = (() => p1);"),
+                    ("1402", Success | Shadows, "public System.Func<System.Func<int>> F = (() => (System.Func<int>)(() => p1));"),
+                    ("1403", Success | Shadows, "public System.Func<int> F = () => { return local(); int local() => p1; };"),
+                    ("1404", Success | Shadows, "public System.Func<int> P {get;} = (() => p1);"),
+                    ("1405", Success | Shadows, "public System.Func<System.Func<int>> P {get;} = (() => (System.Func<int>)(() => p1));"),
+                    ("1406", Success | Shadows, "public System.Func<int> P {get;} = () => { return local(); int local() => p1; };"),
+                    ("1407", Success | Shadows, "public event System.Func<System.Func<int>> E = (() => (System.Func<int>)(() => p1));"),
+                    ("1408", Success | Shadows, "public event System.Func<int> E = () => { return local(); int local() => p1; };"),
+
+                    // PROTOTYPE(PrimaryConstructors): should pass once we will be able to detect capturing in lambdas.
+                    //("1409", Captured | Success, "public System.Func<int> M() { return (() => p1); }"),
+                    //("1410", Captured | Success, "public System.Func<System.Func<int>> M() { return (() => (System.Func<int>)(() => p1)); }"),
+                    //("1411", Captured | Success, "public System.Func<int> M() { return () => { return local(); int local() => p1; }; }"),
+                    //("1412", Captured | Success, "public void M() { local(); int local() { return p1; } }"),
+                    //("1413", Captured | Success, "public void M() { local1(); void local1() { local2(); int local2() { return p1; } } }"),
+
+                    // In expression body
+                    ("1502", Captured | Success, "public int P => p1;"),
+                    ("1506", BadReference | NotUsedWarning, "public static int P => p1;"),
+                    ("1508", BadReference | NotUsedWarning, "static C1() => p1 = 0;"),
+                    ("1509", BadReference | NotUsedWarning, "static void M() => p1 = 0;"),
+                    ("1511", BadReference | NotUsedWarning, "static int P { get => p1; }"),
+                    ("1512", BadReference | NotUsedWarning, "static int P { set => p1 = 0; }"),
+                    ("1513", BadReference | NotUsedWarning, "static int P { set {} get => p1; }"),
+                    ("1514", BadReference | NotUsedWarning, "static int P { get => 0; set => p1 = 0; }"),
+                    ("1515", BadReference | NotUsedWarning, "static event System.Action E { add => p1 = 0; remove {} }"),
+                    ("1516", BadReference | NotUsedWarning, "static event System.Action E { add {} remove => p1 = 0; }"),
+                    ("1517", Captured | Success, "void M() => p1 = 0;"),
+                    ("1518", Captured | Success, "int P { get => p1; }"),
+                    ("1519", Captured | Success, "int P { set => p1 = 0; }"),
+                    ("1520", Captured | Success, "int P { set {} get => p1; }"),
+                    ("1521", Captured | Success, "int P { get => 0; set => p1 = 0; }"),
+                    ("1524", Captured | Success, "int this[int x] { get => p1; }"),
+                    ("1525", Captured | Success, "int this[int x] { set => p1 = 0; }"),
+                    ("1526", Captured | Success, "int this[int x] { set {} get => p1; }"),
+                    ("1527", Captured | Success, "int this[int x] { get => 0; set => p1 = 0; }"),
+                    ("1528", Captured | Success, "~C1() => p1 = 0;"),
+
+                    ("1602", BadReference | NotUsedWarning, "class Nested { public int P => p1; }"),
+                    ("1606", BadReference | NotUsedWarning, "class Nested { public static int P => p1; }"),
+                    ("1608", BadReference | NotUsedWarning, "class Nested { static Nested() => p1 = 0; }"),
+                    ("1609", BadReference | NotUsedWarning, "class Nested { static void M() => p1 = 0; }"),
+                    ("1611", BadReference | NotUsedWarning, "class Nested { static int P { get => p1; } }"),
+                    ("1612", BadReference | NotUsedWarning, "class Nested { static int P { set => p1 = 0; } }"),
+                    ("1613", BadReference | NotUsedWarning, "class Nested { static int P { set {} get => p1; } }"),
+                    ("1614", BadReference | NotUsedWarning, "class Nested { static int P { get => 0; set => p1 = 0; } }"),
+                    ("1617", BadReference | NotUsedWarning, "class Nested { void M() => p1 = 0; }"),
+                    ("1618", BadReference | NotUsedWarning, "class Nested { int P { get => p1; } }"),
+                    ("1619", BadReference | NotUsedWarning, "class Nested { int P { set => p1 = 0; } }"),
+                    ("1620", BadReference | NotUsedWarning, "class Nested { int P { set {} get => p1; } }"),
+                    ("1621", BadReference | NotUsedWarning, "class Nested { int P { get => 0; set => p1 = 0; } }"),
+                    ("1624", BadReference | NotUsedWarning, "class Nested { int this[int x] { get => p1; } }"),
+                    ("1625", BadReference | NotUsedWarning, "class Nested { int this[int x] { set => p1 = 0; } }"),
+                    ("1626", BadReference | NotUsedWarning, "class Nested { int this[int x] { set {} get => p1; } }"),
+                    ("1627", BadReference | NotUsedWarning, "class Nested { int this[int x] { get => 0; set => p1 = 0; } }"),
+                    ("1628", BadReference | NotUsedWarning, "class Nested { ~Nested() => p1 = 0; }"),
+                    ("1629", BadReference | NotUsedWarning, "class Nested { public Nested() : this(p1) {} Nested(int x) {} }"),
+                    ("1630", BadReference | NotUsedWarning, "class Nested { public Nested() => p1 = 0; }"),
+
+                    // In expression body when block body is also present
+                    ("1708", NotUsedWarning | TwoBodies, "static C1() {} => p1 = 0;"),
+                    ("1709", NotUsedWarning | TwoBodies, "static void M() {} => p1 = 0;"),
+                    ("1711", NotUsedWarning | TwoBodies, "static int P { get { return 0; } => p1; }"),
+                    ("1712", NotUsedWarning | TwoBodies, "static int P { set {} => p1 = 0; }"),
+                    ("1713", NotUsedWarning | TwoBodies, "static int P { set {} get { return 0; } => p1; }"),
+                    ("1714", NotUsedWarning | TwoBodies, "static int P { get => 0; set {} => p1 = 0; }"),
+                    ("1715", NotUsedWarning | TwoBodies, "static event System.Action E { add {} => p1 = 0; remove {} }"),
+                    ("1716", NotUsedWarning | TwoBodies, "static event System.Action E { add {} remove {} => p1 = 0; }"),
+                    ("1717", Captured | TwoBodies, "void M() {} => p1 = 0;"),
+                    ("1718", Captured | TwoBodies, "int P { get { return 0; } => p1; }"),
+                    ("1719", Captured | TwoBodies, "int P { set {} => p1 = 0; }"),
+                    ("1720", Captured | TwoBodies, "int P { set {} get { return 0; } => p1; }"),
+                    ("1721", Captured | TwoBodies, "int P { get => 0; set {} => p1 = 0; }"),
+                    ("1724", Captured | TwoBodies, "int this[int x] { get { return 0; } => p1; }"),
+                    ("1725", Captured | TwoBodies, "int this[int x] { set {} => p1 = 0; }"),
+                    ("1726", Captured | TwoBodies, "int this[int x] { set {} get { return 0; } => p1; }"),
+                    ("1727", Captured | TwoBodies, "int this[int x] { get => 0; set {} => p1 = 0; }"),
+                    ("1728", Captured | TwoBodies, "~C1() {} => p1 = 0;"),
+                    ("1730", Captured | TwoBodies, "public C1() : this(0) {} => p1 = 0;"),
+
+                    ("1808", NotUsedWarning | TwoBodies, "class Nested { static Nested() {} => p1 = 0; }"),
+                    ("1809", NotUsedWarning | TwoBodies, "class Nested { static void M() {} => p1 = 0; }"),
+                    ("1811", NotUsedWarning | TwoBodies, "class Nested { static int P { get { return 0; } => p1; } }"),
+                    ("1812", NotUsedWarning | TwoBodies, "class Nested { static int P { set {} => p1 = 0; } }"),
+                    ("1813", NotUsedWarning | TwoBodies, "class Nested { static int P { set {} get { return 0; } => p1; } }"),
+                    ("1814", NotUsedWarning | TwoBodies, "class Nested { static int P { get => 0; set {} => p1 = 0; } }"),
+                    ("1817", NotUsedWarning | TwoBodies, "class Nested { void M() {} => p1 = 0; }"),
+                    ("1818", NotUsedWarning | TwoBodies, "class Nested { int P { get { return 0; } => p1; } }"),
+                    ("1819", NotUsedWarning | TwoBodies, "class Nested { int P { set {} => p1 = 0; } }"),
+                    ("1820", NotUsedWarning | TwoBodies, "class Nested { int P { set {} get { return 0; } => p1; } }"),
+                    ("1821", NotUsedWarning | TwoBodies, "class Nested { int P { get => 0; set {} => p1 = 0; } }"),
+                    ("1824", NotUsedWarning | TwoBodies, "class Nested { int this[int x] { get { return 0; } => p1; } }"),
+                    ("1825", NotUsedWarning | TwoBodies, "class Nested { int this[int x] { set {} => p1 = 0; } }"),
+                    ("1826", NotUsedWarning | TwoBodies, "class Nested { int this[int x] { set {} get { return 0; } => p1; } }"),
+                    ("1827", NotUsedWarning | TwoBodies, "class Nested { int this[int x] { get => 0; set {} => p1 = 0; } }"),
+                    ("1828", NotUsedWarning | TwoBodies, "class Nested { ~Nested() {} => p1 = 0; }"),
+                    ("1830", NotUsedWarning | TwoBodies, "class Nested { public Nested() {} => p1 = 0; }"),
+
+                    // In attributes inside method bodies
+                    ("1901", NotUsedWarning | AttributesNotAllowed | Shadows, "public System.Action F = () => { [Attr1(p1)] return; };"),
+                    ("1902", NotUsedWarning | AttributesNotAllowed | Shadows, "public System.Action P {get;} = () => { [Attr1(p1)] return; };"),
+                    ("1903", NotUsedWarning | AttributesNotAllowed | Shadows, "public event System.Action E = () => { [Attr1(p1)] return; };"),
+                    ("1904", NotUsedWarning | AttributesNotAllowed | Shadows, "public static System.Action F = () => { [Attr1(p1)] return; };"),
+                    ("1906", NotUsedWarning | AttributesNotAllowed | Shadows, "public static System.Action P {get;} = () => { [Attr1(p1)] return; };"),
+                    ("1907", NotUsedWarning | AttributesNotAllowed | Shadows, "public static event System.Action E = () => { [Attr1(p1)] return; };"),
+                    ("1908", NotUsedWarning | AttributesNotAllowed, "static C1() { [Attr1(p1)] return; }"),
+                    ("1909", NotUsedWarning | AttributesNotAllowed, "static void M() { [Attr1(p1)] return; }"),
+                    ("1911", NotUsedWarning | AttributesNotAllowed, "static int P { get {  [Attr1(p1)] return 0; } }"),
+                    ("1912", NotUsedWarning | AttributesNotAllowed, "static int P { set { [Attr1(p1)] return; } }"),
+                    ("1913", NotUsedWarning | AttributesNotAllowed, "static int P { set {} get {  [Attr1(p1)] return 0; } }"),
+                    ("1914", NotUsedWarning | AttributesNotAllowed, "static int P { get => 0; set { [Attr1(p1)] return; } }"),
+                    ("1915", NotUsedWarning | AttributesNotAllowed, "static event System.Action E { add { [Attr1(p1)] return; } remove {} }"),
+                    ("1916", NotUsedWarning | AttributesNotAllowed, "static event System.Action E { add {} remove { [Attr1(p1)] return; } }"),
+                    ("1917", NotUsedWarning | AttributesNotAllowed, "void M() { [Attr1(p1)] return; }"),
+                    ("1918", NotUsedWarning | AttributesNotAllowed, "int P { get {  [Attr1(p1)] return 0; } }"),
+                    ("1919", NotUsedWarning | AttributesNotAllowed, "int P { set { [Attr1(p1)] return; } }"),
+                    ("1920", NotUsedWarning | AttributesNotAllowed, "int P { set {} get {  [Attr1(p1)] return 0; } }"),
+                    ("1921", NotUsedWarning | AttributesNotAllowed, "int P { get => 0; set { [Attr1(p1)] return; } }"),
+                    ("1922", NotUsedWarning | AttributesNotAllowed, "event System.Action E { add { [Attr1(p1)] return; } remove {} }"),
+                    ("1923", NotUsedWarning | AttributesNotAllowed, "event System.Action E { add {} remove { [Attr1(p1)] return; } }"),
+                    ("1924", NotUsedWarning | AttributesNotAllowed, "int this[int x] { get {  [Attr1(p1)] return 0; } }"),
+                    ("1925", NotUsedWarning | AttributesNotAllowed, "int this[int x] { set { [Attr1(p1)] return; } }"),
+                    ("1926", NotUsedWarning | AttributesNotAllowed, "int this[int x] { set {} get { [Attr1(p1)] return 0; } }"),
+                    ("1927", NotUsedWarning | AttributesNotAllowed, "int this[int x] { get => 0; set { [Attr1(p1)] return; } }"),
+                    ("1928", NotUsedWarning | AttributesNotAllowed, "~C1() { [Attr1(p1)] return; }"),
+                    ("1929", NotUsedWarning | AttributesNotAllowed, "public C1() : this(() => { [Attr1(p1)] return; }) {} C1(System.Action x) : this(0) {}"),
+                    ("1930", NotUsedWarning | AttributesNotAllowed, "public C1() : this(0) { [Attr1(p1)] return; }"),
+                    ("1935", NotUsedWarning | AttributesNotAllowed, "class Nested() : NestedBase(() => { [Attr1(p1)] return; }) {} class NestedBase(System.Action x) { object F = x; } "),
+
+                    ("2001", BadReference | NotUsedWarning | BadAttributeValue | Shadows, "public System.Action F = () => { [Attr1(p1)] void local(){} local(); };"),
+                    ("2002", BadReference | NotUsedWarning | BadAttributeValue | Shadows, "public System.Action P {get;} = () => { [Attr1(p1)] void local(){} local(); };"),
+                    ("2003", BadReference | NotUsedWarning | BadAttributeValue | Shadows, "public event System.Action E = () => { [Attr1(p1)] void local(){} local(); };"),
+                    ("2004", BadReference | NotUsedWarning | BadAttributeValue | Shadows, "public static System.Action F = () => { [Attr1(p1)] void local(){} local(); };"),
+                    ("2006", BadReference | NotUsedWarning | BadAttributeValue | Shadows, "public static System.Action P {get;} = () => { [Attr1(p1)] void local(){} local(); };"),
+                    ("2007", BadReference | NotUsedWarning | BadAttributeValue | Shadows, "public static event System.Action E = () => { [Attr1(p1)] void local(){} local(); };"),
+                    ("2008", BadReference | NotUsedWarning | BadAttributeValue, "static C1() { [Attr1(p1)] void local(){} local(); }"),
+                    ("2009", BadReference | NotUsedWarning | BadAttributeValue, "static void M() { [Attr1(p1)] void local(){} local(); }"),
+                    ("2011", BadReference | NotUsedWarning | BadAttributeValue, "static int P { get {  [Attr1(p1)] void local(){} local(); return 0; } }"),
+                    ("2012", BadReference | NotUsedWarning | BadAttributeValue, "static int P { set { [Attr1(p1)] void local(){} local(); } }"),
+                    ("2013", BadReference | NotUsedWarning | BadAttributeValue, "static int P { set {} get {  [Attr1(p1)] void local(){} local(); return 0; } }"),
+                    ("2014", BadReference | NotUsedWarning | BadAttributeValue, "static int P { get => 0; set { [Attr1(p1)] void local(){} local(); } }"),
+                    ("2015", BadReference | NotUsedWarning | BadAttributeValue, "static event System.Action E { add { [Attr1(p1)] void local(){} local(); } remove {} }"),
+                    ("2016", BadReference | NotUsedWarning | BadAttributeValue, "static event System.Action E { add {} remove { [Attr1(p1)] void local(){} local(); } }"),
+                    ("2017", BadReference | NotUsedWarning | BadAttributeValue, "void M() { [Attr1(p1)] void local(){} local(); }"),
+                    ("2018", BadReference | NotUsedWarning | BadAttributeValue, "int P { get {  [Attr1(p1)] void local(){} local(); return 0; } }"),
+                    ("2019", BadReference | NotUsedWarning | BadAttributeValue, "int P { set { [Attr1(p1)] void local(){} local(); } }"),
+                    ("2020", BadReference | NotUsedWarning | BadAttributeValue, "int P { set {} get {  [Attr1(p1)] void local(){} local(); return 0; } }"),
+                    ("2021", BadReference | NotUsedWarning | BadAttributeValue, "int P { get => 0; set { [Attr1(p1)] void local(){} local(); } }"),
+                    ("2022", BadReference | NotUsedWarning | BadAttributeValue, "event System.Action E { add { [Attr1(p1)] void local(){} local(); } remove {} }"),
+                    ("2023", BadReference | NotUsedWarning | BadAttributeValue, "event System.Action E { add {} remove { [Attr1(p1)] void local(){} local(); } }"),
+                    ("2024", BadReference | NotUsedWarning | BadAttributeValue, "int this[int x] { get { [Attr1(p1)] void local(){} local(); return 0; } }"),
+                    ("2025", BadReference | NotUsedWarning | BadAttributeValue, "int this[int x] { set { [Attr1(p1)] void local(){} local(); } }"),
+                    ("2026", BadReference | NotUsedWarning | BadAttributeValue, "int this[int x] { set {} get { [Attr1(p1)] void local(){} local(); return 0; } }"),
+                    ("2027", BadReference | NotUsedWarning | BadAttributeValue, "int this[int x] { get => 0; set { [Attr1(p1)] void local(){} local(); } }"),
+                    ("2028", BadReference | NotUsedWarning | BadAttributeValue, "~C1() { [Attr1(p1)] void local(){} local(); }"),
+                    ("2029", BadReference | NotUsedWarning | BadAttributeValue, "public C1() : this(() => { [Attr1(p1)] void local(){} local(); }) {} C1(System.Action x) : this(0) {}"),
+                    ("2030", BadReference | NotUsedWarning | BadAttributeValue, "public C1() : this(0) { [Attr1(p1)] void local(){} local(); }"),
+                    ("2035", BadReference | NotUsedWarning | BadAttributeValue, "class Nested() : NestedBase(() => { [Attr1(p1)] void local(){} local(); }) {} class NestedBase(System.Action x) { object F = x; } "),
+
+                    // Same with nameof
+                    ("2101", Success | Shadows, "public System.Action F = () => { [Attr1(nameof(p1))] void local(){} local(); };"),
+                    ("2102", Success | Shadows, "public System.Action P {get;} = () => { [Attr1(nameof(p1))] void local(){} local(); };"),
+                    ("2103", Success | Shadows, "public event System.Action E = () => { [Attr1(nameof(p1))] void local(){} local(); };"),
+                    ("2104", NotUsedWarning | Shadows, "public static System.Action F = () => { [Attr1(nameof(p1))] void local(){} local(); };"),
+                    ("2106", NotUsedWarning | Shadows, "public static System.Action P {get;} = () => { [Attr1(nameof(p1))] void local(){} local(); };"),
+                    ("2107", NotUsedWarning | Shadows, "public static event System.Action E = () => { [Attr1(nameof(p1))] void local(){} local(); };"),
+                    ("2108", NotUsedWarning, "static C1() { [Attr1(nameof(p1))] void local(){} local(); }"),
+                    ("2109", NotUsedWarning, "static void M() { [Attr1(nameof(p1))] void local(){} local(); }"),
+                    ("2111", NotUsedWarning, "static int P { get {  [Attr1(nameof(p1))] void local(){} local(); return 0; } }"),
+                    ("2112", NotUsedWarning, "static int P { set { [Attr1(nameof(p1))] void local(){} local(); } }"),
+                    ("2113", NotUsedWarning, "static int P { set {} get {  [Attr1(nameof(p1))] void local(){} local(); return 0; } }"),
+                    ("2114", NotUsedWarning, "static int P { get => 0; set { [Attr1(nameof(p1))] void local(){} local(); } }"),
+                    ("2115", NotUsedWarning, "static event System.Action E { add { [Attr1(nameof(p1))] void local(){} local(); } remove {} }"),
+                    ("2116", NotUsedWarning, "static event System.Action E { add {} remove { [Attr1(nameof(p1))] void local(){} local(); } }"),
+                    ("2117", NotUsedWarning, "void M() { [Attr1(nameof(p1))] void local(){} local(); }"),
+                    ("2118", NotUsedWarning, "int P { get {  [Attr1(nameof(p1))] void local(){} local(); return 0; } }"),
+                    ("2119", NotUsedWarning, "int P { set { [Attr1(nameof(p1))] void local(){} local(); } }"),
+                    ("2120", NotUsedWarning, "int P { set {} get {  [Attr1(nameof(p1))] void local(){} local(); return 0; } }"),
+                    ("2121", NotUsedWarning, "int P { get => 0; set { [Attr1(nameof(p1))] void local(){} local(); } }"),
+                    ("2122", NotUsedWarning, "event System.Action E { add { [Attr1(nameof(p1))] void local(){} local(); } remove {} }"),
+                    ("2123", NotUsedWarning, "event System.Action E { add {} remove { [Attr1(nameof(p1))] void local(){} local(); } }"),
+                    ("2124", NotUsedWarning, "int this[int x] { get { [Attr1(nameof(p1))] void local(){} local(); return 0; } }"),
+                    ("2125", NotUsedWarning, "int this[int x] { set { [Attr1(nameof(p1))] void local(){} local(); } }"),
+                    ("2126", NotUsedWarning, "int this[int x] { set {} get { [Attr1(nameof(p1))] void local(){} local(); return 0; } }"),
+                    ("2127", NotUsedWarning, "int this[int x] { get => 0; set { [Attr1(nameof(p1))] void local(){} local(); } }"),
+                    ("2128", NotUsedWarning, "~C1() { [Attr1(nameof(p1))] void local(){} local(); }"),
+                    ("2129", NotUsedWarning, "public C1() : this(() => { [Attr1(nameof(p1))] void local(){} local(); }) {} C1(System.Action x) : this(0) {}"),
+                    ("2130", NotUsedWarning, "public C1() : this(0) { [Attr1(nameof(p1))] void local(){} local(); }"),
+                    ("2135", NotUsedWarning, "class Nested() : NestedBase(() => { [Attr1(nameof(p1))] void local(){} local(); }) {} class NestedBase(System.Action x) { object F = x; } "),
+
+                    // In parameter default values in method bodies
+                    ("2201", BadReference | BadDefaultValue | Shadows, "public System.Action F = () => { void local(int x = p1){} local(); };"),
+                    ("2202", BadReference | BadDefaultValue | Shadows, "public System.Action P {get;} = () => { void local(int x = p1){} local(); };"),
+                    ("2203", BadReference | BadDefaultValue | Shadows, "public event System.Action E = () => { void local(int x = p1){} local(); };"),
+                    ("2204", BadReference | NotUsedWarning | BadDefaultValue | Shadows, "public static System.Action F = () => { void local(int x = p1){} local(); };"),
+                    ("2206", BadReference | NotUsedWarning | BadDefaultValue | Shadows, "public static System.Action P {get;} = () => { void local(int x = p1){} local(); };"),
+                    ("2207", BadReference | NotUsedWarning | BadDefaultValue | Shadows, "public static event System.Action E = () => { void local(int x = p1){} local(); };"),
+                    ("2208", BadReference | NotUsedWarning | BadDefaultValue, "static C1() { void local(int x = p1){} local(); }"),
+                    ("2209", BadReference | NotUsedWarning | BadDefaultValue, "static void M() { void local(int x = p1){} local(); }"),
+                    ("2211", BadReference | NotUsedWarning | BadDefaultValue, "static int P { get {  void local(int x = p1){} local(); return 0; } }"),
+                    ("2212", BadReference | NotUsedWarning | BadDefaultValue, "static int P { set { void local(int x = p1){} local(); } }"),
+                    ("2213", BadReference | NotUsedWarning | BadDefaultValue, "static int P { set {} get {  void local(int x = p1){} local(); return 0; } }"),
+                    ("2214", BadReference | NotUsedWarning | BadDefaultValue, "static int P { get => 0; set { void local(int x = p1){} local(); } }"),
+                    ("2215", BadReference | NotUsedWarning | BadDefaultValue, "static event System.Action E { add { void local(int x = p1){} local(); } remove {} }"),
+                    ("2216", BadReference | NotUsedWarning | BadDefaultValue, "static event System.Action E { add {} remove { void local(int x = p1){} local(); } }"),
+                    ("2217", BadReference | NotUsedWarning | BadDefaultValue, "void M() { void local(int x = p1){} local(); }"),
+                    ("2218", BadReference | NotUsedWarning | BadDefaultValue, "int P { get {  void local(int x = p1){} local(); return 0; } }"),
+                    ("2219", BadReference | NotUsedWarning | BadDefaultValue, "int P { set { void local(int x = p1){} local(); } }"),
+                    ("2220", BadReference | NotUsedWarning | BadDefaultValue, "int P { set {} get {  void local(int x = p1){} local(); return 0; } }"),
+                    ("2221", BadReference | NotUsedWarning | BadDefaultValue, "int P { get => 0; set { void local(int x = p1){} local(); } }"),
+                    ("2222", BadReference | NotUsedWarning | BadDefaultValue, "event System.Action E { add { void local(int x = p1){} local(); } remove {} }"),
+                    ("2223", BadReference | NotUsedWarning | BadDefaultValue, "event System.Action E { add {} remove { void local(int x = p1){} local(); } }"),
+                    ("2224", BadReference | NotUsedWarning | BadDefaultValue, "int this[int x] { get { void local(int x = p1){} local(); return 0; } }"),
+                    ("2225", BadReference | NotUsedWarning | BadDefaultValue, "int this[int x] { set { void local(int x = p1){} local(); } }"),
+                    ("2226", BadReference | NotUsedWarning | BadDefaultValue, "int this[int x] { set {} get { void local(int x = p1){} local(); return 0; } }"),
+                    ("2227", BadReference | NotUsedWarning | BadDefaultValue, "int this[int x] { get => 0; set { void local(int x = p1){} local(); } }"),
+                    ("2228", BadReference | NotUsedWarning | BadDefaultValue, "~C1() { void local(int x = p1){} local(); }"),
+                    ("2229", BadReference | NotUsedWarning | BadDefaultValue, "public C1() : this(() => { void local(int x = p1){} local(); }) {} C1(System.Action x) : this(0) {}"),
+                    ("2230", BadReference | NotUsedWarning | BadDefaultValue, "public C1() : this(0) { void local(int x = p1){} local(); }"),
+                    ("2235", BadReference | NotUsedWarning | BadDefaultValue, "class Nested() : NestedBase(() => { void local(int x = p1){} local(); }) {} class NestedBase(System.Action x) { object F = x; } "),
+
+                    // Same with nameof
+                    ("2301", Success | Shadows, "public System.Action F = () => { void local(string x = nameof(p1)){} local(); };"),
+                    ("2302", Success | Shadows, "public System.Action P {get;} = () => { void local(string x = nameof(p1)){} local(); };"),
+                    ("2303", Success | Shadows, "public event System.Action E = () => { void local(string x = nameof(p1)){} local(); };"),
+                    ("2304", NotUsedWarning | Shadows, "public static System.Action F = () => { void local(string x = nameof(p1)){} local(); };"),
+                    ("2306", NotUsedWarning | Shadows, "public static System.Action P {get;} = () => { void local(string x = nameof(p1)){} local(); };"),
+                    ("2307", NotUsedWarning | Shadows, "public static event System.Action E = () => { void local(string x = nameof(p1)){} local(); };"),
+                    ("2308", NotUsedWarning, "static C1() { void local(string x = nameof(p1)){} local(); }"),
+                    ("2309", NotUsedWarning, "static void M() { void local(string x = nameof(p1)){} local(); }"),
+                    ("2311", NotUsedWarning, "static int P { get {  void local(string x = nameof(p1)){} local(); return 0; } }"),
+                    ("2312", NotUsedWarning, "static int P { set { void local(string x = nameof(p1)){} local(); } }"),
+                    ("2313", NotUsedWarning, "static int P { set {} get {  void local(string x = nameof(p1)){} local(); return 0; } }"),
+                    ("2314", NotUsedWarning, "static int P { get => 0; set { void local(string x = nameof(p1)){} local(); } }"),
+                    ("2315", NotUsedWarning, "static event System.Action E { add { void local(string x = nameof(p1)){} local(); } remove {} }"),
+                    ("2316", NotUsedWarning, "static event System.Action E { add {} remove { void local(string x = nameof(p1)){} local(); } }"),
+                    ("2317", NotUsedWarning, "void M() { void local(string x = nameof(p1)){} local(); }"),
+                    ("2318", NotUsedWarning, "int P { get {  void local(string x = nameof(p1)){} local(); return 0; } }"),
+                    ("2319", NotUsedWarning, "int P { set { void local(string x = nameof(p1)){} local(); } }"),
+                    ("2320", NotUsedWarning, "int P { set {} get {  void local(string x = nameof(p1)){} local(); return 0; } }"),
+                    ("2321", NotUsedWarning, "int P { get => 0; set { void local(string x = nameof(p1)){} local(); } }"),
+                    ("2322", NotUsedWarning, "event System.Action E { add { void local(string x = nameof(p1)){} local(); } remove {} }"),
+                    ("2323", NotUsedWarning, "event System.Action E { add {} remove { void local(string x = nameof(p1)){} local(); } }"),
+                    ("2324", NotUsedWarning, "int this[int x] { get { void local(string x = nameof(p1)){} local(); return 0; } }"),
+                    ("2325", NotUsedWarning, "int this[int x] { set { void local(string x = nameof(p1)){} local(); } }"),
+                    ("2326", NotUsedWarning, "int this[int x] { set {} get { void local(string x = nameof(p1)){} local(); return 0; } }"),
+                    ("2327", NotUsedWarning, "int this[int x] { get => 0; set { void local(string x = nameof(p1)){} local(); } }"),
+                    ("2328", NotUsedWarning, "~C1() { void local(string x = nameof(p1)){} local(); }"),
+                    ("2329", NotUsedWarning, "public C1() : this(() => { void local(string x = nameof(p1)){} local(); }) {} C1(System.Action x) : this(0) {}"),
+                    ("2330", NotUsedWarning, "public C1() : this(0) { void local(string x = nameof(p1)){} local(); }"),
+                    ("2335", NotUsedWarning, "class Nested() : NestedBase(() => { void local(string x = nameof(p1)){} local(); }) {} class NestedBase(System.Action x) { object F = x; } "),
+                };
+
+            foreach (var keyword in new[] { "class", "struct" })
+            {
+                foreach (var isPartial in new[] { false, true })
+                {
+                    foreach (var isRecord in new[] { false, true })
+                    {
+                        foreach (var shadow in new[] { false, true })
+                        {
+                            foreach (var d in data)
+                            {
+                                yield return new object[] { keyword, shadow, isPartial, isRecord, d.tag, d.flags, d.nestedSource };
+                            }
+                        }
+
+                        // Scenarios with instance constructors that have different expectations between shadow and regular scenario
+                        yield return new object[] { keyword, /*shadow:*/ false, isPartial, isRecord, "10001", Captured | BadReference, "public C1() : this(0) { p1 = 0; }" };
+                        yield return new object[] { keyword, /*shadow:*/ true, isPartial, isRecord, "10002", Captured, "public C1() : this(0) { p1 = 0; }" };
+                        yield return new object[] { keyword, /*shadow:*/ false, isPartial, isRecord, "10003", Captured | BadReference, "public C1() : this(0) => p1 = 0;" };
+                        yield return new object[] { keyword, /*shadow:*/ true, isPartial, isRecord, "10004", Captured, "public C1() : this(0) => p1 = 0;" };
+
+                        yield return new object[] { keyword, /*shadow:*/ false, isPartial, isRecord, "10003", Captured | BadReference | InNestedMethod, "public C1() : this(0) { local(); int local() { return p1; } }" };
+                        yield return new object[] { keyword, /*shadow:*/ true, isPartial, isRecord, "10004", Captured | InNestedMethod, "public C1() : this(0) { local(); int local() { return p1; } }" };
+
+                        yield return new object[] { keyword, /*shadow:*/ false, isPartial, isRecord, "10005", Captured | BadReference | InNestedMethod, "public C1() : this(0) { local1(); void local1() { local2(); int local2() { return p1; } } }" };
+                        yield return new object[] { keyword, /*shadow:*/ true, isPartial, isRecord, "10006", Captured | InNestedMethod, "public C1() : this(0) { local1(); void local1() { local2(); int local2() { return p1; } } }" };
+
+                        // PROTOTYPE(PrimaryConstructors): should pass once we will be able to detect capturing in lambdas.
+                        //("1301", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => p1); void M(System.Func<int> x){}"),
+                        //("1302", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => (System.Func<int>)(() => p1)); void M(System.Func<System.Func<int>> x){}"),
+                        //("1303", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => { return local(); int local() => p1; }); void M(System.Func<int> x){}"),
+                    }
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterScope_MemberData))]
+        public void ParameterScope(string keyword, bool shadow, bool isPartial, bool isRecord, string tag, TestFlags flags, string nestedSource)
+        {
+            _ = tag;
+
+            string recordKeyword = "";
+
+            if (isRecord)
+            {
+                if (!shadow)
+                {
+                    // Records always shadow
+                    return;
+                }
+
+                recordKeyword = "record ";
+            }
+
+            string source;
+
+            if (isPartial)
+            {
+                source = @"
+partial " + recordKeyword + keyword + @" C1 (int
+#line 1000
+p1
+);
+
+partial " + recordKeyword + keyword + @" C1  
+{
+";
+            }
+            else
+            {
+                source = @"
+" + recordKeyword + keyword + @" C1 (int
+#line 1000
+p1
+)
+{
+";
+            }
+
+            source += nestedSource.Replace("p1", @"
+#line 2000
+p1
+");
+            if (shadow && !isRecord)
+            {
+                source += @"
+int p1 { get; set; }
+";
+            }
+
+            source += @"
+}
+
+class Attr1 : System.Attribute
+{
+    public Attr1(int x){} 
+    public Attr1(string x){} 
+}
+";
+
+            AssertParameterScope(keyword, shadow, isRecord, flags, source);
+        }
+
+        private static void AssertParameterScope(string keyword, bool shadow, bool isRecord, TestFlags flags, string source)
+        {
+            bool isCaptured = !shadow && (flags & TestFlags.Captured) != 0;
+
+            if (isCaptured)
+            {
+                Assert.Equal((TestFlags)0, flags & TestFlags.NotUsedWarning);
+            }
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var p1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "p1").Single();
+
+            var symbolInfo = model.GetSymbolInfo(p1);
+            var symbol = symbolInfo.Symbol;
+
+            if ((flags & TestFlags.NotInScope) != 0)
+            {
+                Assert.Null(symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Empty(symbolInfo.CandidateSymbols);
+
+                Assert.Empty(model.LookupSymbols(p1.SpanStart, name: "p1"));
+                Assert.DoesNotContain("p1", model.LookupNames(p1.SpanStart));
+            }
+            else
+            {
+                if (shadow && (flags & TestFlags.Shadows) == 0)
+                {
+                    if (symbol is null)
+                    {
+                        if (!isRecord || keyword == "struct" || symbolInfo.CandidateReason != CandidateReason.NotAVariable)
+                        {
+                            Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason);
+                        }
+
+                        symbol = symbolInfo.CandidateSymbols.Single();
+                    }
+
+                    Assert.Equal(SymbolKind.Property, symbol.Kind);
+                    Assert.Equal((!isRecord || keyword == "struct") ? "System.Int32 C1.p1 { get; set; }" : "System.Int32 C1.p1 { get; init; }", symbol.ToTestDisplayString());
+                    Assert.Equal("C1", symbol.ContainingSymbol.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+                    Assert.Equal("System.Int32 p1", symbol.ToTestDisplayString());
+                    Assert.Equal("C1..ctor(System.Int32 p1)", symbol.ContainingSymbol.ToTestDisplayString());
+                }
+
+                Assert.Same(symbol, model.LookupSymbols(p1.SpanStart, name: "p1").Single());
+                Assert.Contains("p1", model.LookupNames(p1.SpanStart));
+            }
+
+            var capturedParameters = comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters();
+
+            if (isCaptured)
+            {
+                Assert.False(isRecord);
+                Assert.Same(symbol.GetSymbol(), capturedParameters.Single().Key);
+            }
+            else
+            {
+                Assert.Empty(capturedParameters);
+            }
+
+            var diagnosticsToCheck = (IEnumerable<Diagnostic>)comp.GetEmitDiagnostics();
+
+            var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+
+            if (!shadow || (flags & TestFlags.Shadows) != 0)
+            {
+                if (!isRecord && (flags & TestFlags.NotUsedWarning) != 0)
+                {
+                    builder.Add(
+                        // (1000,1): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                        // p1
+                        Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
+                        );
+                }
+
+                if ((flags & TestFlags.BadReference) != 0)
+                {
+                    builder.Add(
+                        // (2000,1): error CS9500: Cannot use primary constructor parameter 'int p1' in this context.
+                        // p1
+                        Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p1").WithArguments("int p1").WithLocation(2000, 1)
+                        );
+                }
+
+                if ((flags & TestFlags.BadAttributeValue) != 0)
+                {
+                    builder.Add(
+                        // (2000,1): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                        // p1
+                        Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p1").WithLocation(2000, 1)
+                        );
+                }
+
+                if ((flags & TestFlags.BadConstant) != 0)
+                {
+                    builder.Add(
+                        // (2000,1): error CS0133: The expression being assigned to 'C1.F' must be constant
+                        // p1
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, "p1").WithArguments("C1.F").WithLocation(2000, 1)
+                        );
+                }
+
+                if ((flags & TestFlags.BadDefaultValue) != 0)
+                {
+                    builder.Add(
+                        // (2000,1): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                        // p1
+                        Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p1").WithArguments("x").WithLocation(2000, 1)
+                        );
+                }
+            }
+            else
+            {
+                if ((flags & TestFlags.BadReference) != 0 &&
+                    diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_ObjectRequired).Any())
+                {
+                    builder.Add(
+                        // (2000,1): error CS0120: An object reference is required for the non-static field, method, or property 'C1.p1'
+                        // p1
+                        Diagnostic(ErrorCode.ERR_ObjectRequired, "p1").WithArguments("C1.p1").WithLocation(2000, 1)
+                        );
+                }
+
+                if ((flags & TestFlags.BadDefaultValue) != 0 &&
+                    diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_DefaultValueMustBeConstant).Any())
+                {
+                    builder.Add(
+                        // (2000,1): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                        // p1
+                        Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p1").WithArguments("x").WithLocation(2000, 1)
+                        );
+                }
+
+                // This logic is a work around https://github.com/dotnet/roslyn/issues/66049
+                if ((flags & (TestFlags.BadDefaultValue)) != 0 &&
+                    (flags & (TestFlags.InNestedMethod)) == 0 && keyword == "struct" &&
+                         diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_ThisStructNotInAnonMeth).Any())
+                {
+                    builder.Add(
+                        // (2000,1): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                        // p1
+                        Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(2000, 1)
+                        );
+                }
+
+                if ((flags & (TestFlags.BadReference | TestFlags.BadDefaultValue | TestFlags.BadAttributeValue)) != 0)
+                {
+                    Assert.NotEmpty(builder);
+                }
+
+                if ((flags & (TestFlags.InNestedMethod)) != 0 && keyword == "struct" &&
+                         diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_ThisStructNotInAnonMeth).Any())
+                {
+                    builder.Add(
+                        // (2000,1): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                        // p1
+                        Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(2000, 1)
+                        );
+                }
+
+                if (!isRecord && ((flags & TestFlags.NotUsedWarning) != 0 || (flags & TestFlags.Captured) != 0))
+                {
+                    builder.Add(
+                        // (1000,1): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                        // p1
+                        Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
+                        );
+                }
+
+                if ((flags & TestFlags.BadConstant) != 0)
+                {
+                    builder.Add(
+                        // (2000,1): error CS0133: The expression being assigned to 'C1.F' must be constant
+                        // p1
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, "p1").WithArguments("C1.F").WithLocation(2000, 1)
+                        );
+                }
+            }
+
+            if ((flags & TestFlags.NotInScope) != 0)
+            {
+                builder.Add(
+                    // (2000,1): error CS0103: The name 'p1' does not exist in the current context
+                    // p1
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(2000, 1)
+                    );
+            }
+
+            if (isRecord && keyword != "struct" &&
+                diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_PredefinedTypeNotFound).Any())
+            {
+                builder.Add(
+                    // (1000,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    // p1
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "p1").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(1000, 1)
+                    );
+            }
+
+            if (symbolInfo.CandidateReason == CandidateReason.NotAVariable &&
+                diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_AssignmentInitOnly).Any())
+            {
+                builder.Add(
+                    // (2000,1): error CS8852: Init-only property or indexer 'C1.p1' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                    // p1
+                    Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "p1").WithArguments("C1.p1").WithLocation(2000, 1)
+                    );
+            }
+
+            if ((flags & TestFlags.TwoBodies) != 0)
+            {
+                Assert.Equal(1, diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_BlockBodyAndExpressionBody).Count());
+
+                diagnosticsToCheck = diagnosticsToCheck.Where(d => d.Code is not (int)ErrorCode.ERR_BlockBodyAndExpressionBody);
+            }
+
+            if ((flags & TestFlags.AttributesNotAllowed) != 0)
+            {
+                Assert.Equal(1, diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_AttributesNotAllowed).Count());
+
+                diagnosticsToCheck = diagnosticsToCheck.Where(d => d.Code is not (int)ErrorCode.ERR_AttributesNotAllowed);
+            }
+
+            diagnosticsToCheck.Where(d => d.Code is not ((int)ErrorCode.ERR_OnlyClassesCanContainDestructors)).
+                 Verify(builder.ToArrayAndFree());
+        }
+
+        public static IEnumerable<object[]> ParameterScope_AttributesOnType_MemberData()
+        {
+            var data = new (string tag, TestFlags flags, string attribute)[]
+                {
+                    ("0001", BadReference | BadAttributeValue | NotUsedWarning, "[Attr1(p1)]"),
+                    ("0002", NotUsedWarning, "[Attr1(nameof(p1))]"),
+                };
+
+            foreach (var keyword in new[] { "class", "struct" })
+            {
+                foreach (var isPartial in new[] { false, true })
+                {
+                    foreach (var isRecord in new[] { false, true })
+                    {
+                        foreach (var shadow in new[] { false, true })
+                        {
+                            foreach (var d in data)
+                            {
+                                yield return new object[] { keyword, shadow, isPartial, isRecord, d.tag, d.flags, d.attribute };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterScope_AttributesOnType_MemberData))]
+        public void ParameterScope_AttributesOnType(string keyword, bool shadow, bool isPartial, bool isRecord, string tag, TestFlags flags, string attribute)
+        {
+            _ = tag;
+
+            string recordKeyword = "";
+
+            if (isRecord)
+            {
+                if (!shadow)
+                {
+                    // Records always shadow
+                    return;
+                }
+
+                recordKeyword = "record ";
+            }
+
+            string source;
+
+            if (isPartial)
+            {
+                source = @"
+partial " + recordKeyword + keyword + @" C1 (int
+#line 1000
+p1
+);
+";
+            }
+            else
+            {
+                source = @"";
+            }
+
+            source += attribute.Replace("p1", @"
+#line 2000
+p1
+");
+
+            if (isPartial)
+            {
+                source += @"
+partial " + recordKeyword + keyword + @" C1  
+{
+";
+            }
+            else
+            {
+                source += @"
+" + recordKeyword + keyword + @" C1 (int
+#line 1000
+p1
+)
+{
+";
+            }
+
+            if (shadow && !isRecord)
+            {
+                source += @"
+int p1 { get; set; }
+";
+            }
+
+            source += @"
+}
+
+class Attr1 : System.Attribute
+{
+    public Attr1(int x){} 
+    public Attr1(string x){} 
+}
+";
+
+            AssertParameterScope(keyword, shadow, isRecord, flags, source);
+        }
+
+        public static IEnumerable<object[]> ParameterScope_AttributesOnParameters_MemberData()
+        {
+            var data = new (string tag, TestFlags flags, string attribute)[]
+                {
+                    ("0001", NotInScope | NotUsedWarning, "[Attr1(p1)]"),
+                    ("0002", NotUsedWarning | Shadows, "[Attr1(nameof(p1))]"),
+                };
+
+            foreach (var keyword in new[] { "class", "struct" })
+            {
+                foreach (var isRecord in new[] { false, true })
+                {
+                    foreach (var shadow in new[] { false, true })
+                    {
+                        foreach (var d in data)
+                        {
+                            yield return new object[] { keyword, shadow, isRecord, d.tag, d.flags, d.attribute };
+                        }
+                    }
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterScope_AttributesOnParameters_MemberData))]
+        public void ParameterScope_AttributesOnParameters(string keyword, bool shadow, bool isRecord, string tag, TestFlags flags, string attribute)
+        {
+            _ = tag;
+
+            string recordKeyword = "";
+
+            if (isRecord)
+            {
+                if (!shadow)
+                {
+                    // Records always shadow
+                    return;
+                }
+
+                recordKeyword = "record ";
+            }
+
+            string source = @"
+" + recordKeyword + keyword + @" C1 (
+";
+
+            source += attribute.Replace("p1", @"
+#line 2000
+p1
+");
+
+            source += @"
+int
+#line 1000
+p1
+)
+{
+";
+
+            if (shadow && !isRecord)
+            {
+                source += @"
+int p1 { get; set; }
+";
+            }
+
+            source += @"
+}
+
+class Attr1 : System.Attribute
+{
+    public Attr1(int x){} 
+    public Attr1(string x){} 
+}
+";
+
+            AssertParameterScope(keyword, shadow, isRecord, flags, source);
+        }
+
+        public static IEnumerable<object[]> ParameterScope_DefaultOnParameter_MemberData()
+        {
+            var data = new (string tag, TestFlags flags, string attribute)[]
+                {
+                    ("0001", NotInScope | NotUsedWarning, "p1"),
+                    ("0002", NotInScope | NotUsedWarning, "nameof(p1)"),
+                };
+
+            foreach (var keyword in new[] { "class", "struct" })
+            {
+                foreach (var isRecord in new[] { false, true })
+                {
+                    foreach (var shadow in new[] { false, true })
+                    {
+                        foreach (var d in data)
+                        {
+                            yield return new object[] { keyword, shadow, isRecord, d.tag, d.flags, d.attribute };
+                        }
+                    }
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterScope_DefaultOnParameter_MemberData))]
+        public void ParameterScope_DefaultOnParameter(string keyword, bool shadow, bool isRecord, string tag, TestFlags flags, string attribute)
+        {
+            _ = tag;
+
+            string recordKeyword = "";
+
+            if (isRecord)
+            {
+                if (!shadow)
+                {
+                    // Records always shadow
+                    return;
+                }
+
+                recordKeyword = "record ";
+            }
+
+            string source = @"
+" + recordKeyword + keyword + @" C1 (
+int
+#line 1000
+p1
+=
+";
+
+            source += attribute.Replace("p1", @"
+#line 2000
+p1
+");
+
+            source += @"
+)
+{
+";
+
+            if (shadow && !isRecord)
+            {
+                source += @"
+int p1 { get; set; }
+";
+            }
+
+            source += @"
+}
+";
+
+            AssertParameterScope(keyword, shadow, isRecord, flags, source);
+        }
+
+        [Fact]
+        public void ParameterCapturing_001()
+        {
+            // PROTOTYPE(PrimaryConstructors): Closure initialization in primary constructor is not quite correct.
+            //
+            // Uncomment the `System.Console.Write(z() - 1);` line to observe a crash at runtime.
+            // `this` is captured after the base constructor is executed.
+            // 
+            // Starting:    Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests
+            //   Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.PrimaryConstructorTests.ParameterCapturing_001 [FAIL]
+            //     System.NullReferenceException : Object reference not set to an instance of an object.
+            //     Stack Trace:
+            //       (15,0): at C1.<>c__DisplayClass1_0.<.ctor>b__1()
+            //       (6,0): at Base..ctor(Int32 x, Int32 y, Func`1 z)
+            //       (15,0): at C1..ctor(Int32 p1, Int32 p2, Int32 p3)
+            //       (35,0): at Program.Main()
+            //          at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+            //          at System.Reflection.MethodInvoker.Invoke(Object obj, IntPtr* args, BindingFlags invokeAttr)
+
+            var source = @"
+class Base
+{
+    public Base(int x, int y, System.Func<int> z)
+    {
+        //System.Console.Write(z() - 1);
+    }
+}
+
+partial class C1
+{
+    public int F1 = p2 + 1;
+}
+
+partial class C1 (int p1, int p2, int p3) : Base(p1, p2, () => p1)
+{
+    public int F2 = p2 + 2;
+    public int P1 => p1;
+}
+
+partial class C1
+{
+    public int F3 = p2 + 3;
+    public int P2 => ++p1;
+    public int M1() { return p1++; }
+    event System.Action E1 { add { p1++; } remove { void local() { p1--; } local(); }}
+    event System.Action E2 = () => p3++;
+    public System.Action M2() => () => p1++;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123,-1,-2);
+        System.Console.Write(c1.M1());
+        System.Console.Write(c1.P1);
+        System.Console.Write(c1.P2);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var p1s = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "p1").ToArray();
+            Assert.Equal(8, p1s.Length);
+
+            foreach (var p1 in p1s)
+            {
+                var symbol = model.GetSymbolInfo(p1).Symbol;
+                Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+                Assert.Equal("C1..ctor(System.Int32 p1, System.Int32 p2, System.Int32 p3)", symbol.ContainingSymbol.ToTestDisplayString());
+                Assert.Contains("p1", model.LookupNames(p1.SpanStart));
+                Assert.Contains(symbol, model.LookupSymbols(p1.SpanStart, name: "p1"));
+            }
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123124125").VerifyDiagnostics();
+
+            verifier.VerifyTypeIL("C1", @"
+.class private auto ansi beforefieldinit C1
+	extends Base
+{
+	// Nested Types
+	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public int32 p3
+		.field public class C1 '<>4__this'
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x2067
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c__DisplayClass1_0'::.ctor
+		.method assembly hidebysig 
+			instance void '<.ctor>b__0' () cil managed 
+		{
+			// Method begins at RVA 0x21f8
+			// Code size 17 (0x11)
+			.maxstack 3
+			.locals init (
+				[0] int32
+			)
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 C1/'<>c__DisplayClass1_0'::p3
+			IL_0006: stloc.0
+			IL_0007: ldarg.0
+			IL_0008: ldloc.0
+			IL_0009: ldc.i4.1
+			IL_000a: add
+			IL_000b: stfld int32 C1/'<>c__DisplayClass1_0'::p3
+			IL_0010: ret
+		} // end of method '<>c__DisplayClass1_0'::'<.ctor>b__0'
+		.method assembly hidebysig 
+			instance int32 '<.ctor>b__1' () cil managed 
+		{
+			// Method begins at RVA 0x2215
+			// Code size 12 (0xc)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: ldfld class C1 C1/'<>c__DisplayClass1_0'::'<>4__this'
+			IL_0006: ldfld int32 C1::'<p1>PC__BackingField'
+			IL_000b: ret
+		} // end of method '<>c__DisplayClass1_0'::'<.ctor>b__1'
+	} // end of class <>c__DisplayClass1_0
+	// Fields
+	.field public int32 F1
+	.field private int32 '<p1>PC__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.field public int32 F2
+	.field public int32 F3
+	.field private class [mscorlib]System.Action E2
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			int32 p1,
+			int32 p2,
+			int32 p3
+		) cil managed 
+	{
+		// Method begins at RVA 0x2070
+		// Code size 98 (0x62)
+		.maxstack 5
+		.locals init (
+			[0] class C1/'<>c__DisplayClass1_0'
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: newobj instance void C1/'<>c__DisplayClass1_0'::.ctor()
+		IL_000c: stloc.0
+		IL_000d: ldloc.0
+		IL_000e: ldarg.3
+		IL_000f: stfld int32 C1/'<>c__DisplayClass1_0'::p3
+		IL_0014: ldarg.0
+		IL_0015: ldarg.2
+		IL_0016: ldc.i4.1
+		IL_0017: add
+		IL_0018: stfld int32 C1::F1
+		IL_001d: ldarg.0
+		IL_001e: ldarg.2
+		IL_001f: ldc.i4.2
+		IL_0020: add
+		IL_0021: stfld int32 C1::F2
+		IL_0026: ldarg.0
+		IL_0027: ldarg.2
+		IL_0028: ldc.i4.3
+		IL_0029: add
+		IL_002a: stfld int32 C1::F3
+		IL_002f: ldarg.0
+		IL_0030: ldloc.0
+		IL_0031: ldftn instance void C1/'<>c__DisplayClass1_0'::'<.ctor>b__0'()
+		IL_0037: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+		IL_003c: stfld class [mscorlib]System.Action C1::E2
+		IL_0041: ldarg.0
+		IL_0042: ldarg.0
+		IL_0043: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0048: ldarg.2
+		IL_0049: ldloc.0
+		IL_004a: ldftn instance int32 C1/'<>c__DisplayClass1_0'::'<.ctor>b__1'()
+		IL_0050: newobj instance void class [mscorlib]System.Func`1<int32>::.ctor(object, native int)
+		IL_0055: call instance void Base::.ctor(int32, int32, class [mscorlib]System.Func`1<int32>)
+		IL_005a: ldloc.0
+		IL_005b: ldarg.0
+		IL_005c: stfld class C1 C1/'<>c__DisplayClass1_0'::'<>4__this'
+		IL_0061: ret
+	} // end of method C1::.ctor
+	.method public hidebysig specialname 
+		instance int32 get_P1 () cil managed 
+	{
+		// Method begins at RVA 0x20de
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0006: ret
+	} // end of method C1::get_P1
+	.method public hidebysig specialname 
+		instance int32 get_P2 () cil managed 
+	{
+		// Method begins at RVA 0x20e8
+		// Code size 18 (0x12)
+		.maxstack 3
+		.locals init (
+			[0] int32
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: add
+		IL_0009: stloc.0
+		IL_000a: ldloc.0
+		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0010: ldloc.0
+		IL_0011: ret
+	} // end of method C1::get_P2
+	.method public hidebysig 
+		instance int32 M1 () cil managed 
+	{
+		// Method begins at RVA 0x2108
+		// Code size 18 (0x12)
+		.maxstack 3
+		.locals init (
+			[0] int32
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: stloc.0
+		IL_0008: ldloc.0
+		IL_0009: ldc.i4.1
+		IL_000a: add
+		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0010: ldloc.0
+		IL_0011: ret
+	} // end of method C1::M1
+	.method private hidebysig specialname 
+		instance void add_E1 (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2126
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: add
+		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000e: ret
+	} // end of method C1::add_E1
+	.method private hidebysig specialname 
+		instance void remove_E1 (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2136
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void C1::'<remove_E1>g__local|11_0'()
+		IL_0006: ret
+	} // end of method C1::remove_E1
+	.method private hidebysig specialname 
+		instance void add_E2 (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2140
+		// Code size 41 (0x29)
+		.maxstack 3
+		.locals init (
+			[0] class [mscorlib]System.Action,
+			[1] class [mscorlib]System.Action,
+			[2] class [mscorlib]System.Action
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Action C1::E2
+		IL_0006: stloc.0
+		// loop start (head: IL_0007)
+			IL_0007: ldloc.0
+			IL_0008: stloc.1
+			IL_0009: ldloc.1
+			IL_000a: ldarg.1
+			IL_000b: call class [mscorlib]System.Delegate [mscorlib]System.Delegate::Combine(class [mscorlib]System.Delegate, class [mscorlib]System.Delegate)
+			IL_0010: castclass [mscorlib]System.Action
+			IL_0015: stloc.2
+			IL_0016: ldarg.0
+			IL_0017: ldflda class [mscorlib]System.Action C1::E2
+			IL_001c: ldloc.2
+			IL_001d: ldloc.1
+			IL_001e: call !!0 [mscorlib]System.Threading.Interlocked::CompareExchange<class [mscorlib]System.Action>(!!0&, !!0, !!0)
+			IL_0023: stloc.0
+			IL_0024: ldloc.0
+			IL_0025: ldloc.1
+			IL_0026: bne.un.s IL_0007
+		// end loop
+		IL_0028: ret
+	} // end of method C1::add_E2
+	.method private hidebysig specialname 
+		instance void remove_E2 (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2178
+		// Code size 41 (0x29)
+		.maxstack 3
+		.locals init (
+			[0] class [mscorlib]System.Action,
+			[1] class [mscorlib]System.Action,
+			[2] class [mscorlib]System.Action
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Action C1::E2
+		IL_0006: stloc.0
+		// loop start (head: IL_0007)
+			IL_0007: ldloc.0
+			IL_0008: stloc.1
+			IL_0009: ldloc.1
+			IL_000a: ldarg.1
+			IL_000b: call class [mscorlib]System.Delegate [mscorlib]System.Delegate::Remove(class [mscorlib]System.Delegate, class [mscorlib]System.Delegate)
+			IL_0010: castclass [mscorlib]System.Action
+			IL_0015: stloc.2
+			IL_0016: ldarg.0
+			IL_0017: ldflda class [mscorlib]System.Action C1::E2
+			IL_001c: ldloc.2
+			IL_001d: ldloc.1
+			IL_001e: call !!0 [mscorlib]System.Threading.Interlocked::CompareExchange<class [mscorlib]System.Action>(!!0&, !!0, !!0)
+			IL_0023: stloc.0
+			IL_0024: ldloc.0
+			IL_0025: ldloc.1
+			IL_0026: bne.un.s IL_0007
+		// end loop
+		IL_0028: ret
+	} // end of method C1::remove_E2
+	.method public hidebysig 
+		instance class [mscorlib]System.Action M2 () cil managed 
+	{
+		// Method begins at RVA 0x21ad
+		// Code size 13 (0xd)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldftn instance void C1::'<M2>b__15_0'()
+		IL_0007: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+		IL_000c: ret
+	} // end of method C1::M2
+	.method private hidebysig 
+		instance void '<remove_E1>g__local|11_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x21bb
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: sub
+		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000e: ret
+	} // end of method C1::'<remove_E1>g__local|11_0'
+	.method private hidebysig 
+		instance void '<M2>b__15_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2126
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: add
+		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000e: ret
+	} // end of method C1::'<M2>b__15_0'
+	// Events
+	.event [mscorlib]System.Action E1
+	{
+		.addon instance void C1::add_E1(class [mscorlib]System.Action)
+		.removeon instance void C1::remove_E1(class [mscorlib]System.Action)
+	}
+	.event [mscorlib]System.Action E2
+	{
+		.addon instance void C1::add_E2(class [mscorlib]System.Action)
+		.removeon instance void C1::remove_E2(class [mscorlib]System.Action)
+	}
+	// Properties
+	.property instance int32 P1()
+	{
+		.get instance int32 C1::get_P1()
+	}
+	.property instance int32 P2()
+	{
+		.get instance int32 C1::get_P2()
+	}
+} // end of class C1
+".Replace("[mscorlib]", ExecutionConditionUtil.IsDesktop ? "[mscorlib]" : "[netstandard]"));
+        }
+
+        [Fact]
+        public void ParameterCapturing_002()
+        {
+            var source = @"
+#pragma warning disable CS0282 // There is no defined ordering between fields in multiple declarations of partial struct
+
+partial struct C1
+{
+    public int F1 = p2 + 1;
+}
+
+partial struct C1 (int p1, int p2)
+{
+    public int F2 = p2 + 2;
+    public int P1 => p1;
+}
+
+partial struct C1
+{
+    public int F3 = p2 + 3;
+    public int P2 => ++p1;
+    public int M1() { return p1++; }
+    event System.Action E1 { add { p1++; } remove {}}
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123,-1);
+        System.Console.Write(c1.M1());
+        System.Console.Write(c1.P1);
+        System.Console.Write(c1.P2);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var p1s = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "p1").ToArray();
+            Assert.Equal(4, p1s.Length);
+
+            foreach (var p1 in p1s)
+            {
+                var symbol = model.GetSymbolInfo(p1).Symbol;
+                Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+                Assert.Equal("C1..ctor(System.Int32 p1, System.Int32 p2)", symbol.ContainingSymbol.ToTestDisplayString());
+                Assert.Contains("p1", model.LookupNames(p1.SpanStart));
+                Assert.Contains(symbol, model.LookupSymbols(p1.SpanStart, name: "p1"));
+            }
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123124125").VerifyDiagnostics();
+
+            verifier.VerifyTypeIL("C1", @"
+    .class private sequential ansi sealed beforefieldinit C1
+	extends [netstandard]System.ValueType
+{
+	// Fields
+	.field public int32 F1
+	.field private int32 '<p1>PC__BackingField'
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.field public int32 F2
+	.field public int32 F3
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			int32 p1,
+			int32 p2
+		) cil managed 
+	{
+		// Method begins at RVA 0x2067
+		// Code size 35 (0x23)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldarg.0
+		IL_0008: ldarg.2
+		IL_0009: ldc.i4.1
+		IL_000a: add
+		IL_000b: stfld int32 C1::F1
+		IL_0010: ldarg.0
+		IL_0011: ldarg.2
+		IL_0012: ldc.i4.2
+		IL_0013: add
+		IL_0014: stfld int32 C1::F2
+		IL_0019: ldarg.0
+		IL_001a: ldarg.2
+		IL_001b: ldc.i4.3
+		IL_001c: add
+		IL_001d: stfld int32 C1::F3
+		IL_0022: ret
+	} // end of method C1::.ctor
+	.method public hidebysig specialname 
+		instance int32 get_P1 () cil managed 
+	{
+		// Method begins at RVA 0x208b
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0006: ret
+	} // end of method C1::get_P1
+	.method public hidebysig specialname 
+		instance int32 get_P2 () cil managed 
+	{
+		// Method begins at RVA 0x2094
+		// Code size 18 (0x12)
+		.maxstack 3
+		.locals init (
+			[0] int32
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: add
+		IL_0009: stloc.0
+		IL_000a: ldloc.0
+		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0010: ldloc.0
+		IL_0011: ret
+	} // end of method C1::get_P2
+	.method public hidebysig 
+		instance int32 M1 () cil managed 
+	{
+		// Method begins at RVA 0x20b4
+		// Code size 18 (0x12)
+		.maxstack 3
+		.locals init (
+			[0] int32
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: stloc.0
+		IL_0008: ldloc.0
+		IL_0009: ldc.i4.1
+		IL_000a: add
+		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0010: ldloc.0
+		IL_0011: ret
+	} // end of method C1::M1
+	.method private hidebysig specialname 
+		instance void add_E1 (
+			class [netstandard]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x20d2
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: add
+		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000e: ret
+	} // end of method C1::add_E1
+	.method private hidebysig specialname 
+		instance void remove_E1 (
+			class [netstandard]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x20e2
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method C1::remove_E1
+	// Events
+	.event [netstandard]System.Action E1
+	{
+		.addon instance void C1::add_E1(class [netstandard]System.Action)
+		.removeon instance void C1::remove_E1(class [netstandard]System.Action)
+	}
+	// Properties
+	.property instance int32 P1()
+	{
+		.get instance int32 C1::get_P1()
+	}
+	.property instance int32 P2()
+	{
+		.get instance int32 C1::get_P2()
+	}
+} // end of class C1
+".Replace("[netstandard]", ExecutionConditionUtil.IsDesktop ? "[mscorlib]" : "[netstandard]"));
+        }
+
+        [Fact]
+        public void ParameterCapturing_003_PartialMethod()
+        {
+            var source = @"
+partial class C1 (int p1)
+{
+    public partial int M1();
+}
+
+partial class C1
+{
+    public partial int M1() { return p1++; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123);
+        System.Console.Write(c1.M1());
+        System.Console.Write(c1.M1());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_004_MembersWithoutBody()
+        {
+            var source = @"
+#pragma warning disable CS0626 // Method, operator, or accessor 'C1.M1()' is marked external and has no attributes on it.
+#pragma warning disable CS0067 // The event 'C1.E1' is never used
+
+abstract class C1 (int p1)
+{
+    extern int M1();
+    public event System.Action E1;
+    public abstract void M2();
+    int P1 {get; set;}
+    int P2 => 0;
+    public abstract int P3 {get; set;}
+    public abstract event System.Action E2;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,24): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // abstract class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(5, 24)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_005_NotInterestingIdentifiers()
+        {
+            var source = @"
+#pragma warning disable CS0219 // The variable 'x' is assigned but its value is never used
+#pragma warning disable CS8321 // The local function 'local' is declared but never used
+
+class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
+{
+    void M1(C2 c2)
+    {
+        int x;
+        x = 0;
+        c2?.p2();
+        c2.p2();
+        _ = new C1(p1: 1);
+
+        if ((E)x is E.p2)
+        {
+            goto p1;
+        }
+
+        global::System.Console.WriteLine(new {p1 = 0}); 
+p1:
+        void local<T>() where T : C2 {}
+
+        switch ((E)x)
+        {
+            case E.p2: break;
+        }
+
+        _ = new C2() { p1 = 11 };
+    }
+}
+
+class C2
+{
+    public void p2() {}
+    public int p1;
+}
+
+enum E
+{
+    p2,
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // Warnings indicate that we do not consider any primary constructor parameters referenced and not capturing them
+            comp.VerifyEmitDiagnostics(
+                // (5,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(5, 15),
+                // (5,33): warning CS8907: Parameter 'p2' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p2").WithArguments("p2").WithLocation(5, 33),
+                // (5,48): warning CS8907: Parameter 'global' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "global").WithArguments("global").WithLocation(5, 48),
+                // (5,64): warning CS8907: Parameter 'C2' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "C2").WithArguments("C2").WithLocation(5, 64)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_006_Invoked()
+        {
+            var source = @"
+class C1 (System.Action p1)
+{
+    public void M1() => p1();
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(() => System.Console.Write(123));
+        c1.M1();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_007_IsExpression()
+        {
+            var source = @"
+class C1 (int p1, C2 p2)
+{
+    bool M1(int x)
+    {
+        return x is p1 || x is p2.F;
+    }
+}
+
+class C2
+{
+    public int F = 11;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // No unused warnings because we detected capturing
+            comp.VerifyEmitDiagnostics(
+                // (6,21): error CS0150: A constant value is expected
+                //         return x is p1 || x is p2.F;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "p1").WithLocation(6, 21),
+                // (6,32): error CS0150: A constant value is expected
+                //         return x is p1 || x is p2.F;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "p2.F").WithLocation(6, 32)
+                );
+        }
+
+        [Fact]
+        public void CycleDueToIndexerNameAttribute()
+        {
+            var source = @"
+class C1 (int p1)
+{
+    [System.Runtime.CompilerServices.IndexerNameAttribute(nameof(p1))]
+    int this[int x]
+    {
+        get => x;
+        set {}
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                );
+
+            Assert.Equal("p1", comp.GetTypeByMetadataName("C1").Indexers.Single().MetadataName);
+        }
+
+        [Fact]
+        public void IllegalCapturingInStruct_01()
+        {
+            var source = @"
+struct C1(int p1)
+{
+    public void M1() { local(); int local() { return p1; } }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(PrimaryConstructors): The message is somewhat confusing because `p1` isn't a member and it cannot be accessed from the struct copy.
+            comp.VerifyEmitDiagnostics(
+                // (4,54): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //     public void M1() { local(); int local() { return p1; } }
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(4, 54)
+                );
+        }
+
+        [Fact]
+        public void IllegalCapturingInStruct_02()
+        {
+            var source = @"
+struct C1(int p1)
+{
+    System.Func<int> x = () => p1;
+
+    public int M1() => p1;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(PrimaryConstructors): The message is somewhat confusing because `p1` isn't a member and it cannot be accessed from the struct copy.
+            comp.VerifyEmitDiagnostics(
+                // (4,32): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //     System.Func<int> x = () => p1;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(4, 32)
+                );
+        }
+
+        public static IEnumerable<object[]> IllegalCapturing_01_MemberData()
+        {
+            var data = new (string tag, TestFlags flags, string code)[]
+                {
+                    ("0001", BadReference, "(ref int p1) { void M1() { p1 = 1; } }"),
+                    ("0002", BadReference, "(ref int p1) { void M1() { local(); void local() { p1 = 1; } } }"),
+                    ("0003", BadReference, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }"),
+                    ("0004", BadReference, "(in int p1) { void M1() { p1.ToString(); } }"),
+                    ("0005", BadReference, "(in int p1) { void M1() { local(); void local() { p1.ToString(); } } }"),
+                    ("0006", BadReference, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.ToString(); } } } }"),
+                    ("0007", BadReference, "(out int p1) { int x = p1 = 0; void M1() { p1 = 1; } }"),
+                    ("0008", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { p1 = 1; } } }"),
+                    ("0009", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }"),
+                    ("0010", BadReference, "(S1 p1) { void M1() { p1.M(); } } ref struct S1 { public void M(){} }"),
+                    ("0011", BadReference, "(S1 p1) { void M1() { local(); void local() { p1.M(); } } } ref struct S1{ public void M(){} }"),
+                    ("0012", BadReference, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.M(); } } } } ref struct S1{ public void M(){} }"),
+
+                    ("0101", Success, "(ref int p1) { void M1() { nameof(p1).ToString(); } }"),
+                    ("0102", Success, "(ref int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
+                    ("0103", Success, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() {nameof(p1).ToString(); } } } }"),
+                    ("0104", Success, "(in int p1) { void M1() { nameof(p1).ToString(); } }"),
+                    ("0105", Success, "(in int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
+                    ("0106", Success, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }"),
+                    ("0107", Success, "(out int p1) { int x = p1 = 0; void M1() { nameof(p1).ToString(); } }"),
+                    ("0108", Success, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
+                    ("0109", Success, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }"),
+                    ("0110", Success, "(S1 p1) { void M1() { nameof(p1).ToString(); } } ref struct S1 { public void M(){} }"),
+                    ("0111", Success, "(S1 p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } } ref struct S1{ public void M(){} }"),
+                    ("0112", Success, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } } ref struct S1{ public void M(){} }"),
+                };
+
+            foreach (var keyword in new[] { "class", "struct", "ref struct" })
+            {
+                foreach (var d in data)
+                {
+                    yield return new object[] { keyword, d.tag, d.flags, d.code };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(IllegalCapturing_01_MemberData))]
+        public void IllegalCapturing_01(string keyword, string tag, TestFlags flags, string code)
+        {
+            _ = tag;
+
+            int i = code.LastIndexOf("p1");
+            var source = keyword + " C1" + code.Substring(0, i) + @"
+#line 2000
+p1
+" + code.Substring(i + 2);
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            if (flags == TestFlags.BadReference)
+            {
+                // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor scenario explicitly?
+                comp.VerifyEmitDiagnostics(
+                    // (2000,1): error CS1628: Cannot use ref, out, or in parameter 'p1' inside an anonymous method, lambda expression, query expression, or local function
+                    // p1
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p1").WithArguments("p1").WithLocation(2000, 1)
+                    );
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
     }
 }

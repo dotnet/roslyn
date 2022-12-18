@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Makes a second attempt if the results are not viable, in order to produce more detailed failure information (symbols and diagnostics).
         /// </remarks>
-        private Binder LookupSymbolsWithFallback(LookupResult result, string name, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
+        internal Binder LookupSymbolsWithFallback(LookupResult result, string name, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
         {
             Debug.Assert(options.AreValid());
 
@@ -1391,7 +1391,11 @@ symIsHidden:;
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
+            if ((options & LookupOptions.MustNotBeParameter) != 0 && unwrappedSymbol is ParameterSymbol)
+            {
+                return LookupResult.Empty();
+            }
+            else if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
             }

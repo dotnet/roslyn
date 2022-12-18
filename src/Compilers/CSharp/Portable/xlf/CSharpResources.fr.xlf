@@ -862,6 +862,11 @@
         <target state="translated">Création d'objet non valide</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
+        <source>Cannot use primary constructor parameter '{0}' in this context.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">Impossible de spécifier des modificateurs 'readonly' sur la propriété ou l'indexeur '{0}' et son accesseur. Supprimez l'un d'entre eux.</target>

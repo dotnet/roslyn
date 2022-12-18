@@ -2273,6 +2273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeDeclaration("class  C     (   int    I   ,    int    J   )   ;    ", "class C(int I, int J);");
             TestNormalizeDeclaration("struct  S     (   int    I   ,    int    J   )   ;    ", "struct S(int I, int J);");
+            TestNormalizeDeclaration("class  C     (   )   ;    ", "class C();");
+            TestNormalizeDeclaration("struct   S  (  )  ;    ", "struct S();");
         }
 
         [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]

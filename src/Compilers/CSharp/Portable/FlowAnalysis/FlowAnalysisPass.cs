@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!implicitlyInitializedFields.IsDefault)
                     {
                         Debug.Assert(!implicitlyInitializedFields.IsEmpty);
-                        Debug.Assert(!originalBodyNested);
+                        // The following assert is disabled due to https://github.com/dotnet/roslyn/issues/66046.
+                        // Debug.Assert(!originalBodyNested);
                         block = PrependImplicitInitializations(block, method, implicitlyInitializedFields, compilationState, diagnostics);
                     }
                     if (needsImplicitReturn)

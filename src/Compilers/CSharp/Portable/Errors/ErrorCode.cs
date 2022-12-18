@@ -2157,6 +2157,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitlyTypedDefaultParameter = 9098,
         WRN_OptionalParamValueMismatch = 9099,
         WRN_ParamsArrayInLambdaOnly = 9100,
+
+        ERR_InvalidPrimaryConstructorParameterReference = 9500, // PROTOTYPE(PrimaryConstructors): pack numbers
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

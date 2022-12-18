@@ -3673,7 +3673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
 
             bool hasPrimaryConstructor() =>
-                ContainingType.GetMembersUnordered().OfType<SynthesizedPrimaryConstructor>().Any();
+                ContainingType is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null };
 
             bool isInstanceConstructor(out MethodSymbol constructorSymbol)
             {

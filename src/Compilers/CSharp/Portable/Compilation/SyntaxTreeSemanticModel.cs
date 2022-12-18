@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node)
         {
             NamedTypeSymbol type = GetDeclaredType(node);
-            var symbol = type.GetMembersUnordered().OfType<SynthesizedPrimaryConstructor>().SingleOrDefault();
+            var symbol = (type as SourceMemberContainerTypeSymbol)?.PrimaryConstructor;
 
             if (symbol?.SyntaxRef.SyntaxTree != node.SyntaxTree || symbol.GetSyntax() != node)
             {

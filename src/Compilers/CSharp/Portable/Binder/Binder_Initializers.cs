@@ -161,10 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder binder = this;
 
-            if (!fieldSymbol.IsStatic && fieldSymbol.ContainingType.GetMembersUnordered().OfType<SynthesizedPrimaryConstructor>().SingleOrDefault() is SynthesizedPrimaryConstructor primaryCtor)
-            {
-                binder = new InMethodBinder(primaryCtor, binder);
-            }
+            binder = new WithPrimaryConstructorParametersBinder(fieldSymbol.ContainingType, binder);
 
             return new LocalScopeBinder(binder).WithAdditionalFlagsAndContainingMemberOrLambda(suppressBinderFlagsFieldInitializer ? BinderFlags.None : BinderFlags.FieldInitializer, fieldSymbol);
         }
