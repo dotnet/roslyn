@@ -790,7 +790,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         public override bool IsImportNode(SyntaxNode node)
             => node is UsingDirectiveSyntax;
 
-        [return: NotNullIfNotNull("name")]
+        [return: NotNullIfNotNull(nameof(name))]
         public override string? GetUnescapedName(string? name)
         {
             return name != null && name.Length > 1 && name[0] == '@'

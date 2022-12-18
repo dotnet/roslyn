@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal int MethodHashCode()
-            => Hash.Combine(TypeWithAnnotations.GetHashCode(), FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind).GetHashCode());
+            => Hash.Combine(TypeWithAnnotations.GetHashCode(), ((int)FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind)).GetHashCode());
 
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
                 anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
                 anonymousDelegates: MapAnonymousDelegates(baseline.AnonymousDelegates),
-                anonymousDelegatesWithFixedTypes: MapAnonymousDelegatesWithFixedTypes(baseline.AnonymousDelegatesWithFixedTypes),
+                anonymousDelegatesWithIndexedNames: MapAnonymousDelegatesWithIndexedNames(baseline.AnonymousDelegatesWithIndexedNames),
                 synthesizedMembers: mappedSynthesizedMembers,
                 deletedMembers: mappedDeletedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private IReadOnlyDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithFixedTypes(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
+        private IReadOnlyDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithIndexedNames(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
         {
             var result = new Dictionary<string, AnonymousTypeValue>();
 

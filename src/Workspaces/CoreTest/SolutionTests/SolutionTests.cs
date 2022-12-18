@@ -862,8 +862,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [InlineData("#if DEBUG", false, LanguageNames.CSharp)]
+        [InlineData(@"#region ""goo""", true, LanguageNames.CSharp)]
+        [InlineData(@"#nullable enable", true, LanguageNames.CSharp)]
+        [InlineData(@"#elif DEBUG", true, LanguageNames.CSharp)]
         [InlineData("// File", true, LanguageNames.CSharp)]
         [InlineData("#if DEBUG", false, LanguageNames.VisualBasic)]
+        [InlineData(@"#region ""goo""", true, LanguageNames.VisualBasic)]
+        [InlineData(@"#ElseIf DEBUG", true, LanguageNames.VisualBasic)]
         [InlineData("' File", true, LanguageNames.VisualBasic)]
         public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName)
         {
@@ -885,9 +890,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(document.Project.ParseOptions, oldTree.Options);
 
-            ParseOptions newOptions =
-                languageName == LanguageNames.CSharp ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
-                                                     : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
+            ParseOptions newOptions = languageName == LanguageNames.CSharp
+                ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
+                : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
 
             document = document.Project.WithParseOptions(newOptions).GetRequiredDocument(documentId);
 
@@ -2962,7 +2967,7 @@ public class C : A {
         }
 
         [Fact]
-        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions()
+        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions_AddedDoc()
         {
             using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
             var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
@@ -2983,6 +2988,97 @@ public class C : A {
 
             Assert.NotEqual(
                 await documentToFreeze.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions_ChangedDoc1()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            var documentToFreezeOriginal = project.AddDocument("DocumentToFreeze.cs", SourceText.From("class DocumentToFreeze { void M() { } }"));
+            project = documentToFreezeOriginal.Project;
+            var compilation = await project.GetCompilationAsync();
+
+            var solution = project.Solution.WithDocumentText(documentToFreezeOriginal.Id, SourceText.From("class DocumentToFreeze { void M() { /*no top level change*/ } }"));
+            var documentToFreezeChanged = solution.GetDocument(documentToFreezeOriginal.Id);
+            var tree = await documentToFreezeChanged.GetSyntaxTreeAsync();
+
+            var frozenDocument = documentToFreezeChanged.WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.NotSame(frozenDocument, documentToFreezeChanged);
+
+            // Versions should the same since there wasn't a top level change different
+            Assert.Equal(
+                await documentToFreezeOriginal.GetTopLevelChangeTextVersionAsync(),
+                await frozenDocument.GetTopLevelChangeTextVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.GetTopLevelChangeTextVersionAsync(),
+                await frozenDocument.GetTopLevelChangeTextVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeOriginal.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeOriginal.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions_ChangedDoc2()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            var documentToFreezeOriginal = project.AddDocument("DocumentToFreeze.cs", SourceText.From("class DocumentToFreeze { void M() { } }"));
+            project = documentToFreezeOriginal.Project;
+            var compilation = await project.GetCompilationAsync();
+
+            var solution = project.Solution.WithDocumentText(documentToFreezeOriginal.Id, SourceText.From("class DocumentToFreeze { void M() { } public void NewMethod() { } }"));
+            var documentToFreezeChanged = solution.GetDocument(documentToFreezeOriginal.Id);
+            var tree = await documentToFreezeChanged.GetSyntaxTreeAsync();
+
+            var frozenDocument = documentToFreezeChanged.WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.NotSame(frozenDocument, documentToFreezeChanged);
+
+            // Before/after the change must always result in a top level change.
+            // After the change, we should get the same version between the doc and its frozen version.
+            Assert.NotEqual(
+                await documentToFreezeOriginal.GetTopLevelChangeTextVersionAsync(),
+                await frozenDocument.GetTopLevelChangeTextVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.GetTopLevelChangeTextVersionAsync(),
+                await frozenDocument.GetTopLevelChangeTextVersionAsync());
+
+            Assert.NotEqual(
+                await documentToFreezeOriginal.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.NotEqual(
+                await documentToFreezeOriginal.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+
+            Assert.Equal(
+                await documentToFreezeChanged.Project.GetSemanticVersionAsync(),
                 await frozenDocument.Project.GetSemanticVersionAsync());
         }
 

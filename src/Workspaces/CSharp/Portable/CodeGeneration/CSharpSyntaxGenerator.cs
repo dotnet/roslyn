@@ -573,6 +573,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
+                SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
+                SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 _ => declaration,
@@ -591,16 +593,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (declaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    var method = (MethodDeclarationSyntax)declaration;
-                    return (method.Body == null) ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
-
-                case SyntaxKind.OperatorDeclaration:
-                    var op = (OperatorDeclarationSyntax)declaration;
-                    return (op.Body == null) ? op.WithSemicolonToken(default).WithBody(CreateBlock()) : op;
-
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    var cop = (ConversionOperatorDeclarationSyntax)declaration;
-                    return (cop.Body == null) ? cop.WithSemicolonToken(default).WithBody(CreateBlock()) : cop;
+                case SyntaxKind.OperatorDeclaration:
+                    var method = (BaseMethodDeclarationSyntax)declaration;
+                    return (method.Body == null && method.ExpressionBody == null) ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
 
                 case SyntaxKind.PropertyDeclaration:
                     var prop = (PropertyDeclarationSyntax)declaration;
@@ -623,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax accessor)
         {
-            if (accessor.Body == null)
+            if (accessor.Body == null && accessor.ExpressionBody == null)
             {
                 return accessor.WithSemicolonToken(default).WithBody(CreateBlock(null));
             }
@@ -925,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return (AttributeArgumentSyntax)node;
         }
 
-        [return: MaybeNull, NotNullIfNotNull("node")]
+        [return: MaybeNull, NotNullIfNotNull(nameof(node))]
         public override TNode ClearTrivia<TNode>([MaybeNull] TNode node)
         {
             if (node != null)
@@ -1338,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        [return: NotNullIfNotNull("members")]
+        [return: NotNullIfNotNull(nameof(members))]
         private IEnumerable<MemberDeclarationSyntax>? AsMembersOf(SyntaxNode declaration, IEnumerable<SyntaxNode>? members)
             => members?.Select(m => AsMemberOf(declaration, m)).OfType<MemberDeclarationSyntax>();
 
@@ -2140,7 +2136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             public AddMissingTokensRewriter(bool recurse)
                 => _recurse = recurse;
 
-            [return: NotNullIfNotNull("node")]
+            [return: NotNullIfNotNull(nameof(node))]
             public override SyntaxNode? Visit(SyntaxNode? node)
             {
                 if (!_recurse && !_firstVisit)

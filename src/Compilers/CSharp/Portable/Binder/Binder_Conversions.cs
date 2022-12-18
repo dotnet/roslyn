@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (lambdaParameter.IsParams && !delegateParameter.IsParams)
+                if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1 && lambdaParameter.Type.IsSZArray())
                 {
                     // Parameter {0} has params modifier in lambda but not in target delegate type.
                     Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);

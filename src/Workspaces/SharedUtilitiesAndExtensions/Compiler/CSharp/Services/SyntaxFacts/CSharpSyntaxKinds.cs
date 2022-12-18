@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int TypeArgumentList => (int)SyntaxKind.TypeArgumentList;
         public int? GlobalStatement => (int)SyntaxKind.GlobalStatement;
 
+        public int ElseClause => (int)SyntaxKind.ElseClause;
         public int EqualsValueClause => (int)SyntaxKind.EqualsValueClause;
 
         public int? ImplicitElementAccess => (int)SyntaxKind.ImplicitElementAccess;

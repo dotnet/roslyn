@@ -1788,7 +1788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (object)sourceProperty != null &&
                     sourceProperty.IsAutoPropertyWithGetAccessor &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
         }

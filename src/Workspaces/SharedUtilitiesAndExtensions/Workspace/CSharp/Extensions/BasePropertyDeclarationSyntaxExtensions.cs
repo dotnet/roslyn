@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <summary>
         /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
         /// </summary>
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public static BasePropertyDeclarationSyntax? TryWithSemicolonToken(this BasePropertyDeclarationSyntax? node, SyntaxToken semicolonToken)
         {
             if (node != null)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <summary>
         /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
         /// </summary>
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public static BasePropertyDeclarationSyntax? TryWithExpressionBody(this BasePropertyDeclarationSyntax? node, ArrowExpressionClauseSyntax expressionBody)
         {
             if (node != null)

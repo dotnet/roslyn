@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return false;
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         protected static SyntaxNode? PreserveTrivia<TNode>(TNode? node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
             if (node == null)
@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a new instance of the node with the leading and trailing trivia removed and replaced with elastic markers.
         /// </summary>
-        [return: MaybeNull, NotNullIfNotNull("node")]
+        [return: MaybeNull, NotNullIfNotNull(nameof(node))]
         public abstract TNode ClearTrivia<TNode>([MaybeNull] TNode node) where TNode : SyntaxNode;
 
 #pragma warning disable CA1822 // Mark members as static - shipped public API

@@ -15,26 +15,19 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractForEachLoopSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractForEachLoopSnippetProvider : AbstractStatementSnippetProvider
     {
         protected abstract Task<SyntaxNode> CreateForEachLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
 
         public override string Identifier => "foreach";
 
         public override string Description => FeaturesResources.foreach_loop;
-
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
-        }
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {

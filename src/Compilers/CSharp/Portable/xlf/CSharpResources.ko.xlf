@@ -5307,7 +5307,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
-        <target state="needs-review-translation">속성 또는 인덱서는 out 또는 ref 매개 변수로 전달할 수 없습니다.</target>
+        <target state="new">A non ref-returning property or indexer may not be used as an out or ref value</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8515,7 +8515,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
-        <target state="translated">비동기 메서드이기 때문에 이 메서드의 반환 식은 '{1}' 형식이 아니라 '{0}' 형식이어야 합니다.</target>
+        <target state="new">Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
