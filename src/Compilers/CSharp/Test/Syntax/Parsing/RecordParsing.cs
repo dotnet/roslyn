@@ -2665,7 +2665,16 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
                 // (1,8): error CS1002: ; expected
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
+                // (1,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int X, int Y)").WithArguments("primary constructors").WithLocation(1, 16),
+                // (1,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(1, 21),
+                // (1,28): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(1, 28)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2842,7 +2851,16 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(1, 8),
                 // (1,8): error CS1002: ; expected
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8),
+                // (1,15): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int X, int Y)").WithArguments("primary constructors").WithLocation(1, 15),
+                // (1,20): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(1, 20),
+                // (1,27): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(1, 27)
                 );
 
             UsingTree(text, options: TestOptions.Regular8,
@@ -3723,7 +3741,10 @@ class C(int X, int Y)
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
+                // (1,20): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("primary constructors").WithLocation(1, 20)
                 );
             UsingTree(text, options: TestOptions.Regular8,
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields or methods

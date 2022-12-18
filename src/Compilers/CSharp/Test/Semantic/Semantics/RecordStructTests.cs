@@ -249,7 +249,17 @@ record struct Point(int x, int y);
 ";
 
             var comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of struct. 
+            comp.VerifyDiagnostics(
+                // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // struct Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
+                // (2,18): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // struct Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 18),
+                // (2,25): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                // struct Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 25)
+                );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
@@ -264,7 +274,17 @@ record struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8));
 
             comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of struct. 
+            comp.VerifyDiagnostics(
+                // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // struct Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
+                // (2,18): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // struct Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 18),
+                // (2,25): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                // struct Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 25)
+                );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
@@ -301,7 +321,17 @@ namespace NS
 }
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of struct. 
+            comp.VerifyDiagnostics(
+                // (4,17): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     struct Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 17),
+                // (4,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                //     struct Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 22),
+                // (4,29): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                //     struct Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 29)
+                );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
@@ -322,7 +352,14 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(src1);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                //     struct Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 22),
+                // (4,29): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                //     struct Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 29)
+                );
 
             comp = CreateCompilation(src2);
             comp.VerifyDiagnostics();
@@ -3163,7 +3200,7 @@ namespace System.Runtime.CompilerServices
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
-            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>

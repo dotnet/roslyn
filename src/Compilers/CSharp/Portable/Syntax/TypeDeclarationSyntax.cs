@@ -29,6 +29,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public new TypeDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
             => (TypeDeclarationSyntax)WithModifiersCore(modifiers);
+
+        public ParameterListSyntax? ParameterList => ParameterListCore;
+
+        protected abstract ParameterListSyntax? ParameterListCore { get; }
+
+        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseTypeIfClass
+        {
+            get
+            {
+                if (Kind() is (SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration))
+                {
+                    return BaseList?.Types.FirstOrDefault() as PrimaryConstructorBaseTypeSyntax;
+                }
+
+                return null;
+            }
+        }
+    }
+}
+
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+{
+    partial class TypeDeclarationSyntax
+    {
+        public ParameterListSyntax? ParameterList => ParameterListCore;
+
+        protected abstract ParameterListSyntax? ParameterListCore { get; }
     }
 }
 

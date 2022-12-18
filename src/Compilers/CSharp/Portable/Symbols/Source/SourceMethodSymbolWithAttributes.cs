@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case RecordDeclarationSyntax recordDecl:
                     Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
                     return recordDecl;
+                case ClassDeclarationSyntax classDecl:
+                    return classDecl;
                 default:
                     return null;
             }

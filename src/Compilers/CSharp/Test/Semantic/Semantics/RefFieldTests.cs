@@ -11273,7 +11273,10 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "record").WithArguments("record").WithLocation(3, 17),
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
+                // (3,32): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 32)
                 );
         }
 

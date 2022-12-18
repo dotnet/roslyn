@@ -1812,6 +1812,11 @@
         <target state="translated">campos posicionais nos registros</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeaturePrimaryConstructors">
+        <source>primary constructors</source>
+        <target state="new">primary constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
         <source>raw string literals</source>
         <target state="translated">literais de cadeia de caracteres bruta</target>

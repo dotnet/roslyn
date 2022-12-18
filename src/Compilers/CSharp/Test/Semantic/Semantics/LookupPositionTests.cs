@@ -25,11 +25,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const char KeyPositionMarker = '`';
 
         [Fact]
-        public void PositionalRecord1()
+        public void PositionalRecord1_Class()
         {
             var text = @"
 record C(int x, int y)
 `{
+    [Attr1(nameof(C))]
+    static C()
+    {
+    }
+
+    [Attr2(`nameof(x2)`)]
+    C([Attr3((`nameof(x2)`)] int x2 = 2)
+    `{
+    `}
+
+    [Attr4(`nameof(x3)`)]
+    void M1([Attr5((`nameof(x3)`)] int x3 = 3)
+    `{
+    `}
+
+    [Attr6(`nameof(x4)`)]
+    static void M2([Attr7((`nameof(x4)`)] int x4 = 4)
+    `{
+    `}
+
+    [Attr8(`nameof(x5)`)]
+    int this[[Attr9((`nameof(x5)`)] int x5 = 5]
+    {
+        [Attr10(`nameof(x5)`)]
+        get
+        `{
+        `}
+    }
+
+    [Attr11(nameof(P1))]
+    static int P1
+    {
+        [Attr12(nameof(P1))]
+        set
+        `{
+        `}
+    }
+
+    [Attr13(nameof(E1))]
+    event System.Action E1
+    {
+        [Attr14(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr15(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr16(nameof(E2))]
+    static event System.Action<int> E2
+    {
+        [Attr17(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr18(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr19(nameof(F1))]
+    int F1 `= x`;
+
+    [Attr20(nameof(F2))]
+    static int F2 = y;
 `}";
             var expectedNames = MakeExpectedSymbols(
                 Add( // Global
@@ -37,23 +106,1536 @@ record C(int x, int y)
                     "Microsoft",
                     "C"),
                 Add( // Members
+                    "event System.Action C.E1",
+                    "event System.Action<System.Int32> C.E2",
                     "System.Boolean C.Equals(C? other)",
                     "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C.F1",
+                    "System.Int32 C.F2",
                     "System.Int32 C.GetHashCode()",
                     "System.Int32 C.x { get; init; }",
                     "System.Int32 C.y { get; init; }",
                     "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 C.P1 { set; }",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String C.ToString()",
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void C.Deconstruct(out System.Int32 x, out System.Int32 y)",
+                    "void C.M1([System.Int32 x3 = 3])",
+                    "void C.M2([System.Int32 x4 = 4])",
                     "void System.Object.Finalize()"),
+
+                Add( // in nameof [Attr2(`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in nameof [Attr3((`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in body of C([Attr3((`nameof(x2)`)] int x2 = 2)
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+
+                // M1
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+
+                // M2
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+
+                // this
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+
+                // P1 set
+                Add(
+                    "System.Int32 value"),
+                s_pop,
+
+                // E1 
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+
+                // E2 
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+
+                // F1
+                Combine(
+                    Add(
+                        "System.Int32 x",
+                        "System.Int32 y"),
+                    Remove(
+                        "System.Int32 C.x { get; init; }",
+                        "System.Int32 C.y { get; init; }")),
+                Combine(s_pop, s_pop),
+
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PositionalRecord1_Class_Partial()
+        {
+            var text = @"
+partial record C(int x, int y);
+
+partial record C
+`{
+    [Attr1(nameof(C))]
+    static C()
+    {
+    }
+
+    [Attr2(`nameof(x2)`)]
+    C([Attr3((`nameof(x2)`)] int x2 = 2)
+    `{
+    `}
+
+    [Attr4(`nameof(x3)`)]
+    void M1([Attr5((`nameof(x3)`)] int x3 = 3)
+    `{
+    `}
+
+    [Attr6(`nameof(x4)`)]
+    static void M2([Attr7((`nameof(x4)`)] int x4 = 4)
+    `{
+    `}
+
+    [Attr8(`nameof(x5)`)]
+    int this[[Attr9((`nameof(x5)`)] int x5 = 5]
+    {
+        [Attr10(`nameof(x5)`)]
+        get
+        `{
+        `}
+    }
+
+    [Attr11(nameof(P1))]
+    static int P1
+    {
+        [Attr12(nameof(P1))]
+        set
+        `{
+        `}
+    }
+
+    [Attr13(nameof(E1))]
+    event System.Action E1
+    {
+        [Attr14(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr15(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr16(nameof(E2))]
+    static event System.Action<int> E2
+    {
+        [Attr17(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr18(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr19(nameof(F1))]
+    int F1 `= x`;
+
+    [Attr20(nameof(F2))]
+    static int F2 = y;
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "event System.Action C.E1",
+                    "event System.Action<System.Int32> C.E2",
+                    "System.Boolean C.Equals(C? other)",
+                    "System.Boolean C.Equals(System.Object? obj)",
+                    "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C.F1",
+                    "System.Int32 C.F2",
+                    "System.Int32 C.GetHashCode()",
+                    "System.Int32 C.x { get; init; }",
+                    "System.Int32 C.y { get; init; }",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 C.P1 { set; }",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String C.ToString()",
+                    "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
+                    "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 x, out System.Int32 y)",
+                    "void C.M1([System.Int32 x3 = 3])",
+                    "void C.M2([System.Int32 x4 = 4])",
+                    "void System.Object.Finalize()"),
+
+                Add( // in nameof [Attr2(`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in nameof [Attr3((`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in body of C([Attr3((`nameof(x2)`)] int x2 = 2)
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+
+                // M1
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+
+                // M2
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+
+                // this
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+
+                // P1 set
+                Add(
+                    "System.Int32 value"),
+                s_pop,
+
+                // E1 
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+
+                // E2 
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+
+                // F1
+                Combine(
+                    Add(
+                        "System.Int32 x",
+                        "System.Int32 y"),
+                    Remove(
+                        "System.Int32 C.x { get; init; }",
+                        "System.Int32 C.y { get; init; }")),
+                Combine(s_pop, s_pop),
+
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PositionalRecord1_Struct()
+        {
+            var text = @"
+record struct C(int x, int y)
+`{
+    [Attr1(nameof(C))]
+    static C()
+    {
+    }
+
+    [Attr2(`nameof(x2)`)]
+    C([Attr3((`nameof(x2)`)] int x2 = 2)
+    `{
+    `}
+
+    [Attr4(`nameof(x3)`)]
+    void M1([Attr5((`nameof(x3)`)] int x3 = 3)
+    `{
+    `}
+
+    [Attr6(`nameof(x4)`)]
+    static void M2([Attr7((`nameof(x4)`)] int x4 = 4)
+    `{
+    `}
+
+    [Attr8(`nameof(x5)`)]
+    int this[[Attr9((`nameof(x5)`)] int x5 = 5]
+    {
+        [Attr10(`nameof(x5)`)]
+        get
+        `{
+        `}
+    }
+
+    [Attr11(nameof(P1))]
+    static int P1
+    {
+        [Attr12(nameof(P1))]
+        set
+        `{
+        `}
+    }
+
+    [Attr13(nameof(E1))]
+    event System.Action E1
+    {
+        [Attr14(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr15(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr16(nameof(E2))]
+    static event System.Action<int> E2
+    {
+        [Attr17(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr18(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr19(nameof(F1))]
+    int F1 `= x`;
+
+    [Attr20(nameof(F2))]
+    static int F2 = y;
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "event System.Action C.E1",
+                    "event System.Action<System.Int32> C.E2",
+                    "readonly System.Boolean C.Equals(C other)",
+                    "readonly System.Boolean C.Equals(System.Object obj)",
+                    "readonly System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.ValueType.Equals(System.Object obj)",
+                    "System.Int32 C.F1",
+                    "System.Int32 C.F2",
+                    "readonly System.Int32 C.GetHashCode()",
+                    "System.Int32 C.x { get; set; }",
+                    "System.Int32 C.y { get; set; }",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 System.ValueType.GetHashCode()",
+                    "System.Int32 C.P1 { set; }",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "readonly System.String C.ToString()",
+                    "System.String System.Object.ToString()",
+                    "System.String System.ValueType.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "readonly void C.Deconstruct(out System.Int32 x, out System.Int32 y)",
+                    "void C.M1([System.Int32 x3 = 3])",
+                    "void C.M2([System.Int32 x4 = 4])",
+                    "void System.Object.Finalize()"),
+
+                Add( // in nameof [Attr2(`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in nameof [Attr3((`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in body of C([Attr3((`nameof(x2)`)] int x2 = 2)
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+
+                // M1
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+
+                // M2
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+
+                // this
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+
+                // P1 set
+                Add(
+                    "System.Int32 value"),
+                s_pop,
+
+                // E1 
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+
+                // E2 
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+
+                // F1
+                Combine(
+                    Add(
+                        "System.Int32 x",
+                        "System.Int32 y"),
+                    Remove(
+                        "System.Int32 C.x { get; set; }",
+                        "System.Int32 C.y { get; set; }")),
+                Combine(s_pop, s_pop),
+
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PositionalRecord1_Struct_Partial()
+        {
+            var text = @"
+partial record struct C(int x, int y);
+
+partial record struct C
+`{
+    [Attr1(nameof(C))]
+    static C()
+    {
+    }
+
+    [Attr2(`nameof(x2)`)]
+    C([Attr3((`nameof(x2)`)] int x2 = 2)
+    `{
+    `}
+
+    [Attr4(`nameof(x3)`)]
+    void M1([Attr5((`nameof(x3)`)] int x3 = 3)
+    `{
+    `}
+
+    [Attr6(`nameof(x4)`)]
+    static void M2([Attr7((`nameof(x4)`)] int x4 = 4)
+    `{
+    `}
+
+    [Attr8(`nameof(x5)`)]
+    int this[[Attr9((`nameof(x5)`)] int x5 = 5]
+    {
+        [Attr10(`nameof(x5)`)]
+        get
+        `{
+        `}
+    }
+
+    [Attr11(nameof(P1))]
+    static int P1
+    {
+        [Attr12(nameof(P1))]
+        set
+        `{
+        `}
+    }
+
+    [Attr13(nameof(E1))]
+    event System.Action E1
+    {
+        [Attr14(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr15(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr16(nameof(E2))]
+    static event System.Action<int> E2
+    {
+        [Attr17(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr18(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr19(nameof(F1))]
+    int F1 `= x`;
+
+    [Attr20(nameof(F2))]
+    static int F2 = y;
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "event System.Action C.E1",
+                    "event System.Action<System.Int32> C.E2",
+                    "readonly System.Boolean C.Equals(C other)",
+                    "readonly System.Boolean C.Equals(System.Object obj)",
+                    "readonly System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.ValueType.Equals(System.Object obj)",
+                    "System.Int32 C.F1",
+                    "System.Int32 C.F2",
+                    "readonly System.Int32 C.GetHashCode()",
+                    "System.Int32 C.x { get; set; }",
+                    "System.Int32 C.y { get; set; }",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 System.ValueType.GetHashCode()",
+                    "System.Int32 C.P1 { set; }",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "readonly System.String C.ToString()",
+                    "System.String System.Object.ToString()",
+                    "System.String System.ValueType.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "readonly void C.Deconstruct(out System.Int32 x, out System.Int32 y)",
+                    "void C.M1([System.Int32 x3 = 3])",
+                    "void C.M2([System.Int32 x4 = 4])",
+                    "void System.Object.Finalize()"),
+
+                Add( // in nameof [Attr2(`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in nameof [Attr3((`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in body of C([Attr3((`nameof(x2)`)] int x2 = 2)
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+
+                // M1
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+
+                // M2
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+
+                // this
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+
+                // P1 set
+                Add(
+                    "System.Int32 value"),
+                s_pop,
+
+                // E1 
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+
+                // E2 
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+
+                // F1
+                Combine(
+                    Add(
+                        "System.Int32 x",
+                        "System.Int32 y"),
+                    Remove(
+                        "System.Int32 C.x { get; set; }",
+                        "System.Int32 C.y { get; set; }")),
+                Combine(s_pop, s_pop),
+
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PrimaryConstructor1_Class()
+        {
+            var text = @"
+class C(int x, int y)
+`{
+    int x {get;}
+    int y {get;}
+
+    [Attr1(nameof(C))]
+    static C()
+    {
+    }
+
+    [Attr2(`nameof(x2)`)]
+    C([Attr3((`nameof(x2)`)] int x2 = 2)
+    `{
+    `}
+
+    [Attr4(`nameof(x3)`)]
+    void M1([Attr5((`nameof(x3)`)] int x3 = 3)
+    `{
+    `}
+
+    [Attr6(`nameof(x4)`)]
+    static void M2([Attr7((`nameof(x4)`)] int x4 = 4)
+    `{
+    `}
+
+    [Attr8(`nameof(x5)`)]
+    int this[[Attr9((`nameof(x5)`)] int x5 = 5]
+    {
+        [Attr10(`nameof(x5)`)]
+        get
+        `{
+        `}
+    }
+
+    [Attr11(nameof(P1))]
+    static int P1
+    {
+        [Attr12(nameof(P1))]
+        set
+        `{
+        `}
+    }
+
+    [Attr13(nameof(E1))]
+    event System.Action E1
+    {
+        [Attr14(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr15(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr16(nameof(E2))]
+    static event System.Action<int> E2
+    {
+        [Attr17(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr18(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr19(nameof(F1))]
+    int F1 `= x`;
+
+    [Attr20(nameof(F2))]
+    static int F2 = y;
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "event System.Action C.E1",
+                    "event System.Action<System.Int32> C.E2",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C.F1",
+                    "System.Int32 C.F2",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 C.P1 { set; }",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "void C.M1([System.Int32 x3 = 3])",
+                    "void C.M2([System.Int32 x4 = 4])",
+                    "void System.Object.Finalize()",
+                    "System.Int32 C.x { get; }",
+                    "System.Int32 C.y { get; }"),
+
+                Add( // in nameof [Attr2(`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in nameof [Attr3((`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in body of C([Attr3((`nameof(x2)`)] int x2 = 2)
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+
+                // M1
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+
+                // M2
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+
+                // this
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+
+                // P1 set
+                Add(
+                    "System.Int32 value"),
+                s_pop,
+
+                // E1 
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+
+                // E2 
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+
+                // F1
+                Combine(
+                    Add(
+                        "System.Int32 x",
+                        "System.Int32 y"),
+                    Remove(
+                        "System.Int32 C.x { get; }",
+                        "System.Int32 C.y { get; }")),
+                Combine(s_pop, s_pop),
+
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PrimaryConstructor1_Class_Partial()
+        {
+            var text = @"
+partial class C(int x, int y);
+
+partial class C
+`{
+    int x {get;}
+    int y {get;}
+
+    [Attr1(nameof(C))]
+    static C()
+    {
+    }
+
+    [Attr2(`nameof(x2)`)]
+    C([Attr3((`nameof(x2)`)] int x2 = 2)
+    `{
+    `}
+
+    [Attr4(`nameof(x3)`)]
+    void M1([Attr5((`nameof(x3)`)] int x3 = 3)
+    `{
+    `}
+
+    [Attr6(`nameof(x4)`)]
+    static void M2([Attr7((`nameof(x4)`)] int x4 = 4)
+    `{
+    `}
+
+    [Attr8(`nameof(x5)`)]
+    int this[[Attr9((`nameof(x5)`)] int x5 = 5]
+    {
+        [Attr10(`nameof(x5)`)]
+        get
+        `{
+        `}
+    }
+
+    [Attr11(nameof(P1))]
+    static int P1
+    {
+        [Attr12(nameof(P1))]
+        set
+        `{
+        `}
+    }
+
+    [Attr13(nameof(E1))]
+    event System.Action E1
+    {
+        [Attr14(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr15(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr16(nameof(E2))]
+    static event System.Action<int> E2
+    {
+        [Attr17(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr18(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr19(nameof(F1))]
+    int F1 `= x`;
+
+    [Attr20(nameof(F2))]
+    static int F2 = y;
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "event System.Action C.E1",
+                    "event System.Action<System.Int32> C.E2",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C.F1",
+                    "System.Int32 C.F2",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 C.P1 { set; }",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "void C.M1([System.Int32 x3 = 3])",
+                    "void C.M2([System.Int32 x4 = 4])",
+                    "void System.Object.Finalize()",
+                    "System.Int32 C.x { get; }",
+                    "System.Int32 C.y { get; }"),
+
+                Add( // in nameof [Attr2(`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in nameof [Attr3((`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in body of C([Attr3((`nameof(x2)`)] int x2 = 2)
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+
+                // M1
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+
+                // M2
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+
+                // this
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+
+                // P1 set
+                Add(
+                    "System.Int32 value"),
+                s_pop,
+
+                // E1 
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+
+                // E2 
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+
+                // F1
+                Combine(
+                    Add(
+                        "System.Int32 x",
+                        "System.Int32 y"),
+                    Remove(
+                        "System.Int32 C.x { get; }",
+                        "System.Int32 C.y { get; }")),
+                Combine(s_pop, s_pop),
+
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PrimaryConstructor1_Struct()
+        {
+            var text = @"
+struct C(int x, int y)
+`{
+    int x {get;}
+    int y {get;}
+
+    [Attr1(nameof(C))]
+    static C()
+    {
+    }
+
+    [Attr2(`nameof(x2)`)]
+    C([Attr3((`nameof(x2)`)] int x2 = 2)
+    `{
+    `}
+
+    [Attr4(`nameof(x3)`)]
+    void M1([Attr5((`nameof(x3)`)] int x3 = 3)
+    `{
+    `}
+
+    [Attr6(`nameof(x4)`)]
+    static void M2([Attr7((`nameof(x4)`)] int x4 = 4)
+    `{
+    `}
+
+    [Attr8(`nameof(x5)`)]
+    int this[[Attr9((`nameof(x5)`)] int x5 = 5]
+    {
+        [Attr10(`nameof(x5)`)]
+        get
+        `{
+        `}
+    }
+
+    [Attr11(nameof(P1))]
+    static int P1
+    {
+        [Attr12(nameof(P1))]
+        set
+        `{
+        `}
+    }
+
+    [Attr13(nameof(E1))]
+    event System.Action E1
+    {
+        [Attr14(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr15(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr16(nameof(E2))]
+    static event System.Action<int> E2
+    {
+        [Attr17(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr18(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr19(nameof(F1))]
+    int F1 `= x`;
+
+    [Attr20(nameof(F2))]
+    static int F2 = y;
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "event System.Action C.E1",
+                    "event System.Action<System.Int32> C.E2",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.ValueType.Equals(System.Object obj)",
+                    "System.Int32 C.F1",
+                    "System.Int32 C.F2",
+                    "System.Int32 C.x { get; }",
+                    "System.Int32 C.y { get; }",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 System.ValueType.GetHashCode()",
+                    "System.Int32 C.P1 { set; }",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.String System.ValueType.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "void C.M1([System.Int32 x3 = 3])",
+                    "void C.M2([System.Int32 x4 = 4])",
+                    "void System.Object.Finalize()"),
+
+                Add( // in nameof [Attr2(`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in nameof [Attr3((`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in body of C([Attr3((`nameof(x2)`)] int x2 = 2)
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+
+                // M1
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+
+                // M2
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+
+                // this
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+
+                // P1 set
+                Add(
+                    "System.Int32 value"),
+                s_pop,
+
+                // E1 
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+
+                // E2 
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+
+                // F1
+                Combine(
+                    Add(
+                        "System.Int32 x",
+                        "System.Int32 y"),
+                    Remove(
+                        "System.Int32 C.x { get; }",
+                        "System.Int32 C.y { get; }")),
+                Combine(s_pop, s_pop),
+
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PrimaryConstructor1_Struct_Partial()
+        {
+            var text = @"
+partial struct C(int x, int y);
+
+partial struct C
+`{
+    int x {get;}
+    int y {get;}
+
+    [Attr1(nameof(C))]
+    static C()
+    {
+    }
+
+    [Attr2(`nameof(x2)`)]
+    C([Attr3((`nameof(x2)`)] int x2 = 2)
+    `{
+    `}
+
+    [Attr4(`nameof(x3)`)]
+    void M1([Attr5((`nameof(x3)`)] int x3 = 3)
+    `{
+    `}
+
+    [Attr6(`nameof(x4)`)]
+    static void M2([Attr7((`nameof(x4)`)] int x4 = 4)
+    `{
+    `}
+
+    [Attr8(`nameof(x5)`)]
+    int this[[Attr9((`nameof(x5)`)] int x5 = 5]
+    {
+        [Attr10(`nameof(x5)`)]
+        get
+        `{
+        `}
+    }
+
+    [Attr11(nameof(P1))]
+    static int P1
+    {
+        [Attr12(nameof(P1))]
+        set
+        `{
+        `}
+    }
+
+    [Attr13(nameof(E1))]
+    event System.Action E1
+    {
+        [Attr14(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr15(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr16(nameof(E2))]
+    static event System.Action<int> E2
+    {
+        [Attr17(`nameof(value)`)]
+        add
+        `{
+        `}
+        [Attr18(`nameof(value)`)]
+        remove
+        `{
+        `}
+    }
+
+    [Attr19(nameof(F1))]
+    int F1 `= x`;
+
+    [Attr20(nameof(F2))]
+    static int F2 = y;
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "event System.Action C.E1",
+                    "event System.Action<System.Int32> C.E2",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.ValueType.Equals(System.Object obj)",
+                    "System.Int32 C.F1",
+                    "System.Int32 C.F2",
+                    "System.Int32 C.x { get; }",
+                    "System.Int32 C.y { get; }",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 System.ValueType.GetHashCode()",
+                    "System.Int32 C.P1 { set; }",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.String System.ValueType.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "void C.M1([System.Int32 x3 = 3])",
+                    "void C.M2([System.Int32 x4 = 4])",
+                    "void System.Object.Finalize()"),
+
+                Add( // in nameof [Attr2(`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in nameof [Attr3((`nameof(x2)`)]
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+                Add( // in body of C([Attr3((`nameof(x2)`)] int x2 = 2)
+                    "[System.Int32 x2 = 2]"),
+                s_pop,
+
+                // M1
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x3 = 3]"),
+                s_pop,
+
+                // M2
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x4 = 4]"),
+                s_pop,
+
+                // this
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+                Add(
+                    "[System.Int32 x5 = 5]"),
+                s_pop,
+
+                // P1 set
+                Add(
+                    "System.Int32 value"),
+                s_pop,
+
+                // E1 
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+                Add(
+                    "System.Action value"),
+                s_pop,
+
+                // E2 
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+                Add(
+                    "System.Action<System.Int32> value"),
+                s_pop,
+
+                // F1
+                Combine(
+                    Add(
+                        "System.Int32 x",
+                        "System.Int32 y"),
+                    Remove(
+                        "System.Int32 C.x { get; }",
+                        "System.Int32 C.y { get; }")),
+                Combine(s_pop, s_pop),
+
                 s_pop
             );
 
@@ -1702,55 +3284,169 @@ class Derived : Base<int>
         }
 
         [Fact]
-        public void RecordBaseArguments_01()
+        public void RecordBaseArguments_01_Class()
         {
             var text = @"
 record C(int X) : Base`(X`)
 `{
 `}
 ";
+            var members = new[] {
+                "System.Boolean C.Equals(Base? other)",
+                "System.Boolean C.Equals(C? other)",
+                "System.Boolean C.Equals(System.Object? obj)",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean System.Object.Equals(System.Object obj)",
+                "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                "System.Int32 C.GetHashCode()",
+                "System.Int32 System.Object.GetHashCode()",
+                "System.Object System.Object.MemberwiseClone()",
+                "System.String C.ToString()",
+                "System.String System.Object.ToString()",
+                "System.Type C.EqualityContract { get; }",
+                "System.Type System.Object.GetType()",
+                "void C.Deconstruct(out System.Int32 X)",
+                "void System.Object.Finalize()",
+                "System.Int32 C.X { get; init; }"
+            };
+
             var expectedNames = MakeExpectedSymbols(
                 Add( // Global
                     "System",
                     "Microsoft",
                     "C"),
-                Add( // Members + parameters
-                    "System.Boolean C.Equals(Base? other)",
-                    "System.Boolean C.Equals(C? other)",
-                    "System.Boolean C.Equals(System.Object? obj)",
-                    "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                    "System.Boolean System.Object.Equals(System.Object obj)",
-                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
-                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
-                    "System.Int32 C.GetHashCode()",
-                    "System.Int32 System.Object.GetHashCode()",
-                    "System.Int32 X",
-                    "System.Object System.Object.MemberwiseClone()",
-                    "System.String C.ToString()",
-                    "System.String System.Object.ToString()",
-                    "System.Type C.EqualityContract { get; }",
-                    "System.Type System.Object.GetType()",
-                    "void C.Deconstruct(out System.Int32 X)",
-                    "void System.Object.Finalize()"),
-                s_pop,
+                Combine(
+                    Add( // Members
+                        members),
+                    Remove(
+                        "System.Int32 C.X { get; init; }"),
+                    Add( // paremeters
+                        "System.Int32 X")),
+                Combine(s_pop, s_pop, s_pop),
                 Add( // Members
-                    "System.Boolean C.Equals(Base? other)",
-                    "System.Boolean C.Equals(C? other)",
-                    "System.Boolean C.Equals(System.Object? obj)",
-                    "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                    "System.Boolean System.Object.Equals(System.Object obj)",
-                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
-                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
-                    "System.Int32 C.GetHashCode()",
-                    "System.Int32 C.X { get; init; }",
-                    "System.Int32 System.Object.GetHashCode()",
-                    "System.Object System.Object.MemberwiseClone()",
-                    "System.String C.ToString()",
-                    "System.String System.Object.ToString()",
-                    "System.Type C.EqualityContract { get; }",
-                    "System.Type System.Object.GetType()",
-                    "void C.Deconstruct(out System.Int32 X)",
-                    "void System.Object.Finalize()"),
+                    members),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void RecordBaseArguments_01_Struct()
+        {
+            var text = @"
+record struct C(int X) : Base(X)
+`{
+`}
+";
+            var members = new[] {
+                "readonly System.Boolean C.Equals(C other)",
+                "readonly System.Boolean C.Equals(System.Object obj)",
+                "readonly System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean System.Object.Equals(System.Object obj)",
+                "System.Boolean System.ValueType.Equals(System.Object obj)",
+                "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                "readonly System.Int32 C.GetHashCode()",
+                "System.Int32 System.Object.GetHashCode()",
+                "System.Int32 System.ValueType.GetHashCode()",
+                "System.Object System.Object.MemberwiseClone()",
+                "readonly System.String C.ToString()",
+                "System.String System.Object.ToString()",
+                "System.String System.ValueType.ToString()",
+                "System.Type System.Object.GetType()",
+                "readonly void C.Deconstruct(out System.Int32 X)",
+                "void System.Object.Finalize()",
+                "System.Int32 C.X { get; set; }"
+            };
+
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    members),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PrimaryConstructorBaseArguments_01_Class()
+        {
+            var text = @"
+class C(int X) : Base`(X`)
+`{
+    int X { get; }
+`}
+";
+            var members = new[] {
+                "System.Boolean System.Object.Equals(System.Object obj)",
+                "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                "System.Int32 System.Object.GetHashCode()",
+                "System.Object System.Object.MemberwiseClone()",
+                "System.String System.Object.ToString()",
+                "System.Type System.Object.GetType()",
+                "void System.Object.Finalize()",
+                "System.Int32 C.X { get; }"
+            };
+
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Combine(
+                    Add( // Members
+                        members),
+                    Remove(
+                        "System.Int32 C.X { get; }"),
+                    Add( // paremeters
+                        "System.Int32 X")),
+                Combine(s_pop, s_pop, s_pop),
+                Add( // Members
+                    members),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PrimaryConstructorBaseArguments_01_Struct()
+        {
+            var text = @"
+struct C(int X) : Base(X)
+`{
+    int X { get; }
+`}
+";
+            var members = new[] {
+                "System.Boolean System.Object.Equals(System.Object obj)",
+                "System.Boolean System.ValueType.Equals(System.Object obj)",
+                "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                "System.Int32 System.Object.GetHashCode()",
+                "System.Int32 System.ValueType.GetHashCode()",
+                "System.Object System.Object.MemberwiseClone()",
+                "System.String System.Object.ToString()",
+                "System.String System.ValueType.ToString()",
+                "System.Type System.Object.GetType()",
+                "void System.Object.Finalize()",
+                "System.Int32 C.X { get; }"
+            };
+
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    members),
                 s_pop
             );
 
@@ -1796,9 +3492,7 @@ record C : Base(X)
         public void RecordBaseArguments_03()
         {
             var text = @"
-partial record C(int X)
-`{
-`}
+partial record C(int X);
 
 partial record C : Base(X, Y)
 `{
@@ -1827,24 +3521,36 @@ partial record C : Base(X, Y)
                     "System.Type System.Object.GetType()",
                     "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
-                s_pop,
+                s_pop
+
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PrimaryConstructorBaseArguments_03()
+        {
+            var text = @"
+partial class C(int X);
+
+partial class C : Base(X, Y)
+`{
+`}
+";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
                 Add( // Members
-                    "System.Boolean C.Equals(Base? other)",
-                    "System.Boolean C.Equals(C? other)",
-                    "System.Boolean C.Equals(System.Object? obj)",
-                    "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
-                    "System.Int32 C.GetHashCode()",
-                    "System.Int32 C.X { get; init; }",
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
-                    "System.String C.ToString()",
                     "System.String System.Object.ToString()",
-                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
-                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop
 
@@ -2012,7 +3718,7 @@ partial record C(int X) : Base`(X`)
         }
 
         [Fact]
-        public void RecordBaseArguments_06()
+        public void PrimaryConstructorBaseArguments_02_Class()
         {
             var text = @"
 class C : Base(X)
@@ -2040,7 +3746,7 @@ class C : Base(X)
         }
 
         [Fact]
-        public void RecordBaseArguments_07()
+        public void PrimaryConstructorBaseArguments_02_Struct()
         {
             var text = @"
 struct C : Base(X)
@@ -2071,7 +3777,7 @@ struct C : Base(X)
         }
 
         [Fact]
-        public void RecordBaseArguments_08()
+        public void InterfaceBaseArguments_02()
         {
             var text = @"
 interface C : Base(X)

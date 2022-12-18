@@ -49,7 +49,17 @@ record Point { }
 record Point(int x, int y);
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of class. 
+            comp.VerifyDiagnostics(
+                    // (2,12): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // class Point(int x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 12),
+                    // (2,17): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // class Point(int x, int y);
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 17),
+                    // (2,24): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    // class Point(int x, int y);
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 24)
+                );
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
@@ -82,8 +92,22 @@ record Point(int x, int y);
             );
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                    // (2,17): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // class Point(int x, int y);
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 17),
+                    // (2,24): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    // class Point(int x, int y);
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 24)
+                );
+
+            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+
             comp = CreateCompilation(src2);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src3);
@@ -118,7 +142,17 @@ class E
 }
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(); // PROTOTYPE(PrimaryConstructors): Should report language version error for ';' at the end of class.
+            comp.VerifyDiagnostics(
+                    // (4,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     class Point(int x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 16),
+                    // (4,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    //     class Point(int x, int y);
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 21),
+                    // (4,28): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    //     class Point(int x, int y);
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 28)
+                );
 
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -141,7 +175,14 @@ class E
                 );
 
             comp = CreateCompilation(src1);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                    // (4,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    //     class Point(int x, int y);
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 21),
+                    // (4,28): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    //     class Point(int x, int y);
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 28)
+                );
 
             comp = CreateCompilation(src2);
             comp.VerifyDiagnostics();
@@ -172,7 +213,16 @@ record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
                 // (2,8): error CS1002: ; expected
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
+                // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
+                // (2,24): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 24),
+                // (2,31): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 31)
                 );
 
             comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
@@ -9932,7 +9982,7 @@ record B2(int X, int Y) : A
             AssertEx.Equal(new[] { "System.Type B1.EqualityContract { get; }", "System.Int32 B1.X { get; init; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
             AssertEx.Equal(new[] { "System.Type B2.EqualityContract { get; }", "System.Int32 B2.X { get; init; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
 
-            var b1Ctor = comp.GetTypeByMetadataName("B1")!.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Single();
+            var b1Ctor = comp.GetTypeByMetadataName("B1")!.GetMembersUnordered().OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal("B1..ctor(System.Int32 X, System.Int32 Y)", b1Ctor.ToTestDisplayString());
             Assert.Equal(Accessibility.Protected, b1Ctor.DeclaredAccessibility);
         }
@@ -21818,26 +21868,26 @@ record C(int X) : Base(Test(X, out var y), y)
             var src = @"
 using System;
 
-class Base
+record Base
 {
     public Base(int X)
     {
     }
 }
 
-class C : Base(X)
+record C : Base(X)
 {
 }
 ";
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (11,7): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Base.Base(int)'
-                // class C : Base(X)
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("X", "Base.Base(int)").WithLocation(11, 7),
-                // (11,15): error CS8861: Unexpected argument list.
-                // class C : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(11, 15)
+                // (11,8): error CS1729: 'Base' does not contain a constructor that takes 0 arguments
+                // record C : Base(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("Base", "0").WithLocation(11, 8),
+                // (11,16): error CS8861: Unexpected argument list.
+                // record C : Base(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(11, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21890,6 +21940,44 @@ struct C : Base(X)
             Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void BaseArguments_13_Record()
+        {
+            var src = @"
+using System;
+
+interface Base
+{
+}
+
+record C(int X) : Base(X)
+{
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (8,23): error CS8861: Unexpected argument list.
+                // record C(int X) : Base(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(8, 23),
+                // (8,23): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                // record C(int X) : Base(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(8, 23)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("Base(X)", x.Parent!.Parent!.Parent!.ToString());
+
+            var symbolInfo = model.GetSymbolInfo(x);
+            Assert.Equal("System.Int32 X", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Equal("System.Int32 X", model.LookupSymbols(x.SpanStart, name: "X").Single().ToTestDisplayString());
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
         }
 
         [Fact]
@@ -22287,7 +22375,7 @@ interface I {}
         public void BaseArguments_20()
         {
             var src = @"
-class Base
+record Base
 {
     public Base(int X)
     {
@@ -22296,7 +22384,7 @@ class Base
     public Base() {}
 }
 
-class C : Base(GetInt(X, out var xx) + xx, Y), I
+record C : Base(GetInt(X, out var xx) + xx, Y), I
 {
     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
 
@@ -22312,9 +22400,9 @@ interface I {}
             var comp = CreateCompilation(src);
 
             comp.VerifyDiagnostics(
-                // (11,15): error CS8861: Unexpected argument list.
-                // class C : Base(GetInt(X, out var xx) + xx, Y), I
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 15),
+                // (11,16): error CS8861: Unexpected argument list.
+                // record C : Base(GetInt(X, out var xx) + xx, Y), I
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 16),
                 // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
                 //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
@@ -22392,7 +22480,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = new[] { "Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()" };
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -28055,7 +28143,7 @@ namespace System.Runtime.CompilerServices
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
-            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -28169,7 +28257,7 @@ namespace System.Runtime.CompilerServices
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
-            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -28308,7 +28396,7 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
-            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary <paramref name=""I1""/></summary>
@@ -28379,7 +28467,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", cMember.GetDocumentationCommentXml());
 
-            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -28463,7 +28551,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", c.GetDocumentationCommentXml());
 
-            var cConstructor = c.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var cConstructor = c.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -28510,7 +28598,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", d.GetDocumentationCommentXml());
 
-            var dConstructor = d.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var dConstructor = d.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -28564,7 +28652,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
             AssertEx.Equal(
@@ -28612,7 +28700,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
             AssertEx.Equal(
@@ -28663,7 +28751,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", c.GetDocumentationCommentXml());
 
-            var cConstructor = c.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var cConstructor = c.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(1, cConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", cConstructor.GetDocumentationCommentXml());
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
@@ -28709,7 +28797,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", d.GetDocumentationCommentXml());
 
-            var dConstructor = d.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var dConstructor = d.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -28767,7 +28855,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
@@ -28825,7 +28913,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
@@ -28874,7 +28962,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
@@ -28923,7 +29011,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", cMember.GetDocumentationCommentXml());
 
-            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -28992,7 +29080,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
-            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -30020,33 +30108,6 @@ record R2 : I(0)
                 // (10,14): error CS8861: Unexpected argument list.
                 // record R2 : I(0)
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 14)
-                );
-        }
-
-        [Fact]
-        public void InterfaceWithParameters_Class()
-        {
-            var src = @"
-public interface I
-{
-}
-
-class C : I()
-{
-}
-
-class C2 : I(0)
-{
-}
-";
-            var comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics(
-                // (6,12): error CS8861: Unexpected argument list.
-                // class C : I()
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 12),
-                // (10,13): error CS8861: Unexpected argument list.
-                // class C2 : I(0)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 13)
                 );
         }
 

@@ -9,19 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class RecordDeclarationSyntax
     {
-        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseTypeIfClass
-        {
-            get
-            {
-                if (Kind() == SyntaxKind.RecordStructDeclaration)
-                {
-                    return null;
-                }
-
-                return BaseList?.Types.FirstOrDefault() as PrimaryConstructorBaseTypeSyntax;
-            }
-        }
-
         public RecordDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier,
             TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
             SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
@@ -29,6 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return Update(attributeLists, modifiers, keyword, this.ClassOrStructKeyword, identifier,
                 typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
         }
+
+        protected override ParameterListSyntax? ParameterListCore => ParameterList;
+    }
+}
+
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+{
+    partial class RecordDeclarationSyntax
+    {
+        protected override ParameterListSyntax? ParameterListCore => ParameterList;
     }
 }
 

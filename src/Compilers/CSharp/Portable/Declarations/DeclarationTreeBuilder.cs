@@ -608,24 +608,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
             }
 
-            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
-                                                    ref declFlags);
-
-            // A record with parameters at least has a primary constructor
-            if (((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0) &&
-                node is RecordDeclarationSyntax { ParameterList: { } })
+            // A type with parameters at least has a primary constructor
+            bool hasPrimaryCtor = node is TypeDeclarationSyntax { ParameterList: { } };
+            if (hasPrimaryCtor)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
+
+            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
+                                                    ref declFlags, hasPrimaryCtor: hasPrimaryCtor);
 
             // If we have `record class` or `record struct` check that this is supported in the language. Note: we don't
             // have to do any check for the simple `record` case as the parser itself would never produce such a node
             // unless the language version was sufficient (since it actually will not produce the node at all on
             // previous versions).
-            if (node is RecordDeclarationSyntax record &&
-                record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
+            if (node is RecordDeclarationSyntax record)
             {
-                MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
+                if (record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
+                {
+                    MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
+                }
+            }
+            else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration)
+            {
+                if (node.ParameterList != null)
+                {
+                    MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node.ParameterList);
+                }
+                else if (node.OpenBraceToken == default && node.CloseBraceToken == default && node.SemicolonToken != default)
+                {
+                    MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node, node.SemicolonToken.GetLocation());
+                }
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
@@ -796,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static ImmutableSegmentedDictionary<string, VoidResult> GetNonTypeMemberNames(
-            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags, bool skipGlobalStatements = false)
+            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags, bool skipGlobalStatements = false, bool hasPrimaryCtor = false)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
@@ -804,6 +817,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyRequiredMembers = false;
 
             var memberNameBuilder = s_memberNameBuilderPool.Allocate();
+
+            if (hasPrimaryCtor)
+            {
+                memberNameBuilder.TryAdd(WellKnownMemberNames.InstanceConstructorName);
+            }
 
             foreach (var member in members)
             {

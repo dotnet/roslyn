@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // appended to its body.
                     if (includeNonEmptyInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
-                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || methodSymbol is SynthesizedRecordConstructor || _emitTestCoverageData))
+                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || methodSymbol is SynthesizedPrimaryConstructor || _emitTestCoverageData))
                         {
                             if (_emitTestCoverageData && methodSymbol.IsImplicitConstructor)
                             {
@@ -1754,9 +1754,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             initializersBody ??= GetSynthesizedEmptyBody(method);
 
-            if (method is SynthesizedRecordConstructor recordStructPrimaryCtor && method.ContainingType.IsRecordStruct)
+            if (method is SynthesizedPrimaryConstructor primaryCtor && method.ContainingType.IsStructType())
             {
-                body = BoundBlock.SynthesizedNoLocals(recordStructPrimaryCtor.GetSyntax());
+                body = BoundBlock.SynthesizedNoLocals(primaryCtor.GetSyntax());
                 nullableInitialState = getInitializerState(body);
             }
             else if (method is SourceMemberMethodSymbol sourceMethod)

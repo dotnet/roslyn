@@ -729,6 +729,13 @@ breaks
         }
 
         [Fact]
+        public void TestSpacingOnPrimaryConstructor()
+        {
+            TestNormalizeDeclaration("class  C     (   int    I   ,    int    J   )   ;    ", "class C(int I, int J);");
+            TestNormalizeDeclaration("struct  S     (   int    I   ,    int    J   )   ;    ", "struct S(int I, int J);");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {

@@ -3243,7 +3243,16 @@ record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
                 // (2,8): error CS1002: ; expected
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
+                // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
+                // (2,24): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 24),
+                // (2,31): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 31)
                 );
 
             UsingTree(test, TestOptions.Regular8,

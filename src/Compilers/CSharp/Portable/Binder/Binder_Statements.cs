@@ -3538,8 +3538,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (syntax)
             {
-                case RecordDeclarationSyntax recordDecl:
-                    return BindRecordConstructorBody(recordDecl, diagnostics);
+                case TypeDeclarationSyntax typeDecl:
+                    return BindPrimaryConstructorBody(typeDecl, diagnostics);
 
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
@@ -3592,14 +3592,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      expressionBody: null);
         }
 
-        private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, BindingDiagnosticBag diagnostics)
+        private BoundNode BindPrimaryConstructorBody(TypeDeclarationSyntax typeDecl, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(recordDecl.ParameterList is object);
-            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
+            Debug.Assert(typeDecl.ParameterList is object);
+            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration);
 
             BoundExpressionStatement initializer;
             ImmutableArray<LocalSymbol> constructorLocals;
-            if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (typeDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 Binder initializerBinder = GetBinder(baseWithArguments);
                 Debug.Assert(initializerBinder != null);
@@ -3608,14 +3608,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                initializer = BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                initializer = BindImplicitConstructorInitializer(typeDecl, diagnostics);
                 constructorLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
-            return new BoundConstructorMethodBody(recordDecl,
+            return new BoundConstructorMethodBody(typeDecl,
                                                   constructorLocals,
                                                   initializer,
-                                                  blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
+                                                  blockBody: new BoundBlock(typeDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);
         }
 
@@ -3640,12 +3640,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                hasRecordPrimaryConstructor())
+                hasPrimaryConstructor())
             {
                 if (isInstanceConstructor(out MethodSymbol constructorSymbol) &&
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
                 {
                     // Note: we check the constructor initializer of copy constructors elsewhere
+                    // PROTOTYPE(PrimaryConstructors): Adjust message?
                     Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }
@@ -3655,8 +3656,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isDefaultValueTypeInitializer &&
                 isInstanceConstructor(out _) &&
-                hasRecordPrimaryConstructor())
+                hasPrimaryConstructor())
             {
+                // PROTOTYPE(PrimaryConstructors): Adjust message?
                 Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
             }
 
@@ -3670,8 +3672,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
 
-            bool hasRecordPrimaryConstructor() =>
-                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any();
+            bool hasPrimaryConstructor() =>
+                ContainingType.GetMembersUnordered().OfType<SynthesizedPrimaryConstructor>().Any();
 
             bool isInstanceConstructor(out MethodSymbol constructorSymbol)
             {
@@ -3732,7 +3734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol? sourceConstructor = constructor as SourceMemberMethodSymbol;
-            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax
+            Debug.Assert(sourceConstructor?.SyntaxNode is TypeDeclarationSyntax
                 || ((ConstructorDeclarationSyntax?)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.
@@ -3787,9 +3789,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is RecordDeclarationSyntax recordDecl)
+                if (containerNode is TypeDeclarationSyntax typeDecl)
                 {
-                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                    outerBinder = binderFactory.GetInTypeBodyBinder(typeDecl);
                 }
                 else
                 {
@@ -3811,8 +3813,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
                         break;
 
-                    case RecordDeclarationSyntax recordDecl:
-                        outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                    case TypeDeclarationSyntax typeDecl:
+                        outerBinder = binderFactory.GetInTypeBodyBinder(typeDecl);
                         break;
 
                     default:
