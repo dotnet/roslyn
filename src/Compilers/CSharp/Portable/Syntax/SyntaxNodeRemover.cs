@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return node.FullSpan.IntersectsWith(_searchSpan) || (_residualTrivia != null && _residualTrivia.Count > 0);
             }
 
-            [return: NotNullIfNotNull("node")]
+            [return: NotNullIfNotNull(nameof(node))]
             public override SyntaxNode? Visit(SyntaxNode? node)
             {
                 SyntaxNode? result = node;

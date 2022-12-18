@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             return attributes.Select(a => new DeletedCustomAttribute(a, _typesUsedByDeletedMembers));
         }
 
-        [return: NotNullIfNotNull("typeReference")]
+        [return: NotNullIfNotNull(nameof(typeReference))]
         protected ITypeReference? WrapType(ITypeReference? typeReference)
         {
             if (typeReference is ITypeDefinition typeDef)

@@ -1,5 +1,31 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Raw string interpolations at start of line.
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+In .NET SDK XXX or earlier the following was erroneously allowed:
+
+```csharp
+var x = $"""
+    Hello
+{1 + 1}
+    World
+    """;
+```
+
+This violated the rule that the lines content (including where an interpolation starts) must start with same whitespace as the final `    """;` line.  It is now required that the above be written as:
+
+
+```csharp
+var x = $"""
+    Hello
+    {1 + 1}
+    World
+    """;
+```
+
+
 ## Inferred delegate type for methods includes default parameter values and `params` modifier
 
 ***Introduced in Visual Studio 2022 version 17.5***

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     "crlf" => "\r\n",
                     _ => Environment.NewLine
                 },
-                getEditorConfigStringForValue: option => option switch
+                serializeValue: value => value switch
                 {
                     "\n" => "lf",
                     "\r" => "cr",

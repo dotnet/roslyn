@@ -66,6 +66,30 @@ internal static class SolutionCrawlerOptionsStorage
     }
 
     /// <summary>
+    /// <para>Gets the effective background compiler analysis scope for the current solution.</para>
+    ///
+    /// <para>Gets the solution-specific analysis scope set through
+    /// <see cref="SolutionBackgroundAnalysisScopeOption"/>, or the default compiler analysis scope if no
+    /// solution-specific scope is set.</para>
+    /// </summary>
+    public static CompilerDiagnosticsScope GetBackgroundCompilerAnalysisScope(this IGlobalOptionService globalOptions, string language)
+    {
+        if (LowMemoryForcedMinimalBackgroundAnalysis)
+        {
+            return CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+        }
+
+        return globalOptions.GetOption(SolutionBackgroundAnalysisScopeOption) switch
+        {
+            BackgroundAnalysisScope.ActiveFile => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics,
+            BackgroundAnalysisScope.OpenFiles => CompilerDiagnosticsScope.OpenFiles,
+            BackgroundAnalysisScope.FullSolution => CompilerDiagnosticsScope.FullSolution,
+            BackgroundAnalysisScope.None => CompilerDiagnosticsScope.None,
+            _ => globalOptions.GetOption(CompilerDiagnosticsScopeOption, language),
+        };
+    }
+
+    /// <summary>
     /// Returns true if full solution analysis is enabled for the given
     /// <paramref name="analyzer"/> through options for the given <paramref name="language"/>.
     /// </summary>
@@ -73,7 +97,7 @@ internal static class SolutionCrawlerOptionsStorage
     {
         if (analyzer.IsCompilerAnalyzer())
         {
-            return globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.FullSolution;
+            return GetBackgroundCompilerAnalysisScope(globalOptions, language) == CompilerDiagnosticsScope.FullSolution;
         }
 
         return GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.FullSolution;
@@ -121,7 +145,7 @@ internal static class SolutionCrawlerOptionsStorage
         out bool compilerFullSolutionAnalysisEnabled,
         out bool analyzersFullSolutionAnalysisEnabled)
     {
-        compilerFullSolutionAnalysisEnabled = globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.FullSolution;
+        compilerFullSolutionAnalysisEnabled = GetBackgroundCompilerAnalysisScope(globalOptions, language) == CompilerDiagnosticsScope.FullSolution;
         analyzersFullSolutionAnalysisEnabled = GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.FullSolution;
         return compilerFullSolutionAnalysisEnabled || analyzersFullSolutionAnalysisEnabled;
     }
@@ -135,7 +159,7 @@ internal static class SolutionCrawlerOptionsStorage
         this IGlobalOptionService globalOptions,
         string language)
     {
-        var compilerDiagnosticsDisabled = globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.None;
+        var compilerDiagnosticsDisabled = GetBackgroundCompilerAnalysisScope(globalOptions, language) == CompilerDiagnosticsScope.None;
         var analyzersDisabled = GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.None;
         return compilerDiagnosticsDisabled && analyzersDisabled;
     }

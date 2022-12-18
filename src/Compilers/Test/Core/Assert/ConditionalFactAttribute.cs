@@ -52,8 +52,6 @@ namespace Roslyn.Test.Utilities
         /// Mono issues around Default Interface Methods
         /// </summary>
         public const string MonoDefaultInterfaceMethods = "Mono can't execute this default interface method test yet";
-
-        public const string TestIsTriggeringMessagePackIssue = "https://github.com/dotnet/roslyn/issues/64195";
     }
 
     public class ConditionalFactAttribute : FactAttribute
@@ -260,6 +258,17 @@ namespace Roslyn.Test.Utilities
 #endif
 
         public override string SkipReason => "Test not supported in DEBUG";
+    }
+
+    public class IsNot32BitDebug : ExecutionCondition
+    {
+#if DEBUG
+        public override bool ShouldSkip => !Environment.Is64BitProcess;
+#else
+        public override bool ShouldSkip => false;
+#endif
+
+        public override string SkipReason => "Test not supported in 32bit DEBUG";
     }
 
     public class IsDebug : ExecutionCondition

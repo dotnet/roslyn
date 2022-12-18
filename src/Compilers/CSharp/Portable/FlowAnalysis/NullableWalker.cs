@@ -608,6 +608,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
                         var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
                         bool constructorEnforcesRequiredMembers = method.ShouldCheckRequiredMembers();
+
+                        // Required properties can be attributed MemberNotNull, indicating that if the property is set, the field will be set as well.
+                        // If we're enforcing required members (ie, the constructor is not attributed with SetsRequiredMembers), we also want to
+                        // not warn for members named in such attributes.
+                        var membersWithStateEnforcedByRequiredMembers = constructorEnforcesRequiredMembers
+                            ? method.ContainingType.GetMembersUnordered().SelectManyAsArray(
+                                predicate: member => member is PropertySymbol { IsRequired: true },
+                                selector: member =>
+                                {
+                                    var property = (PropertySymbol)member;
+                                    return property.SetMethod?.NotNullMembers ?? property.NotNullMembers;
+                                })
+                            : ImmutableArray<string>.Empty;
+
                         var alreadyWarnedMembers = PooledHashSet<Symbol>.GetInstance();
                         foreach (var member in method.ContainingType.GetMembersUnordered())
                         {
@@ -615,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // For auto-properties, `GetMembersUnordered()` will return the backing field, and `checkStateOnConstructorExit` will follow that to the property itself, so we only need
                             // to force property analysis if the member is required and _does not_ have a backing field.
                             var shouldForcePropertyAnalysis = !constructorEnforcesRequiredMembers && member is not SourcePropertySymbolBase { BackingField: not null } && member.IsRequired();
-                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: shouldForcePropertyAnalysis);
+                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, membersWithStateEnforcedByRequiredMembers, forcePropertyAnalysis: shouldForcePropertyAnalysis);
                         }
 
                         // If this constructor is adding `SetsRequiredMembers` and the base or this constructor did not have it, we need
@@ -631,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // been reported in constructor of the type that defined them.
                             foreach (var (_, member) in baseType.AllRequiredMembers)
                             {
-                                checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: true);
+                                checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, membersWithStateEnforcedByRequiredMembers: ImmutableArray<string>.Empty, forcePropertyAnalysis: true);
                             }
                         }
 
@@ -653,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation, bool forcePropertyAnalysis)
+            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation, ImmutableArray<string> membersWithStateEnforcedByRequiredMembers, bool forcePropertyAnalysis)
             {
                 var isStatic = !constructor.RequiresInstanceReceiver();
                 if (member.IsStatic != isStatic)
@@ -706,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (symbol.IsRequired() && constructor.ShouldCheckRequiredMembers())
+                if ((symbol.IsRequired() || membersWithStateEnforcedByRequiredMembers.Contains(symbol.Name)) && constructor.ShouldCheckRequiredMembers())
                 {
                     return;
                 }
@@ -963,10 +977,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 => ImmutableArray<Symbol>.Empty,
 
                             (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: false)
-                                => containingType.GetMembersUnordered().SelectAsArray(predicate: SymbolExtensions.IsRequired, selector: getFieldSymbolToBeInitialized),
+                                => containingType.GetMembersUnordered().SelectManyAsArray(predicate: SymbolExtensions.IsRequired, selector: getAllMembersToBeDefaulted),
 
                             (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
-                                => containingType.AllRequiredMembers.SelectAsArray(static kvp => getFieldSymbolToBeInitialized(kvp.Value)),
+                                => containingType.AllRequiredMembers.SelectManyAsArray(static kvp => getAllMembersToBeDefaulted(kvp.Value)),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
                                 => containingType.GetMembersUnordered().SelectAsArray(getFieldSymbolToBeInitialized),
@@ -993,10 +1007,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (var (_, requiredMember) in requiredMembers)
                             {
                                 // We want to assume that all required members were _not_ set by the chained constructor
-                                builder.Add(getFieldSymbolToBeInitialized(requiredMember));
+                                builder.AddRange(getAllMembersToBeDefaulted(requiredMember));
                             }
 
                             return builder.ToImmutableAndFree();
+                        }
+
+                        static IEnumerable<Symbol> getAllMembersToBeDefaulted(Symbol requiredMember)
+                        {
+                            Debug.Assert(requiredMember.IsRequired());
+
+                            if (requiredMember is FieldSymbol)
+                            {
+                                yield return requiredMember;
+                            }
+                            else
+                            {
+                                var property = (PropertySymbol)requiredMember;
+                                yield return getFieldSymbolToBeInitialized(property);
+
+                                // If the set method is null (ie missing), that's an error, but we'll recover as best we can
+                                foreach (var notNullMemberName in (property.SetMethod?.NotNullMembers ?? property.NotNullMembers))
+                                {
+                                    foreach (var member in property.ContainingType.GetMembers(notNullMemberName))
+                                    {
+                                        yield return getFieldSymbolToBeInitialized(member);
+                                    }
+                                }
+                            }
                         }
 
                         static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)

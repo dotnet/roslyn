@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -350,8 +351,11 @@ namespace Microsoft.CodeAnalysis
 
             ValueSource<TreeAndVersion>? newTreeSource = null;
 
-            // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree and it didn't have
-            // any, we can avoid a reparse since the tree will be parsed the same.
+            // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree
+            // and it didn't have any, we can avoid a reparse since the tree will be parsed the same.
+            //
+            // We only need to care about `#if` directives as those are the only sorts of directives that can affect how
+            // a tree is parsed.
             if (onlyPreprocessorDirectiveChange &&
                 _treeSource.TryGetValue(out var existingTreeAndVersion))
             {
@@ -359,7 +363,8 @@ namespace Microsoft.CodeAnalysis
 
                 SyntaxTree? newTree = null;
 
-                if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirectives)
+                var syntaxKinds = _languageServices.GetRequiredService<ISyntaxKindsService>();
+                if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
                 {
                     var treeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                     newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);

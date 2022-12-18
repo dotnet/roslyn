@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
             context.TraceInformation($"{this.GetType()} finished getting spans");
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousParams(
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         }
 
         private void HandleRemovedDocuments(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport> progress)
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport[]> progress)
         {
             Contract.ThrowIfNull(context.Solution);
 
