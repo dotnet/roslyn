@@ -40,8 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         End Function
 
         Protected Overrides Function PostProcessElseIf(ifStatement As MultiLineIfBlockSyntax, newWhenTrueStatement As ExecutableStatementSyntax) As SyntaxNode
-            Debug.Fail("Should never get here")
-            Return newWhenTrueStatement
+            Throw ExceptionUtilities.Unreachable()
         End Function
 
         Protected Overrides Function ElementBindingExpression(argumentList As ArgumentListSyntax) As InvocationExpressionSyntax
