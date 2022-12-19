@@ -9778,11 +9778,15 @@ tryAgain:
                 {
                     this.EatToken();
 
+                    if (IsDeclarationModifier(this.CurrentToken.Kind) ||
+                        IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind))
+                    {
+                        return true;
+                    }
+
                     using var _2 = this.GetDisposableResetPoint(resetOnDispose: true);
 
-                    if (IsDeclarationModifier(this.CurrentToken.Kind) ||
-                        IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) ||
-                        (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken))
+                    if (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
                     {
                         return true;
                     }
