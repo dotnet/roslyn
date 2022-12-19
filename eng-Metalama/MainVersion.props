@@ -5,7 +5,7 @@
         <MinorVersion>4</MinorVersion>
         <RoslynPatchVersion>0</RoslynPatchVersion>
         <RoslynVersion>$(MajorVersion).$(MinorVersion).$(RoslynPatchVersion)</RoslynVersion>
-        <OurPatchVersion>9</OurPatchVersion>
+        <OurPatchVersion>10</OurPatchVersion>
         <!--
              The patch version must be over 1000.
              If Roslyn has a patch version `p`, our patch version will be `(p + 1) * 1000 + OUR`
