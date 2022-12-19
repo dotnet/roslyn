@@ -178,5 +178,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End Get
         End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace

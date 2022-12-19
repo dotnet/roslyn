@@ -44,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
         Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+        Private _lazyIsRequired As ThreeState = ThreeState.Unknown
 
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
@@ -288,6 +289,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return _lazyConstantValue
         End Function
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                If Not _lazyIsRequired.HasValue() Then
+                    _lazyIsRequired = PEModule.HasAttribute(Handle, AttributeDescription.RequiredMemberAttribute).ToThreeState()
+                End If
+
+                Return _lazyIsRequired.Value()
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get

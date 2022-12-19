@@ -329,5 +329,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             Return _underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return _underlyingProperty.IsRequired
+            End Get
+        End Property
     End Class
 End Namespace

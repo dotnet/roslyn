@@ -1713,6 +1713,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Private NotInheritable Class ReducedExtensionAccessorSymbol
             Inherits MethodSymbol
 

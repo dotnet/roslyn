@@ -206,6 +206,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return _underlyingField.GetConstantValue(inProgress)
         End Function
 
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return _underlyingField.IsRequired
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return _underlyingField.Locations
