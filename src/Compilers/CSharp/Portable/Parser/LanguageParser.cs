@@ -9787,11 +9787,10 @@ tryAgain:
                         return true;
                     }
                 }
-                // If the next token is an identifier with some contextual kind, it might be a modifier.
-                // We want to treat current token as modifier if the next token is a modifier, so we need to check that.
+                // If current token might be a contextual modifier we need to check ahead the next token after it
+                // If the next token appears to be a modifier, we treat current token as a modifier as well
                 // This allows to correctly parse things like local functions with several `async` modifiers
-                while (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
-                       this.CurrentToken.ContextualKind != SyntaxKind.IdentifierToken);
+                while (IsAdditionalLocalFunctionModifier(this.CurrentToken.ContextualKind));
 
                 return false;
             }
