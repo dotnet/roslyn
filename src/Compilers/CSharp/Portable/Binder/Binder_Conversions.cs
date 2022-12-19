@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var delegateType = targetType.GetDelegateType();
             Debug.Assert(delegateType is not null);
-            var isSynthesized = delegateType.DelegateInvokeMethod.OriginalDefinition is SynthesizedDelegateInvokeMethod;
+            var isSynthesized = delegateType.DelegateInvokeMethod?.OriginalDefinition is SynthesizedDelegateInvokeMethod;
             var delegateParameters = delegateType.DelegateParameters();
 
             Debug.Assert(lambdaSymbol.ParameterCount == delegateParameters.Length);
