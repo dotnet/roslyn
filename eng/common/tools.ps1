@@ -829,7 +829,7 @@ function MSBuild-Core() {
 
   Write-Host "msbuild-core get build tool"
   $buildTool = InitializeBuildTool
-  Write-Host "msbuild-core finished getting build tool $buildTool"
+  Write-Host "msbuild-core finished getting build tool $($buildTool.Path)"
 
   $cmdArgs = "$($buildTool.Command) /m /nologo /clp:Summary /v:$verbosity /nr:$nodeReuse /p:ContinuousIntegrationBuild=$ci"
   Write-Host "msbuild-core cmd args $cmdArgs"
