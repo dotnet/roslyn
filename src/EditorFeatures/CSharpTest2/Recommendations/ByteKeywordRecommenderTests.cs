@@ -4,43 +4,18 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ByteKeywordRecommenderTests : SpecialTypeKeywordRecommenderTests
+    public class ByteKeywordRecommenderTests : FixedSizeValueTypeKeywordRecommenderTests
     {
-        [Fact]
-        public async Task TestAfterStackAlloc()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-     int* goo = stackalloc $$");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public async Task TestInFixedStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"fixed ($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
-
         [Fact]
         public async Task TestEnumBaseTypes()
         {
             await VerifyKeywordAsync(
 @"enum E : $$");
-        }
-
-        [Theory, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [CombinatorialData]
-        public async Task TestInSizeOf(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"sizeof($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
     }
 }
