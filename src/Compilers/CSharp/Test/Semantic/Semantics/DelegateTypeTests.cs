@@ -14978,6 +14978,23 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_Alone_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                Del lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
+
+                delegate void Del([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithOptional(string type)
@@ -15037,6 +15054,23 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithDefault_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                Del lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) => { };
+
+                delegate void Del([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Method(string type)
         {
             var source = $$"""
@@ -15056,6 +15090,32 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (5,39): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
                 //     public static void M(decimal  d = 1.1m) { }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(5, 39));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Method_CustomType(string type)
+        {
+            var source = $$"""
+                Del m = C.M;
+
+                class C
+                {
+                    public static void M({{type}} d = 1.1m) { }
+                }
+
+                delegate void Del({{type}} d = 1.1m);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (5,39): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                //     public static void M(decimal  d = 1.1m) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(5, 39),
+                // (8,32): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // delegate void Del(decimal  d = 1.1m);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(8, 32));
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -15085,6 +15145,29 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithOptional_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                Del m = C.M;
+                
+                class C
+                {
+                    public static void M([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) { }
+                }
+
+                delegate void Del([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithDefault(string type)
         {
             var source = $$"""
@@ -15103,6 +15186,28 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (3,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
                 // var m = C.M;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 9));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithDefault_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                Del m = C.M;
+                
+                class C
+                {
+                    public static void M([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) { }
+                }
+
+                delegate void Del([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics();
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -15231,6 +15336,24 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime")]
+        [InlineData("DateTime?")]
+        public void MissingDateTimeConstantAttribute_Lambda_Alone_CustomType(string type)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                Del lam = ([DateTimeConstant(100L)] {{type}} d) => { };
+
+                delegate void Del([DateTimeConstant(100L)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("DateTime ")]
         [InlineData("DateTime?")]
         public void MissingDateTimeConstantAttribute_Lambda_WithOptional(string type)
@@ -15249,6 +15372,25 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (5,57): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DateTimeConstantAttribute..ctor'
                 // var lam = ([Optional, DateTimeConstant(100L)] DateTime  d) => { };
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.DateTimeConstantAttribute", ".ctor").WithLocation(5, 57));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime ")]
+        [InlineData("DateTime?")]
+        public void MissingDateTimeConstantAttribute_Lambda_WithOptional_CustomType(string type)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                Del lam = ([Optional, DateTimeConstant(100L)] {{type}} d) => { };
+
+                delegate void Del([Optional, DateTimeConstant(100L)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -15277,6 +15419,33 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (1,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DateTimeConstantAttribute..ctor'
                 // var m = C.M;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DateTimeConstantAttribute", ".ctor").WithLocation(1, 9));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime ")]
+        [InlineData("DateTime?")]
+        public void MissingDateTimeConstantAttribute_ExternalMethodGroup_CustomType(string type)
+        {
+            var source1 = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                public delegate void Del([Optional, DateTimeConstant(100L)] {{type}} d);
+                
+                public class C
+                {
+                    public static void M([Optional, DateTimeConstant(100L)] {{type}} d) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                Del m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp2.VerifyEmitDiagnostics();
         }
 
         [Fact]
