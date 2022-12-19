@@ -2,20 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class LongKeywordRecommenderTests : FixedSizeValueTypeKeywordRecommenderTests
+    public class LongKeywordRecommenderTests : WholeNumberTypeKeywordRecommenderTests
     {
-        [Fact]
-        public async Task TestEnumBaseTypes()
-        {
-            await VerifyKeywordAsync(
-@"enum E : $$");
-        }
     }
 }
