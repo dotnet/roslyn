@@ -358,6 +358,8 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
   }
 
   if (Test-Path variable:global:_MSBuildExe) {
+    $gblMsBuild = $global:_MSBuildExe
+    Write-Host "InitializeVSMSBuild Returning global msbuild.exe $gblMsBuild"
     return $global:_MSBuildExe
   }
 
@@ -378,6 +380,9 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
       $vsRequirements = New-Object PSObject -Property @{ version = $vsMinVersionReqdStr }
     }
   }
+
+  Write-Host "InitializeVSMSBuild vs reqs $vsRequirements"
+  
   $vsMinVersionStr = if ($vsRequirements.version) { $vsRequirements.version } else { $vsMinVersionReqdStr }
   $vsMinVersion = [Version]::new($vsMinVersionStr)
 
@@ -390,9 +395,12 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
       $msbuildVersion = [Version]::new((Get-Item $msbuildCmd.Path).VersionInfo.ProductVersion.Split([char[]]@('-', '+'))[0])
 
       if ($msbuildVersion -ge $vsMinVersion) {
+        $msbuildCmdPath = $msbuildCmd.Path
+        Write-Host "InitializeVSMSBuild returning msbuildCmd path $msbuildCmdPath"
         return $global:_MSBuildExe = $msbuildCmd.Path
       }
 
+      Write-Host "InitializeVSMSBuild ERROR dev cmd for VS is not recent enough"
       # Report error - the developer environment is initialized with incompatible VS version.
       throw "Developer Command Prompt for VS $($env:VisualStudioVersion) is not recent enough. Please upgrade to $vsMinVersionStr or build from a plain CMD window"
     }
@@ -404,12 +412,14 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
     $vsInstallDir = $vsInfo.installationPath
     $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
 
+    Write-Host "InitializeVSMSBuild using VS installation"
     InitializeVisualStudioEnvironmentVariables $vsInstallDir $vsMajorVersion
   } else {
-
+    Write-Host "InitializeVSMSBuild xcopy msbuild"
     if (Get-Member -InputObject $GlobalJson.tools -Name 'xcopy-msbuild') {
       $xcopyMSBuildVersion = $GlobalJson.tools.'xcopy-msbuild'
       $vsMajorVersion = $xcopyMSBuildVersion.Split('.')[0]
+      Write-Host "InitializeVSMSBuild xcopy msbuild with vs version $vsMajorVersion"
     } else {
       #if vs version provided in global.json is incompatible (too low) then use the default version for xcopy msbuild download
       if($vsMinVersion -lt $vsMinVersionReqd){
@@ -425,6 +435,8 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
         $vsMajorVersion = $vsMinVersion.Major
         $vsMinorVersion = $vsMinVersion.Minor
         $xcopyMSBuildVersion = "$vsMajorVersion.$vsMinorVersion.0"
+
+        Write-Host "InitializeVSMSBuild xcopy msbuild with vs version $vsMajorVersion $vsMinorVersion"
       }
     }
 
@@ -432,10 +444,12 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
     if ($xcopyMSBuildVersion.Trim() -ine "none") {
         $vsInstallDir = InitializeXCopyMSBuild $xcopyMSBuildVersion $install
         if ($vsInstallDir -eq $null) {
+            Write-Host "InitializeVSMSBuild ERROR could not xcopy msbuild"
             throw "Could not xcopy msbuild. Please check that package 'RoslynTools.MSBuild @ $xcopyMSBuildVersion' exists on feed 'dotnet-eng'."
         }
     }
     if ($vsInstallDir -eq $null) {
+      Write-Host "InitializeVSMSBuild ERROR unable to find VS intance with compoonetns"
       throw 'Unable to find Visual Studio that has required version and components installed'
     }
   }
@@ -445,11 +459,15 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
   $local:BinFolder = Join-Path $vsInstallDir "MSBuild\$msbuildVersionDir\Bin"
   $local:Prefer64bit = if (Get-Member -InputObject $vsRequirements -Name 'Prefer64bit') { $vsRequirements.Prefer64bit } else { $false }
   if ($local:Prefer64bit -and (Test-Path(Join-Path $local:BinFolder "amd64"))) {
+    Write-Host "InitializeVSMSBuild 64bit msbuild"
     $global:_MSBuildExe = Join-Path $local:BinFolder "amd64\msbuild.exe"
   } else {
+    Write-Host "InitializeVSMSBuild reg msbuild"
     $global:_MSBuildExe = Join-Path $local:BinFolder "msbuild.exe"
   }
 
+  $gblMsBuild2 = $global:_MSBuildExe
+  Write-Host "InitializeVSMSBuild Found msbuild at $gblMsBuild2"
   return $global:_MSBuildExe
 }
 
@@ -475,6 +493,7 @@ function InitializeXCopyMSBuild([string]$packageVersion, [bool]$install) {
 
   if (!(Test-Path $packageDir)) {
     if (!$install) {
+      Write-Host "InitializeXCopyMSBuild no package dir and not installing $packageDir"
       return $null
     }
 
@@ -560,44 +579,54 @@ function InitializeBuildTool() {
   if (Test-Path variable:global:_BuildTool) {
     # If the requested msbuild parameters do not match, clear the cached variables.
     if($global:_BuildTool.Contains('ExcludePrereleaseVS') -and $global:_BuildTool.ExcludePrereleaseVS -ne $excludePrereleaseVS) {
+      Write-Host "InitializeBuildTool excluding pre-release VS"
       Remove-Item variable:global:_BuildTool
       Remove-Item variable:global:_MSBuildExe
     } else {
+      Write-Host "InitializeBuildTool returns global"
       return $global:_BuildTool
     }
   }
 
   if (-not $msbuildEngine) {
+    Write-Host "InitializeBuildTool getting default msbuild engine"
     $msbuildEngine = GetDefaultMSBuildEngine
   }
 
   # Initialize dotnet cli if listed in 'tools'
   $dotnetRoot = $null
   if (Get-Member -InputObject $GlobalJson.tools -Name 'dotnet') {
+    Write-Host "InitializeBuildTool initializing dotnet cli"
     $dotnetRoot = InitializeDotNetCli -install:$restore
   }
 
   if ($msbuildEngine -eq 'dotnet') {
+    Write-Host "InitializeBuildTool dotnet build tool"
     if (!$dotnetRoot) {
       Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "/global.json must specify 'tools.dotnet'."
       ExitWithExitCode 1
     }
     $dotnetPath = Join-Path $dotnetRoot (GetExecutableFileName 'dotnet')
     $buildTool = @{ Path = $dotnetPath; Command = 'msbuild'; Tool = 'dotnet'; Framework = 'net7.0' }
+    Write-Host "InitializeBuildTool returns $dotnetPath and $buildTool"
   } elseif ($msbuildEngine -eq "vs") {
     try {
+      Write-Host "InitializeBuildTool initializing vs msbuild"
       $msbuildPath = InitializeVisualStudioMSBuild -install:$restore
     } catch {
+      Write-Host "InitializeBuildTool error initializing vs msbuild"
       Write-PipelineTelemetryError -Category 'InitializeToolset' -Message $_
       ExitWithExitCode 1
     }
 
     $buildTool = @{ Path = $msbuildPath; Command = ""; Tool = "vs"; Framework = "net472"; ExcludePrereleaseVS = $excludePrereleaseVS }
+    Write-Host "InitializeBuildTool buildtool is vs with $buildTool"
   } else {
     Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unexpected value of -msbuildEngine: '$msbuildEngine'."
     ExitWithExitCode 1
   }
 
+  Write-Host "InitializeBuildTool RETURNS $buildTool"
   return $global:_BuildTool = $buildTool
 }
 
@@ -778,12 +807,15 @@ function MSBuild() {
 #
 function MSBuild-Core() {
   if ($ci) {
+    Write-Host "msbuild-core ci"
     if (!$binaryLog -and !$excludeCIBinarylog) {
+      Write-Host "msbuild-core error no bin log"
       Write-PipelineTelemetryError -Category 'Build' -Message 'Binary log must be enabled in CI build, or explicitly opted-out from with the -excludeCIBinarylog switch.'
       ExitWithExitCode 1
     }
 
     if ($nodeReuse) {
+      Write-Host "msbuild-core error node reuse enabled"
       Write-PipelineTelemetryError -Category 'Build' -Message 'Node reuse must be disabled in CI build.'
       ExitWithExitCode 1
     }
@@ -791,9 +823,12 @@ function MSBuild-Core() {
 
   Enable-Nuget-EnhancedRetry
 
+  Write-Host "msbuild-core get build tool"
   $buildTool = InitializeBuildTool
+  Write-Host "msbuild-core finished getting build tool $buildTool"
 
   $cmdArgs = "$($buildTool.Command) /m /nologo /clp:Summary /v:$verbosity /nr:$nodeReuse /p:ContinuousIntegrationBuild=$ci"
+  Write-Host "msbuild-core cmd args $cmdArgs"
 
   if ($warnAsError) {
     $cmdArgs += ' /warnaserror /p:TreatWarningsAsErrors=true'
@@ -811,9 +846,14 @@ function MSBuild-Core() {
     }
   }
 
+  Write-Host "msbuild-core updated cmd args $cmdArgs"
+
   $env:ARCADE_BUILD_TOOL_COMMAND = "$($buildTool.Path) $cmdArgs"
 
+  $btPath = $buildTool.Path
+  Write-Host "msbuild-core exec process at build tool path $btPath"
   $exitCode = Exec-Process $buildTool.Path $cmdArgs
+  Write-Host "msbuild-core exit code is $exitCode"
 
   if ($exitCode -ne 0) {
     # We should not Write-PipelineTaskError here because that message shows up in the build summary
