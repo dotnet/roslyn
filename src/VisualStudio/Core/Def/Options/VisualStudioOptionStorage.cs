@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -20,10 +21,27 @@ internal abstract class VisualStudioOptionStorage
 {
     internal sealed class RoamingProfileStorage : VisualStudioOptionStorage
     {
+        /// <summary>
+        /// Key may contain %LANGUAGE% placeholder that is replaced by the language name.
+        /// </summary>
         public string Key { get; }
+
+        /// <summary>
+        /// VB specific key should only be specified for backward compat for a few speciifc options.
+        /// Language specific storage key should use %LANGUAGE% placeholder in <see cref="Key"/>.
+        /// </summary>
         public string? VisualBasicKey { get; }
 
-        public RoamingProfileStorage(string key, string? vbKey = null)
+        public RoamingProfileStorage(string key)
+        {
+            Key = key;
+        }
+
+        /// <summary>
+        /// Backward compat only.
+        /// </summary>
+        [Obsolete]
+        public RoamingProfileStorage(string key, string vbKey)
         {
             Key = key;
             VisualBasicKey = vbKey;
@@ -214,7 +232,9 @@ internal abstract class VisualStudioOptionStorage
         {"DiagnosticOptions_LogTelemetryForBackgroundAnalyzerExecution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
         {"DiagnosticOptions_LspPullDiagnosticsFeatureFlag", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},
         {"DiagnosticTaggingOptions_PullDiagnosticTagging", new FeatureFlagStorage(@"Roslyn.PullDiagnosticTagging")},
+#pragma warning disable CS0612 // Type or member is obsolete
         {"DocumentationCommentOptions_AutoXmlDocCommentGeneration", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
+#pragma warning restore
         {"DocumentOutlineOptions_EnableDocumentOutline", new FeatureFlagStorage(@"Roslyn.DocumentOutline")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
         {"dotnet_remove_unnecessary_suppression_exclusions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveUnnecessarySuppressionExclusions")},
@@ -267,8 +287,10 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_EndConstruct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoEndInsert")},
         {"FeatureOnOffOptions_InheritanceMarginCombinedWithIndicatorMargin", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},
         {"FeatureOnOffOptions_InheritanceMarginIncludeGlobalImports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports")},
+#pragma warning disable CS0612 // Type or member is obsolete
         {"FeatureOnOffOptions_KeywordHighlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Keyword Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightRelatedKeywords")},
         {"FeatureOnOffOptions_LineSeparator", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Line Separator", "TextEditor.VisualBasic.Specific.DisplayLineSeparators")},
+#pragma warning restore
         {"FeatureOnOffOptions_NavigateAsynchronously", new RoamingProfileStorage("TextEditor.NavigateAsynchronously")},
         {"FeatureOnOffOptions_NavigateToDecompiledSources", new RoamingProfileStorage("TextEditor.NavigateToDecompiledSources")},
         {"FeatureOnOffOptions_NavigateToSourceLinkAndEmbeddedSources", new RoamingProfileStorage("TextEditor.NavigateToSourceLinkAndEmbeddedSources")},
@@ -276,8 +298,10 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_OfferRemoveUnusedReferencesFeatureFlag", new FeatureFlagStorage(@"Roslyn.RemoveUnusedReferences")},
         {"FeatureOnOffOptions_Outlining", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Outlining")},
         {"FeatureOnOffOptions_PrettyListing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PrettyListing")},
+#pragma warning disable CS0612 // Type or member is obsolete
         {"FeatureOnOffOptions_ReferenceHighlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Reference Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightReferences")},
         {"FeatureOnOffOptions_RenameTrackingPreview", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview", "TextEditor.VisualBasic.Specific.RenameTrackingPreview")},
+#pragma warning restore
         {"FeatureOnOffOptions_ShowInheritanceMargin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin")},
         {"FeatureOnOffOptions_SkipAnalyzersForImplicitlyTriggeredBuilds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
         {"FeatureOnOffOptions_StringIdentation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.StringIdentation")},
@@ -387,8 +411,8 @@ internal abstract class VisualStudioOptionStorage
         {"VisualStudioNavigationOptions_NavigateToObjectBrowser", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser")},
         {"VisualStudioWorkspaceStatusService_PartialLoadModeFeatureFlag", new FeatureFlagStorage(@"Roslyn.PartialLoadMode")},
         {"WorkspaceConfigurationOptions_DisableBackgroundCompilation", new FeatureFlagStorage(@"Roslyn.DisableBackgroundCompilation")},
-        {"WorkspaceConfigurationOptions_DisableCloneWhenProducingSkeletonReferences", new FeatureFlagStorage(@"Roslyn.DisableCloneWhenProducingSkeletonReferences")},
         {"WorkspaceConfigurationOptions_DisableReferenceManagerRecoverableMetadata", new FeatureFlagStorage(@"Roslyn.DisableReferenceManagerRecoverableMetadata")},
+        {"WorkspaceConfigurationOptions_DisableSharedSyntaxTrees", new FeatureFlagStorage(@"Roslyn.DisableSharedSyntaxTrees")},
         {"WorkspaceConfigurationOptions_EnableDiagnosticsInSourceGeneratedFiles", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment")},
         {"WorkspaceConfigurationOptions_EnableDiagnosticsInSourceGeneratedFilesFeatureFlag", new FeatureFlagStorage(@"Roslyn.EnableDiagnosticsInSourceGeneratedFiles")},
         {"WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment")},

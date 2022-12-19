@@ -69,16 +69,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             if (_optionsToMonitorForChanges.TryGetValue(storageKey, out var entry))
             {
                 var optionValue = TryReadOptionValue(entry.optionKey, storageKey, entry.storageType);
-                if (optionValue.HasValue)
+                if (optionValue.HasValue && _legacyGlobalOptions.GlobalOptions.RefreshOption(entry.optionKey, optionValue.Value))
                 {
-                    if (_globalOptionService.RefreshOption(entry.optionKey, optionValue.Value))
-                    {
-                        // We may be updating the values of internally defined public options.
-                        // Update solution snapshots of all workspaces to reflect the new values.
-                        _legacyGlobalOptions.UpdateRegisteredWorkspaces();
-                    }
+                    // We may be updating the values of internally defined public options.
+                    // Update solution snapshots of all workspaces to reflect the new values.
+                    _legacyGlobalOptions.UpdateRegisteredWorkspaces();
                 }
-
             }
 
             return Task.CompletedTask;

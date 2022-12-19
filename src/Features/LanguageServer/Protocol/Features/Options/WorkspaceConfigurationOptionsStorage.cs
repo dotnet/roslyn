@@ -21,9 +21,6 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
         "Storage", "CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
 
-    public static readonly Option2<bool> DisableCloneWhenProducingSkeletonReferences = new(
-        "WorkspaceConfigurationOptions", "DisableCloneWhenProducingSkeletonReferences", WorkspaceConfigurationOptions.Default.DisableCloneWhenProducingSkeletonReferences);
-
     public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
         "WorkspaceConfigurationOptions", "DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata);
 
@@ -31,8 +28,7 @@ internal static class WorkspaceConfigurationOptionsStorage
         "WorkspaceConfigurationOptions", "DisableBackgroundCompilation", WorkspaceConfigurationOptions.Default.DisableBackgroundCompilation);
 
     public static readonly Option2<bool> DisableSharedSyntaxTrees = new(
-        "WorkspaceConfigurationOptions", "DisableSharedSyntaxTrees", WorkspaceConfigurationOptions.Default.DisableSharedSyntaxTrees,
-        new FeatureFlagStorageLocation("Roslyn.DisableSharedSyntaxTrees"));
+        "WorkspaceConfigurationOptions", "DisableSharedSyntaxTrees", WorkspaceConfigurationOptions.Default.DisableSharedSyntaxTrees);
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
