@@ -15330,12 +15330,20 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             var source2 = """
                 new C().M((decimal d = 1.1m) => { });
                 """;
-            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
-            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
-            comp2.VerifyDiagnostics(
+
+            var diagnostics = new[]
+            {
                 // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Del)' and 'C.M(Action<decimal>)'
                 // new C().M((decimal d = 1.1m) => { });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(Del)", "C.M(System.Action<decimal>)").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(Del)", "C.M(System.Action<decimal>)").WithLocation(1, 9)
+            };
+
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.VerifyDiagnostics(diagnostics);
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -15498,12 +15506,20 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
 
                 new C().M(([Optional, DateTimeConstant(100L)] DateTime d) => { });
                 """;
-            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
-            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
-            comp2.VerifyDiagnostics(
+
+            var diagnostics = new[]
+            {
                 // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Del)' and 'C.M(Action<DateTime>)'
                 // new C().M(([Optional, DateTimeConstant(100L)] DateTime d) => { });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(Del)", "C.M(System.Action<System.DateTime>)").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(Del)", "C.M(System.Action<System.DateTime>)").WithLocation(5, 9)
+            };
+
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.VerifyDiagnostics(diagnostics);
         }
 
         [Fact]
