@@ -15095,32 +15095,6 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
-        public void MissingDecimalConstantAttribute_Method_CustomType(string type)
-        {
-            var source = $$"""
-                Del m = C.M;
-
-                class C
-                {
-                    public static void M({{type}} d = 1.1m) { }
-                }
-
-                delegate void Del({{type}} d = 1.1m);
-                """;
-            var comp = CreateCompilation(source);
-            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
-            comp.VerifyDiagnostics(
-                // (5,39): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
-                //     public static void M(decimal  d = 1.1m) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(5, 39),
-                // (8,32): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
-                // delegate void Del(decimal  d = 1.1m);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(8, 32));
-        }
-
-        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
-        [InlineData("decimal ")]
-        [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithOptional(string type)
         {
             var source = $$"""
