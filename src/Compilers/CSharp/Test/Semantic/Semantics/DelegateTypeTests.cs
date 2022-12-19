@@ -15313,6 +15313,31 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp.VerifyEmitDiagnostics();
         }
 
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void MissingDecimalConstantAttribute_OverloadResolution()
+        {
+            var source1 = """
+                public delegate void Del(decimal d = 1.1m);
+
+                public class C
+                {
+                    public void M(Del d) { }
+                    public void M(System.Action<decimal> d) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                new C().M((decimal d = 1.1m) => { });
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp2.VerifyDiagnostics(
+                // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Del)' and 'C.M(Action<decimal>)'
+                // new C().M((decimal d = 1.1m) => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(Del)", "C.M(System.Action<decimal>)").WithLocation(1, 9));
+        }
+
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("DateTime", "System.DateTime")]
         [InlineData("DateTime?", "System.Nullable`1[System.DateTime]")]
@@ -15446,6 +15471,39 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
             comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
             comp2.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void MissingDateTimeConstantAttribute_OverloadResolution()
+        {
+            var source1 = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                public delegate void Del([Optional, DateTimeConstant(100L)] DateTime d);
+
+                public class C
+                {
+                    public void M(Del d) { }
+                    public void M(Action<DateTime> d) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                new C().M(([Optional, DateTimeConstant(100L)] DateTime d) => { });
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp2.VerifyDiagnostics(
+                // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Del)' and 'C.M(Action<DateTime>)'
+                // new C().M(([Optional, DateTimeConstant(100L)] DateTime d) => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(Del)", "C.M(System.Action<System.DateTime>)").WithLocation(5, 9));
         }
 
         [Fact]
