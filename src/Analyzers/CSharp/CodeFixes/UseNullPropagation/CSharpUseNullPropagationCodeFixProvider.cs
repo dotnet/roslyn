@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         {
             var elseClauseSyntax = (ElseClauseSyntax)ifStatement.Parent!;
             return elseClauseSyntax
-                    .WithElseKeyword(elseClauseSyntax.ElseKeyword.WithTrailingTrivia())
-                    .WithStatement(newWhenTrueStatement.WithPrependedLeadingTrivia(ifStatement.CloseParenToken.TrailingTrivia));
+                .WithElseKeyword(elseClauseSyntax.ElseKeyword.WithTrailingTrivia())
+                .WithStatement(newWhenTrueStatement.WithPrependedLeadingTrivia(ifStatement.CloseParenToken.TrailingTrivia));
         }
 
         protected override ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
