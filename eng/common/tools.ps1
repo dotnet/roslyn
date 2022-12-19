@@ -95,14 +95,18 @@ function Exec-Process([string]$command, [string]$commandArgs) {
     }
 
     $finished = $true
+    Write-Host "exec-process finished, returning"
     return $global:LASTEXITCODE = $process.ExitCode
   }
   finally {
     # If we didn't finish then an error occurred or the user hit ctrl-c.  Either
     # way kill the process
     if (-not $finished) {
+      Write-Host "killed"
       $process.Kill()
     }
+    $gblExitCode = $global:LASTEXITCODE
+    Write-Host "execprocess exit code $gblExitCode"
   }
 }
 
