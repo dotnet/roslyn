@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -4040,6 +4041,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Return Me._lazyAnyMemberHasAttributes.Value()
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+            Get
+                Return ImmutableSegmentedDictionary(Of String, Symbol).Empty
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasRequiredMembersError As Boolean
+            Get
+                Return False
             End Get
         End Property
     End Class

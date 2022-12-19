@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, Me.ContainingType)
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, Me.ContainingType)
 
             Dim diagBag = BindingDiagnosticBag.GetInstance()
 
@@ -352,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeKind As TYPEKIND
+        Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
                 Return TypeKind.Delegate
             End Get
@@ -444,6 +445,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
+
+        Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+            Get
+                Return ImmutableSegmentedDictionary(Of String, Symbol).Empty
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace
 

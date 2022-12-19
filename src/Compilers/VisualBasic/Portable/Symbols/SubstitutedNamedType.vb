@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -588,6 +589,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Yield SubstituteTypeParametersForMemberProperty(definition)
             Next
         End Function
+
+        Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+            Get
+                Return OriginalDefinition.AllRequiredMembers
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
+            Get
+                Return OriginalDefinition.HasRequiredMembersError
+            End Get
+        End Property
 
         ''' <summary>
         ''' Base class for symbols representing non-generic or open generic types contained within constructed generic type.

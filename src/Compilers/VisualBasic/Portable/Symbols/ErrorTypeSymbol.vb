@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -405,6 +406,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
+
+        Friend NotOverridable Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+            Get
+                Return ImmutableSegmentedDictionary(Of String, Symbol).Empty
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasRequiredMembersError As Boolean
+            Get
+                Return False
+            End Get
+        End Property
 
 #Region "IErrorTypeSymbol members"
 

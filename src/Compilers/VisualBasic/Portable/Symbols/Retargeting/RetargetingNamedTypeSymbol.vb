@@ -546,5 +546,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Yield RetargetingTranslator.Retarget(underlying)
             Next
         End Function
+
+        Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+            Get
+                Dim underlyingRequiredMembers = _underlyingType.AllRequiredMembers
+                Dim builder = ImmutableSegmentedDictionary.CreateBuilder(Of String, Symbol)()
+                For Each kvp In underlyingRequiredMembers
+                    builder.Add(kvp.Key, RetargetingTranslator.Retarget(kvp.Value))
+                Next
+
+                Return builder.ToImmutable()
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
+            Get
+                Return _underlyingType.HasRequiredMembersError
+            End Get
+        End Property
     End Class
 End Namespace

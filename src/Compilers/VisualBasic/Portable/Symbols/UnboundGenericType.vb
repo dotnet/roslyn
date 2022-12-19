@@ -9,6 +9,7 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -337,6 +338,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
+
+        Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+            Get
+                Return OriginalDefinition.AllRequiredMembers
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
+            Get
+                Return OriginalDefinition.HasRequiredMembersError
+            End Get
+        End Property
 
         Private NotInheritable Class ConstructedSymbol
             Inherits UnboundGenericType

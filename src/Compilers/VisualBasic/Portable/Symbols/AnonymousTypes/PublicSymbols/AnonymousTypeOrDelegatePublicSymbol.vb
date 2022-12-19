@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -328,7 +329,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public NotOverridable Overrides Function GetHashCode() As Integer
                 Return Hash.Combine(Me.TypeDescriptor.GetHashCode(), TypeKind)
             End Function
-        End Class
 
+            Friend NotOverridable Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+                Get
+                    Return ImmutableSegmentedDictionary(Of String, Symbol).Empty
+                End Get
+            End Property
+
+            Friend NotOverridable Overrides ReadOnly Property HasRequiredMembersError As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+        End Class
     End Class
 End Namespace

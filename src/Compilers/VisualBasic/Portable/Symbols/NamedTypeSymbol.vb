@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -1088,6 +1089,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get synthesized WithEvents overrides that aren't returned by <see cref="GetMembers"/>
         ''' </summary>
         Friend MustOverride Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+
+        Friend MustOverride ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+
+        Friend MustOverride ReadOnly Property HasRequiredMembersError As Boolean
+
 
 #Region "INamedTypeSymbol"
 
