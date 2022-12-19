@@ -14992,6 +14992,24 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         [InlineData("decimal ")]
         [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithOptional_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                Del lam = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
+                
+                delegate void Del([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
         public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithDefault(string type)
         {
             var source = $$"""

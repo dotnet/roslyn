@@ -778,6 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var delegateType = targetType.GetDelegateType();
             Debug.Assert(delegateType is not null);
+            var isSynthesized = delegateType.DelegateInvokeMethod.OriginalDefinition is SynthesizedDelegateInvokeMethod;
             var delegateParameters = delegateType.DelegateParameters();
 
             Debug.Assert(lambdaSymbol.ParameterCount == delegateParameters.Length);
@@ -789,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If synthesizing a delegate with `decimal`/`DateTime` default value,
                 // check that the corresponding `*ConstantAttribute` is available.
                 var defaultValue = delegateParameter.ExplicitDefaultConstantValue;
-                if (defaultValue != ConstantValue.NotAvailable)
+                if (isSynthesized && defaultValue != ConstantValue.NotAvailable)
                 {
                     WellKnownMember? member = defaultValue.SpecialType switch
                     {
