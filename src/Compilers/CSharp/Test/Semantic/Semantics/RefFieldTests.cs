@@ -5349,6 +5349,41 @@ unsafe ref struct S<T>
         }
 
         [Fact]
+        public void Constructors_02()
+        {
+            var source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                    public int this[R r] { get { return 0; } set { } }
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        int i = 0;
+                        R x = new R(ref i);
+                        R y = default;
+                        y = new R { [x] = 1 }; // 1
+                        y[x] = 1; // 2
+                        return y;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,22): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         y = new R { [x] = 1 }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(13, 22),
+                // (14,9): error CS8350: This combination of arguments to 'R.this[R]' is disallowed because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         y[x] = 1; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "y[x]").WithArguments("R.this[R]", "r").WithLocation(14, 9),
+                // (14,11): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         y[x] = 1; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(14, 11));
+        }
+
+        [Fact]
         public void DefiniteAssignment_01()
         {
             var source =

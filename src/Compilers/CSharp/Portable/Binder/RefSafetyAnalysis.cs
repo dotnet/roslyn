@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
 #if DEBUG
             if (node is BoundValuePlaceholderBase placeholder
+                // CheckValEscapeOfObjectInitializer() does not use BoundObjectOrCollectionValuePlaceholder.
+                // CheckInterpolatedStringHandlerConversionEscape() does not use BoundInterpolatedStringHandlerPlaceholder.
                 && node is not (BoundObjectOrCollectionValuePlaceholder or BoundInterpolatedStringHandlerPlaceholder))
             {
                 Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
@@ -375,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocal(BoundLocal node)
         {
+            // _localEscapeScopes may be null for locals in top-level statements.
             Debug.Assert(_localEscapeScopes?.ContainsKey(node.LocalSymbol) == true ||
                 (node.LocalSymbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint && _symbol != entryPoint));
 
@@ -426,21 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localSymbol = (SourceLocalSymbol)node.LocalSymbol;
                 (uint refEscapeScope, uint valEscapeScope) = GetLocalScopes(localSymbol);
 
-                var scopedModifier = _useUpdatedEscapeRules ? localSymbol.Scope : DeclarationScope.Unscoped;
-                if (scopedModifier == DeclarationScope.Unscoped)
-                {
-                    // default to the current scope in case we need to handle self-referential error cases.
-                    SetLocalScopes(localSymbol, _localScopeDepth, _localScopeDepth);
-
-                    valEscapeScope = GetValEscape(initializer, _localScopeDepth);
-                    if (localSymbol.RefKind != RefKind.None)
-                    {
-                        refEscapeScope = GetRefEscape(initializer, _localScopeDepth);
-                    }
-
-                    SetLocalScopes(localSymbol, refEscapeScope, valEscapeScope);
-                }
-                else
+                if (_useUpdatedEscapeRules && localSymbol.Scope != DeclarationScope.Unscoped)
                 {
                     // If the local has a scoped modifier, then the lifetime is not inferred from
                     // the initializer. Validate the escape values for the initializer instead.
@@ -452,6 +441,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ValidateEscape(initializer, valEscapeScope, isByRef: false, _diagnostics);
                     }
+                }
+                else
+                {
+                    // default to the current scope in case we need to handle self-referential error cases.
+                    SetLocalScopes(localSymbol, _localScopeDepth, _localScopeDepth);
+
+                    valEscapeScope = GetValEscape(initializer, _localScopeDepth);
+                    if (localSymbol.RefKind != RefKind.None)
+                    {
+                        refEscapeScope = GetRefEscape(initializer, _localScopeDepth);
+                    }
+
+                    SetLocalScopes(localSymbol, refEscapeScope, valEscapeScope);
                 }
             }
 
