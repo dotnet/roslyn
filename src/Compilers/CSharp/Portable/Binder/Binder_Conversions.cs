@@ -789,8 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If synthesizing a delegate with `decimal`/`DateTime` default value,
                 // check that the corresponding `*ConstantAttribute` is available.
-                var defaultValue = delegateParameter.ExplicitDefaultConstantValue;
-                if (isSynthesized && defaultValue != ConstantValue.NotAvailable &&
+                if (isSynthesized && delegateParameter.ExplicitDefaultConstantValue is { } defaultValue &&
                     // Skip reporting this diagnostic if already reported in `SourceComplexParameterSymbolBase.DefaultSyntaxValue`.
                     lambdaParameter is not SourceComplexParameterSymbolBase
                     {
