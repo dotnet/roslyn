@@ -2111,120 +2111,36 @@ class c
         }
 
         [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
-        public void DuplicateAsyncs()
+        public void DuplicateAsyncs1()
         {
             const string text = """
                 class Program
                 {
                     void M()
                     {
-                        async async void F1() { }
-                        async async async void F2() { }
-                        async async async async void F3() { }
-                        async async async async async void F4() { }
+                        async async void F() { }
                     }
                 }
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
                 // (5,15): error CS1031: Type expected
-                //         async async void F1() { }
+                //         async async void F() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15),
                 // (5,15): error CS1004: Duplicate 'async' modifier
-                //         async async void F1() { }
+                //         async async void F() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(5, 15),
                 // (5,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async async void F1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 26),
-                // (5,26): warning CS8321: The local function 'F1' is declared but never used
-                //         async async void F1() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 26),
-                // (6,15): error CS1031: Type expected
-                //         async async async void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
-                // (6,15): error CS1004: Duplicate 'async' modifier
-                //         async async async void F2() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async async async void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 32),
-                // (6,32): warning CS8321: The local function 'F2' is declared but never used
-                //         async async async void F2() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 32),
-                // (7,15): error CS1031: Type expected
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(7, 15),
-                // (7,15): error CS1004: Duplicate 'async' modifier
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(7, 15),
-                // (7,21): error CS1031: Type expected
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(7, 21),
-                // (7,27): error CS1031: Type expected
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(7, 27),
-                // (7,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F3").WithLocation(7, 38),
-                // (7,38): warning CS8321: The local function 'F3' is declared but never used
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F3").WithArguments("F3").WithLocation(7, 38),
-                // (8,15): error CS1031: Type expected
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(8, 15),
-                // (8,15): error CS1004: Duplicate 'async' modifier
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(8, 15),
-                // (8,21): error CS1031: Type expected
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(8, 21),
-                // (8,27): error CS1031: Type expected
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(8, 27),
-                // (8,33): error CS1031: Type expected
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(8, 33),
-                // (8,44): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F4").WithLocation(8, 44),
-                // (8,44): warning CS8321: The local function 'F4' is declared but never used
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F4").WithArguments("F4").WithLocation(8, 44));
+                //         async async void F() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(5, 26),
+                // (5,26): warning CS8321: The local function 'F' is declared but never used
+                //         async async void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 26));
 
             UsingDeclaration(text, options: TestOptions.Regular9,
                 // (5,15): error CS1031: Type expected
-                //         async async void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15),
-                // (6,15): error CS1031: Type expected
-                //         async async async void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (7,15): error CS1031: Type expected
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(7, 15),
-                // (7,21): error CS1031: Type expected
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(7, 21),
-                // (7,27): error CS1031: Type expected
-                //         async async async async void F3() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(7, 27),
-                // (8,15): error CS1031: Type expected
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(8, 15),
-                // (8,21): error CS1031: Type expected
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(8, 21),
-                // (8,27): error CS1031: Type expected
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(8, 27),
-                // (8,33): error CS1031: Type expected
-                //         async async async async async void F4() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(8, 33));
+                //         async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15));
             checkNodes();
 
             void checkNodes()
@@ -2254,7 +2170,7 @@ class c
                                     N(SyntaxKind.AsyncKeyword);
                                     N(SyntaxKind.PredefinedType);
                                     N(SyntaxKind.VoidKeyword);
-                                    N(SyntaxKind.IdentifierToken, "F1");
+                                    N(SyntaxKind.IdentifierToken, "F");
                                     N(SyntaxKind.ParameterList);
                                     {
                                         N(SyntaxKind.OpenParenToken);
@@ -2266,6 +2182,76 @@ class c
                                         N(SyntaxKind.CloseBraceToken);
                                     }
                                 }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs2()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,15): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15),
+                // (5,15): error CS1004: Duplicate 'async' modifier
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(5, 15),
+                // (5,21): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 21),
+                // (5,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(5, 32),
+                // (5,32): warning CS8321: The local function 'F' is declared but never used
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 32));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (5,15): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15),
+                // (5,21): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 21));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
                                 N(SyntaxKind.LocalFunctionStatement);
                                 {
                                     N(SyntaxKind.AsyncKeyword);
@@ -2273,7 +2259,7 @@ class c
                                     N(SyntaxKind.AsyncKeyword);
                                     N(SyntaxKind.PredefinedType);
                                     N(SyntaxKind.VoidKeyword);
-                                    N(SyntaxKind.IdentifierToken, "F2");
+                                    N(SyntaxKind.IdentifierToken, "F");
                                     N(SyntaxKind.ParameterList);
                                     {
                                         N(SyntaxKind.OpenParenToken);
@@ -2285,6 +2271,82 @@ class c
                                         N(SyntaxKind.CloseBraceToken);
                                     }
                                 }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs3()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        async async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,15): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15),
+                // (5,15): error CS1004: Duplicate 'async' modifier
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(5, 15),
+                // (5,21): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 21),
+                // (5,27): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 27),
+                // (5,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(5, 38),
+                // (5,38): warning CS8321: The local function 'F' is declared but never used
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 38));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (5,15): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15),
+                // (5,21): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 21),
+                // (5,27): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 27));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
                                 N(SyntaxKind.LocalFunctionStatement);
                                 {
                                     N(SyntaxKind.AsyncKeyword);
@@ -2293,7 +2355,7 @@ class c
                                     N(SyntaxKind.AsyncKeyword);
                                     N(SyntaxKind.PredefinedType);
                                     N(SyntaxKind.VoidKeyword);
-                                    N(SyntaxKind.IdentifierToken, "F3");
+                                    N(SyntaxKind.IdentifierToken, "F");
                                     N(SyntaxKind.ParameterList);
                                     {
                                         N(SyntaxKind.OpenParenToken);
@@ -2305,6 +2367,88 @@ class c
                                         N(SyntaxKind.CloseBraceToken);
                                     }
                                 }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs4()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        async async async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,15): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15),
+                // (5,15): error CS1004: Duplicate 'async' modifier
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(5, 15),
+                // (5,21): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 21),
+                // (5,27): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 27),
+                // (5,33): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 33),
+                // (5,44): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(5, 44),
+                // (5,44): warning CS8321: The local function 'F' is declared but never used
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 44));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (5,15): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 15),
+                // (5,21): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 21),
+                // (5,27): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 27),
+                // (5,33): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(5, 33));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
                                 N(SyntaxKind.LocalFunctionStatement);
                                 {
                                     N(SyntaxKind.AsyncKeyword);
@@ -2314,7 +2458,7 @@ class c
                                     N(SyntaxKind.AsyncKeyword);
                                     N(SyntaxKind.PredefinedType);
                                     N(SyntaxKind.VoidKeyword);
-                                    N(SyntaxKind.IdentifierToken, "F4");
+                                    N(SyntaxKind.IdentifierToken, "F");
                                     N(SyntaxKind.ParameterList);
                                     {
                                         N(SyntaxKind.OpenParenToken);
