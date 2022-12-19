@@ -14225,6 +14225,35 @@ class Program
 5").VerifyDiagnostics();
         }
 
+        private static readonly string s_anonymousDelegateWithDecimalConstant = $$"""
+            .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
+                extends [{{s_libPrefix}}]System.MulticastDelegate
+            {
+                .custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                	01 00 00 00
+                )
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                	instance void .ctor (
+                		object 'object',
+                		native int 'method'
+                	) runtime managed 
+                {
+                } // end of method '<>f__AnonymousDelegate0`1'::.ctor
+                .method public hidebysig newslot virtual 
+                	instance void Invoke (
+                		[opt] !T1 arg
+                	) runtime managed 
+                {
+                	.param [1]
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                			01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                			00 00
+                		)
+                } // end of method '<>f__AnonymousDelegate0`1'::Invoke
+            } // end of class <>f__AnonymousDelegate0`1
+            """;
+
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_Decimal_Lambda_DelegateIL()
         {
@@ -14260,34 +14289,7 @@ class Program
                 <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
                 System.Action`1[System.Nullable`1[System.Decimal]]
                 """).VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
-                	extends [{{s_libPrefix}}]System.MulticastDelegate
-                {
-                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                		01 00 00 00
-                	)
-                	// Methods
-                	.method public hidebysig specialname rtspecialname 
-                		instance void .ctor (
-                			object 'object',
-                			native int 'method'
-                		) runtime managed 
-                	{
-                	} // end of method '<>f__AnonymousDelegate0`1'::.ctor
-                	.method public hidebysig newslot virtual 
-                		instance void Invoke (
-                			[opt] !T1 arg
-                		) runtime managed 
-                	{
-                		.param [1]
-                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
-                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
-                				00 00
-                			)
-                	} // end of method '<>f__AnonymousDelegate0`1'::Invoke
-                } // end of class <>f__AnonymousDelegate0`1
-                """);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -14365,7 +14367,7 @@ class Program
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
-        public void DefaultParameterValue_Decimal_LocalFunction_DelegateType()
+        public void DefaultParameterValue_Decimal_LocalFunction_DelegateIL()
         {
             var source = """
                 using System.Runtime.CompilerServices;
@@ -14389,7 +14391,7 @@ class Program
                 void local8([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) {}
                 Report(local8);
                 """;
-            CompileAndVerify(source, expectedOutput: """
+            var verifier = CompileAndVerify(source, expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Decimal]
                 <>f__AnonymousDelegate0`1[System.Decimal]
                 <>f__AnonymousDelegate0`1[System.Decimal]
@@ -14399,6 +14401,7 @@ class Program
                 <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
                 System.Action`1[System.Nullable`1[System.Decimal]]
                 """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -14517,7 +14520,7 @@ class Program
                     public static void M8([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) {}
                 }
                 """;
-            CompileAndVerify(source, expectedOutput: """
+            var verifier = CompileAndVerify(source, expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Decimal]
                 <>f__AnonymousDelegate0`1[System.Decimal]
                 <>f__AnonymousDelegate0`1[System.Decimal]
@@ -14527,7 +14530,36 @@ class Program
                 <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
                 System.Action`1[System.Nullable`1[System.Decimal]]
                 """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
         }
+
+        private static readonly string s_anonymousDelegateWithDateTimeConstant = $$"""
+            .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
+                extends [{{s_libPrefix}}]System.MulticastDelegate
+            {
+                .custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                	01 00 00 00
+                )
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                	instance void .ctor (
+                		object 'object',
+                		native int 'method'
+                	) runtime managed 
+                {
+                } // end of method '<>f__AnonymousDelegate0`1'::.ctor
+                .method public hidebysig newslot virtual 
+                	instance void Invoke (
+                		[opt] !T1 arg
+                	) runtime managed 
+                {
+                	.param [1]
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
+                			01 00 64 00 00 00 00 00 00 00 00 00
+                		)
+                } // end of method '<>f__AnonymousDelegate0`1'::Invoke
+            } // end of class <>f__AnonymousDelegate0`1
+            """;
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
         public void DefaultParameterValue_DateTime_Lambda_DelegateIL()
@@ -14550,33 +14582,7 @@ class Program
                 <>f__AnonymousDelegate0`1[System.Nullable`1[System.DateTime]]
                 System.Action`1[System.DateTime]
                 """).VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
-                	extends [{{s_libPrefix}}]System.MulticastDelegate
-                {
-                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                		01 00 00 00
-                	)
-                	// Methods
-                	.method public hidebysig specialname rtspecialname 
-                		instance void .ctor (
-                			object 'object',
-                			native int 'method'
-                		) runtime managed 
-                	{
-                	} // end of method '<>f__AnonymousDelegate0`1'::.ctor
-                	.method public hidebysig newslot virtual 
-                		instance void Invoke (
-                			[opt] !T1 arg
-                		) runtime managed 
-                	{
-                		.param [1]
-                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
-                				01 00 64 00 00 00 00 00 00 00 00 00
-                			)
-                	} // end of method '<>f__AnonymousDelegate0`1'::Invoke
-                } // end of class <>f__AnonymousDelegate0`1
-                """);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDateTimeConstant);
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -14656,7 +14662,7 @@ class Program
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
-        public void DefaultParameterValue_DateTime_LocalFunction_DelegateType()
+        public void DefaultParameterValue_DateTime_LocalFunction_DelegateIL()
         {
             var source = """
                 using System;
@@ -14671,11 +14677,12 @@ class Program
                 void local3([DateTimeConstant(100L)] DateTime d) {}
                 Report(local3);
                 """;
-            CompileAndVerify(source, expectedOutput: """
+            var verifier = CompileAndVerify(source, expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.DateTime]
                 <>f__AnonymousDelegate0`1[System.Nullable`1[System.DateTime]]
                 System.Action`1[System.DateTime]
                 """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDateTimeConstant);
         }
 
         [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -14782,11 +14789,12 @@ class Program
                     public static void M3([DateTimeConstant(100L)] DateTime d) {}
                 }
                 """;
-            CompileAndVerify(source, expectedOutput: """
+            var verifier = CompileAndVerify(source, expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.DateTime]
                 <>f__AnonymousDelegate0`1[System.Nullable`1[System.DateTime]]
                 System.Action`1[System.DateTime]
                 """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDateTimeConstant);
         }
 
         [Fact]
