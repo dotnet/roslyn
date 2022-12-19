@@ -8276,6 +8276,48 @@ class C2
         }
 
         [Fact]
+        public void ParameterCapturing_007_GotoCase()
+        {
+            var source = @"
+class C1 (int p1)
+{
+    void M1(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                break;
+            case 2:
+                goto case p1;
+        }
+    }
+
+    void M2(int x)
+    {
+        switch (x)
+        {
+            case System.Int32.MinValue:
+                break;
+            case 3:
+                goto case System.Int32.MinValue;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // No unused warnings because we detected capturing
+            comp.VerifyEmitDiagnostics(
+                // (10,13): error CS8070: Control cannot fall out of switch from final case label ('case 2:')
+                //             case 2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 2:").WithArguments("case 2:").WithLocation(10, 13),
+                // (11,17): error CS0150: A constant value is expected
+                //                 goto case p1;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case p1;").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute()
         {
             var source = @"

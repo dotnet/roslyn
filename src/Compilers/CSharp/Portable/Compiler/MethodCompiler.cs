@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case MemberBindingExpressionSyntax:
                             case BaseExpressionColonSyntax:
                             case NameEqualsSyntax:
-                            case GotoStatementSyntax:
+                            case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
                             case TypeParameterConstraintClauseSyntax:
                             case AliasQualifiedNameSyntax:
                                 // These nodes do not have anything interesting for us
