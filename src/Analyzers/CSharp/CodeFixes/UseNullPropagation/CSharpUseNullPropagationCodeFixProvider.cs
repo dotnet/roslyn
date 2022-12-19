@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
 
         protected override bool TryGetBlock(SyntaxNode? statement, [NotNullWhen(true)] out StatementSyntax? block)
         {
-            if (statement is BlockSyntax stetementBlock)
+            if (statement is BlockSyntax statementBlock)
             {
-                block = stetementBlock;
+                block = statementBlock;
                 return true;
             }
 
