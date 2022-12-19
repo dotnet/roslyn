@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal sealed class ExtensionManagerOptions
     {
+        // TODO: Will always have default value https://github.com/dotnet/roslyn/issues/66063
         public static readonly Option2<bool> DisableCrashingExtensions = new("ExtensionManagerOptions", "DisableCrashingExtensions", defaultValue: true);
     }
 }

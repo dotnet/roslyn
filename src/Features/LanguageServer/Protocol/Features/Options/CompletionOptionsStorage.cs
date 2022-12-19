@@ -25,7 +25,6 @@ internal static class CompletionOptionsStorage
             ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
             ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
             ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
-            UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
             NamingStyleFallbackOptions = options.GetNamingStylePreferences(language),
             ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperienceUserOption, language),
             ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
@@ -52,10 +51,6 @@ internal static class CompletionOptionsStorage
 
     // Test-only option
     public static readonly Option2<bool> ForceExpandedCompletionIndexCreation = new("CompletionOptions", "ForceExpandedCompletionIndexCreation", defaultValue: false);
-
-    // Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
-    // (cache will alsways be refreshed when provider is triggered)
-    public static readonly Option2<bool> UpdateImportCompletionCacheInBackground = new("CompletionOptions", "UpdateImportCompletionCacheInBackground", defaultValue: false);
 
     // Embedded languages:
 

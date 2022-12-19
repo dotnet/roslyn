@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 public class VisualStudioOptionStorageTests
 {
     [Fact]
-    public void OptionsWithoutStorage()
+    public void OptionValidation()
     {
         var storages = VisualStudioOptionStorage.Storages;
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
@@ -52,42 +52,41 @@ public class VisualStudioOptionStorageTests
 
         AssertEx.Equal(new[]
         {
-           "InlineHintsOptions_DisplayAllOverride",
-           "FeatureOnOffOptions_RenameTracking",
-           "FeatureOnOffOptions_RefactoringVerification",
-           "ExtensionManagerOptions_DisableCrashingExtensions",
-           "SolutionCrawlerOptionsStorage_SolutionBackgroundAnalysisScopeOption",
-           "CompletionOptions_ForceExpandedCompletionIndexCreation",
-           "CompletionOptions_UpdateImportCompletionCacheInBackground",
-           "FormattingOptions_WrappingColumn",
-           "RazorDesignTimeDocumentFormattingOptions_UseTabs",
-           "RazorDesignTimeDocumentFormattingOptions_TabSize",
-           "InternalDiagnosticsOptions_RazorDiagnosticMode",
-           "InternalDiagnosticsOptions_LiveShareDiagnosticMode",
-           "SimplificationOptions_PreferAliasToQualification",
-           "SimplificationOptions_PreferOmittingModuleNamesInQualification",
-           "SimplificationOptions_PreferImplicitTypeInference",
-           "SimplificationOptions_PreferImplicitTypeInLocalDeclaration",
-           "SimplificationOptions_AllowSimplificationToGenericType",
-           "SimplificationOptions_AllowSimplificationToBaseType",
-           "SimplificationOptions_QualifyMemberAccessWithThisOrMe",
-           "SimplificationOptions_QualifyFieldAccess",
-           "SimplificationOptions_QualifyPropertyAccess",
-           "SimplificationOptions_QualifyMethodAccess",
-           "SimplificationOptions_QualifyEventAccess",
-           "SimplificationOptions_PreferIntrinsicPredefinedTypeKeywordInDeclaration",
-           "SimplificationOptions_PreferIntrinsicPredefinedTypeKeywordInMemberAccess",
-           "RenameOptions_RenameOverloads",
-           "RenameOptions_RenameInStrings",
-           "RenameOptions_RenameInComments",
-           "RenameOptions_PreviewChanges",
-           "RecommendationOptions_HideAdvancedMembers",
-           "RecommendationOptions_FilterOutOfScopeLocals",
-           "end_of_line",
-           "insert_final_newline",
-           "dotnet_style_operator_placement_when_wrapping",
-           "file_header_template",
-           "dotnet_style_prefer_foreach_explicit_cast_in_source"
+            "CompletionOptions_ForceExpandedCompletionIndexCreation",                     // test-only option
+            "dotnet_style_operator_placement_when_wrapping",                              // TODO: https://github.com/dotnet/roslyn/issues/66062
+            "dotnet_style_prefer_foreach_explicit_cast_in_source",                        // For a small customer segment, doesn't warrant VS UI.
+            "end_of_line",                                                                // persisted by the editor
+            "ExtensionManagerOptions_DisableCrashingExtensions",                          // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
+            "FeatureOnOffOptions_RefactoringVerification",                                // TODO: remove? https://github.com/dotnet/roslyn/issues/66063 
+            "FeatureOnOffOptions_RenameTracking",                                         // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
+            "file_header_template",                                                       // repository specific
+            "FormattingOptions_WrappingColumn",                                           // TODO: https://github.com/dotnet/roslyn/issues/66062
+            "InlineHintsOptions_DisplayAllOverride",                                      // TODO: https://github.com/dotnet/roslyn/issues/57283
+            "insert_final_newline",                                                       // TODO: https://github.com/dotnet/roslyn/issues/66062
+            "InternalDiagnosticsOptions_LiveShareDiagnosticMode",                         // TODO: remove once switched to LSP diagnostics
+            "InternalDiagnosticsOptions_RazorDiagnosticMode",                             // TODO: remove once switched to LSP diagnostics
+            "RazorDesignTimeDocumentFormattingOptions_TabSize",                           // TODO: remove once Razor removes design-time documents
+            "RazorDesignTimeDocumentFormattingOptions_UseTabs",                           // TODO: remove once Razor removes design-time documents
+            "RecommendationOptions_FilterOutOfScopeLocals",                               // public option
+            "RecommendationOptions_HideAdvancedMembers",                                  // public option
+            "RenameOptions_PreviewChanges",                                               // public option, deprecated
+            "RenameOptions_RenameInComments",                                             // public option, deprecated
+            "RenameOptions_RenameInStrings",                                              // public option, deprecated
+            "RenameOptions_RenameOverloads",                                              // public option, deprecated
+            "SimplificationOptions_AllowSimplificationToBaseType",                        // public option, deprecated
+            "SimplificationOptions_AllowSimplificationToGenericType",                     // public option, deprecated
+            "SimplificationOptions_PreferAliasToQualification",                           // public option, deprecated
+            "SimplificationOptions_PreferImplicitTypeInference",                          // public option, deprecated
+            "SimplificationOptions_PreferImplicitTypeInLocalDeclaration",                 // public option, deprecated
+            "SimplificationOptions_PreferIntrinsicPredefinedTypeKeywordInDeclaration",    // public option, deprecated
+            "SimplificationOptions_PreferIntrinsicPredefinedTypeKeywordInMemberAccess",   // public option, deprecated
+            "SimplificationOptions_PreferOmittingModuleNamesInQualification",             // public option, deprecated
+            "SimplificationOptions_QualifyEventAccess",                                   // public option, deprecated
+            "SimplificationOptions_QualifyFieldAccess",                                   // public option, deprecated
+            "SimplificationOptions_QualifyMemberAccessWithThisOrMe",                      // public option, deprecated
+            "SimplificationOptions_QualifyMethodAccess",                                  // public option, deprecated
+            "SimplificationOptions_QualifyPropertyAccess",                                // public option, deprecated
+            "SolutionCrawlerOptionsStorage_SolutionBackgroundAnalysisScopeOption",        // handled by PackageSettingsPersister
         }, optionsWithoutStorage);
     }
 }
