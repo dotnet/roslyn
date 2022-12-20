@@ -1189,7 +1189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim containingModule = _containingType.ContainingPEModule
             Dim decoder As New MetadataDecoder(containingModule, Me)
 
-            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(containingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(containingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.RequiredMembers, decoder)
             If errorInfo IsNot Nothing Then
                 Return
             End If

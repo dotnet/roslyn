@@ -1767,7 +1767,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_UnsupportedCompilerFeature = 37319
         ERR_DoNotUseCompilerFeatureRequired = 37320
 
-        ERR_NextAvailable = 37321
+        ERR_RequiredMemberMustBeSet = 37321
+
+        ERR_NextAvailable = 37322
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

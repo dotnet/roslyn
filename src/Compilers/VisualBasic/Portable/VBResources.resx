@@ -5668,4 +5668,7 @@
   <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
     <value>Analyzer reference specified multiple times</value>
   </data>
+  <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
+    <value>Required member '{0}' must be set in the object initializer or attribute constructor.</value>
+  </data>
 </root>
