@@ -14000,7 +14000,7 @@ class Program
         }
 
         [Fact]
-        public void LocalScope_01_Foreach()
+        public void LocalScope_01_Foreach_01()
         {
             var source =
 @"#pragma warning disable 219
@@ -14095,8 +14095,55 @@ class Enumerator2
             }
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void LocalScope_01_Foreach_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"#pragma warning disable 219
+ref struct R { }
+class Program
+{
+    static void F(ref R r)
+    {
+        foreach (var _ in new Enumerable1()) break;
+        foreach (R _ in new Enumerable1()) break;
+        foreach (ref var _ in new Enumerable2(ref r)) break;
+        foreach (ref readonly var _ in new Enumerable2(ref r)) break;
+        foreach (ref R _ in new Enumerable2(ref r)) break;
+    }
+}
+
+class Enumerable1
+{
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public R Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2
+{
+    public Enumerable2(ref R x) {}
+    public Enumerator2 GetEnumerator() => default;
+}
+
+class Enumerator2
+{
+    public ref R Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Fact]
-        public void LocalScope_01_Foreach_Deconstruction()
+        public void LocalScope_01_Foreach_Deconstruction_01()
         {
             var source =
 @"#pragma warning disable 219
@@ -14175,21 +14222,12 @@ class Enumerator2
                 // (9,52): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref readonly R r5, scoped ref readonly var _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(9, 52),
-                // (11,18): error CS8352: Cannot use variable '(scoped var r11, scoped R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped var r11, scoped R _)").WithArguments("(scoped var r11, scoped R _)").WithLocation(11, 18),
                 // (11,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(11, 19),
                 // (11,35): error CS9061: The 'scoped' modifier cannot be used with discard.
                 //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
                 Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(11, 35),
-                // (11,50): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable1()").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(11, 50),
-                // (12,18): error CS8352: Cannot use variable '(scoped ref var r21, scoped ref R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref var r21, scoped ref R _)").WithArguments("(scoped ref var r21, scoped ref R _)").WithLocation(12, 18),
                 // (12,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 19),
@@ -14202,12 +14240,6 @@ class Enumerator2
                 // (12,46): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(12, 46),
-                // (12,58): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(12, 58),
-                // (13,18): error CS8352: Cannot use variable '(scoped ref readonly var r51, scoped ref readonly R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref readonly var r51, scoped ref readonly R _)").WithArguments("(scoped ref readonly var r51, scoped ref readonly R _)").WithLocation(13, 18),
                 // (13,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(13, 19),
@@ -14219,10 +14251,7 @@ class Enumerator2
                 Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(13, 48),
                 // (13,55): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(13, 55),
-                // (13,76): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(13, 76)
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(13, 55)
                 );
 
             verify(comp);
@@ -14337,6 +14366,95 @@ class Enumerator2
                     Assert.Equal("R", model.GetTypeInfo(type).Type.ToTestDisplayString());
                 }
             }
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void LocalScope_01_Foreach_Deconstruction_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"#pragma warning disable 219
+
+class Program
+{
+    static void F0(ref R r)
+    {
+        foreach ((R r0, _) in new Enumerable1()) break;
+
+        foreach ((R r1, var _) in new Enumerable1()) break;
+        foreach ((ref R r2, ref var _) in new Enumerable2(ref r)) break;
+        foreach ((ref readonly R r5, ref readonly var _) in new Enumerable2(ref r)) break;
+
+        foreach ((var r11, R _) in new Enumerable1()) break;
+        foreach ((ref var r21, ref R _) in new Enumerable2(ref r)) break;
+        foreach ((ref readonly var r51, ref readonly R _) in new Enumerable2(ref r)) break;
+    }
+
+    static void F1()
+    {
+        var e1 = new Enumerable1().GetEnumerator();
+        e1.MoveNext();
+        e1.Current.Deconstruct(out R r0, out _);
+        e1.Current.Deconstruct(out R r1, out var _);
+        e1.Current.Deconstruct(out var r11, out R _);
+    }
+}
+
+ref struct R 
+{
+    public void Deconstruct(out R x, out R y) => throw null;
+}
+
+class Enumerable1
+{
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public R Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2
+{
+    public Enumerable2(ref R x) {}
+    public Enumerator2 GetEnumerator() => default;
+}
+
+class Enumerator2
+{
+    public ref R Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (10,19): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref R r2, ref var _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(10, 19),
+                // (10,29): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref R r2, ref var _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(10, 29),
+                // (11,19): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref readonly R r5, ref readonly var _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(11, 19),
+                // (11,38): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref readonly R r5, ref readonly var _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(11, 38),
+                // (14,19): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref var r21, ref R _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(14, 19),
+                // (14,32): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref var r21, ref R _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(14, 32),
+                // (15,19): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref readonly var r51, ref readonly R _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(15, 19),
+                // (15,41): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref readonly var r51, ref readonly R _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(15, 41));
         }
 
         [Fact]
@@ -19871,8 +19989,6 @@ ref struct R2
     public ref int _f;
 }
 ";
-            // Diagnostic is missing parameter name
-            // Tracked by https://github.com/dotnet/roslyn/issues/62096
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (7,31): error CS8331: Cannot assign to variable 'i' or use it as the right hand side of a ref assignment because it is a readonly variable

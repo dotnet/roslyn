@@ -1996,8 +1996,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter.Type.IsRefLikeType &&
                 parameter.RefKind.IsWritableReference();
 
-            static bool isMixableArgument(BoundExpression argument) =>
-                argument is not (BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None });
+            static bool isMixableArgument(BoundExpression argument)
+            {
+                if (argument is BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None })
+                {
+                    return false;
+                }
+                if (argument.IsDiscardExpression())
+                {
+                    return false;
+                }
+                return true;
+            }
 
             static EscapeArgument getReceiver(MethodSymbol? method, BoundExpression receiver)
             {
@@ -2308,7 +2318,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
+                    if (refKind.IsWritableReference()
+                        && !argument.IsDiscardExpression()
+                        && argument.Type?.IsRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -3345,7 +3357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Binder.CallingMethodScope;
 
                 case BoundKind.DiscardExpression:
-                    return ((BoundDiscardExpression)expr).ValEscape;
+                    return Binder.CallingMethodScope;
 
                 case BoundKind.DeconstructValuePlaceholder:
                     return ((BoundDeconstructValuePlaceholder)expr).ValEscape;

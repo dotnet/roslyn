@@ -268,5 +268,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? receiverType = expressionOpt.Type;
             return receiverType is NamedTypeSymbol { Kind: SymbolKind.NamedType, IsComImport: true };
         }
+
+        internal static bool IsDiscardExpression(this BoundExpression expr)
+        {
+            return expr switch
+            {
+                BoundDiscardExpression => true,
+                OutDeconstructVarPendingInference { IsDiscardExpression: true } => true,
+                BoundDeconstructValuePlaceholder { IsDiscardExpression: true } => true,
+                _ => false
+            };
+        }
     }
 }

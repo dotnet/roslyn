@@ -115,6 +115,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="VariableSymbol" Type="Symbol?"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+    <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <!--
@@ -2363,7 +2364,6 @@
          is null before type inference, and it is replaced by a BoundDiscardExpression with a non-null
          type after inference. -->
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
-    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundThrowExpression" Base="BoundExpression">
@@ -2391,6 +2391,7 @@
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="VariableSymbol" Type="Symbol?"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+    <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
   </Node>
   
   <AbstractNode Name="BoundMethodBodyBase" Base="BoundNode">

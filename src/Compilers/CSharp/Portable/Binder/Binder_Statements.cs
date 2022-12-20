@@ -1466,13 +1466,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(op1) : BindValueKind.RValue;
             var op2 = BindValue(rhsExpr, diagnostics, rhsKind);
 
-            if (op1.Kind == BoundKind.DiscardExpression)
+            bool discardAssignment = op1.Kind == BoundKind.DiscardExpression;
+            if (discardAssignment)
             {
                 op2 = BindToNaturalType(op2, diagnostics);
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            return BindAssignment(node, op1, op2, isRef, verifyEscapeSafety: true, diagnostics);
+            return BindAssignment(node, op1, op2, isRef, verifyEscapeSafety: !discardAssignment, diagnostics);
         }
 
         private static BindValueKind GetRequiredRHSValueKindForRefAssignment(BoundExpression boundLeft)
