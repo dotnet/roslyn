@@ -53,9 +53,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return existingData;
                 }
 
-                // Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
-                // Note that we do not return empty DocumentAnalysisData for suppressed analyzer as that would clear the
-                // error list and remove the previously reported diagnostics from "Run Code Analysis" command.
+                // Check whether analyzer is suppressed for project or document.
+                // If so, we set the flag indicating that the client can skip analysis for this document.
+                // Regardless of whether or not the analyzer is suppressed for project or document,
+                // we return null to indicate that no diagnostics are cached for this document for the given version.
                 skipAnalysisForNonCachedDocument = !DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
                     !IsAnalyzerEnabledForDocument(stateSet.Analyzer, existingData, analysisScope, compilerDiagnosticsScope,
                         isActiveDocument, isVisibleDocument, isOpenDocument, isGeneratedRazorDocument);
