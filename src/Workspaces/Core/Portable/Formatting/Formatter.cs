@@ -319,16 +319,16 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static SyntaxFormattingOptions GetFormattingOptions(Workspace workspace, OptionSet? optionSet, string language)
         {
             var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-            var optionService = workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>();
-            var configOptionSet = (optionSet ?? workspace.CurrentSolution.Options).AsAnalyzerConfigOptions(optionService, language);
+            var optionMapping = workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>().Mapping;
+            var configOptionSet = (optionSet ?? workspace.CurrentSolution.Options).AsAnalyzerConfigOptions(optionMapping, language);
             return syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
         }
 
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async ValueTask<(SyntaxFormattingOptions? Syntax, LineFormattingOptions Line)> GetFormattingOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
-            var optionService = document.Project.Solution.Services.GetRequiredService<IEditorConfigOptionMappingService>();
-            var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
+            var optionMapping = document.Project.Solution.Services.GetRequiredService<IEditorConfigOptionMappingService>().Mapping;
+            var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionMapping, document.Project.Language);
 
             LineFormattingOptions lineFormattingOptions;
             SyntaxFormattingOptions? syntaxFormattingOptions;
@@ -370,8 +370,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(Document document, CancellationToken cancellationToken)
         {
-            var optionService = document.Project.Solution.Services.GetRequiredService<IEditorConfigOptionMappingService>();
-            var configOptionSet = (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
+            var optionMapping = document.Project.Solution.Services.GetRequiredService<IEditorConfigOptionMappingService>().Mapping;
+            var configOptionSet = (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionMapping, document.Project.Language);
             return configOptionSet.GetOrganizeImportsOptions(fallbackOptions: null);
         }
 #pragma warning restore

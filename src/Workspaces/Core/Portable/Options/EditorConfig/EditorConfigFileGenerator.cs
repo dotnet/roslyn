@@ -10,14 +10,15 @@ using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     internal static partial class EditorConfigFileGenerator
     {
         public static string Generate(
-            ImmutableArray<(string feature, ImmutableArray<IOption> options)> groupedOptions,
-            OptionSet optionSet,
+            ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedOptions,
+            StructuredAnalyzerConfigOptions configOptions,
             string language)
         {
             var editorconfig = new StringBuilder();
@@ -41,16 +42,16 @@ namespace Microsoft.CodeAnalysis.Options
 
             foreach ((var feature, var options) in groupedOptions)
             {
-                AppendOptionsToEditorConfig(optionSet, feature, options, language, editorconfig);
+                AppendOptionsToEditorConfig(configOptions, feature, options, editorconfig);
             }
 
-            var namingStylePreferences = optionSet.GetOption((PerLanguageOption<NamingStylePreferences>)NamingStyleOptions.NamingPreferences, language);
+            var namingStylePreferences = configOptions.GetNamingStylePreferences();
             AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
 
             return editorconfig.ToString();
         }
 
-        private static void AppendOptionsToEditorConfig(OptionSet optionSet, string feature, ImmutableArray<IOption> options, string language, StringBuilder editorconfig)
+        private static void AppendOptionsToEditorConfig(StructuredAnalyzerConfigOptions configOptions, string feature, ImmutableArray<IOption2> options, StringBuilder editorconfig)
         {
             editorconfig.AppendLine($"#### {feature} ####");
             editorconfig.AppendLine();
@@ -62,12 +63,14 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 editorconfig.AppendLine($"# {optionGrouping.Key.Description}");
 
-                var optionsAndEditorConfigLocations = optionGrouping.Select(o => (o, o.StorageLocations.OfType<IEditorConfigStorageLocation2>().First()));
                 var uniqueEntries = new SortedSet<string>();
-                foreach ((var option, var editorConfigLocation) in optionsAndEditorConfigLocations)
+                foreach (var option in optionGrouping)
                 {
-                    var editorConfigString = GetEditorConfigString(option, editorConfigLocation);
-                    uniqueEntries.Add(editorConfigString);
+                    var configName = option.OptionDefinition.ConfigName;
+                    if (configOptions.TryGetValue(configName, out var configValue))
+                    {
+                        uniqueEntries.Add($"{configName} = {configValue}");
+                    }
                 }
 
                 foreach (var entry in uniqueEntries)
@@ -76,14 +79,6 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 editorconfig.AppendLine();
-            }
-
-            string GetEditorConfigString(IOption option, IEditorConfigStorageLocation2 editorConfigLocation)
-            {
-                var optionKey = new OptionKey(option, option.IsPerLanguage ? language : null);
-                var editorConfigString = editorConfigLocation.GetEditorConfigString(optionKey, optionSet);
-                Debug.Assert(!string.IsNullOrEmpty(editorConfigString));
-                return editorConfigString;
             }
         }
     }

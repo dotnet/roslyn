@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 
@@ -16,18 +15,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private const string Change = nameof(Change);
         private const string All = nameof(All);
 
-        public static void Log(OptionSet oldOptions, OptionSet newOptions)
+        public static void Log(ImmutableArray<(OptionKey2 key, object? oldValue, object? newValue)> changedOptions)
         {
-            foreach (var optionKey in newOptions.GetChangedOptions(oldOptions))
+            foreach (var (optionKey, oldValue, newValue) in changedOptions)
             {
-                var oldValue = oldOptions.GetOption(optionKey);
-                var currentValue = newOptions.GetOption(optionKey);
-
-                Logger.Log(FunctionId.Run_Environment_Options, Create(optionKey, oldValue, currentValue));
+                Logger.Log(FunctionId.Run_Environment_Options, Create(optionKey, oldValue, newValue));
             }
         }
 
-        private static KeyValueLogMessage Create(OptionKey optionKey, object oldValue, object currentValue)
+        private static KeyValueLogMessage Create(OptionKey2 optionKey, object? oldValue, object? currentValue)
         {
             return KeyValueLogMessage.Create(m =>
             {
@@ -37,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             });
         }
 
-        private static string CreateOptionValue(object oldValue, object currentValue)
+        private static string CreateOptionValue(object? oldValue, object? currentValue)
         {
             var oldString = GetOptionValue(oldValue);
             var newString = GetOptionValue(currentValue);
@@ -45,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return oldString + "->" + newString;
         }
 
-        private static string GetOptionValue(object oldValue)
+        private static string GetOptionValue(object? oldValue)
             => oldValue == null ? "[null]" : oldValue.ToString();
     }
 }

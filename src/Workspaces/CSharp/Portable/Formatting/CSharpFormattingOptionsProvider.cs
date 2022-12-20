@@ -20,6 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = CSharpFormattingOptions2.AllOptions.As<IOption>();
+        public ImmutableArray<IOption2> Options { get; } = CSharpFormattingOptions2.AllOptions;
     }
 }

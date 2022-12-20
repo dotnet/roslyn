@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+        public ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(
             NamingStyleOptions.NamingPreferences);
     }
 }

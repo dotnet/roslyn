@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
             }
 
-            public ImmutableArray<IOption> Options { get; } = FormattingOptions2.Options;
+            public ImmutableArray<IOption2> Options { get; } = FormattingOptions2.Options;
         }
 #endif
         private const string FeatureName = "FormattingOptions";
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle);
 
 #if !CODE_STYLE
-        internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(
+        internal static readonly ImmutableArray<IOption2> Options = ImmutableArray.Create<IOption2>(
             UseTabs,
             TabSize,
             IndentationSize,

@@ -26,8 +26,10 @@ using IAsyncServiceProvider2 = Microsoft.VisualStudio.Shell.IAsyncServiceProvide
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
-    internal class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
+    internal sealed class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
+        private static readonly Option2<bool> s_partialLoadModeFeatureFlag = new("VisualStudioWorkspaceStatusService", "PartialLoadModeFeatureFlag", defaultValue: false);
+
         private readonly IAsyncServiceProvider2 _serviceProvider;
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptions;
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             if (workspaceServices.Workspace is VisualStudioWorkspace)
             {
-                if (!_globalOptions.GetOption(Options.PartialLoadModeFeatureFlag))
+                if (!_globalOptions.GetOption(s_partialLoadModeFeatureFlag))
                 {
                     // don't enable partial load mode for ones that are not in experiment yet
                     return new WorkspaceStatusService();
@@ -180,23 +182,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 return await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        [Export(typeof(IOptionProvider)), Shared]
-        internal sealed class Options : IOptionProvider
-        {
-            private const string FeatureName = "VisualStudioWorkspaceStatusService";
-
-            public static readonly Option2<bool> PartialLoadModeFeatureFlag = new(FeatureName, nameof(PartialLoadModeFeatureFlag), defaultValue: false);
-
-            ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
-                PartialLoadModeFeatureFlag);
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Options()
-            {
             }
         }
     }

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
             // TODO: Support for multiple languages https://github.com/dotnet/roslyn/issues/65859
             var options = new TieredAnalyzerConfigOptions(
                 new CombinedAnalyzerConfigOptions(configFileDirectoryOptions, projectDirectoryOptions),
-                solution.Options.AsAnalyzerConfigOptions(optionMappingService, LanguageNames.CSharp),
+                solution.Options.AsAnalyzerConfigOptions(optionMappingService.Mapping, LanguageNames.CSharp),
                 language: LanguageNames.CSharp,
                 editorConfigFileName: FileName);
 

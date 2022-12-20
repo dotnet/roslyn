@@ -348,7 +348,7 @@ csharp_new_line_before_else = true";
 
             var options = new TieredAnalyzerConfigOptions(
                 new TestAnalyzerConfigOptions(key => value),
-                solution.Options.AsAnalyzerConfigOptions(solution.Services.GetRequiredService<IEditorConfigOptionMappingService>(), LanguageNames.CSharp),
+                solution.Options.AsAnalyzerConfigOptions(solution.Services.GetRequiredService<IEditorConfigOptionMappingService>().Mapping, LanguageNames.CSharp),
                 LanguageNames.CSharp,
                 EditorconfigPath);
 
@@ -379,7 +379,7 @@ csharp_new_line_before_else = true";
             var solution = workspace.CurrentSolution;
             var options = new TieredAnalyzerConfigOptions(
                 TestAnalyzerConfigOptions.Instance,
-                solution.Options.AsAnalyzerConfigOptions(solution.Services.GetRequiredService<IEditorConfigOptionMappingService>(), LanguageNames.CSharp),
+                solution.Options.AsAnalyzerConfigOptions(solution.Services.GetRequiredService<IEditorConfigOptionMappingService>().Mapping, LanguageNames.CSharp),
                 LanguageNames.CSharp,
                 EditorconfigPath);
 

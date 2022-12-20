@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Options.Providers
 {
     internal interface IOptionProvider
     {
-        ImmutableArray<IOption> Options { get; }
+        ImmutableArray<IOption2> Options { get; }
     }
 }

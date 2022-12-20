@@ -76,18 +76,18 @@ namespace Microsoft.CodeAnalysis.Options
         internal OptionSet WithChangedOption<T>(PerLanguageOption2<T> option, string? language, T value)
             => WithChangedOption(new OptionKey(option, language), value);
 
-        internal AnalyzerConfigOptions AsAnalyzerConfigOptions(IEditorConfigOptionMappingService optionMappingService, string language)
+        internal AnalyzerConfigOptions AsAnalyzerConfigOptions(IEditorConfigOptionMapping mapping, string language)
         {
             return ImmutableInterlocked.GetOrAdd(
                 ref _lazyAnalyzerConfigOptions,
                 language,
-                (string language, (OptionSet self, IEditorConfigOptionMappingService mapping) arg) => arg.self.CreateAnalyzerConfigOptions(arg.mapping, language),
-                (this, optionMappingService));
+                static (string language, (OptionSet self, IEditorConfigOptionMapping mapping) arg) => arg.self.CreateAnalyzerConfigOptions(arg.mapping, language),
+                (this, mapping));
         }
 
         internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
 
-        private protected virtual AnalyzerConfigOptions CreateAnalyzerConfigOptions(IEditorConfigOptionMappingService optionMappingService, string language)
-            => new AnalyzerConfigOptionsImpl(this, optionMappingService, language);
+        private protected virtual AnalyzerConfigOptions CreateAnalyzerConfigOptions(IEditorConfigOptionMapping mapping, string language)
+            => new AnalyzerConfigOptionsImpl(this, mapping, language);
     }
 }

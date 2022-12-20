@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Options
         private sealed class AnalyzerConfigOptionsImpl : StructuredAnalyzerConfigOptions
         {
             private readonly OptionSet _optionSet;
-            private readonly IEditorConfigOptionMappingService _optionMappingService;
+            private readonly IEditorConfigOptionMapping _mapping;
             private readonly string _language;
 
-            public AnalyzerConfigOptionsImpl(OptionSet optionSet, IEditorConfigOptionMappingService optionMappingService, string language)
+            public AnalyzerConfigOptionsImpl(OptionSet optionSet, IEditorConfigOptionMapping mapping, string language)
             {
                 _optionSet = optionSet;
-                _optionMappingService = optionMappingService;
+                _mapping = mapping;
                 _language = language;
             }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
-                if (!_optionMappingService.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
+                if (!_mapping.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
                 {
                     // There are couple of reasons this assert might fire:
                     //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Options
                     return false;
                 }
 
-                value = storageLocation.GetEditorConfigStringValue(optionKey, _optionSet);
+                value = storageLocation.GetEditorConfigStringValue((OptionKey)optionKey, _optionSet);
                 return true;
             }
 

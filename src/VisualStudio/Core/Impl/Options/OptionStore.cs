@@ -2,52 +2,140 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// This class is intended to be used by Option pages. It will provide access to an options
-    /// from an optionset but will not persist changes automatically.
+    /// Stores values of options read from global options and values set to these options.
+    /// Not thread safe.
     /// </summary>
-    public class OptionStore
+    internal sealed class OptionStore
     {
-        public event EventHandler<OptionKey> OptionChanged;
-
-        private OptionSet _optionSet;
-
-        public OptionStore(OptionSet optionSet)
+        private sealed class ConfigOptions : StructuredAnalyzerConfigOptions
         {
-            _optionSet = optionSet;
+            private readonly OptionStore _store;
+            private readonly string _language;
+
+            public ConfigOptions(OptionStore store, string language)
+            {
+                _store = store;
+                _language = language;
+            }
+
+            public override NamingStylePreferences GetNamingStylePreferences()
+                => _store.GetOption(NamingStyleOptions.NamingPreferences, _language);
+
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            {
+                if (!_store.EditorConfigOptionMapping.TryMapEditorConfigKeyToOption(key, _language, out var storage, out var optionKey))
+                {
+                    value = null;
+                    return false;
+                }
+
+                value = storage.GetEditorConfigStringValue(_store.GetOption(optionKey));
+                return true;
+            }
+
+            public override IEnumerable<string> Keys
+                => throw new NotImplementedException();
         }
 
-        public object GetOption(OptionKey optionKey) => _optionSet.GetOption(optionKey);
-        public T GetOption<T>(OptionKey optionKey) => _optionSet.GetOption<T>(optionKey);
-        internal T GetOption<T>(Option2<T> option) => _optionSet.GetOption((Option<T>)option);
-        internal T GetOption<T>(PerLanguageOption2<T> option, string language) => _optionSet.GetOption((PerLanguageOption<T>)option, language);
-        public OptionSet GetOptions() => _optionSet;
+        public readonly IGlobalOptionService GlobalOptions;
+        public readonly IEditorConfigOptionMapping EditorConfigOptionMapping;
 
-        public void SetOption(OptionKey optionKey, object value)
+        public event EventHandler<OptionKey2>? OptionChanged;
+
+        /// <summary>
+        /// Cached values read from global options.
+        /// </summary>
+        private ImmutableDictionary<OptionKey2, object?> _globalValues;
+
+        /// <summary>
+        /// Updated values.
+        /// </summary>
+        private ImmutableDictionary<OptionKey2, object?> _updatedValues;
+
+        public OptionStore(IGlobalOptionService globalOptions, IEditorConfigOptionMapping editorConfigOptionMapping)
         {
-            _optionSet = _optionSet.WithChangedOption(optionKey, value);
+            GlobalOptions = globalOptions;
+            EditorConfigOptionMapping = editorConfigOptionMapping;
 
-            OnOptionChanged(optionKey);
+            _globalValues = ImmutableDictionary<OptionKey2, object?>.Empty;
+            _updatedValues = ImmutableDictionary<OptionKey2, object?>.Empty;
         }
 
-        internal void SetOption<T>(Option2<T> option, T value)
-            => SetOption(new OptionKey(option), value);
+        public void Clear()
+        {
+            _globalValues = ImmutableDictionary<OptionKey2, object?>.Empty;
+            _updatedValues = ImmutableDictionary<OptionKey2, object?>.Empty;
+        }
 
-        internal void SetOption<T>(PerLanguageOption2<T> option, string language, T value)
-            => SetOption(new OptionKey(option, language), value);
+        public StructuredAnalyzerConfigOptions AsAnalyzerConfigOptions(string language)
+            => new ConfigOptions(this, language);
 
-        public void SetOptions(OptionSet optionSet)
-            => _optionSet = optionSet;
+        public ImmutableArray<(OptionKey2 key, object? oldValue, object? newValue)> GetChangedOptions()
+            => _updatedValues.SelectAsArray(entry => (entry.Key, _globalValues[entry.Key], entry.Value));
 
-        private void OnOptionChanged(OptionKey optionKey)
-            => OptionChanged?.Invoke(this, optionKey);
+        public T GetOption<T>(Option2<T> option)
+            => (T)GetOption(new OptionKey2(option))!;
+
+        public T GetOption<T>(PerLanguageOption2<T> option, string language)
+            => (T)GetOption(new OptionKey2(option, language))!;
+
+        public T GetOption<T>(IOption2 option, string? language)
+        {
+            Debug.Assert(option.IsPerLanguage == language is not null);
+            return (T)GetOption(new OptionKey2(option, language))!;
+        }
+
+        private object? GetOption(OptionKey2 optionKey)
+        {
+            if (_updatedValues.TryGetValue(optionKey, out var value))
+            {
+                return value;
+            }
+
+            if (_globalValues.TryGetValue(optionKey, out value))
+            {
+                return value;
+            }
+
+            value = GlobalOptions.GetOption<object?>(optionKey);
+            _globalValues = _globalValues.Add(optionKey, value);
+            return value;
+        }
+
+        public void SetOption<T>(Option2<T> option, T value)
+            => SetOption(new OptionKey2(option), value);
+
+        public void SetOption<T>(PerLanguageOption2<T> option, string language, T value)
+            => SetOption(new OptionKey2(option, language), value);
+
+        public void SetOption(IOption2 option, string? language, object? value)
+        {
+            Debug.Assert(option.IsPerLanguage == language is not null);
+            SetOption(new OptionKey2(option, language), value);
+        }
+
+        private void SetOption(OptionKey2 optionKey, object? value)
+        {
+            var currentValue = GetOption(optionKey);
+            if (!Equals(value, currentValue))
+            {
+                _updatedValues = _updatedValues.SetItem(optionKey, value);
+                OptionChanged?.Invoke(this, optionKey);
+            }
+        }
     }
 }

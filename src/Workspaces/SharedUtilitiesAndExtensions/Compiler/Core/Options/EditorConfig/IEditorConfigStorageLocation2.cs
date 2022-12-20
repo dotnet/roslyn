@@ -35,13 +35,5 @@ internal static partial class Extensions
     /// </code>
     /// </summary>
     public static string GetEditorConfigString(this IEditorConfigStorageLocation2 location, object? value)
-        => GetEditorConfigStringImpl(location, location.GetEditorConfigStringValue(value));
-
-#if !CODE_STYLE
-    public static string GetEditorConfigString(this IEditorConfigStorageLocation2 location, OptionKey optionKey, OptionSet optionSet)
-        => GetEditorConfigStringImpl(location, location.GetEditorConfigStringValue(optionKey, optionSet));
-#endif
-
-    private static string GetEditorConfigStringImpl(IEditorConfigStorageLocation2 location, string serializedValue)
-        => $"{location.KeyName} = {serializedValue}";
+        => $"{location.KeyName} = {location.GetEditorConfigStringValue(value)}";
 }
