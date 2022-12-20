@@ -57,13 +57,29 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #endif
 
         [Fact]
-        public void CreateFromImage()
+        public void CreateFromImage_Assembly()
         {
             var r = MetadataReference.CreateFromImage(ResourcesNet451.mscorlib);
 
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
             Assert.Null(r.FilePath);
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Fact]
+        public void CreateFromImage_Module()
+        {
+            var r = MetadataReference.CreateFromImage(
+                TestResources.MetadataTests.NetModule01.ModuleCS00,
+                MetadataReferenceProperties.Module);
+
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryModule, r.Display);
+            Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsEmpty);
         }
@@ -102,11 +118,40 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void CreateFromStream_Assembly()
+        {
+            var r = MetadataReference.CreateFromStream(new MemoryStream(ResourcesNet451.mscorlib, writable: false));
+
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
+            Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Fact]
+        public void CreateFromStream_Module()
+        {
+            var r = MetadataReference.CreateFromStream(
+                new MemoryStream(TestResources.MetadataTests.NetModule01.ModuleCS00, writable: false),
+                MetadataReferenceProperties.Module);
+
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryModule, r.Display);
+            Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Fact]
         public void CreateFromFile_Assembly()
         {
             var file = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib);
 
             var r = MetadataReference.CreateFromFile(file.Path);
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
             Assert.Equal(file.Path, r.FilePath);
             Assert.Equal(file.Path, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
@@ -128,6 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.NetModule01.ModuleCS00);
 
             var r = MetadataReference.CreateFromFile(file.Path, MetadataReferenceProperties.Module);
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
             Assert.Equal(file.Path, r.FilePath);
             Assert.Equal(file.Path, r.Display);
             Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);

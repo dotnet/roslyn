@@ -3089,6 +3089,23 @@ class C
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, default));
         }
 
+        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        public void NetModuleReference()
+        {
+            var module = CreateCompilation(string.Empty, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
+            module.VerifyDiagnostics();
+
+            var moduleStream = new MemoryStream();
+            var result = module.Emit(moduleStream);
+            Assert.True(result.Success);
+            moduleStream.Position = 0;
+            var moduleReference = MetadataReference.CreateFromStream(moduleStream, MetadataReferenceProperties.Module);
+
+            var comp = CreateCompilation(string.Empty, references: new[] { moduleReference });
+            comp.VerifyEmitDiagnostics();
+            Assert.Equal(2, comp.Assembly.Modules.Length);
+        }
+
         #region Script return values
 
         [ConditionalFact(typeof(DesktopOnly))]
