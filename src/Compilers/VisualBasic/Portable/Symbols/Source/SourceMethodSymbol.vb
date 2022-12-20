@@ -2017,6 +2017,12 @@ lReportErrorOnTwoTokens:
         Public MustOverride Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
 
         Friend MustOverride Overrides ReadOnly Property OverriddenMembers As OverriddenMembersResult(Of MethodSymbol)
+
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
     Friend MustInherit Class SourceNonPropertyAccessorMethodSymbol

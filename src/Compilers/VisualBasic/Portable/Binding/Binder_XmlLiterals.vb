@@ -1993,6 +1993,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
                 Throw ExceptionUtilities.Unreachable
             End Function
+
+            Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
         End Class
 
         Private NotInheritable Class ReducedAccessorParameterSymbol

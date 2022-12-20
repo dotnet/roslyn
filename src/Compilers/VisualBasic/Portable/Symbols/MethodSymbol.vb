@@ -869,6 +869,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend MustOverride ReadOnly Property HasSetsRequiredMembers As Boolean
+
 #Region "IMethodSymbol"
 
         Private ReadOnly Property IMethodSymbol_Arity As Integer Implements IMethodSymbol.Arity
