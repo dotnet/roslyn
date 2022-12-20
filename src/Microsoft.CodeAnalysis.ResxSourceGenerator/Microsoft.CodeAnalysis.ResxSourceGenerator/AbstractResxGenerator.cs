@@ -304,6 +304,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                                     RenderFormatMethod(memberIndent, language, strings, resourceString);
                                 }
                             }
+
                             break;
 
                         case Lang.VisualBasic:
@@ -324,6 +325,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             {
                                 throw new NotImplementedException();
                             }
+
                             break;
 
                         default:
@@ -378,6 +380,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 {memberIndent}}}
 ";
                             }
+
                             break;
 
                         case Lang.VisualBasic:
@@ -390,6 +393,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             {
                                 throw new NotImplementedException();
                             }
+
                             break;
 
                         default:
@@ -450,6 +454,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 {resourceTypeDefinition}
 }}";
                             }
+
                             break;
 
                         case Lang.VisualBasic:
@@ -461,6 +466,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 {resourceTypeDefinition}
 End Namespace";
                             }
+
                             break;
 
                         default:
@@ -603,6 +609,7 @@ Imports System.Reflection
                 {
                     stringLiteral.Append('@');
                 }
+
                 stringLiteral.Append('\"');
                 for (var i = 0; i < original.Length; i++)
                 {
@@ -611,8 +618,10 @@ Imports System.Reflection
                     {
                         stringLiteral.Append('"');
                     }
+
                     stringLiteral.Append(original[i]);
                 }
+
                 stringLiteral.Append('\"');
 
                 return stringLiteral.ToString();
@@ -644,6 +653,7 @@ Imports System.Reflection
                 {
                     strings.AppendLine($@"{indent}   => string.Format(Culture, GetResourceString(""{resourceString.Name}"") ?? """", {resourceString.GetArguments()});");
                 }
+
                 strings.AppendLine();
             }
 

@@ -281,10 +281,7 @@ namespace Analyzer.Utilities
         /// </returns>
         public string? PeekWord()
         {
-            if (_peekedWord == null)
-            {
-                _peekedWord = NextWordCore();
-            }
+            _peekedWord ??= NextWordCore();
 
             return _peekedWord;
         }

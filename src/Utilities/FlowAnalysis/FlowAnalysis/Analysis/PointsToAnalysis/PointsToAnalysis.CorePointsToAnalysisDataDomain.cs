@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                                         stopTrackingAnalysisDataForKeyAndChildren();
                                     }
                                 }
+
                                 break;
 
                         }

@@ -59,10 +59,7 @@ namespace Analyzer.Utilities
 
             lock (entry)
             {
-                if (entry.Value == null)
-                {
-                    entry.Value = valueFactory(key);
-                }
+                entry.Value ??= valueFactory(key);
             }
 
             return entry.Value;

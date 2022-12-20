@@ -793,6 +793,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         {
                             continue;
                         }
+
                         (skippedNamespaces ??= PooledHashSet<string>.GetInstance()).AddRange(currentSkippedNamespaces);
                     }
 

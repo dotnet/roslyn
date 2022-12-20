@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                     {
                         reportDiagnostic(node.CreateDiagnostic(ParamsParameterRule));
                     }
+
                     break;
                 }
             }
