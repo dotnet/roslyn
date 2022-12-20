@@ -203,7 +203,7 @@ public class GlobalOptionsTests
 
     private static TestWorkspace CreateWorkspace(out TestGlobalOptions globalOptions)
     {
-        var composition = EditorTestCompositions.LanguageServerProtocol.
+        var composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures.
             AddExcludedPartTypes(typeof(GlobalOptionService)).
             AddParts(typeof(TestGlobalOptions));
 

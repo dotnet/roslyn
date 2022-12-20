@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
             return $"{assemblyVersion} ({hash})";
         }
 
-        [return: NotNullIfNotNull("hash")]
+        [return: NotNullIfNotNull(nameof(hash))]
         internal static string? ExtractShortCommitHash(string? hash)
         {
             // leave "<developer build>" alone, but truncate SHA to 8 characters

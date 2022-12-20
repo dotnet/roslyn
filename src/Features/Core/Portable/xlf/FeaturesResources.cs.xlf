@@ -3463,6 +3463,11 @@ Pokud se specifikátor formátu d použije bez dalších specifikátorů vlastn�
         <target state="translated">proměnná typu discard</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="new">else statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">zapuštěná</target>

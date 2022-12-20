@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
 
                     _documentPathsToDocumentIds.Add(fullPath, documentId);
-                    _project._documentFileWatchingTokens.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
+                    _project._documentWatchedFiles.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
 
                     if (_project._activeBatchScopes > 0)
                     {
@@ -266,8 +266,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{fullPath}' is not a source file of this project.");
                     }
 
-                    _project._documentFileChangeContext.StopWatchingFile(_project._documentFileWatchingTokens[documentId]);
-                    _project._documentFileWatchingTokens.Remove(documentId);
+                    _project._documentWatchedFiles[documentId].Dispose();
+                    _project._documentWatchedFiles.Remove(documentId);
 
                     RemoveFileInternal(documentId, fullPath);
                 }

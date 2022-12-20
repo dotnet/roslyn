@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeconstructValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, TypeSymbol type, bool hasErrors)
+        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, bool isDiscardExpression, TypeSymbol type, bool hasErrors)
             : base(BoundKind.DeconstructValuePlaceholder, syntax, type, hasErrors)
         {
 
@@ -518,9 +518,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.VariableSymbol = variableSymbol;
             this.ValEscape = valEscape;
+            this.IsDiscardExpression = isDiscardExpression;
         }
 
-        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, TypeSymbol type)
+        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, bool isDiscardExpression, TypeSymbol type)
             : base(BoundKind.DeconstructValuePlaceholder, syntax, type)
         {
 
@@ -528,20 +529,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.VariableSymbol = variableSymbol;
             this.ValEscape = valEscape;
+            this.IsDiscardExpression = isDiscardExpression;
         }
 
         public new TypeSymbol Type => base.Type!;
         public Symbol? VariableSymbol { get; }
         public uint ValEscape { get; }
+        public bool IsDiscardExpression { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDeconstructValuePlaceholder(this);
 
-        public BoundDeconstructValuePlaceholder Update(Symbol? variableSymbol, uint valEscape, TypeSymbol type)
+        public BoundDeconstructValuePlaceholder Update(Symbol? variableSymbol, uint valEscape, bool isDiscardExpression, TypeSymbol type)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || valEscape != this.ValEscape || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || valEscape != this.ValEscape || isDiscardExpression != this.IsDiscardExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol, valEscape, type, this.HasErrors);
+                var result = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol, valEscape, isDiscardExpression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8054,29 +8057,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDiscardExpression : BoundExpression
     {
-        public BoundDiscardExpression(SyntaxNode syntax, uint valEscape, TypeSymbol? type, bool hasErrors)
+        public BoundDiscardExpression(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
             : base(BoundKind.DiscardExpression, syntax, type, hasErrors)
         {
-            this.ValEscape = valEscape;
         }
 
-        public BoundDiscardExpression(SyntaxNode syntax, uint valEscape, TypeSymbol? type)
+        public BoundDiscardExpression(SyntaxNode syntax, TypeSymbol? type)
             : base(BoundKind.DiscardExpression, syntax, type)
         {
-            this.ValEscape = valEscape;
         }
 
         public new TypeSymbol? Type => base.Type;
-        public uint ValEscape { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDiscardExpression(this);
 
-        public BoundDiscardExpression Update(uint valEscape, TypeSymbol? type)
+        public BoundDiscardExpression Update(TypeSymbol? type)
         {
-            if (valEscape != this.ValEscape || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDiscardExpression(this.Syntax, valEscape, type, this.HasErrors);
+                var result = new BoundDiscardExpression(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8183,32 +8183,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class OutDeconstructVarPendingInference : BoundExpression
     {
-        public OutDeconstructVarPendingInference(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, bool hasErrors)
+        public OutDeconstructVarPendingInference(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, bool isDiscardExpression, bool hasErrors)
             : base(BoundKind.OutDeconstructVarPendingInference, syntax, null, hasErrors)
         {
             this.VariableSymbol = variableSymbol;
             this.ValEscape = valEscape;
+            this.IsDiscardExpression = isDiscardExpression;
         }
 
-        public OutDeconstructVarPendingInference(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape)
+        public OutDeconstructVarPendingInference(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, bool isDiscardExpression)
             : base(BoundKind.OutDeconstructVarPendingInference, syntax, null)
         {
             this.VariableSymbol = variableSymbol;
             this.ValEscape = valEscape;
+            this.IsDiscardExpression = isDiscardExpression;
         }
 
         public new TypeSymbol? Type => base.Type;
         public Symbol? VariableSymbol { get; }
         public uint ValEscape { get; }
+        public bool IsDiscardExpression { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitOutDeconstructVarPendingInference(this);
 
-        public OutDeconstructVarPendingInference Update(Symbol? variableSymbol, uint valEscape)
+        public OutDeconstructVarPendingInference Update(Symbol? variableSymbol, uint valEscape, bool isDiscardExpression)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || valEscape != this.ValEscape)
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || valEscape != this.ValEscape || isDiscardExpression != this.IsDiscardExpression)
             {
-                var result = new OutDeconstructVarPendingInference(this.Syntax, variableSymbol, valEscape, this.HasErrors);
+                var result = new OutDeconstructVarPendingInference(this.Syntax, variableSymbol, valEscape, isDiscardExpression, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10270,7 +10273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.VariableSymbol, node.ValEscape, type);
+            return node.Update(node.VariableSymbol, node.ValEscape, node.IsDiscardExpression, type);
         }
         public override BoundNode? VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
         {
@@ -11522,7 +11525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ValEscape, type);
+            return node.Update(type);
         }
         public override BoundNode? VisitThrowExpression(BoundThrowExpression node)
         {
@@ -11545,7 +11548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.VariableSymbol, node.ValEscape);
+            return node.Update(node.VariableSymbol, node.ValEscape, node.IsDiscardExpression);
         }
         public override BoundNode? VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
         {
@@ -11648,12 +11651,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(variableSymbol, node.ValEscape, infoAndType.Type!);
+                updatedNode = node.Update(variableSymbol, node.ValEscape, node.IsDiscardExpression, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(variableSymbol, node.ValEscape, node.Type);
+                updatedNode = node.Update(variableSymbol, node.ValEscape, node.IsDiscardExpression, node.Type);
             }
             return updatedNode;
         }
@@ -14037,7 +14040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            BoundDiscardExpression updatedNode = node.Update(node.ValEscape, infoAndType.Type);
+            BoundDiscardExpression updatedNode = node.Update(infoAndType.Type);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -14102,12 +14105,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(variableSymbol, node.ValEscape);
+                updatedNode = node.Update(variableSymbol, node.ValEscape, node.IsDiscardExpression);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(variableSymbol, node.ValEscape);
+                updatedNode = node.Update(variableSymbol, node.ValEscape, node.IsDiscardExpression);
             }
             return updatedNode;
         }
@@ -14214,6 +14217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
             new TreeDumperNode("valEscape", node.ValEscape, null),
+            new TreeDumperNode("isDiscardExpression", node.IsDiscardExpression, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -16131,7 +16135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitDiscardExpression(BoundDiscardExpression node, object? arg) => new TreeDumperNode("discardExpression", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("valEscape", node.ValEscape, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -16167,6 +16170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
             new TreeDumperNode("valEscape", node.ValEscape, null),
+            new TreeDumperNode("isDiscardExpression", node.IsDiscardExpression, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

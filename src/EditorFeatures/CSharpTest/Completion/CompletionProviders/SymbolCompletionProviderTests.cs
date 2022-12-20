@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11964,11 +11965,67 @@ class C
             await VerifyAnyItemExistsAsync(source);
         }
 
+        [Fact]
+        public async Task AfterScopedInsideMethod()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        scoped $$
+    }
+}
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_FollowedByType()
+        {
+            var source = @"
+scoped $$
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_NotFollowedByType()
+        {
+            var source = """
+                using System;
+
+                scoped $$
+                """;
+
+            await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+        }
+
+        [Fact]
+        public async Task AfterScopedInParameter()
+        {
+            var source = @"
+class C
+{
+    void M(scoped $$)
+    {
+    }
+}
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""
 <Workspace>
-    <Project Language="C#" AssemblyName="Assembly" CommonReferences="true" LanguageVersion="{{languageVersion}}">
+    <Project Language="C#" AssemblyName="Assembly" CommonReferencesNet6="true" LanguageVersion="{{languageVersion}}">
         <Document FilePath="Test.cs">
 {{source}}
         </Document>

@@ -769,6 +769,26 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
         }
 
         [Fact]
+        public void TestParseInvalidAttributeArgumentList1()
+        {
+            var result = SyntaxFactory.ParseAttributeArgumentList("[]");
+            Assert.Equal("[]", result.ToFullString());
+            Assert.True(result.OpenParenToken.IsMissing);
+            Assert.Empty(result.Arguments);
+            Assert.True(result.CloseParenToken.IsMissing);
+        }
+
+        [Fact]
+        public void TestParseInvalidAttributeArgumentList2()
+        {
+            var result = SyntaxFactory.ParseAttributeArgumentList("[]", consumeFullText: false);
+            Assert.Equal("", result.ToFullString());
+            Assert.True(result.OpenParenToken.IsMissing);
+            Assert.Empty(result.Arguments);
+            Assert.True(result.CloseParenToken.IsMissing);
+        }
+
+        [Fact]
         public void TestAttributeCallerInfoSemanticModel_Method_Speculative2()
         {
             var source = @"

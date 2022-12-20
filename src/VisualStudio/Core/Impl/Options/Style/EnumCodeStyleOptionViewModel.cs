@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// This class represents the view model for a <see cref="CodeStyleOption{T}"/>
+    /// This class represents the view model for a <see cref="CodeStyleOption2{T}"/>
     /// that binds to the codestyle options UI.  Note that the T here is expected to be an enum
     /// type.  
     /// 
@@ -82,9 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _enumValues = enumValues.ToImmutableArray();
             _previews = previews.ToImmutableArray();
 
-            var codeStyleOption = (CodeStyleOption<T>)optionStore.GetOption(new OptionKey(option, language));
+            var codeStyleOption = (ICodeStyleOption)optionStore.GetOption(new OptionKey(option, language));
 
-            var enumIndex = _enumValues.IndexOf(codeStyleOption.Value);
+            var enumIndex = _enumValues.IndexOf((T)codeStyleOption.Value);
             if (enumIndex < 0 || enumIndex >= Preferences.Count)
             {
                 enumIndex = 0;
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     var enumValue = _enumValues[index];
 
                     Info.SetOptionAndUpdatePreview(
-                        new CodeStyleOption<T>(
+                        new CodeStyleOption2<T>(
                             enumValue, _selectedNotificationPreference.Notification),
                         Option, GetPreview());
                 }
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     var enumValue = _enumValues[index];
 
                     Info.SetOptionAndUpdatePreview(
-                        new CodeStyleOption<T>(
+                        new CodeStyleOption2<T>(
                             enumValue, _selectedNotificationPreference.Notification),
                         Option, GetPreview());
                 }

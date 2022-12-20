@@ -1039,9 +1039,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldIsStatic == containing.IsStatic &&
                         (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
                         (Compilation.FeatureStrictEnabled
-                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.ConsiderEverything2)
+                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.AllIgnoreOptions)
                             // We duplicate a bug in the native compiler for compatibility in non-strict mode
-                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
+                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions)))
                     {
                         if (containing.Kind == SymbolKind.Method)
                         {
@@ -2027,8 +2027,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter.Type.IsRefLikeType &&
                 parameter.RefKind.IsWritableReference();
 
-            static bool isMixableArgument(BoundExpression argument) =>
-                argument is not (BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None });
+            static bool isMixableArgument(BoundExpression argument)
+            {
+                if (argument is BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None })
+                {
+                    return false;
+                }
+                if (argument.IsDiscardExpression())
+                {
+                    return false;
+                }
+                return true;
+            }
 
             static EscapeArgument getReceiver(MethodSymbol? method, BoundExpression receiver)
             {
@@ -2339,7 +2349,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
+                    if (refKind.IsWritableReference()
+                        && !argument.IsDiscardExpression()
+                        && argument.Type?.IsRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -3376,7 +3388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Binder.CallingMethodScope;
 
                 case BoundKind.DiscardExpression:
-                    return ((BoundDiscardExpression)expr).ValEscape;
+                    return Binder.CallingMethodScope;
 
                 case BoundKind.DeconstructValuePlaceholder:
                     return ((BoundDeconstructValuePlaceholder)expr).ValEscape;
