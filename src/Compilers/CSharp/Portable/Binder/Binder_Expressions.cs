@@ -1457,9 +1457,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = false;
 
+            // Default of an enum as an attribute argument triggers serialization of the enum's type.
+            // This would fail for enums nested in a type referencing a function pointer, because
+            // function pointer serialization is not supported, see https://github.com/dotnet/roslyn/issues/48765.
             if (this.InAttributeArgument && type.IsEnumType() && type.ContainsFunctionPointer())
             {
-                // https://github.com/dotnet/roslyn/issues/48765 tracks removing this error.
                 diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, node.Location);
                 hasErrors = true;
             }
