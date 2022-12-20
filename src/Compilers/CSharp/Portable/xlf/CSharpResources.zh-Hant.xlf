@@ -663,8 +663,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">不支援在屬性的 'typeof' 中使用函式指標類型。</target>
+        <source>Using a function pointer type in an attribute while in a 'default' of an enum or a 'typeof' is not supported.</source>
+        <target state="needs-review-translation">不支援在屬性的 'typeof' 中使用函式指標類型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
