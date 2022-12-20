@@ -1821,7 +1821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
 
 #if DEBUG
-                    assertBindIdentifierTargets(inMethodBinder, identifierMap, diagnostics);
+                    assertBindIdentifierTargets(inMethodBinder, identifierMap, methodBody, diagnostics);
 #endif
 
                     BoundNode methodBodyForSemanticModel = methodBody;
@@ -2135,7 +2135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Confirm that our prediction was accurate enough.
             // Correctness of SynthesizedPrimaryConstructor.GetCapturedParameters depends on this.
-            static void assertBindIdentifierTargets(InMethodBinder? inMethodBinder, ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap, BindingDiagnosticBag diagnostics)
+            static void assertBindIdentifierTargets(InMethodBinder? inMethodBinder, ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap, BoundNode methodBody, BindingDiagnosticBag diagnostics)
             {
                 if (identifierMap != null && inMethodBinder!.IdentifierMap == identifierMap)
                 {
@@ -2147,6 +2147,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (flags != (1 | 2))
                             {
+
+                                if (id.IsMissing)
+                                {
+                                    continue;
+                                }
+
                                 if (flags == 1)
                                 {
                                     CSharpSyntaxNode child = id;
@@ -2167,11 +2173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         continue;
                                     }
-                                }
 
-                                if (id.IsMissing)
-                                {
-                                    continue;
+                                    if (UnboundLambdaFinder.FoundInUnboundLambda(methodBody, id))
+                                    {
+                                        continue;
+                                    }
                                 }
 
                                 Debug.Assert(false);
@@ -2200,6 +2206,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuard
         {
+        }
+
+        private sealed class UnboundLambdaFinder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private bool _found;
+            private readonly IdentifierNameSyntax _id;
+
+            private UnboundLambdaFinder(IdentifierNameSyntax id)
+            {
+                _id = id;
+            }
+
+            public static bool FoundInUnboundLambda(BoundNode methodBody, IdentifierNameSyntax id)
+            {
+                var walker = new UnboundLambdaFinder(id);
+                walker.Visit(methodBody);
+                return walker._found;
+            }
+
+            public override BoundNode? VisitUnboundLambda(UnboundLambda node)
+            {
+                if (!LambdaUtilities.TryGetLambdaBodies(node.Syntax, out var body1, out var body2))
+                {
+                    return base.VisitUnboundLambda(node);
+                }
+
+                if (body1?.DescendantNodesAndSelf().Where(n => (object)n == _id).Any() == true ||
+                    body2?.DescendantNodesAndSelf().Where(n => (object)n == _id).Any() == true)
+                {
+                    _found = true;
+                }
+
+                return node;
+            }
+
+            public override BoundNode? Visit(BoundNode? node)
+            {
+                if (_found)
+                {
+                    return node;
+                }
+
+                return base.Visit(node);
+            }
         }
 #endif
 #nullable disable

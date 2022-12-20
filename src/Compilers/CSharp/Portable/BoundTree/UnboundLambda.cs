@@ -448,6 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
             => Data.HasExplicitReturnType(out refKind, out returnType);
+        public Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
+            => Data.GetWithParametersBinder(lambdaSymbol, binder);
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)

@@ -6632,10 +6632,9 @@ struct Example()
 
                     // In lambdas
 
-                    // PROTOTYPE(PrimaryConstructors): should pass once we will be able to detect capturing in lambdas.
-                    //("1101", Captured | BadReference | InNestedMethod, "public C1() : this(() => p1) {} C1(System.Func<int> x) : this(0) {}"),
-                    //("1102", Captured | BadReference | InNestedMethod, "public C1() : this(() => (System.Func<int>)(() => p1)) {} C1(System.Func<System.Func<int>> x) : this(0) {}"),
-                    //("1103", Captured | BadReference | InNestedMethod, "public C1() : this(() => { return local(); int local() => p1; }) {} C1(System.Func<int> x) : this(0) {}"),
+                    ("1101", Captured | BadReference | InNestedMethod, "public C1() : this(() => p1) {} C1(System.Func<int> x) : this(0) {}"),
+                    ("1102", Captured | BadReference | InNestedMethod, "public C1() : this(() => (System.Func<int>)(() => p1)) {} C1(System.Func<System.Func<int>> x) : this(0) {}"),
+                    ("1103", Captured | BadReference | InNestedMethod, "public C1() : this(() => { return local(); int local() => p1; }) {} C1(System.Func<int> x) : this(0) {}"),
 
                     ("1401", Success | Shadows, "public System.Func<int> F = (() => p1);"),
                     ("1402", Success | Shadows, "public System.Func<System.Func<int>> F = (() => (System.Func<int>)(() => p1));"),
@@ -6645,13 +6644,11 @@ struct Example()
                     ("1406", Success | Shadows, "public System.Func<int> P {get;} = () => { return local(); int local() => p1; };"),
                     ("1407", Success | Shadows, "public event System.Func<System.Func<int>> E = (() => (System.Func<int>)(() => p1));"),
                     ("1408", Success | Shadows, "public event System.Func<int> E = () => { return local(); int local() => p1; };"),
-
-                    // PROTOTYPE(PrimaryConstructors): should pass once we will be able to detect capturing in lambdas.
-                    //("1409", Captured | Success, "public System.Func<int> M() { return (() => p1); }"),
-                    //("1410", Captured | Success, "public System.Func<System.Func<int>> M() { return (() => (System.Func<int>)(() => p1)); }"),
-                    //("1411", Captured | Success, "public System.Func<int> M() { return () => { return local(); int local() => p1; }; }"),
-                    //("1412", Captured | Success, "public void M() { local(); int local() { return p1; } }"),
-                    //("1413", Captured | Success, "public void M() { local1(); void local1() { local2(); int local2() { return p1; } } }"),
+                    ("1409", Captured | InNestedMethod, "public System.Func<int> M() { return (() => p1); }"),
+                    ("1410", Captured | InNestedMethod, "public System.Func<System.Func<int>> M() { return (() => (System.Func<int>)(() => p1)); }"),
+                    ("1411", Captured | InNestedMethod, "public System.Func<int> M() { return () => { return local(); int local() => p1; }; }"),
+                    ("1412", Captured | InNestedMethod, "public void M() { local(); int local() { return p1; } }"),
+                    ("1413", Captured | InNestedMethod, "public void M() { local1(); void local1() { local2(); int local2() { return p1; } } }"),
 
                     // In expression body
                     ("1502", Captured | Success, "public int P => p1;"),
@@ -6916,10 +6913,14 @@ struct Example()
                         yield return new object[] { keyword, /*shadow:*/ false, isPartial, isRecord, "10005", Captured | BadReference | InNestedMethod, "public C1() : this(0) { local1(); void local1() { local2(); int local2() { return p1; } } }" };
                         yield return new object[] { keyword, /*shadow:*/ true, isPartial, isRecord, "10006", Captured | InNestedMethod, "public C1() : this(0) { local1(); void local1() { local2(); int local2() { return p1; } } }" };
 
-                        // PROTOTYPE(PrimaryConstructors): should pass once we will be able to detect capturing in lambdas.
-                        //("1301", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => p1); void M(System.Func<int> x){}"),
-                        //("1302", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => (System.Func<int>)(() => p1)); void M(System.Func<System.Func<int>> x){}"),
-                        //("1303", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => { return local(); int local() => p1; }); void M(System.Func<int> x){}"),
+                        yield return new object[] { keyword, /*shadow:*/ false, isPartial, isRecord, "10007", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => p1); void M(System.Func<int> x){}" };
+                        yield return new object[] { keyword, /*shadow:*/ true, isPartial, isRecord, "10008", Captured | InNestedMethod, "public C1() : this(0) => M(() => p1); void M(System.Func<int> x){}" };
+
+                        yield return new object[] { keyword, /*shadow:*/ false, isPartial, isRecord, "10009", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => (System.Func<int>)(() => p1)); void M(System.Func<System.Func<int>> x){}" };
+                        yield return new object[] { keyword, /*shadow:*/ true, isPartial, isRecord, "10010", Captured | InNestedMethod, "public C1() : this(0) => M(() => (System.Func<int>)(() => p1)); void M(System.Func<System.Func<int>> x){}" };
+
+                        yield return new object[] { keyword, /*shadow:*/ false, isPartial, isRecord, "10011", Captured | BadReference | InNestedMethod, "public C1() : this(0) => M(() => { return local(); int local() => p1; }); void M(System.Func<int> x){}" };
+                        yield return new object[] { keyword, /*shadow:*/ true, isPartial, isRecord, "10012", Captured | InNestedMethod, "public C1() : this(0) => M(() => { return local(); int local() => p1; }); void M(System.Func<int> x){}" };
                     }
                 }
             }
@@ -7111,6 +7112,15 @@ class Attr1 : System.Attribute
                         Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p1").WithArguments("x").WithLocation(2000, 1)
                         );
                 }
+
+                if ((flags & (TestFlags.InNestedMethod)) != 0 && (flags & TestFlags.BadReference) == 0 && keyword == "struct")
+                {
+                    builder.Add(
+                        // (2000,1): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                        // p1
+                        Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(2000, 1)
+                        );
+                }
             }
             else
             {
@@ -7152,7 +7162,7 @@ class Attr1 : System.Attribute
                 }
 
                 if ((flags & (TestFlags.InNestedMethod)) != 0 && keyword == "struct" &&
-                         diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_ThisStructNotInAnonMeth).Any())
+                    diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_ThisStructNotInAnonMeth).Any())
                 {
                     builder.Add(
                         // (2000,1): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
@@ -8276,7 +8286,7 @@ class C2
         }
 
         [Fact]
-        public void ParameterCapturing_007_GotoCase()
+        public void ParameterCapturing_008_GotoCase()
         {
             var source = @"
 class C1 (int p1)
@@ -8318,6 +8328,281 @@ class C1 (int p1)
         }
 
         [Fact]
+        public void ParameterCapturing_009_Lambda()
+        {
+            var source1 = @"
+class C1 (int p1)
+{
+    public System.Func<int> M21() => delegate => p1;
+}
+";
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+            comp1.VerifyEmitDiagnostics(
+                // (4,38): error CS1041: Identifier expected; 'delegate' is a keyword
+                //     public System.Func<int> M21() => delegate => p1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38)
+                );
+
+            var source = @"
+class C1 (int p1, int p2, int p3, int p4, int p5)
+{
+    public System.Func<int> M1() => () => p1;
+    public System.Func<int> M2() => int () => { return p2; };
+    public System.Func<int, int> M3() => x => p3 + x;
+    public System.Func<int, int> M4() => x => { return p4 - x; };
+    public System.Func<int> M5() => delegate { return p5; };
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(10, 20, 30 , 40, 50);
+        System.Console.Write(c1.M1()());
+        System.Console.Write(c1.M2()());
+        System.Console.Write(c1.M3()(3));
+        System.Console.Write(c1.M4()(4));
+        System.Console.Write(c1.M5()());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"1020333650").VerifyDiagnostics();
+        }
+
+        public static IEnumerable<object[]> ParameterCapturing_010_ShadowingInMethodBody_MemberData()
+        {
+            var data = new (string tag, string code)[]
+                {
+                    ("0001", "int M1(int p1) { return p1; }"),
+                    ("0002", "int M1() { int p1 = 10; return p1; }"),
+                    ("0003", "void M1() { using var p1 = (System.IDisposable)null; p1.Dispose(); }"),
+                    ("0004", "int M1() { M2(out var p1); return p1; } void M2(out int x) { x = 0; }"),
+
+                    ("0101", "void M1(int p1) { var d = (int x) => p1; d(0); }"),
+                    ("0102", "void M1(int p1) { System.Func<int, int> d = (x) => p1; d(0); }"),
+                    ("0103", "void M1(int p1) { System.Func<int, int> d = x => p1; d(0); }"),
+                    ("0104", "void M1(int p1) { System.Func<int, int> d = delegate(int x) { return p1; }; d(0); }"),
+                    ("0105", "void M1(int p1) { System.Func<int, int> d = delegate { return p1; }; d(0); }"),
+
+                    ("0201", "void M1(int p1) { var d = (int x) => { int local() => p1; return local(); }; d(0); }"),
+                    ("0202", "void M1(int p1) { System.Func<int, int> d = (x) => { int local() => p1; return local(); }; d(0); }"),
+                    ("0203", "void M1(int p1) { System.Func<int, int> d = x => { int local() => p1; return local(); }; d(0); }"),
+                    ("0204", "void M1(int p1) { System.Func<int, int> d = delegate(int x) { int local() => p1; return local(); }; d(0); }"),
+                    ("0205", "void M1(int p1) { System.Func<int, int> d = delegate { int local() => p1; return local(); }; d(0); }"),
+
+                    ("0301", "void M1(int p1) { var d = (int x) => { var d = (int x) => p1; return d(0); }; d(0); }"),
+                    ("0302", "void M1(int p1) { System.Func<int, int> d = (x) => { var d = (int x) => p1; return d(0); }; d(0); }"),
+                    ("0303", "void M1(int p1) { System.Func<int, int> d = x => { var d = (int x) => p1; return d(0); }; d(0); }"),
+                    ("0304", "void M1(int p1) { System.Func<int, int> d = delegate(int x) { var d = (int x) => p1; return d(0); }; d(0); }"),
+                    ("0305", "void M1(int p1) { System.Func<int, int> d = delegate { var d = (int x) => p1; return d(0); }; d(0); }"),
+
+                    ("0401", "int M1(int p1) { int local() => p1; return local(); }"),
+                    ("0402", "int M1(int p1) { int local() { int local() => p1; return local(); }; return local(); }"),
+                    ("0403", "int M1(int p1) { int local() { var d = (int x) => p1; return d(0); }; return local(); }"),
+
+                    ("0501", "int M1() { var d = () => { int p1 = 10; return p1; }; return d(); }"),
+                    ("0502", "void M1() { var d = () => { using var p1 = (System.IDisposable)null; p1.Dispose(); }; d(); }"),
+                    ("0503", "int M1() { var d = () => { M2(out var p1); return p1; }; return d(); } void M2(out int x) { x = 0; }"),
+
+                    ("0601", "int M1() { int local() { int p1 = 10; return p1; }; return local(); }"),
+                    ("0602", "void M1() { void local() { using var p1 = (System.IDisposable)null; p1.Dispose(); }; local(); }"),
+                    ("0603", "int M1() { int local() { M2(out var p1); return p1; }; return local(); } void M2(out int x) { x = 0; }"),
+
+                    ("0701", "int M1() { var d = (int p1) => p1; return d(0); }"),
+                    ("0702", "void M1() { var d = (int p1) => { var d = (int x) => p1; d(0); }; d(0); }"),
+                    ("0703", "void M1() { var d = (int p1) => { var d = (int x) => { int local() => p1; return local(); }; d(0); }; d(0); }"),
+                    ("0704", "void M1() { var d = (int p1) => { var d = (int x) => { var d = (int x) => p1; return d(0); }; d(0); }; d(0); }"),
+                    ("0705", "int M1() { var d = (int p1) => { int local() => p1; return local(); }; return d(0); }"),
+                    ("0706", "int M1() { var d = (int p1) => { int local() { int local() => p1; return local(); }; return local(); }; return d(0); }"),
+                    ("0707", "int M1() { var d = (int p1) => { int local() { var d = (int x) => p1; return d(0); }; return local(); }; return d(0); }"),
+
+                    ("0801", "int M1() { System.Func<int, int> d = p1 => p1; return d(0); }"),
+                    ("0802", "void M1() { System.Action<int> d = p1 => { var d = (int x) => p1; d(0); }; d(0); }"),
+                    ("0803", "void M1() { System.Action<int> d = p1 => { var d = (int x) => { int local() => p1; return local(); }; d(0); }; d(0); }"),
+                    ("0804", "void M1() { System.Action<int> d = p1 => { var d = (int x) => { var d = (int x) => p1; return d(0); }; d(0); }; d(0); }"),
+                    ("0805", "int M1() { System.Func<int, int> d = p1 => { int local() => p1; return local(); }; return d(0); }"),
+                    ("0806", "int M1() { System.Func<int, int> d = p1 => { int local() { int local() => p1; return local(); }; return local(); }; return d(0); }"),
+                    ("0807", "int M1() { System.Func<int, int> d = p1 => { int local() { var d = (int x) => p1; return d(0); }; return local(); }; return d(0); }"),
+
+                    ("0901", "int M1() { System.Func<int, int> d = delegate(int p1) { return p1; }; return d(0); }"),
+                    ("0902", "void M1() { System.Action<int> d = delegate(int p1) { var d = (int x) => p1; d(0); }; d(0); }"),
+                    ("0903", "void M1() { System.Action<int> d = delegate(int p1) { var d = (int x) => { int local() => p1; return local(); }; d(0); }; d(0); }"),
+                    ("0904", "void M1() { System.Action<int> d = delegate(int p1) { var d = (int x) => { var d = (int x) => p1; return d(0); }; d(0); }; d(0); }"),
+                    ("0905", "int M1() { System.Func<int, int> d = delegate(int p1) { int local() => p1; return local(); }; return d(0); }"),
+                    ("0906", "int M1() { System.Func<int, int> d = delegate(int p1) { int local() { int local() => p1; return local(); }; return local(); }; return d(0); }"),
+                    ("0907", "int M1() { System.Func<int, int> d = delegate(int p1) { int local() { var d = (int x) => p1; return d(0); }; return local(); }; return d(0); }"),
+
+                    ("1001", "int M1() { int local(int p1) => p1; return local(0); }"),
+                    ("1002", "void M1() { void local(int p1) { var d = (int x) => p1; d(0); }; local(0); }"),
+                    ("1003", "void M1() { void local(int p1) { var d = (int x) => { int local() => p1; return local(); }; d(0); }; local(0); }"),
+                    ("1004", "void M1() { void local(int p1) { var d = (int x) => { var d = (int x) => p1; return d(0); }; d(0); }; local(0); }"),
+                    ("1005", "int M1() { int local(int p1) { int local() => p1; return local(); }; return local(0); }"),
+                    ("1006", "int M1() { int local(int p1) { int local() { int local() => p1; return local(); }; return local(); }; return local(0); }"),
+                    ("1007", "int M1() { int local(int p1) { int local() { var d = (int x) => p1; return d(0); }; return local(); }; return local(0); }"),
+                };
+
+            foreach (var d in data)
+            {
+                yield return new object[] { d.tag, d.code };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterCapturing_010_ShadowingInMethodBody_MemberData))]
+        public void ParameterCapturing_010_ShadowingInMethodBody(string tag, string member)
+        {
+            _ = tag;
+
+            var source = @"
+#line 1000
+class C1 (int p1)
+{
+" + member + @"
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (1000,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 15)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_011_EscapedIdentifier()
+        {
+            var source = @"
+class C1 (int p1)
+{
+    public int M1() { return @p1++; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123);
+        System.Console.Write(c1.M1());
+        System.Console.Write(c1.M1());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"123124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_012_LambdaWithDiscard()
+        {
+            var source = @"
+class C1 (int _)
+{
+    public System.Func<int, int> M1() => (_) => _;
+}
+
+class C2 (int _)
+{
+    public System.Func<int, int, int> M2() => (_, _) => _;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(10);
+        System.Console.Write(c1.M1()(-1));
+        var c2 = new C2(20);
+        System.Console.Write(c2.M2()(-2, -3));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"-120").VerifyDiagnostics(
+                // (2,15): warning CS8907: Parameter '_' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int _)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "_").WithArguments("_").WithLocation(2, 15)
+                );
+
+            Assert.Equal(1, comp.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+            Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_013_Nameof()
+        {
+            var source = @"
+class C1 (int p1)
+{
+    public string M1() => nameof(p1);
+}
+
+class C2 (int p2)
+{
+    public string M2() => nameof(p2);
+
+    string nameof(int x) => ""x""; 
+}
+
+class C3 (System.Func<int, int> nameof)
+{
+    public int M3(int x) => nameof(x);
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(10);
+        System.Console.Write(c1.M1());
+        var c2 = new C2(20);
+        System.Console.Write(c2.M2());
+        var c3 = new C3(x => x);
+        System.Console.Write(c3.M3(30));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"p1x30").VerifyDiagnostics(
+                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+            Assert.Equal(1, comp.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+            Assert.Equal(1, comp.GetTypeByMetadataName("C3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+        }
+
+        [Fact]
+        public void ParameterCapturing_014_Nameof()
+        {
+            var source = @"
+class C3 (int nameof)
+{
+    public int M3(int x) => nameof(x);
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,29): error CS0149: Method name expected
+                //     public int M3(int x) => nameof(x);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "nameof").WithLocation(4, 29)
+                );
+
+            Assert.Equal(1, comp.GetTypeByMetadataName("C3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute()
         {
             var source = @"
@@ -8346,9 +8631,14 @@ class C1 (int p1)
         public void IllegalCapturingInStruct_01()
         {
             var source = @"
-struct C1(int p1)
+struct C1(int p1, int p2, int p3, int p4)
 {
     public void M1() { local(); int local() { return p1; } }
+    public void M2() { var d = () => { return p2; }; d(); }
+    System.Func<int> F1 = () => p3;
+    public void M3() { local(); string local() { return nameof(p4); } }
+    public void M4() { var d = () => { return nameof(p4); }; d(); }
+    int F2 = p4;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
@@ -8356,7 +8646,10 @@ struct C1(int p1)
             comp.VerifyEmitDiagnostics(
                 // (4,54): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //     public void M1() { local(); int local() { return p1; } }
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(4, 54)
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(4, 54),
+                // (5,47): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //     public void M2() { var d = () => { return p2; }; d(); }
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p2").WithLocation(5, 47)
                 );
         }
 
@@ -8367,6 +8660,7 @@ struct C1(int p1)
 struct C1(int p1)
 {
     System.Func<int> x = () => p1;
+    System.Func<string> y = () => nameof(p1);
 
     public int M1() => p1;
 }";
@@ -8380,9 +8674,9 @@ struct C1(int p1)
                 );
         }
 
-        public static IEnumerable<object[]> IllegalCapturing_01_MemberData()
+        public static IEnumerable<object[]> IllegalCapturingDueToRefness_01_MemberData()
         {
-            var data = new (string tag, TestFlags flags, string code)[]
+            var data1 = new (string tag, TestFlags flags, string code)[]
                 {
                     ("0001", BadReference, "(ref int p1) { void M1() { p1 = 1; } }"),
                     ("0002", BadReference, "(ref int p1) { void M1() { local(); void local() { p1 = 1; } } }"),
@@ -8409,25 +8703,75 @@ struct C1(int p1)
                     ("0110", Success, "(S1 p1) { void M1() { nameof(p1).ToString(); } } ref struct S1 { public void M(){} }"),
                     ("0111", Success, "(S1 p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } } ref struct S1{ public void M(){} }"),
                     ("0112", Success, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } } ref struct S1{ public void M(){} }"),
+
+                    ("0201", BadReference, "(ref int p1) { System.Action F = () => p1 = 0; }"),
+                    ("0202", BadReference, "(ref int p1) { System.Action P { get; } = () => p1 = 0; }"),
+                    ("0203", BadReference, "(ref int p1) { public event System.Action E = () => p1 = 0; }"),
+                    ("0204", BadReference, "(in int p1) { System.Action F = () => p1.ToString(); }"),
+                    ("0205", BadReference, "(in int p1) { System.Action P { get; } = () => p1.ToString(); }"),
+                    ("0206", BadReference, "(in int p1) { public event System.Action E = () => p1.ToString(); }"),
+                    ("0207", BadReference, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
+                    ("0208", BadReference, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
+                    ("0209", BadReference, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
+                    ("0210", BadReference, "(S1 p1) { System.Action F = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
+                    ("0211", BadReference, "(S1 p1) { System.Action P { get; } = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
+                    ("0212", BadReference, "(S1 p1) { public event System.Action E = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
+
+                    ("0301", Success, "(ref int p1) { System.Action F = () => nameof(p1).ToString(); }"),
+                    ("0302", Success, "(ref int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }"),
+                    ("0303", Success, "(ref int p1) { public event System.Action E = () => nameof(p1).ToString(); }"),
+                    ("0304", Success, "(in int p1) { System.Action F = () => nameof(p1).ToString(); }"),
+                    ("0305", Success, "(in int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }"),
+                    ("0306", Success, "(in int p1) { public event System.Action E = () => nameof(p1).ToString(); }"),
+                    ("0307", Success, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
+                    ("0308", Success, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
+                    ("0309", Success, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
+                    ("0310", Success, "(S1 p1) { System.Action F = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
+                    ("0311", Success, "(S1 p1) { System.Action P { get; } = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
+                    ("0312", Success, "(S1 p1) { public event System.Action E = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
+                };
+
+            var data2 = new (string tag, TestFlags flags, string code)[]
+                {
+                    ("1001", BadReference, "(ref int p1) : Base(() => p1 = 0); class Base { public Base(System.Action x) {} }"),
+                    ("1002", BadReference, "(in int p1) : Base(() => p1.ToString()); class Base { public Base(System.Action x) {} }"),
+                    ("1003", BadReference, "(out int p1) : Base(p1 = 0, () => p1 = 0); class Base { public Base(int y, System.Action x) {} }"),
+                    ("1004", BadReference, "(S1 p1) : Base(() => p1.ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }"),
+
+                    ("1011", Success, "(ref int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }"),
+                    ("1012", Success, "(in int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }"),
+                    ("1013", Success, "(out int p1) : Base(p1 = 0, () => nameof(p1).ToString()); class Base { public Base(int y, System.Action x) {} }"),
+                    ("1014", Success, "(S1 p1) : Base(() => nameof(p1).ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }"),
                 };
 
             foreach (var keyword in new[] { "class", "struct", "ref struct" })
             {
-                foreach (var d in data)
+                foreach (var d in data1)
                 {
                     yield return new object[] { keyword, d.tag, d.flags, d.code };
+                }
+
+                if (keyword == "class")
+                {
+                    foreach (var d in data2)
+                    {
+                        yield return new object[] { keyword, d.tag, d.flags, d.code };
+                    }
                 }
             }
         }
 
         [Theory]
-        [MemberData(nameof(IllegalCapturing_01_MemberData))]
-        public void IllegalCapturing_01(string keyword, string tag, TestFlags flags, string code)
+        [MemberData(nameof(IllegalCapturingDueToRefness_01_MemberData))]
+        public void IllegalCapturingDueToRefness_01(string keyword, string tag, TestFlags flags, string code)
         {
             _ = tag;
 
             int i = code.LastIndexOf("p1");
-            var source = keyword + " C1" + code.Substring(0, i) + @"
+            var source = @"
+#pragma warning disable CS8907 // Parameter 'p1' is unread.
+
+" + keyword + " C1" + code.Substring(0, i) + @"
 #line 2000
 p1
 " + code.Substring(i + 2);
@@ -8447,6 +8791,53 @@ p1
             {
                 comp.VerifyEmitDiagnostics();
             }
+        }
+
+        [Fact]
+        public void IllegalCapturingInNestedStatic_01()
+        {
+            var source = @"
+class C1(int p1, int p2, int p3, int p4) : Base(static () => p4) 
+{
+    public void M1() { local(); static int local() { return p1; } }
+    public void M2() { var d = static () => { return p2; }; d(); }
+    System.Func<int> F = static () => p3;
+}
+
+class C2(int p1, int p2, int p3, int p4) : Base(static () => nameof(p4).Length) 
+{
+    public void M1() { local(); static string local() { return nameof(p1); } }
+    public void M2() { var d = static () => { return nameof(p2); }; d(); }
+    System.Func<string> F = static () => nameof(p3);
+}
+
+class Base
+{
+    public Base(System.Func<int> x) {}
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,62): error CS8820: A static anonymous function cannot contain a reference to 'p4'.
+                // class C1(int p1, int p2, int p3, int p4) : Base(static () => p4) 
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "p4").WithArguments("p4").WithLocation(2, 62),
+                // (4,61): error CS8421: A static local function cannot contain a reference to 'p1'.
+                //     public void M1() { local(); static int local() { return p1; } }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p1").WithArguments("p1").WithLocation(4, 61),
+                // (5,54): error CS8820: A static anonymous function cannot contain a reference to 'p2'.
+                //     public void M2() { var d = static () => { return p2; }; d(); }
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "p2").WithArguments("p2").WithLocation(5, 54),
+                // (6,39): error CS8820: A static anonymous function cannot contain a reference to 'p3'.
+                //     System.Func<int> F = static () => p3;
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "p3").WithArguments("p3").WithLocation(6, 39),
+                // (9,14): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C2(int p1, int p2, int p3, int p4) : Base(static () => nameof(p4).Length) 
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(9, 14),
+                // (9,22): warning CS8907: Parameter 'p2' is unread. Did you forget to use it to initialize the property with that name?
+                // class C2(int p1, int p2, int p3, int p4) : Base(static () => nameof(p4).Length) 
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p2").WithArguments("p2").WithLocation(9, 22)
+                );
         }
     }
 }

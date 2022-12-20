@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -228,24 +229,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var lambdasAndIdentifiers = node.DescendantNodes(descendIntoChildren: childrenNeedChecking, descendIntoTrivia: false).Where(nodeNeedsChecking);
+                var lambdasAndIdentifiers = node.DescendantNodesAndSelf(descendIntoChildren: childrenNeedChecking, descendIntoTrivia: false).Where(nodeNeedsChecking);
 
                 foreach (var n in lambdasAndIdentifiers)
                 {
+                    Binder enclosingBinder = getEnclosingBinderForNode(contextNode: node, contextBinder: binder, n);
+
                     switch (n)
                     {
-                        case LambdaExpressionSyntax:
-                        case AnonymousMethodExpressionSyntax:
-                            // PROTOTYPE(PrimaryConstructors): Dig into lambdas
-                            // PROTOTYPE(PrimaryConstructors): Make sure to cover discard parameters
+                        case AnonymousFunctionExpressionSyntax lambdaSyntax:
+                            // PROTOTYPE(PrimaryConstructors): What about queries? 
+                            if (!checkLambda(lambdaSyntax, enclosingBinder))
+                            {
+                                return false;
+                            }
+
                             break;
 
                         case IdentifierNameSyntax id:
 
                             string name = id.Identifier.ValueText;
                             Debug.Assert(namesToCheck.Contains(name));
-                            Binder enclosingBinder = getEnclosingBinderForNode(contextNode: node, contextBinder: binder, id);
-                            if (!registerCapture(identifierRefersToParameter(enclosingBinder, id)))
+                            if (!registerCapture(identifierCapturesParameter(enclosingBinder, id)))
                             {
                                 return false;
                             }
@@ -258,6 +263,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return true;
+            }
+
+            bool checkLambda(AnonymousFunctionExpressionSyntax lambdaSyntax, Binder enclosingBinder)
+            {
+                UnboundLambda unboundLambda = enclosingBinder.AnalyzeAnonymousFunction(lambdaSyntax, BindingDiagnosticBag.Discarded);
+                unboundLambda.HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType);
+                var lambdaSymbol = new LambdaSymbol(
+                                        enclosingBinder,
+                                        enclosingBinder.Compilation,
+                                        enclosingBinder.ContainingMemberOrLambda!,
+                                        unboundLambda,
+                                        ImmutableArray<TypeWithAnnotations>.Empty,
+                                        ImmutableArray<RefKind>.Empty,
+                                        refKind,
+                                        returnType);
+
+                var lambdaBodyBinder = new ExecutableCodeBinder(unboundLambda.Syntax, lambdaSymbol, unboundLambda.GetWithParametersBinder(lambdaSymbol, enclosingBinder));
+
+                return checkParameterReferencesInNode(lambdaSyntax.Body, lambdaBodyBinder.GetBinder(lambdaSyntax.Body) ?? lambdaBodyBinder);
             }
 
             bool registerCapture(ParameterSymbol? parameter)
@@ -278,9 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            ParameterSymbol? identifierRefersToParameter(Binder enclosingBinder, IdentifierNameSyntax id)
+            ParameterSymbol? identifierCapturesParameter(Binder enclosingBinder, IdentifierNameSyntax id)
             {
-                // PROTOTYPE(PrimaryConstructors): Identifiers inside nameof are not really references 
                 // PROTOTYPE(PrimaryConstructors): Handle "Color Color" scenario when parameter reference is getting reinterpreted as a type reference instead. 
 
                 lookupResult ??= LookupResult.GetInstance();
@@ -295,7 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 enclosingBinder.LookupSymbolsWithFallback(lookupResult, id.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: options);
 
-                if (lookupResult.IsSingleViable && lookupResult.SingleSymbolOrDefault is ParameterSymbol parameter && parameter.ContainingSymbol == (object)this)
+                if (lookupResult.IsSingleViable && lookupResult.SingleSymbolOrDefault is ParameterSymbol parameter &&
+                    parameter.ContainingSymbol == (object)this && !enclosingBinder.IsInsideNameof)
                 {
                     return parameter;
                 }
@@ -303,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            static Binder getEnclosingBinderForNode(CSharpSyntaxNode contextNode, Binder contextBinder, CSharpSyntaxNode targetNode)
+            static Binder getEnclosingBinderForNode(CSharpSyntaxNode contextNode, Binder contextBinder, SyntaxNode targetNode)
             {
                 while (true)
                 {
@@ -346,8 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Same as attributes
                         return false;
 
-                    case LambdaExpressionSyntax:
-                    case AnonymousMethodExpressionSyntax:
+                    case AnonymousFunctionExpressionSyntax:
                         // Lambdas need special handling
                         return false;
 
@@ -368,8 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 switch (n)
                 {
-                    case LambdaExpressionSyntax:
-                    case AnonymousMethodExpressionSyntax:
+                    case AnonymousFunctionExpressionSyntax:
                         return true;
 
                     case IdentifierNameSyntax id:
