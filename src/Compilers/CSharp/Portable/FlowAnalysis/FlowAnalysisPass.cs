@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var initializations = F.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
 
-            return body.Update(body.Locals, body.LocalFunctions, body.InUnsafeRegion, body.Statements.Insert(index: 0, initializations));
+            return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Statements.Insert(index: 0, initializations));
         }
 
         private static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, bool originalBodyNested)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(statements, n - 1);
                 builder.Add(AppendImplicitReturn((BoundBlock)statements[n - 1], method));
 
-                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, body.InUnsafeRegion, builder.ToImmutableAndFree());
+                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, body.HasUnsafeModifier, builder.ToImmutableAndFree());
             }
             else
             {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
-            return body.Update(body.Locals, body.LocalFunctions, body.InUnsafeRegion, body.Statements.Add(ret));
+            return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Statements.Add(ret));
         }
 
         private static bool Analyze(

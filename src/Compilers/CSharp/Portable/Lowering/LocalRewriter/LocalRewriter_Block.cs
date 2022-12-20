@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
             {
-                return node.Update(node.Locals, node.LocalFunctions, node.InUnsafeRegion, builder.ToImmutableAndFree());
+                return node.Update(node.Locals, node.LocalFunctions, node.HasUnsafeModifier, builder.ToImmutableAndFree());
             }
 
             LocalSymbol? synthesizedLocal;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(epilogue);
             }
 
-            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, node.InUnsafeRegion, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, node.HasUnsafeModifier, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         /// <summary>

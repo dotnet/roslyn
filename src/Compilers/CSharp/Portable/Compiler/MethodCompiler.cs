@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 insertAt = 1;
                             }
-                            body = body.Update(body.Locals, body.LocalFunctions, body.InUnsafeRegion, body.Statements.Insert(insertAt, analyzedInitializers));
+                            body = body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Statements.Insert(insertAt, analyzedInitializers));
                             includeNonEmptyInitializersInBody = false;
                             analyzedInitializers = null;
                         }

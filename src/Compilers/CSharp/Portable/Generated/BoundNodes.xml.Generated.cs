@@ -3031,7 +3031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBlock : BoundStatementList
     {
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ThreeState inUnsafeRegion, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool hasUnsafeModifier, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
             : base(BoundKind.Block, syntax, statements, hasErrors || statements.HasErrors())
         {
 
@@ -3041,21 +3041,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Locals = locals;
             this.LocalFunctions = localFunctions;
-            this.InUnsafeRegion = inUnsafeRegion;
+            this.HasUnsafeModifier = hasUnsafeModifier;
         }
 
         public ImmutableArray<LocalSymbol> Locals { get; }
         public ImmutableArray<LocalFunctionSymbol> LocalFunctions { get; }
-        public ThreeState InUnsafeRegion { get; }
+        public bool HasUnsafeModifier { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBlock(this);
 
-        public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ThreeState inUnsafeRegion, ImmutableArray<BoundStatement> statements)
+        public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool hasUnsafeModifier, ImmutableArray<BoundStatement> statements)
         {
-            if (locals != this.Locals || localFunctions != this.LocalFunctions || inUnsafeRegion != this.InUnsafeRegion || statements != this.Statements)
+            if (locals != this.Locals || localFunctions != this.LocalFunctions || hasUnsafeModifier != this.HasUnsafeModifier || statements != this.Statements)
             {
-                var result = new BoundBlock(this.Syntax, locals, localFunctions, inUnsafeRegion, statements, this.HasErrors);
+                var result = new BoundBlock(this.Syntax, locals, localFunctions, hasUnsafeModifier, statements, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10670,7 +10670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitBlock(BoundBlock node)
         {
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(node.Locals, node.LocalFunctions, node.InUnsafeRegion, statements);
+            return node.Update(node.Locals, node.LocalFunctions, node.HasUnsafeModifier, statements);
         }
         public override BoundNode? VisitScope(BoundScope node)
         {
@@ -12611,7 +12611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
             ImmutableArray<LocalFunctionSymbol> localFunctions = GetUpdatedArray(node, node.LocalFunctions);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(locals, localFunctions, node.InUnsafeRegion, statements);
+            return node.Update(locals, localFunctions, node.HasUnsafeModifier, statements);
         }
 
         public override BoundNode? VisitScope(BoundScope node)
@@ -14838,7 +14838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("localFunctions", node.LocalFunctions, null),
-            new TreeDumperNode("inUnsafeRegion", node.InUnsafeRegion, null),
+            new TreeDumperNode("hasUnsafeModifier", node.HasUnsafeModifier, null),
             new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

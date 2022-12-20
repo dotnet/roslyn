@@ -973,7 +973,7 @@
   <Node Name="BoundBlock" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="LocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="InUnsafeRegion" Type="ThreeState" Null="NotApplicable"/>
+    <Field Name="HasUnsafeModifier" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <!--

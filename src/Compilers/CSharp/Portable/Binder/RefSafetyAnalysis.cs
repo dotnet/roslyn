@@ -226,8 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitBlock(BoundBlock node)
         {
-            var inUnsafeRegion = node.InUnsafeRegion;
-            using var _1 = new UnsafeRegion(this, inUnsafeRegion.HasValue() ? inUnsafeRegion.Value() : _inUnsafeRegion);
+            using var _1 = new UnsafeRegion(this, _inUnsafeRegion || node.HasUnsafeModifier);
             using var _2 = new LocalScope(this, node.Locals);
             return base.VisitBlock(node);
         }
@@ -265,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
             // across nested local functions or lambdas because _localScopeDepth is reset when entering
             // the function or lambda so the scopes across the methods are unrelated.
-            var analysis = new RefSafetyAnalysis(_compilation, localFunction, localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
+            var analysis = new RefSafetyAnalysis(_compilation, localFunction, _inUnsafeRegion || localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);
             return null;

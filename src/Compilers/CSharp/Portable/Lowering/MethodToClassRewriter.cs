@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newLocals = RewriteLocals(node.Locals);
             var newLocalFunctions = node.LocalFunctions;
             var newStatements = VisitList(node.Statements);
-            return node.Update(newLocals, newLocalFunctions, node.InUnsafeRegion, newStatements);
+            return node.Update(newLocals, newLocalFunctions, node.HasUnsafeModifier, newStatements);
         }
 
         public abstract override BoundNode VisitScope(BoundScope node);
