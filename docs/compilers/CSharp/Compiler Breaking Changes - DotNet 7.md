@@ -1,5 +1,67 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Ref safety errors do not affect conversion from lambda expression to delegate
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+Ref safety errors reported in a lambda body no longer affect whether the lambda expression is convertible to a delegate type. This change can affect overload resolution.
+
+In the example below, the call to `M(x => ...)` is ambiguous with Visual Studio 17.5 because both `M(D1)` and `M(D2)` are now considered applicable, even though the call to `F(ref x, ref y)` within the lambda body will result in a ref safety with `M(D1)` (see the examples in `d1` and `d2` for comparison). Previously, the call bound unambiguously to `M(D2)` because the `M(D1)` overload was considered not applicable.
+```csharp
+using System;
+
+ref struct R { }
+
+delegate R D1(R r);
+delegate object D2(object o);
+
+class Program
+{
+    static void M(D1 d1) { }
+    static void M(D2 d2) { }
+
+    static void F(ref R x, ref Span<int> y) { }
+    static void F(ref object x, ref Span<int> y) { }
+
+    static void Main()
+    {
+        // error CS0121: ambiguous between: 'M(D1)' and 'M(D2)'
+        M(x =>
+            {
+                Span<int> y = stackalloc int[1];
+                F(ref x, ref y);
+                return x;
+            });
+
+        D1 d1 = x1 =>
+            {
+                Span<int> y1 = stackalloc int[1];
+                F(ref x1, ref y1); // error CS8352: 'y2' may expose referenced variables
+                return x1;
+            };
+
+        D2 d2 = x2 =>
+            {
+                Span<int> y2 = stackalloc int[1];
+                F(ref x2, ref y2); // ok: F(ref object x, ref Span<int> y)
+                return x2;
+            };
+    }
+}
+```
+
+To workaround the overload resolution changes, use explicit types for the lambda parameters or delegate.
+
+```csharp
+        // ok: M(D2)
+        M((object x) =>
+            {
+                Span<int> y = stackalloc int[1];
+                F(ref x, ref y); // ok: F(ref object x, ref Span<int> y)
+                return x;
+            });
+```
+
 ## Raw string interpolations at start of line.
 
 ***Introduced in Visual Studio 2022 version 17.5***
