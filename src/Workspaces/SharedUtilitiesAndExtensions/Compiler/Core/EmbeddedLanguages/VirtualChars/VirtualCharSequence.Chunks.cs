@@ -62,7 +62,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
                     return 0;
                 });
-                Debug.Assert(index >= 0);
+
+                // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
+                // position is in one of the gaps, it won't be able to find a corresponding virtual char.
+                if (index < 0)
+                    return null;
+
                 return _array[index];
             }
         }

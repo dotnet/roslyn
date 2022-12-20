@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
 
             // Sort proxy types.
-            _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).Select(kvp => kvp.Value).AsImmutable();
+            _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).AsImmutable();
         }
 
         private bool IsFrozen => _frozen != 0;
@@ -189,15 +189,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="data">The data for the field.</param>
         /// <param name="alignment">
         /// The alignment value is the necessary alignment for addresses for the underlying element type of the array.
-        /// The data is stored by using a type whose size is equal to the total size of the blob. When the total size
-        /// of the data is 1, 2, 4, or 8 bytes, a byte, short, int, or long can be used as the type of the field, and
-        /// regardless of what the element type is for the data, it's guaranteed to have appropriate alignment. For
-        /// all other sizes, a type is generated of the same size as the data, and that type needs its .pack set to
-        /// the alignment required for the underlying data. While that .pack value isn't required by anything else
-        /// in the compiler (the compiler always aligns RVA fields at 8-byte boundaries, which accomodates any
-        /// element type that's relevant), it is necessary for IL rewriters. Such rewriters also need to ensure
-        /// an appropriate alignment is maintained for the RVA field, and while they could also simplify by choosing
-        /// a worst-case alignment as does the compiler, they may instead use the .pack value as the alignment
+        /// The data is stored by using a type whose size is equal to the total size of the blob. If a built-in system
+        /// type has an appropriate size and .pack, it can be used. Otherwise, a type is generated of the same size as
+        /// the data, and that type needs its .pack set to the alignment required for the underlying data. While that
+        /// .pack value isn't required by anything else in the compiler (the compiler always aligns RVA fields at 8-byte
+        /// boundaries, which accomodates any element type that's relevant), it is necessary for IL rewriters. Such rewriters
+        /// also need to ensure an appropriate alignment is maintained for the RVA field, and while they could also simplify
+        /// by choosing a worst-case alignment as does the compiler, they may instead use the .pack value as the alignment
         /// to use for that field, since it's an opaque blob with no other indication as to what kind of data is
         /// stored and what alignment might be required.
         /// </param>
@@ -205,16 +203,31 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data, ushort alignment)
         {
             Debug.Assert(!IsFrozen);
+            Debug.Assert(alignment is 1 or 2 or 4 or 8);
+            Debug.Assert(data.Length != 1 || alignment == 1);
 
             Cci.ITypeReference type = _proxyTypes.GetOrAdd(
                 ((uint)data.Length, Alignment: alignment), key =>
-                key.Size switch
                 {
-                    1 when _systemInt8Type is not null => _systemInt8Type,
-                    2 when _systemInt16Type is not null => _systemInt16Type,
-                    4 when _systemInt32Type is not null => _systemInt32Type,
-                    8 when _systemInt64Type is not null => _systemInt64Type,
-                    _ => new ExplicitSizeStruct(key.Size, key.Alignment, this, _systemValueType)
+                    // We need a type that's both the same size as the data and that has a .pack
+                    // that matches the data's alignment requirements. If the size of the data
+                    // is 1 byte, then the alignment will also be 1, and we can use byte as the type.
+                    // If the size of the data is 2, 4, or 8 bytes, we can use short, int, or long rather than
+                    // creating a custom type, but we can only do so if the required alignment is also 1, as
+                    // these types have a .pack value of 1.
+                    if (key.Alignment == 1)
+                    {
+                        switch (key.Size)
+                        {
+                            case 1 when _systemInt8Type is not null: return _systemInt8Type;
+                            case 2 when _systemInt16Type is not null: return _systemInt16Type;
+                            case 4 when _systemInt32Type is not null: return _systemInt32Type;
+                            case 8 when _systemInt64Type is not null: return _systemInt64Type;
+                        }
+                    }
+
+                    // Use a custom type.
+                    return new ExplicitSizeStruct(key.Size, key.Alignment, this, _systemValueType);
                 });
 
             return _mappedFields.GetOrAdd((data, alignment), key =>
@@ -433,7 +446,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             visitor.Visit(this);
         }
 
-        public string Name => "__StaticArrayInitTypeSize=" + _size;
+        public string Name => _alignment == 1 ?
+            $"__StaticArrayInitTypeSize={_size}" :
+            $"__StaticArrayInitTypeSize={_size}_Align={_alignment}";
 
         public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
 

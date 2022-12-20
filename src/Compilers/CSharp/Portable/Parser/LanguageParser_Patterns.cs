@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     expr = s;
                     return true;
                 case QualifiedNameSyntax { Left: var left, dotToken: var dotToken, Right: var right }
-                            when (permitTypeArguments || !(right is GenericNameSyntax)):
+                            when (permitTypeArguments || right is not GenericNameSyntax):
                     var newLeft = ConvertTypeToExpression(left, out var leftExpr, permitTypeArguments: true) ? leftExpr : left;
                     expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newLeft, dotToken, right);
                     return true;
@@ -522,18 +522,17 @@ tryAgain:
                     int lastTokenPosition = -1;
                     while (IsMakingProgress(ref lastTokenPosition))
                     {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
-                            this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
-                            this.CurrentToken.Kind == SyntaxKind.CloseBracketToken ||
-                            this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        if (this.CurrentToken.Kind is SyntaxKind.CloseParenToken or
+                                                      SyntaxKind.CloseBraceToken or
+                                                      SyntaxKind.CloseBracketToken or
+                                                      SyntaxKind.SemicolonToken)
                         {
                             break;
                         }
                         else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleSubpatternElement())
                         {
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
-                                this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
+                            if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken)
                             {
                                 break;
                             }
@@ -632,11 +631,11 @@ tryAgain:
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
                 // to be consumed by the switch arm. The strange side-effect of that is that the conditional
                 // expression is not permitted as a constant expression here; it would have to be parenthesized.
-                var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
-                var whenClause = ParseWhenClause(Precedence.Coalescing);
-                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                var expression = ParseExpressionCore();
-                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
+                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(
+                    ParsePattern(Precedence.Coalescing, whenIsKeyword: true),
+                    ParseWhenClause(Precedence.Coalescing),
+                    this.EatToken(SyntaxKind.EqualsGreaterThanToken),
+                    ParseExpressionCore());
 
                 // If we're not making progress, abort
                 if (switchExpressionCase.Width == 0 && this.CurrentToken.Kind != SyntaxKind.CommaToken)

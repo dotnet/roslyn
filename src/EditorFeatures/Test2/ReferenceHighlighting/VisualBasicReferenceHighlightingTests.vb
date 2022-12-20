@@ -123,7 +123,32 @@ End Interface
 Class C
     Implements I
 
+    ' This method itself is not found as nothing references it.
+    Public Sub Goo() Implements I.{|Reference:$$Goo|}
+    End Sub
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(540670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
+        Public Async Function TestVerifyHighlightsForVisualBasicClassWithMethodNameChange4(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Interface I
+    Sub {|Definition:Goo|}()
+End Interface
+
+Class C
+    Implements I
+
     Public Sub {|Definition:Goo|}() Implements I.{|Reference:$$Goo|}
+        ' Presence of this reference means we find the containing definition.
+        {|Reference:Goo|}()
     End Sub
 End Class
                         </Document>

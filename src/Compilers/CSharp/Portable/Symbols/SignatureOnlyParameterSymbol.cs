@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Hash.CombineValues(_type.CustomModifiers),
                     Hash.Combine(
                         _isParams.GetHashCode(),
-                        _refKind.GetHashCode())));
+                        ((int)_refKind).GetHashCode())));
         }
     }
 }
