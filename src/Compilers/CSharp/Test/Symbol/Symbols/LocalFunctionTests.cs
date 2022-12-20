@@ -194,13 +194,25 @@ class C
         public void StaticLocalFunction_CapturingMethodGroup()
         {
             CreateCompilation("""
+                using System;
+
                 var c = new C();
                 LocalFunc();
+                NonStatic();
 
                 static void LocalFunc()
                 {
                     var x = c.MyExtension;
-                    x();
+                    var y = new Func<string>(c.MyExtension);
+                }
+
+                void NonStatic()
+                {
+                    Action f = static () =>
+                    {
+                        var x = c.MyExtension;
+                        var y = new Func<string>(c.MyExtension);
+                    };
                 }
 
                 public class C
@@ -213,22 +225,43 @@ class C
                         => string.Empty;
                 }
                 """).VerifyDiagnostics(
-                    // (6,13): error CS8421: A static local function cannot contain a reference to 'c'.                       
-                    //     var x = c.GetName;
-                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(6, 13));
+                    // (9,13): error CS8421: A static local function cannot contain a reference to 'c'.
+                    //     var x = c.MyExtension;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(9, 13),
+                    // (10,30): error CS8421: A static local function cannot contain a reference to 'c'.
+                    //     var y = new Func<string>(c.MyExtension);
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(10, 30),
+                    // (17,17): error CS8820: A static anonymous function cannot contain a reference to 'c'.
+                    //         var x = c.MyExtension;
+                    Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(17, 17),
+                    // (18,34): error CS8820: A static anonymous function cannot contain a reference to 'c'.
+                    //         var y = new Func<string>(c.MyExtension);
+                    Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(18, 34));
         }
 
         [Fact]
         public void StaticLocalFunction_CapturingMethodGroup2()
         {
             CreateCompilation("""
+                using System;
+
                 var c = new C();
                 LocalFunc();
+                NonStatic();
 
                 static void LocalFunc()
                 {
                     var x = Extensions.MyExtension;
-                    x(c);
+                    var y = new Func<C, string>(Extensions.MyExtension);
+                }
+
+                void NonStatic()
+                {
+                    Action f = static () =>
+                    {
+                        var x = Extensions.MyExtension;
+                        var y = new Func<C, string>(Extensions.MyExtension);
+                    };
                 }
 
                 public class C
@@ -240,50 +273,82 @@ class C
                     public static string MyExtension(this C c)
                         => string.Empty;
                 }
-                """).VerifyDiagnostics(
-                    // (7,7): error CS8421: A static local function cannot contain a reference to 'c'.
-                    //     x(c);
-                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(7, 7));
+                """).VerifyDiagnostics().VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void StaticLocalFunction_CapturingMethodGroup3()
         {
             CreateCompilation("""
-                LocalFunc();
+                using System;
+                public class Base { }
 
-                static void LocalFunc()
+                public class C : Base
                 {
-                    var x = this.MyExtension;
-                    x();
-                    var y = base.MyExtension;
-                    y();
+                    public void M()
+                    {
+                        LocalFunc();
+                        NonStatic();
+
+                        static void LocalFunc()
+                        {
+                            var x1 = this.MyExtension;
+                            var x2 = new Func<string>(this.MyExtension);
+                            var y1 = base.MyExtension;
+                            var y2 = new Func<string>(base.MyExtension);
+                        }
+                
+                        void NonStatic()
+                        {
+                            Action f = static () =>
+                            {
+                                var x1 = this.MyExtension;
+                                var x2 = new Func<string>(this.MyExtension);
+                                var y1 = base.MyExtension;
+                                var y2 = new Func<string>(base.MyExtension);
+                            };
+                        }
+                    }
                 }
 
                 internal static class Extensions
                 {
-                    public static string MyExtension(this Program c)
+                    public static string MyExtension(this Base c)
                         => string.Empty;
                 }
                 """).VerifyDiagnostics(
-                    // (5,13): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
-                    //     var x = this.MyExtension;
-                    Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(5, 13),
-                    // (5,13): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
-                    //     var x = this.MyExtension;
-                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(5, 13),
-                    // (7,13): error CS1511: Keyword 'base' is not available in a static method
-                    //     var y = base.MyExtension;
-                    Diagnostic(ErrorCode.ERR_BaseInStaticMeth, "base").WithLocation(7, 13),
-                    // (7,13): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
-                    //     var y = base.MyExtension;
-                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(7, 13));
+                    // (13,22): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //             var x1 = this.MyExtension;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(13, 22),
+                    // (14,39): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //             var x2 = new Func<string>(this.MyExtension);
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(14, 39),
+                    // (15,22): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //             var y1 = base.MyExtension;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(15, 22),
+                    // (15,27): error CS0117: 'Base' does not contain a definition for 'MyExtension'
+                    //             var y1 = base.MyExtension;
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "MyExtension").WithArguments("Base", "MyExtension").WithLocation(15, 27),
+                    // (16,39): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //             var y2 = new Func<string>(base.MyExtension);
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(16, 39),
+                    // (16,44): error CS0117: 'Base' does not contain a definition for 'MyExtension'
+                    //             var y2 = new Func<string>(base.MyExtension);
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "MyExtension").WithArguments("Base", "MyExtension").WithLocation(16, 44),
+                    // (25,31): error CS0117: 'Base' does not contain a definition for 'MyExtension'
+                    //                 var y1 = base.MyExtension;
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "MyExtension").WithArguments("Base", "MyExtension").WithLocation(25, 31),
+                    // (26,48): error CS0117: 'Base' does not contain a definition for 'MyExtension'
+                    //                 var y2 = new Func<string>(base.MyExtension);
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "MyExtension").WithArguments("Base", "MyExtension").WithLocation(26, 48));
         }
 
         [Fact]
         public void StaticLocalFunction_CapturingMethodGroup4()
         {
             CreateCompilation("""
+                using System;
+
                 static class Extensions
                 {
                     static void F()
@@ -292,13 +357,13 @@ class C
                         static void LocalFunc()
                         {
                             var x = MyExtension;
-                            x(null);
+                            var y = new Func<object, string>(MyExtension);
                         }
                     }
                     static string MyExtension(this object o)
                         => string.Empty;
                 }
-                """).VerifyDiagnostics();
+                """).VerifyDiagnostics().VerifyEmitDiagnostics();
         }
     }
 }
