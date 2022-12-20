@@ -663,7 +663,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in an attribute while in a 'default' of an enum or a 'typeof' is not supported.</source>
+        <source>Using a function pointer type in this context is not supported.</source>
         <target state="needs-review-translation">L'uso di un tipo di puntatore a funzione in un elemento 'typeof' di un attributo non è supportato.</target>
         <note />
       </trans-unit>

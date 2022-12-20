@@ -6845,7 +6845,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not compare function pointer values</value>
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
-    <value>Using a function pointer type in an attribute while in a 'default' of an enum or a 'typeof' is not supported.</value>
+    <value>Using a function pointer type in this context is not supported.</value>
   </data>
   <data name="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</value>

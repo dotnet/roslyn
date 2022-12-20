@@ -11436,13 +11436,13 @@ class C<T> {}
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario. Currently, we don't know how to
             // encode these in metadata, and may need to work with the runtime team to define a new format.
             comp.VerifyDiagnostics(
-                // (4,7): error CS8911: Using a function pointer type in an attribute while in a 'default' of an enum or a 'typeof' is not supported.
+                // (4,7): error CS8911: Using a function pointer type in this context is not supported.
                 // [Attr(typeof(delegate*<void>))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>)").WithLocation(4, 7),
-                // (5,7): error CS8911: Using a function pointer type in an attribute while in a 'default' of an enum or a 'typeof' is not supported.
+                // (5,7): error CS8911: Using a function pointer type in this context is not supported.
                 // [Attr(typeof(delegate*<void>[]))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>[])").WithLocation(5, 7),
-                // (6,7): error CS8911: Using a function pointer type in an attribute while in a 'default' of an enum or a 'typeof' is not supported.
+                // (6,7): error CS8911: Using a function pointer type in this context is not supported.
                 // [Attr(typeof(C<delegate*<void>[]>))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(C<delegate*<void>[]>)").WithLocation(6, 7)
             );
@@ -11468,7 +11468,7 @@ class C<T> {}
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,4): error CS8911: Using a function pointer type in an attribute while in a 'default' of an enum or a 'typeof' is not supported.
+                // (11,4): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "default(B<delegate*<void>[]>.E)").WithLocation(11, 4));
         }
