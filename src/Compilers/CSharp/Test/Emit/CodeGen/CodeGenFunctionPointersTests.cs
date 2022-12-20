@@ -11448,16 +11448,16 @@ class C<T> {}
             );
         }
 
-        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
-        public void Attribute_Default_Enum()
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_Default_Enum([CombinatorialValues("class", "struct")] string kind)
         {
-            var source = """
+            var source = $$"""
                 class A : System.Attribute
                 {
                     public A(object o) { }
                 }
 
-                class B<T>
+                {{kind}} B<T>
                 {
                     public enum E { }
                 }
