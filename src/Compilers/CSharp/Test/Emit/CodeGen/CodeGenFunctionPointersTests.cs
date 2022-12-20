@@ -11477,9 +11477,21 @@ class C<T> {}
         public void Attribute_Default_GenericArgument()
         {
             var source = """
-                class A : System.Attribute
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine(arg.Value is null);
+
+                class A : Attribute
                 {
-                    public A(object o) { }
+                    public A(object value)
+                    {
+                        Value = value;
+                    }
+
+                    public object Value { get; }
                 }
 
                 class B<T> { }
@@ -11488,7 +11500,14 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput: "True", symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                var arg = attr.ConstructorArguments.Single();
+                Assert.True(arg.IsNull);
+            });
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
