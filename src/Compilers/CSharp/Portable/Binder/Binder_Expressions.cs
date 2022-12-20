@@ -1454,7 +1454,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations typeWithAnnotations = this.BindType(node.Type, diagnostics, out AliasSymbol alias);
             var typeExpression = new BoundTypeExpression(node.Type, aliasOpt: alias, typeWithAnnotations);
             TypeSymbol type = typeWithAnnotations.Type;
-            return new BoundDefaultExpression(node, typeExpression, constantValueOpt: type.GetDefaultValue(), type);
+
+            bool hasErrors = false;
+
+            if (this.InAttributeArgument && type.IsEnumType() && type.ContainsFunctionPointer())
+            {
+                // https://github.com/dotnet/roslyn/issues/48765 tracks removing this error.
+                diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, node.Location);
+                hasErrors = true;
+            }
+
+            return new BoundDefaultExpression(node, typeExpression, constantValueOpt: type.GetDefaultValue(), type, hasErrors: hasErrors);
         }
 
         /// <summary>

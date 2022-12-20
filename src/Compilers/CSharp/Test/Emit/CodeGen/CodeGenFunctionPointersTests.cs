@@ -11448,6 +11448,49 @@ class C<T> {}
             );
         }
 
+        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_Default_Enum()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public A(object o) { }
+                }
+
+                class B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default(B<delegate*<void>[]>.E))]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,4): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [A(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "default(B<delegate*<void>[]>.E)").WithLocation(11, 4));
+        }
+
+        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_Default_GenericArgument()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public A(object o) { }
+                }
+
+                class B<T> { }
+
+                [A(default(B<delegate*<void>[]>))]
+                class C { }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
         [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
         public void SwitchExpression_01()
         {
