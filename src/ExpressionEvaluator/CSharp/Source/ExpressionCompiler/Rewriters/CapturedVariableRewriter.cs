@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var rewrittenLocals = node.Locals.WhereAsArray((local, rewriter) => local.IsCompilerGenerated || local.Name == null || rewriter.GetVariable(local.Name) == null, this);
             var rewrittenLocalFunctions = node.LocalFunctions;
             var rewrittenStatements = VisitList(node.Statements);
-            return node.Update(rewrittenLocals, rewrittenLocalFunctions, node.InUnsafeRegion, rewrittenStatements);
+            return node.Update(rewrittenLocals, rewrittenLocalFunctions, node.HasUnsafeModifier, rewrittenStatements);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
