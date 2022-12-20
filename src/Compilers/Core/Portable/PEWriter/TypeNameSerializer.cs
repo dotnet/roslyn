@@ -79,6 +79,7 @@ namespace Microsoft.Cci
             if (typeReference.IsTypeSpecification())
             {
                 ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(context);
+                Debug.Assert(uninstantiatedTypeReference != typeReference);
 
                 ArrayBuilder<ITypeReference> consolidatedTypeArguments = ArrayBuilder<ITypeReference>.GetInstance();
                 typeReference.GetConsolidatedTypeArguments(consolidatedTypeArguments, context);
