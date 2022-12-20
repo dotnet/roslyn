@@ -9940,7 +9940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #endregion Green Rewriters
         #region Green Visitors
 
-        internal class AssertOnVisitVisitor<TResult> : Syntax.InternalSyntax.CSharpSyntaxVisitor<TResult>
+        internal partial class AssertOnVisitVisitor<TResult> : Syntax.InternalSyntax.CSharpSyntaxVisitor<TResult>
         {
             public override TResult VisitIdentifierName(Syntax.InternalSyntax.IdentifierNameSyntax node)
             {
@@ -17763,7 +17763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(visitor.DefaultVisitWasCalled);
         }
 
-        internal class AssertOnVisitVisitor : Syntax.InternalSyntax.CSharpSyntaxVisitor
+        internal partial class AssertOnVisitVisitor : Syntax.InternalSyntax.CSharpSyntaxVisitor
         {
             public override void VisitIdentifierName(Syntax.InternalSyntax.IdentifierNameSyntax node)
             {
@@ -39786,7 +39786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         #endregion Red Rewriters
         #region Red Visitors
-        internal class AssertOnVisitVisitor<TArgument, TResult> : CSharpSyntaxVisitor<TArgument, TResult>
+        internal partial class AssertOnVisitVisitor<TArgument, TResult> : CSharpSyntaxVisitor<TArgument, TResult>
         {
             public override TResult VisitIdentifierName(IdentifierNameSyntax node, TArgument argument)
             {
@@ -47846,7 +47846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(visitor.DefaultVisitWasCalled);
         }
 
-        internal class AssertOnVisitVisitor<TResult> : CSharpSyntaxVisitor<TResult>
+        internal partial class AssertOnVisitVisitor<TResult> : CSharpSyntaxVisitor<TResult>
         {
             public override TResult VisitIdentifierName(IdentifierNameSyntax node)
             {
@@ -55669,7 +55669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(visitor.DefaultVisitWasCalled);
         }
 
-        internal class AssertOnVisitVisitor : CSharpSyntaxVisitor
+        internal partial class AssertOnVisitVisitor : CSharpSyntaxVisitor
         {
             public override void VisitIdentifierName(IdentifierNameSyntax node)
             {

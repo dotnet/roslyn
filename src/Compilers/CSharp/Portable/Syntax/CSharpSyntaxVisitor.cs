@@ -18,21 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </typeparam>
     public abstract partial class CSharpSyntaxVisitor<TArgument, TResult>
     {
-        public virtual TResult? Visit(SyntaxNode? node, TArgument argument)
+        public virtual TResult Visit(SyntaxNode node, TArgument argument)
         {
-            if (node != null)
-            {
-                return ((CSharpSyntaxNode)node).Accept(this, argument);
-            }
-
-            // should not come here too often so we will put this at the end of the method.
-            return default;
+            return ((CSharpSyntaxNode)node).Accept(this, argument);
         }
 
-        public virtual TResult? DefaultVisit(SyntaxNode node, TArgument argument)
-        {
-            return default;
-        }
+        public abstract TResult DefaultVisit(SyntaxNode node, TArgument argument);
     }
 
     /// <summary>

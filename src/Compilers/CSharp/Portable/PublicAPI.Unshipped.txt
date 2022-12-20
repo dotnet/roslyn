@@ -9,6 +9,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.RequiredKeyword = 8447 -> Microsoft.Cod
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ScopedKeyword = 8448 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FileKeyword = 8449 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralToken = 8518 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.DefaultVisit(Microsoft.CodeAnalysis.SyntaxNode! node, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxNode!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConstructorDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax! parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorInitializerSyntax? initializer, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax! body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConstructorDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax! parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorInitializerSyntax! initializer, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax! body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConstructorDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax! parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorInitializerSyntax? initializer, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax? body, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
@@ -70,11 +71,11 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsignedRightShiftAssignmentExpression 
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsignedRightShiftExpression = 8692 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>.CSharpSyntaxVisitor() -> void
-abstract Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult?
+abstract Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.CSharpSyntaxRewriter(bool visitIntoStructuredTrivia = false) -> void
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.SyntaxNode! node, TArgument argument) -> TResult?
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>.Visit(Microsoft.CodeAnalysis.SyntaxNode? node, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.SyntaxNode! node, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>.Visit(Microsoft.CodeAnalysis.SyntaxNode node, TArgument argument) -> TResult
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.Visit(Microsoft.CodeAnalysis.SyntaxNode? node, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxNode?
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitIntoStructuredTrivia.get -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitList(Microsoft.CodeAnalysis.SyntaxTokenList list, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxTokenList

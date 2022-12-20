@@ -469,7 +469,7 @@ namespace CSharpSyntaxGenerator
                 (true, true) => "<TArgument, TResult>",
             };
 
-            WriteLine($"internal class AssertOnVisitVisitor{genericArguments} : {csharpNamespace}CSharpSyntaxVisitor{genericArguments}");
+            WriteLine($"internal partial class AssertOnVisitVisitor{genericArguments} : {csharpNamespace}CSharpSyntaxVisitor{genericArguments}");
             OpenBlock();
 
             var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);

@@ -339,6 +339,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int _recursionDepth;
 
+        public override SyntaxNode DefaultVisit(SyntaxNode node, TArgument argument)
+        {
+            return node;
+        }
+
         [return: NotNullIfNotNull("node")]
         public override SyntaxNode? Visit(SyntaxNode? node, TArgument argument)
         {

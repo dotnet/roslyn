@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -41,6 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 result.VisitCount++;
                 return SyntaxFactory.MissingToken(token.Kind());
+            }
+        }
+
+        internal partial class AssertOnVisitVisitor<TArgument, TResult> : CSharpSyntaxVisitor<TArgument, TResult>
+        {
+            public override TResult DefaultVisit(SyntaxNode node, TArgument argument)
+            {
+                Assert.True(false);
+                return default;
             }
         }
     }

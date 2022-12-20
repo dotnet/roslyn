@@ -1155,15 +1155,16 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedAcceptMethod(Node node, bool withArgument, bool withResult)
         {
-            var genericArguments = (withArgument, withResult) switch
+            var (genericArguments, genericContraints, acceptResultType) = (withArgument, withResult) switch
             {
-                (false, false) => "",
-                (false, true) => "<TResult>",
+                (false, false) => ("", "", "void"),
+                (false, true) => ("<TResult>", " where TResult : default", "TResult?"),
                 (true, false) => throw new InvalidOperationException("Visitors can only have an argument type if they also have a result type."),
-                (true, true) => "<TArgument, TResult>"
+                //the newer visitor does not need a constaint on the accept.
+                (true, true) => ("<TArgument, TResult>", "", "TResult")
             };
 
-            WriteLine($"public override {(withResult ? "TResult?" : "void")} Accept{genericArguments}(CSharpSyntaxVisitor{genericArguments} visitor{(withArgument ? ", TArgument argument" : "")}){(withResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this{(withArgument ? ", argument" : "")});");
+            WriteLine($"public override {acceptResultType} Accept{genericArguments}(CSharpSyntaxVisitor{genericArguments} visitor{(withArgument ? ", TArgument argument" : "")}){genericContraints} => visitor.Visit{StripPost(node.Name, "Syntax")}(this{(withArgument ? ", argument" : "")});");
         }
 
         private void WriteRedVisitors()
@@ -1175,12 +1176,13 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedVisitor(bool withArgument, bool withResult)
         {
-            var genericArguments = (withArgument, withResult) switch
+            var (genericArguments, visitResultType) = (withArgument, withResult) switch
             {
-                (false, false) => "",
-                (false, true) => "<TResult>",
+                (false, false) => ("", "void"),
+                (false, true) => ("<TResult>", "TResult?"),
                 (true, false) => throw new InvalidOperationException("Visitors can only have an argument type if they also have a result type."),
-                (true, true) => "<TArgument, TResult>"
+                //new visitor can use TResult instead of TResult? since we can use stricter generic constraints.
+                (true, true) => ("<TArgument, TResult>", "TResult")
             };
 
             var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
@@ -1195,7 +1197,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 nWritten++;
                 WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
-                WriteLine($"public virtual {(withResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node{(withArgument ? ", TArgument argument" : "")}) => this.DefaultVisit(node{(withArgument ? ", argument" : "")});");
+                WriteLine($"public virtual {visitResultType} Visit{StripPost(node.Name, "Syntax")}({node.Name} node{(withArgument ? ", TArgument argument" : "")}) => this.DefaultVisit(node{(withArgument ? ", argument" : "")});");
             }
             CloseBlock();
         }

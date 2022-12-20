@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #region CSharpSyntaxVisitor<TArgument, TResult>
 
         [Fact]
-        public void VisitDoesNotThrowOnNullNode_TArgument_TResult()
+        public void VisitThrowsOnNullNode_TArgument_TResult()
         {
             var visitor = new DefaultVisitor<object?, object>(new object());
-            visitor.Visit(null, null);
+            Assert.ThrowsAny<NullReferenceException>(() => visitor.Visit(null!, null));
         }
 
         #endregion
