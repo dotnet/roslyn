@@ -11510,6 +11510,43 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_Default_Array()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine(arg.Value is null);
+
+                class A : Attribute
+                {
+                    public A(object value)
+                    {
+                        Value = value;
+                    }
+
+                    public object Value { get; }
+                }
+
+                [A(default(delegate*<void>[]))]
+                unsafe class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "True",
+                symbolValidator: static module =>
+                {
+                    var c = module.GlobalNamespace.GetTypeMember("C");
+                    var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                    var arg = attr.ConstructorArguments.Single();
+                    Assert.True(arg.IsNull);
+                });
+            verifier.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
         public void SwitchExpression_01()
         {
