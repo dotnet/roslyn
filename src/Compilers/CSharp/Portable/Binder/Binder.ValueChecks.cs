@@ -1730,14 +1730,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
 
-            var returnsWritableRefToRefStruct = ReturnsRefToRefStruct(symbol);
+            var returnsRefToRefStruct = ReturnsRefToRefStruct(symbol);
             foreach (var (param, argument, _, isArgumentRefEscape) in argsAndParamsAll)
             {
                 // SPEC:
                 // If `M()` does return ref-to-ref-struct, the *safe-to-escape* is the same as the *safe-to-escape* of all arguments which are ref-to-ref-struct. It is an error if there are multiple arguments with different *safe-to-escape* because of *method arguments must match*.
                 // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
                 //
-                if (!returnsWritableRefToRefStruct
+                if (!returnsRefToRefStruct
                     || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape))
                 {
                     uint argEscape = isArgumentRefEscape ?
@@ -1892,14 +1892,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
 
-            var returnsWritableRefToRefStruct = ReturnsRefToRefStruct(symbol);
+            var returnsRefToRefStruct = ReturnsRefToRefStruct(symbol);
             foreach (var (param, argument, _, isArgumentRefEscape) in argsAndParamsAll)
             {
                 // SPEC:
                 // If `M()` does return ref-to-ref-struct, the *safe-to-escape* is the same as the *safe-to-escape* of all arguments which are ref-to-ref-struct. It is an error if there are multiple arguments with different *safe-to-escape* because of *method arguments must match*.
                 // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
                 //
-                if (!returnsWritableRefToRefStruct
+                if (!returnsRefToRefStruct
                     || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape))
                 {
                     bool valid = isArgumentRefEscape ?

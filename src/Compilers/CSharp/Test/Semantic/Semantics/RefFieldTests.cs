@@ -27484,6 +27484,37 @@ Block[B2] - Exit
         }
 
         [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_RefEscape_BothScopedAndUnscopedRefParameters()
+        {
+            var source = """
+                public class Repro
+                {
+                    private static ref RefStruct M1(ref RefStruct s1, scoped ref RefStruct s2)
+                    {
+                        return ref s1;
+                    }
+
+                    private static ref RefStruct M2(ref RefStruct s1)
+                    {
+                        RefStruct s2 = default;
+                        // RSTE of s1 is ReturnOnly
+                        // RSTE of s2 is CurrentMethod, but it doesn't contribute to RSTE of the invocation.
+                        return ref M1(ref s1, ref s2);
+                    }
+                    
+                    private static ref RefStruct M3(ref RefStruct s1)
+                    {
+                        return ref M1(ref s1, ref s1);
+                    }
+
+                    private ref struct RefStruct { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
         public void ReturnRefToRefStruct_RefEscape_02()
         {
             var source = """
