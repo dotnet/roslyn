@@ -2,8 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  excludedTypes, extraExportedTypes,
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
 
-            testState.Workspace.GlobalOptions.SetGlobalOption(
-                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
             Return testState
         End Function
@@ -34,15 +34,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Shared Function CreateVisualBasicTestState(documentElement As XElement,
                                                            Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
 
-            Return New TestState(<Workspace>
-                                     <Project Language="Visual Basic" CommonReferences="true">
-                                         <Document>
-                                             <%= documentElement.Value %>
-                                         </Document>
-                                     </Project>
-                                 </Workspace>,
+            Dim testState = New TestState(<Workspace>
+                                              <Project Language="Visual Basic" CommonReferences="true">
+                                                  <Document>
+                                                      <%= documentElement.Value %>
+                                                  </Document>
+                                              </Project>
+                                          </Workspace>,
                                  excludedTypes:=Nothing, extraExportedTypes,
                                  includeFormatCommandHandler:=False, workspaceKind:=Nothing)
+
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic), False)
+
+            Return testState
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
@@ -53,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim testState = New TestState(
                 workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
 
-            testState.Workspace.GlobalOptions.SetGlobalOption(
-                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic), False)
 
             Return testState
         End Function

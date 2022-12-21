@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, variableSymbol: null, rightValEscape, type);
+                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, variableSymbol: null, rightValEscape, isDiscardExpression: false, type);
                 BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
                     inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _, variables);
 
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithExplicitType or BoundLocalDeclarationKind.WithInferredType, LocalSymbol: var symbol } => symbol,
                         _ => null,
                     };
-                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, variableSymbol: variableSymbol, valEscape);
+                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, variableSymbol: variableSymbol, valEscape, isDiscardExpression: variableOpt is BoundDiscardExpression);
                     analyzedArguments.Arguments.Add(variable);
                     analyzedArguments.RefKinds.Add(RefKind.Out);
                     outVars.Add(variable);
@@ -761,18 +761,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
-                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type.SkipScoped(out _).SkipRef(out _), ref isConst, out isVar, out alias);
+                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type.SkipScoped(out _).SkipRef(), ref isConst, out isVar, out alias);
                         Debug.Assert(isVar == !declType.HasType);
-                        if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
+                        if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
                         {
-                            // An explicit type is not allowed with a parenthesized designation
-                            Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
+                            if (!isVar)
+                            {
+                                // An explicit type is not allowed with a parenthesized designation
+                                Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
+                            }
+                            else if (node.Parent is not ArgumentSyntax)
+                            {
+                                // check for use of `var (x, y, z)`.  Only need to report this in a non-argument
+                                // position. If it's an argument, then we have `(int x, var (y, z))` and we will have
+                                // already reported the parent tuple, so no need to report on the inner designation.
+                                MessageID.IDS_FeatureTuples.CheckFeatureAvailability(diagnostics, component.Designation);
+                            }
                         }
 
                         return BindDeconstructionVariables(declType, component.Designation, component, diagnostics);
                     }
                 case SyntaxKind.TupleExpression:
                     {
+                        MessageID.IDS_FeatureTuples.CheckFeatureAvailability(diagnostics, node);
+
                         var component = (TupleExpressionSyntax)node;
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Arguments.Count);
                         foreach (var arg in component.Arguments)
@@ -853,8 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            // Cannot escape out of the current expression, as it's a compiler-synthesized location.
-            return new BoundDiscardExpression(syntax, LocalScopeDepth, declTypeWithAnnotations.Type);
+            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.Type);
         }
 
         /// <summary>

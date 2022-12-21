@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly BoundStatement _boundBody;
         private readonly ILBuilder _builder;
         private readonly PEModuleBuilder _module;
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly ILEmitStyle _ilEmitStyle;
         private readonly bool _emitPdbSequencePoints;
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             BoundStatement boundBody,
             ILBuilder builder,
             PEModuleBuilder moduleBuilder,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             OptimizationLevel optimizations,
             bool emittingPdb)
         {
@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(builder != null);
             Debug.Assert(moduleBuilder != null);
             Debug.Assert(diagnostics != null);
+            Debug.Assert(diagnostics.DiagnosticBag != null);
 
             _method = method;
             _boundBody = boundBody;
@@ -169,7 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         ? LocalSlotConstraints.None
                         : LocalSlotConstraints.ByRef;
 
-
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
-                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
+                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics.DiagnosticBag),
                             symbol: localSymbol,
                             name: null,
                             kind: localSymbol.SynthesizedKind,
@@ -338,27 +338,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitTypeReferenceToken(Cci.ITypeReference symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(symbol, syntaxNode, _diagnostics);
+            _builder.EmitToken(symbol, syntaxNode, _diagnostics.DiagnosticBag);
         }
 
         private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode);
+            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag), syntaxNode);
         }
 
         private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
         {
-            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList, needDeclaration: encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken);
+            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics.DiagnosticBag, optArgList, needDeclaration: encodeAsRawDefinitionToken), syntaxNode, _diagnostics.DiagnosticBag, encodeAsRawDefinitionToken);
         }
 
         private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag), syntaxNode, _diagnostics.DiagnosticBag);
         }
 
         private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode, _diagnostics);
+            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode, _diagnostics.DiagnosticBag);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)

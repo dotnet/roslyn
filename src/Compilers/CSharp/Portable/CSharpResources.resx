@@ -159,6 +159,9 @@
   <data name="IDS_XMLMISSINGINCLUDEPATH" xml:space="preserve">
     <value>Missing path attribute</value>
   </data>
+  <data name="IDS_Missing" xml:space="preserve">
+    <value>&lt;missing&gt;</value>
+  </data>
   <data name="IDS_GlobalNamespace" xml:space="preserve">
     <value>&lt;global namespace&gt;</value>
   </data>
@@ -7337,6 +7340,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
   </data>
+  <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
+    <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
+    <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch_Title" xml:space="preserve">
+    <value>The default parameter value does not match in the target delegate type.</value>
+  </data>
   <data name="IDS_FeatureFileTypes" xml:space="preserve">
     <value>file types</value>
   </data>
@@ -7381,5 +7393,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DeconstructVariableCannotBeByRef" xml:space="preserve">
     <value>A deconstruction variable cannot be declared as a ref local</value>
+  </data>
+  <data name="IDS_FeatureLambdaOptionalParameters" xml:space="preserve">
+    <value>lambda optional parameters</value>
+  </data>
+  <data name="IDS_FeatureLambdaParamsArray" xml:space="preserve">
+    <value>lambda params array</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly" xml:space="preserve">
+    <value>Parameter {0} has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
+    <value>Parameter has params modifier in lambda but not in target delegate type.</value>
   </data>
 </root>

@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 // name started with specified prefix, but has at least one additional common prefix 
                 // Example: specified prefix "test_", actual prefix "test_m_"
-                failureReason = Prefix == string.Empty ?
-                    string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix) :
-                    string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
+                failureReason = Prefix == string.Empty
+                    ? string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix)
+                    : string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
                 return false;
             }
 

@@ -2366,8 +2366,22 @@ class C
             })();
     }
 }";
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll)
-                .VerifyDiagnostics(
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            LocalFunctionStatementSyntax declaration = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First();
+            var local = model.GetDeclaredSymbol(declaration).GetSymbol<MethodSymbol>();
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            model.GetOperation(declaration.Body);
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            comp.VerifyDiagnostics(
                 // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
@@ -2540,6 +2554,32 @@ class Program
     //         void Params(params int x)
     Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(8, 21)
     );
+        }
+
+        [Fact]
+        public void ParamsArray_Symbol_MultipleParamsArrays()
+        {
+            var source = """
+                int Method1(params int[] xs, params int[] ys, int[] zs) => xs.Length + ys.Length + zs.Length;
+                int Method2(params int[] xs, int[] ys, params int[] zs) => xs.Length + ys.Length + zs.Length;
+                """;
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToImmutableArray();
+            var methods = exprs.SelectAsArray(e => (IMethodSymbol)model.GetDeclaredSymbol(e));
+            Assert.Equal(2, methods.Length);
+            // Method1
+            Assert.Equal(3, methods[0].Parameters.Length);
+            Assert.True(methods[0].Parameters[0].IsParams);
+            Assert.True(methods[0].Parameters[1].IsParams);
+            Assert.False(methods[0].Parameters[2].IsParams);
+            // Method2
+            Assert.Equal(3, methods[1].Parameters.Length);
+            Assert.True(methods[1].Parameters[0].IsParams);
+            Assert.False(methods[1].Parameters[1].IsParams);
+            Assert.True(methods[1].Parameters[2].IsParams);
         }
 
         [Fact]
@@ -4577,23 +4617,6 @@ namespace System
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
-        public void RecursiveParameterDefault()
-        {
-            var text = @"
-class C
-{
-    public static void Main(int arg)
-    {
-        int Local(int x = Local()) => 2;
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(text);
-            compilation.VerifyDiagnostics(
-                );
-        }
-
         [Fact]
         [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
         public void LocalFunctionParameterDefaultUsingConst()
@@ -4613,12 +4636,7 @@ class C
             CompileAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
             {
                 var compilation = m.DeclaringCompilation;
-                // See https://github.com/dotnet/roslyn/issues/16454; this should actually produce no errors
-                compilation.VerifyDiagnostics(
-                    // (6,19): warning CS0219: The variable 'N' is assigned but its value is never used
-                    //         const int N = 2;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N").WithArguments("N").WithLocation(6, 19)
-                    );
+                compilation.VerifyDiagnostics();
                 var tree = compilation.SyntaxTrees[0];
                 var model = compilation.GetSemanticModel(tree);
                 var descendents = tree.GetRoot().DescendantNodes();
@@ -4636,6 +4654,18 @@ class C
                 Assert.Equal(1, refs.Length);
                 Assert.Same(symbol, model.GetSymbolInfo(refs[0]).Symbol);
             });
+        }
+
+        [Fact, WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void LocalFunction_ParameterDefaultValue_NameOfLocalFunction()
+        {
+            var source = """
+                using System;
+                void Local() {}
+                void Local2(string s = nameof(Local)) => Console.WriteLine(s);
+                Local2();
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]

@@ -321,7 +321,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End Function
 
-
             Private Sub CheckForNameCollisions(comClass As SourceNamedTypeSymbol, diagnostics As BindingDiagnosticBag)
                 For i As Integer = 0 To 1
                     Dim interfaceName As String = If(i = 0, "_", "__") & comClass.Name

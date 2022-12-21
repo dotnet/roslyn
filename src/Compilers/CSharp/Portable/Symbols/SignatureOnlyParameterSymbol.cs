@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override DeclarationScope EffectiveScope
             => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
 
+        internal override bool HasUnscopedRefAttribute => false;
+
         internal override bool UseUpdatedEscapeRules => false;
 
         #region Not used by MethodSignatureComparer
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Hash.CombineValues(_type.CustomModifiers),
                     Hash.Combine(
                         _isParams.GetHashCode(),
-                        _refKind.GetHashCode())));
+                        ((int)_refKind).GetHashCode())));
         }
     }
 }

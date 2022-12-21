@@ -10,12 +10,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -78,9 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
+            IGlobalOperationNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
-            : this(workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
+            : this(workspace, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
         {
             registrationService.Register(this);
         }
@@ -91,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         internal ExternalErrorDiagnosticUpdateSource(
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
+            IGlobalOperationNotificationService notificationService,
             IAsynchronousOperationListener listener,
             CancellationToken disposalToken)
         {
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _diagnosticService = diagnosticService;
             _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
-            _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+            _notificationService = notificationService;
         }
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
@@ -413,6 +413,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
         {
+            Debug.Assert(diagnostic.IsBuildDiagnostic());
+
             // Capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
@@ -425,6 +427,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
+            Debug.Assert(diagnostic.IsBuildDiagnostic());
+
             // Capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
@@ -438,6 +442,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
+            Debug.Assert(projectErrors.All(d => d.IsBuildDiagnostic()));
+            Debug.Assert(documentErrorMap.SelectMany(kvp => kvp.Value).All(d => d.IsBuildDiagnostic()));
+
             // Capture state that will be processed in background thread
             var state = GetOrCreateInProgressState();
 

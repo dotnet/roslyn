@@ -385,7 +385,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
 Done:
-
             Return namedType
         End Function
 

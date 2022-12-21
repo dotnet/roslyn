@@ -69,7 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Protected m_baseCycleDiagnosticInfo As DiagnosticInfo = Nothing
 
-
         ' Create the type symbol and associated type parameter symbols. Most information
         ' is deferred until later.
         Friend Sub New(declaration As MergedTypeDeclaration,
@@ -1963,8 +1962,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return typeData IsNot Nothing AndAlso typeData.HasSecurityCriticalAttributes
             End Get
         End Property
-
-
 
         ''' <summary>
         ''' Is System.Runtime.InteropServices.GuidAttribute applied to this type in code.

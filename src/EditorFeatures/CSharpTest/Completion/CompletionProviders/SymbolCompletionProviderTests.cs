@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -2527,15 +2528,85 @@ enum MyEnum : {quialification}$$");
             => await VerifyItemExistsAsync(@"class c { void M() { string goo; $$", "goo");
 
         [Fact]
-        public async Task Parameters()
+        public async Task Parameters_01()
             => await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_02(string prefix)
+        {
+            await VerifyItemExistsAsync(prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_03(string prefix)
+        {
+            await VerifyItemIsAbsentAsync(prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_04(string prefix)
+        {
+            await VerifyItemExistsAsync(prefix + @"$$
+Systen.Console.WriteLine();
+", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_05(string prefix)
+        {
+            await VerifyItemExistsAsync(@"
+Systen.Console.WriteLine();
+" + prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_06(string prefix)
+        {
+            await VerifyItemExistsAsync(@"
+Systen.Console.WriteLine();
+" + prefix + @"$$
+Systen.Console.WriteLine();
+", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_07(string prefix)
+        {
+            await VerifyItemExistsAsync("call(" + prefix + "$$)", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_1()
-            => await VerifyItemExistsAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+            => await VerifyItemIsAbsentAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_2()
             => await VerifyItemExistsAsync(
@@ -2543,10 +2614,11 @@ enum MyEnum : {quialification}$$");
 Console.WriteLine();
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_3()
-            => await VerifyItemExistsAsync(
+            => await VerifyItemIsAbsentAsync(
                 @"using System;
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
@@ -12881,11 +12953,67 @@ class C
             await VerifyAnyItemExistsAsync(source);
         }
 
+        [Fact]
+        public async Task AfterScopedInsideMethod()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        scoped $$
+    }
+}
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_FollowedByType()
+        {
+            var source = @"
+scoped $$
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_NotFollowedByType()
+        {
+            var source = """
+                using System;
+
+                scoped $$
+                """;
+
+            await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+        }
+
+        [Fact]
+        public async Task AfterScopedInParameter()
+        {
+            var source = @"
+class C
+{
+    void M(scoped $$)
+    {
+    }
+}
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""
 <Workspace>
-    <Project Language="C#" AssemblyName="Assembly" CommonReferences="true" LanguageVersion="{{languageVersion}}">
+    <Project Language="C#" AssemblyName="Assembly" CommonReferencesNet6="true" LanguageVersion="{{languageVersion}}">
         <Document FilePath="Test.cs">
 {{source}}
         </Document>

@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
     internal interface IRemoteUnitTestingSearchService
     {
+        ValueTask<UnitTestingSourceLocation?> GetSourceLocationAsync(
+            Checksum solutionChecksum, ProjectId projectId, UnitTestingSearchQuery query, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<UnitTestingSourceLocation>> GetSourceLocationsAsync(
             Checksum solutionChecksum, ProjectId projectId, UnitTestingSearchQuery query, CancellationToken cancellationToken);
     }

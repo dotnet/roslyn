@@ -408,7 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly SmallDictionary<object, DummyLocal> _dummyVariables =
             new SmallDictionary<object, DummyLocal>(ReferenceEqualityComparer.Instance);
 
-
         // fake local that represents the eval stack.
         // when we need to ensure that eval stack is not blocked by stack Locals, we record an access to empty.
         public static readonly DummyLocal empty = new DummyLocal();
@@ -910,7 +909,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return rewritten;
             }
 
-
             var isIndirectAssignment = IsIndirectAssignment(node);
 
             var left = VisitExpression(node.Left, isIndirectAssignment ?
@@ -1110,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // assume we will need an address (that will prevent scheduling of receiver).
             if (method.RequiresInstanceReceiver)
             {
-                receiver = VisitCallReceiver(receiver);
+                receiver = VisitCallOrConditionalAccessReceiver(receiver, node);
             }
             else
             {
@@ -1134,9 +1132,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(receiver, method, rewrittenArguments);
         }
 
-        private BoundExpression VisitCallReceiver(BoundExpression receiver)
+        private BoundExpression VisitCallOrConditionalAccessReceiver(BoundExpression receiver, BoundCall callOpt)
         {
             var receiverType = receiver.Type;
+
+            if (callOpt is { } call &&
+                CodeGenerator.IsRef(receiver) &&
+                CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiver) &&
+                !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
+            {
+                var unwrappedSequence = receiver;
+
+                while (unwrappedSequence is BoundSequence sequence)
+                {
+                    unwrappedSequence = sequence.Value;
+                }
+
+                if (unwrappedSequence is BoundLocal { LocalSymbol: { RefKind: not RefKind.None } localSymbol })
+                {
+                    ShouldNotSchedule(localSymbol); // Otherwise CodeGenerator is unable to apply proper fixups 
+                }
+            }
+
             ExprContext context;
 
             if (receiverType.IsReferenceType)
@@ -1496,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
             var origStack = StackDepth();
-            BoundExpression receiver = VisitCallReceiver(node.Receiver);
+            BoundExpression receiver = VisitCallOrConditionalAccessReceiver(node.Receiver, callOpt: null);
 
             var cookie = GetStackStateCookie();     // implicit branch here
 
@@ -2208,6 +2225,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         internal override bool IsPinned
+        {
+            get { return false; }
+        }
+
+        internal override bool IsKnownToReferToTempIfReferenceType
         {
             get { return false; }
         }

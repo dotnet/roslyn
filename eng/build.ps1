@@ -470,6 +470,14 @@ function TestUsingRunTests() {
         Write-Host "No ServiceHub logs found to copy"
       }
 
+      $projectFaultLogs = Join-Path $TempDir "VsProjectFault_*.failure.txt"
+      if (Test-Path $projectFaultLogs) {
+        Write-Host "Copying VsProjectFault logs to $LogDir"
+        Copy-Item -Path $projectFaultLogs -Destination $LogDir
+      } else {
+        Write-Host "No VsProjectFault logs found to copy"
+      }
+
       if ($lspEditor) {
         $lspLogs = Join-Path $TempDir "VSLogs"
         $telemetryLog = Join-Path $TempDir "VSTelemetryLog"

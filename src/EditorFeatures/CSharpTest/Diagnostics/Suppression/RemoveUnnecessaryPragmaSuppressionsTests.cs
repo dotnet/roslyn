@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
                 new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
                     customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context) =>
-                context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
         }
 
         #endregion
@@ -1017,8 +1017,8 @@ class Class
             {
             }
 
-            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
-                ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
 
             [Fact]
             public async Task TestDoNotRemoveInvalidDiagnosticSuppression()
@@ -1314,8 +1314,8 @@ class Class
                 }
             }
 
-            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
-                ImmutableArray.Create<DiagnosticAnalyzer>(new NonLocalDiagnosticsAnalyzer());
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new NonLocalDiagnosticsAnalyzer());
 
             [Fact, WorkItem(50203, "https://github.com/dotnet/roslyn/issues/50203")]
             public async Task TestDoNotRemoveInvalidDiagnosticSuppression()
@@ -1340,8 +1340,8 @@ namespace N
             {
             }
 
-            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
-                ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseAutoPropertyAnalyzer());
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseAutoPropertyAnalyzer());
 
             [Fact, WorkItem(55529, "https://github.com/dotnet/roslyn/issues/55529")]
             public async Task TestDoNotRemoveAutoPropertySuppression()

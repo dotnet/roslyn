@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var baseParameter = baseParameters[i];
                 var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                if (!isValidScopedConversion(allowVariance, baseParameter.EffectiveScope, overrideParameter.EffectiveScope))
+                if (!isValidScopedConversion(allowVariance, baseParameter.EffectiveScope, baseParameter.HasUnscopedRefAttribute, overrideParameter.EffectiveScope, overrideParameter.HasUnscopedRefAttribute))
                 {
                     reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, extraArgument);
                     hasErrors = true;
@@ -1464,11 +1464,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return hasErrors;
 
-            static bool isValidScopedConversion(bool allowVariance, DeclarationScope baseScope, DeclarationScope overrideScope)
+            static bool isValidScopedConversion(
+                bool allowVariance,
+                DeclarationScope baseScope,
+                bool baseHasUnscopedRefAttribute,
+                DeclarationScope overrideScope,
+                bool overrideHasUnscopedRefAttribute)
             {
                 if (baseScope == overrideScope)
                 {
-                    return true;
+                    if (baseHasUnscopedRefAttribute == overrideHasUnscopedRefAttribute)
+                    {
+                        return true;
+                    }
+                    return allowVariance && !overrideHasUnscopedRefAttribute;
                 }
                 return allowVariance && baseScope == DeclarationScope.Unscoped;
             }

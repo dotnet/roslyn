@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (parentBinary != null && parentBinary.Kind() is SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression)
             {
                 var operation = semanticModel.GetOperation(parentBinary, cancellationToken);
-                if (UnwrapImplicitConversion(operation) is IBinaryOperation binaryOperation)
+                if (operation.UnwrapImplicitConversion() is IBinaryOperation binaryOperation)
                 {
                     if (binaryOperation.LeftOperand.Type?.SpecialType == SpecialType.System_Object &&
                         !IsExplicitCast(parentBinary.Left) &&
@@ -760,11 +760,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsExplicitCast(SyntaxNode node)
             => node is ExpressionSyntax expression && expression.WalkDownParentheses().Kind() is SyntaxKind.CastExpression or SyntaxKind.AsExpression;
-
-        private static IOperation? UnwrapImplicitConversion(IOperation? value)
-            => value is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : value;
 
         private static bool IsExplicitCastThatMustBePreserved(
             SemanticModel semanticModel,

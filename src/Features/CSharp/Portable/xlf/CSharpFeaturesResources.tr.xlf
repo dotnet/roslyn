@@ -197,6 +197,11 @@
         <target state="translated">Projedeki null atanabilir başvuru türlerini etkinleştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="new">Enable nullable reference types in solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Genel 'using' yönergeleri</target>

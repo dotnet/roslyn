@@ -1837,7 +1837,6 @@ public class C3
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(2005, 20)
                 );
 
-
             var source6 =
 @"
 public class C3
@@ -1978,7 +1977,6 @@ public class C2
 
             verify<PEAssemblySymbol>(source2, comp1ImageRef);
             verify<SourceAssemblySymbol>(source2, comp1Ref);
-
 
             var source3 =
 @"

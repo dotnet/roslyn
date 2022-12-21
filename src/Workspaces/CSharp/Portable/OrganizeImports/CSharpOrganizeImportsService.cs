@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public string SortImportsDisplayStringWithAccelerator =>
-            CSharpWorkspaceResources.Sort_Usings;
+        public string SortImportsDisplayStringWithAccelerator
+            => CSharpWorkspaceResources.Sort_Usings;
 
-        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator =>
-            CSharpWorkspaceResources.Remove_and_Sort_Usings;
+        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator
+            => CSharpWorkspaceResources.Remove_and_Sort_Usings;
     }
 }

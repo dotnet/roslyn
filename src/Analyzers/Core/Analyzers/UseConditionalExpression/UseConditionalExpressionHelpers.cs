@@ -55,16 +55,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// Will unwrap a block with a single statement in it to just that block.  Used so we can
         /// support both <c>if (expr) { statement }</c> and <c>if (expr) statement</c>
         /// </summary>
-        [return: NotNullIfNotNull("statement")]
+        [return: NotNullIfNotNull(nameof(statement))]
         public static IOperation? UnwrapSingleStatementBlock(IOperation? statement)
             => statement is IBlockOperation block && block.Operations.Length == 1
                 ? block.Operations[0]
                 : statement;
-
-        public static IOperation UnwrapImplicitConversion(IOperation value)
-            => value is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : value;
 
         public static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)
             => HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia()) ||
@@ -75,9 +70,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             foreach (var trivia in triviaList)
             {
                 if (syntaxFacts.IsRegularComment(trivia))
-                {
                     return true;
-                }
             }
 
             return false;

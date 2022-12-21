@@ -12,6 +12,16 @@
         <target state="translated">Agregar llaves a la instrucción '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
+        <source>Blank line not allowed after arrow expression clause token</source>
+        <target state="new">Blank line not allowed after arrow expression clause token</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_conditional_expression_token">
+        <source>Blank line not allowed after conditional expression token</source>
+        <target state="new">Blank line not allowed after conditional expression token</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
         <source>Blank line not allowed after constructor initializer colon</source>
         <target state="translated">No se permite una línea en blanco después del signo de dos puntos del inicializador del constructor</target>
@@ -345,6 +355,11 @@
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Usar función local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_nameof">
+        <source>Use 'nameof'</source>
+        <target state="new">Use 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_new">

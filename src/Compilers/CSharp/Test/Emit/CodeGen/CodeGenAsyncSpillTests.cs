@@ -6201,7 +6201,6 @@ After Assignment b._x is: 42")
 }");
         }
 
-
         [Fact]
         [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void AssignmentToFieldOfStaticFieldOfStruct()

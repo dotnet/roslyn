@@ -1085,17 +1085,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected TNode CheckFeatureAvailability<TNode>(TNode node, MessageID feature, bool forceWarning = false)
             where TNode : GreenNode
         {
-            LanguageVersion availableVersion = this.Options.LanguageVersion;
-
-            // There are special error codes for some features, so handle those separately.
-            switch (feature)
-            {
-                case MessageID.IDS_FeatureModuleAttrLoc:
-                    return availableVersion >= LanguageVersion.CSharp2
-                        ? node
-                        : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
-            }
-
             var info = feature.GetFeatureAvailabilityDiagnosticInfo(this.Options);
             if (info != null)
             {

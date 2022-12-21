@@ -90,7 +90,7 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null, null)$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         public async Task TabTabCompleteNewObject()
         {
             await SetUpEditorAsync(@"
@@ -116,7 +116,7 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        var value = new object()$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         public async Task TabTabBeforeSemicolon()
         {
             await SetUpEditorAsync(@"
@@ -144,7 +144,7 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString()$$;", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         public async Task TabTabCompletionWithArguments()
         {
             await SetUpEditorAsync(@"
@@ -194,7 +194,7 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString(\"format\"$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         public async Task FullCycle()
         {
             await SetUpEditorAsync(@"
@@ -237,7 +237,7 @@ public class TestClass
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Test(0$$, 0)", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         public async Task ImplicitArgumentSwitching()
         {
             await SetUpEditorAsync(@"
@@ -274,7 +274,7 @@ public class TestClass
         /// <summary>
         /// Argument completion with no arguments.
         /// </summary>
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         public async Task SemicolonWithTabTabCompletion1()
         {
             await SetUpEditorAsync(@"
@@ -339,7 +339,7 @@ public class Test
         /// <summary>
         /// Argument completion with exactly one argument.
         /// </summary>
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         public async Task SemicolonWithTabTabCompletion3()
         {
             await SetUpEditorAsync(@"
@@ -410,7 +410,7 @@ $$
 ", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         public async Task SmartBreakLineWithTabTabCompletion2()
         {
             await SetUpEditorAsync(@"
@@ -452,7 +452,7 @@ $$
 ", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeTheory]
         [InlineData("\"<\"", Skip = "https://github.com/dotnet/roslyn/issues/29669")]
         [InlineData("\">\"")] // testing things that might break XML
         [InlineData("\"&\"")]
@@ -495,7 +495,7 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        M(" + parameterText + ", 0, 0)", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
+        [IdeFact]
         [WorkItem(54038, "https://github.com/dotnet/roslyn/issues/54038")]
         public async Task InsertPreprocessorSnippet()
         {

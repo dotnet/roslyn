@@ -382,14 +382,9 @@
         <target state="translated">Usar propiedad automática</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression_for_non_nullable_types">
-        <source>Use coalesce expression for non-nullable types</source>
-        <target state="new">Use coalesce expression for non-nullable types</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_coalesce_expression_for_nullable_types">
-        <source>Use coalesce expression for nullable types</source>
-        <target state="new">Use coalesce expression for nullable types</target>
+      <trans-unit id="Use_coalesce_expression">
+        <source>Use coalesce expression</source>
+        <target state="translated">Usar expresión coalesce</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">

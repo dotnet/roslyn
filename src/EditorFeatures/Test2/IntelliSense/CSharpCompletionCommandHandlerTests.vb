@@ -5313,8 +5313,7 @@ class C
             ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
@@ -5325,9 +5324,7 @@ class C
 
                 newFilters.Add(New Data.CompletionFilterWithState(FilterSet.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
-                state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
-
-                Await state.WaitForUIRenderedAsync()
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFilters.ToImmutableAndFree())
                 Assert.Null(state.GetSelectedItem())
             End Using
         End Function
@@ -5348,8 +5345,8 @@ class C
             ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
                 For Each f In oldFilters
@@ -5359,8 +5356,7 @@ class C
 
                 newFilters.Add(New Data.CompletionFilterWithState(FilterSet.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
-                state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
-                Await state.WaitForUIRenderedAsync()
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFilters.ToImmutableAndFree())
                 Assert.Null(state.GetSelectedItem())
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -5383,8 +5379,8 @@ class C
             ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
                 For Each f In oldFilters
@@ -5394,8 +5390,7 @@ class C
 
                 newFilters.Add(New Data.CompletionFilterWithState(FilterSet.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
-                state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
-                Await state.WaitForUIRenderedAsync()
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFilters.ToImmutableAndFree())
                 Assert.Null(state.GetSelectedItem())
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
@@ -5418,8 +5413,8 @@ class C
             ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
                 For Each f In oldFilters
@@ -5429,8 +5424,7 @@ class C
 
                 newFilters.Add(New Data.CompletionFilterWithState(FilterSet.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
-                state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
-                Await state.WaitForUIRenderedAsync()
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFilters.ToImmutableAndFree())
                 Assert.Null(state.GetSelectedItem())
                 state.SendTypeChars(".")
                 Await state.AssertNoCompletionSession()
@@ -5526,8 +5520,7 @@ class C
             ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertSelectedCompletionItem("Red")
                 Await state.AssertCompletionItemsContainAll("Red", "Green", "Blue", "Equals")
@@ -5538,9 +5531,8 @@ class C
                     newFiltersBuilder.Add(f.WithSelected(f.Filter.DisplayText = FilterSet.ConstantFilter.DisplayText))
                 Next
 
-                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFiltersBuilder.ToImmutableAndFree())
 
-                Await state.WaitForUIRenderedAsync()
                 Await state.AssertSelectedCompletionItem("Red")
                 Await state.AssertCompletionItemsContainAll("Red", "Green", "Blue")
                 Await state.AssertCompletionItemsDoNotContainAny("Equals")
@@ -5551,9 +5543,8 @@ class C
                     newFiltersBuilder.Add(f.WithSelected(False))
                 Next
 
-                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFiltersBuilder.ToImmutableAndFree())
 
-                Await state.WaitForUIRenderedAsync()
                 Await state.AssertSelectedCompletionItem("Red")
                 Await state.AssertCompletionItemsContainAll({"Red", "Green", "Blue", "Equals"})
             End Using
@@ -5580,8 +5571,7 @@ class C
 }
             ]]></Document>)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue", "Color")
 
@@ -5607,9 +5597,8 @@ class C
 
                 Assert.True(hasEnumerFilter And hasEnumMemberFilter)
 
-                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFiltersBuilder.ToImmutableAndFree())
 
-                Await state.WaitForUIRenderedAsync()
                 Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue")
                 Await state.AssertCompletionItemsDoNotContainAny("Color")
             End Using
@@ -5636,8 +5625,7 @@ class C
 }
             ]]></Document>)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue", "Color")
 
@@ -5658,9 +5646,8 @@ class C
 
                 Assert.True(hasTargetTypedFilter)
 
-                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFiltersBuilder.ToImmutableAndFree())
 
-                Await state.WaitForUIRenderedAsync()
                 Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue")
                 Await state.AssertCompletionItemsDoNotContainAny("Color")
             End Using
@@ -6809,8 +6796,7 @@ namespace NS2
                 service.QueueCacheWarmUpTask(document.Project)
                 Await state.WaitForAsynchronousOperationsAsync()
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertCompletionItemsContain(displayText:="UnimportedType", displayTextSuffix:="")
 
@@ -6860,8 +6846,7 @@ namespace NS2
                 Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
 
@@ -6894,32 +6879,24 @@ namespace NS2
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 ' trigger completion with import completion disabled
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' make sure expander is selected
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
                 ' unselect expander
-                state.SetCompletionItemExpanderState(isSelected:=False)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=False)
 
                 Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander again
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
@@ -6929,8 +6906,7 @@ namespace NS2
                 Await state.AssertNoCompletionSession()
 
                 ' trigger completion again
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' should not show unimported item by default
                 Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
@@ -6965,13 +6941,10 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 ' trigger completion with import completion enabled
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' make sure expander is selected
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
@@ -6981,8 +6954,7 @@ namespace NS2
                 Await state.AssertNoCompletionSession()
 
                 ' trigger completion again
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' show expanded items by default
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
@@ -7006,15 +6978,12 @@ namespace NS1
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 ' trigger completion with import completion enabled
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
                 Dim length = state.GetCompletionItems().Count
 
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Assert.Equal(length, state.GetCompletionItems().Count)
@@ -7047,8 +7016,7 @@ public class AA
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' import completion is disabled, so we shouldn't have expander selected by default
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
@@ -7059,9 +7027,7 @@ public class AA
                 Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
                 Assert.Null(sessionData.ExpandedItemsTask)
 
-                state.SendTypeChars("D")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("D")
 
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
                 Await state.AssertCompletionItemsContain("DDProp1", "")
@@ -7093,19 +7059,15 @@ public class AA
 }</Document>)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' import completion is disabled, so we shouldn't have expander selected by default
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
                 Await state.AssertCompletionItemsContain("Prop1", "")
                 Await state.AssertCompletionItemsDoNotContainAny("DD")
 
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 ' since we are in exclusive context (property name provider is exclusive in this case), selceting expander is a no-op
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
@@ -7534,8 +7496,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", displayTextSuffix:="<>")
@@ -7601,8 +7562,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertSelectedCompletionItem(displayText:="Bar")
@@ -7668,8 +7628,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertSelectedCompletionItem(displayText:="ABar")
@@ -7735,8 +7694,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="")
@@ -7803,8 +7761,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
@@ -7840,8 +7797,7 @@ namespace OtherNS
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertSelectedCompletionItem(displayText:="designer")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
@@ -7877,9 +7833,6 @@ namespace NS
     class ATaAaSaKa { }
 } </Document>,
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
-
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 state.SendTypeChars("task")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -7934,13 +7887,10 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 ' trigger completion with import completion disabled
-                state.SendInvokeCompletionList()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' make sure expander is selected
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 state.SendEscape()
                 Await state.AssertNoCompletionSession()
@@ -8856,14 +8806,10 @@ public class AA
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' Make sure expander is selected
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim expectedText = $"
 using CC;
@@ -8911,14 +8857,10 @@ public class AA
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' Make sure expander is selected
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim expectedText = $"
 using CC;
@@ -8944,6 +8886,108 @@ public class AA
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestTypeImportCompletionAfterScoped(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            scoped $$
+        }
+    }
+}
+</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' Make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+
+                Dim expectedText = "
+using MyNamespace;
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            scoped MyRefStruct 
+        }
+    }
+}
+"
+                state.SendTypeChars("MyR")
+                state.SendSelectCompletionItem("MyRefStruct")
+                state.SendTypeChars(" ")
+                Assert.Equal(expectedText, state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret(expectedTextBeforeCaret:="            scoped MyRefStruct ", expectedTextAfterCaret:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTypeImportCompletionAfterScopedInTopLevel(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+scoped $$
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' Make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+
+                Dim expectedText = "
+using MyNamespace;
+
+scoped MyRefStruct 
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+"
+                state.SendTypeChars("MyR")
+                state.SendSelectCompletionItem("MyRefStruct")
+                state.SendTypeChars(" ")
+                Assert.Equal(expectedText, state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret(expectedTextBeforeCaret:="scoped MyRefStruct ", expectedTextAfterCaret:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCompleteParenthesisForMethodUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
@@ -8960,13 +9004,9 @@ public class AA
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim expectedText = "
 public class AA
@@ -9003,13 +9043,9 @@ public class AA
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim expectedText = "
 using System;
@@ -9053,13 +9089,9 @@ namespace Bar1
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim expectedText = "
 public class AA
@@ -9103,13 +9135,9 @@ public unsafe class AA
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim expectedText = "
 using System;
@@ -9314,14 +9342,8 @@ public class AA
         var y = x.$$
     }
 }</Document>)
-
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
-
-                state.SendTypeChars("sh")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("sh")
 
                 ' "(short)" item has a MatchPriority of "Deprioritize", so we don't want to select it over regular item "Should"
                 ' even if it matches with filter text better in term of case-sensitivity.
@@ -9356,13 +9378,8 @@ public class AA
                                   ("item3", MatchPriority.Default),
                                   ("Item4", MatchPriority.Preselect)})
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
-
-                state.SendTypeChars("item")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("item")
 
                 ' always prefer case-sensitive match of highest priority, even in the presence of item with MatchPriority.Preselect
                 Await state.AssertSelectedCompletionItem("item2")
@@ -9392,13 +9409,8 @@ public class AA
                                   ("item2", MatchPriority.Default + 1),
                                   ("Item3", If(uppercaseItemIsDeprioritize, MatchPriority.Deprioritize, MatchPriority.Default - 1))})
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
-
-                state.SendTypeChars("Item")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("Item")
 
                 ' regardless of priority, if any uppercase letter is typed, ensure we prefer casing over match priority (including Preselect items) if uppercase is typed
                 ' even if item with best matched casing has MatchPriority.Deprioritize
@@ -9451,17 +9463,13 @@ public class AA
     }
 }</Document>)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' test prefix match
                 Await state.AssertSelectedCompletionItem("node", isHardSelected:=True)
                 Await state.AssertCompletionItemsContain("Node", "")
 
-                state.SendTypeChars("e")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("e")
 
                 ' test complete match
                 Await state.AssertSelectedCompletionItem("node", isHardSelected:=True)
@@ -9816,6 +9824,259 @@ class C
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_01(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        (int x = $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("int.M")
+                Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_01_AferParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        (int y, int x = $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("int.M")
+                Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_01_AferOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        (int y = 1, int x = $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("int.M")
+                Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_02(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    const int myConst = 100;
+    void M()
+    {
+        (int x = $$) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_02_AferParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    const int myConst = 100;
+    void M()
+    {
+        (int y, int x = $$) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_02_AferOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    const int myConst = 100;
+    void M()
+    {
+        (int y = 1, int x = $$) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_02_BeforeParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    const int myConst = 100;
+    void M()
+    {
+        (int x = $$, int y) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_02_BeforeOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    const int myConst = 100;
+    void M()
+    {
+        (int x = $$, int y = 1) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class pType { }
+class C
+{
+    void M()
+    {
+        string pLocal = "p";
+        var lam = ($$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("p")
+                Await state.AssertSelectedCompletionItem(displayText:="params")
+                Await state.AssertCompletionItemsContainAll("pType", "pLocal")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray_BeforeParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class pType { }
+class C
+{
+    void M()
+    {
+        string pLocal = "p";
+        var lam = ($$ int[] xs) => { };
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("p")
+                Await state.AssertSelectedCompletionItem(displayText:="params")
+                Await state.AssertCompletionItemsContainAll("pType", "pLocal")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray_AfterParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class pType { }
+class C
+{
+    void M()
+    {
+        string pLocal = "p";
+        var lam = (int x, $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("p")
+                Await state.AssertSelectedCompletionItem(displayText:="params")
+                Await state.AssertCompletionItemsContainAll("pType", "pLocal")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray_AfterOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class pType { }
+class C
+{
+    void M()
+    {
+        string pLocal = "p";
+        var lam = (int x = 1, $$) => { };
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("p")
+                Await state.AssertSelectedCompletionItem(displayText:="params")
+                Await state.AssertCompletionItemsContainAll("pType")
+                Await state.AssertCompletionItemsDoNotContainAny("pLocal")
+            End Using
+        End Function
+
         ' Simulate the situation that some provider (e.g. IntelliCode) provides items with higher match priority that only match case-insensitively.
         <ExportCompletionProvider(NameOf(PreselectionProvider), LanguageNames.CSharp)>
         <[Shared]>
@@ -9948,7 +10209,7 @@ class C
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
 
                 ' completion list shouldn't have expand item until we release the checkpoint
-                state.SendTypeChars("TestUnimp")
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("TestUnimp")
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
 
                 Dim session = Await state.GetCompletionSession()
@@ -9959,15 +10220,13 @@ class C
                 Assert.False(expandTask.IsCompleted)
 
                 ' following up by typing a few more characters each triggers an list update
-                state.SendTypeChars("o")
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("o")
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
                 Assert.False(expandTask.IsCompleted)
 
-                Dim uiRender = state.WaitForUIRenderedAsync()
-                state.SendTypeChars("r")
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("r")
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
                 Assert.False(expandTask.IsCompleted)
-                Await uiRender
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 provider.Checkpoint.Release()
@@ -9978,11 +10237,9 @@ class C
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
                 Assert.True(expandTask.IsCompleted)
 
-                uiRender = state.WaitForUIRenderedAsync()
-                state.SendTypeChars("t")
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("t")
                 Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
                 Await state.AssertSelectedCompletionItem("TestUnimportedItem", inlineDescription:="Test.Name.Spaces")
-                Await uiRender
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
             End Using
         End Function
@@ -10018,10 +10275,8 @@ class C
                 Assert.False(expandTask.IsCompleted)
 
                 ' following up by typing more characters each triggers an list update
-                Dim uiRender = state.WaitForUIRenderedAsync()
-                state.SendTypeChars("o")
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("o")
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
-                Await uiRender
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
                 Assert.False(expandTask.IsCompleted)
 
@@ -10034,10 +10289,7 @@ class C
                 Assert.True(expandTask.IsCompleted)
 
                 ' trigger update by using expander
-                uiRender = state.WaitForUIRenderedAsync()
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await uiRender
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
@@ -10082,12 +10334,13 @@ class C
 
                 ' Now delayed expand item task is completed, following up by typing and delete a character to trigger
                 ' update so the list would contains all items
-                Dim uiRender = state.WaitForUIRenderedAsync()
-                state.SendTypeChars("t")
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("t")
                 Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                Dim uiRender = state.WaitForUIRenderedAsync()
                 state.SendBackspace()
                 Await uiRender
-                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
                 ' Get the full list from session where delay happened
                 Dim list1 = state.GetCompletionItems()
@@ -10283,8 +10536,6 @@ class MyClass
                               </Document>,
                               extraExportedTypes:={GetType(ItemWithAdditionalFilterTextsProvider)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
-
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionItemsContainAll("Consolation", "Add code that write to console", "Add code that write line to console")
 
@@ -10374,7 +10625,6 @@ class MyClass
 }
                               </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), True)
                 state.SendTypeChars("if")
                 Await state.AssertSelectedCompletionItem(displayText:="if", inlineDescription:=Nothing, isHardSelected:=True)
@@ -10449,7 +10699,6 @@ class MyClass
 }
                               </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
                 state.SendInvokeCompletionList()
                 ' We should still work normally w/o pythia recommender
@@ -10473,7 +10722,6 @@ class MyClass
                               </Document>,
                               extraExportedTypes:={GetType(TestPythiaDeclarationNameRecommenderImplmentation)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
 
                 state.SendInvokeCompletionList()

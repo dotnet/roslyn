@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -40,37 +41,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document is null)
                 return null;
 
-            var blockStructureService = document.Project.Services.GetService<BlockStructureService>();
-            if (blockStructureService == null)
-            {
-                return Array.Empty<FoldingRange>();
-            }
-
             var options = _globalOptions.GetBlockStructureOptions(document.Project);
-            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
-            if (blockStructure == null)
-            {
-                return Array.Empty<FoldingRange>();
-            }
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return GetFoldingRanges(blockStructure, text);
+            return await GetFoldingRangesAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
 
-        public static FoldingRange[] GetFoldingRanges(
-            SyntaxTree syntaxTree,
-            LanguageServices languageServices,
-            in BlockStructureOptions options,
+        /// <summary>
+        /// Used here and by lsif generator.
+        /// </summary>
+        public static async Task<FoldingRange[]> GetFoldingRangesAsync(
+            Document document,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            var blockStructureService = (BlockStructureServiceWithProviders)languageServices.GetRequiredService<BlockStructureService>();
-            var blockStructure = blockStructureService.GetBlockStructure(syntaxTree, options, cancellationToken);
+            var blockStructureService = document.GetRequiredLanguageService<BlockStructureService>();
+            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
-            {
                 return Array.Empty<FoldingRange>();
-            }
 
-            var text = syntaxTree.GetText(cancellationToken);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return GetFoldingRanges(blockStructure, text);
         }
 

@@ -3463,6 +3463,11 @@ Se l'identificatore di formato "d" viene usato senza altri identificatori di for
         <target state="translated">variabile discard</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="new">else statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">Incorporata</target>

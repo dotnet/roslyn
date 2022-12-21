@@ -558,8 +558,8 @@ class {|Identifier:A|}
             string? previousResultId = null,
             bool useProgress = false)
         {
-            BufferedProgress<VSInternalSpellCheckableRangeReport>? progress = useProgress
-                ? BufferedProgress.Create<VSInternalSpellCheckableRangeReport>(null) : null;
+            BufferedProgress<VSInternalSpellCheckableRangeReport[]>? progress = useProgress
+                ? BufferedProgress.Create<VSInternalSpellCheckableRangeReport[]>(null) : null;
             var spans = await testLspServer.ExecuteRequestAsync<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(
                 VSInternalMethods.TextDocumentSpellCheckableRangesName,
                 CreateDocumentParams(uri, previousResultId, progress),
@@ -568,7 +568,7 @@ class {|Identifier:A|}
             if (useProgress)
             {
                 Assert.Null(spans);
-                spans = progress!.Value.GetValues();
+                spans = progress!.Value.GetFlattenedValues();
             }
 
             AssertEx.NotNull(spans);
@@ -580,7 +580,7 @@ class {|Identifier:A|}
             ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
             bool useProgress = false)
         {
-            BufferedProgress<VSInternalWorkspaceSpellCheckableReport>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceSpellCheckableReport>(null) : null;
+            BufferedProgress<VSInternalWorkspaceSpellCheckableReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceSpellCheckableReport[]>(null) : null;
             var spans = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>(
                 VSInternalMethods.WorkspaceSpellCheckableRangesName,
                 CreateWorkspaceParams(previousResults, progress),
@@ -589,7 +589,7 @@ class {|Identifier:A|}
             if (useProgress)
             {
                 Assert.Null(spans);
-                spans = progress!.Value.GetValues();
+                spans = progress!.Value.GetFlattenedValues();
             }
 
             AssertEx.NotNull(spans);

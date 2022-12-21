@@ -83,18 +83,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Location.InDocumentInfo == null)
                 return null;
 
-            return new VSSymbolInformation
-            {
-                Name = item.Text,
-                Location = new LSP.Location
+            var service = document.Project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
+            return service.Create(
+                item.Text,
+                containerName,
+                ProtocolConversions.GlyphToSymbolKind(item.Glyph),
+                new LSP.Location
                 {
                     Uri = document.GetURI(),
                     Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
                 },
-                Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
-                ContainerName = containerName,
-                Icon = WorkspaceSymbolsHandler.GetImageIdFromGlyph(document.Project, item.Glyph),
-            };
+                item.Glyph);
         }
 
         /// <summary>
