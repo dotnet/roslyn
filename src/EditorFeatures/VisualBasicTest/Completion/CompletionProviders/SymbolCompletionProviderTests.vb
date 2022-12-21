@@ -5574,7 +5574,21 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestImplements_QualifiedNameAsGenericParameter() As Task
+        Public Async Function TestImplements_GenericParameter() As Task
+            Const markup = "
+Structure somestruct
+End Structure
+
+Class SomeClass
+    Implements IList(Of $$)
+End Class
+"
+
+            Await VerifyItemExistsAsync(markup, "somestruct")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestImplements_QualifiedNameAsGenericParameter1() As Task
             Const markup = "
 Namespace MyNameSpace
     Structure somestruct
@@ -5583,6 +5597,22 @@ End Namespace
 
 Class SomeClass
     Implements IList(Of MyNameSpace.$$)
+End Class
+"
+
+            Await VerifyItemExistsAsync(markup, "somestruct")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestImplements_QualifiedNameAsGenericParameter2() As Task
+            Const markup = "
+Namespace MyNameSpace
+    Structure somestruct
+    End Structure
+End Namespace
+
+Class SomeClass
+    Implements IList(Of MyNameSpace.$$.Foo)
 End Class
 "
 
