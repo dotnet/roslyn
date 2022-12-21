@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -17,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
+        private static readonly ISet<SyntaxKind> s_validModifiers = SyntaxKindSet.AllMemberModifiers.Where(m => m is not (SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword)).ToSet();
+
         private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.StaticKeyword,
@@ -25,13 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ||
-                context.PrecedingModifiers.Contains(SyntaxKind.AsyncKeyword) ||
-                context.PrecedingModifiers.Contains(SyntaxKind.RequiredKeyword))
-            {
-                return false;
-            }
-
             return InMemberDeclarationContext(position, context, cancellationToken)
                 || context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.StaticKeyword, cancellationToken)
                 || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
@@ -42,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return context.IsGlobalStatementContext
                 || context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken)
                 || context.IsMemberDeclarationContext(
-                    validModifiers: SyntaxKindSet.AllMemberModifiers,
+                    validModifiers: s_validModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                    canBePartial: true,
+                    canBePartial: false,
                     cancellationToken: cancellationToken);
         }
     }
