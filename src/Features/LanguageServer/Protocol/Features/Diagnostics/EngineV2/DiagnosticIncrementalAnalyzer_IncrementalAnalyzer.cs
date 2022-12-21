@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var data = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
                         backgroundAnalysisScope, compilerDiagnosticsScope, isActiveDocument, isVisibleDocument,
-                        isOpenDocument, isGeneratedRazorDocument, cancellationToken, out var skipAnalysisForNonCachedDocument);
+                        isOpenDocument, isGeneratedRazorDocument, cancellationToken, out var isAnalyzerSuppressed);
                     if (data.HasValue)
                     {
                         PersistAndRaiseDiagnosticsIfNeeded(data.Value, stateSet);
                     }
-                    else if (!skipAnalysisForNonCachedDocument)
+                    else if (!isAnalyzerSuppressed)
                     {
                         nonCachedStateSets.Add(stateSet);
                     }

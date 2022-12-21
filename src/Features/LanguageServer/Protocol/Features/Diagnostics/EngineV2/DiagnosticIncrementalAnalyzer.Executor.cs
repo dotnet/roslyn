@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return all cached local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer).
         /// Otherwise, return <code>null</code>.
-        /// For the latter case, <paramref name="skipAnalysisForNonCachedDocument"/> indicates if the analyzer is suppressed
+        /// For the latter case, <paramref name="isAnalyzerSuppressed"/> indicates if the analyzer is suppressed
         /// for the given document/project. If suppressed, the caller does not need to compute the diagnostics for the given
         /// analyzer. Otherwise, diagnostics need to be computed.
         /// </summary>
@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             bool isActiveDocument, bool isVisibleDocument,
             bool isOpenDocument, bool isGeneratedRazorDocument,
             CancellationToken cancellationToken,
-            out bool skipAnalysisForNonCachedDocument)
+            out bool isAnalyzerSuppressed)
         {
             Debug.Assert(isActiveDocument || isOpenDocument || isGeneratedRazorDocument);
 
-            skipAnalysisForNonCachedDocument = false;
+            isAnalyzerSuppressed = false;
 
             try
             {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If so, we set the flag indicating that the client can skip analysis for this document.
                 // Regardless of whether or not the analyzer is suppressed for project or document,
                 // we return null to indicate that no diagnostics are cached for this document for the given version.
-                skipAnalysisForNonCachedDocument = !DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
+                isAnalyzerSuppressed = !DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
                     !IsAnalyzerEnabledForDocument(stateSet.Analyzer, existingData, analysisScope, compilerDiagnosticsScope,
                         isActiveDocument, isVisibleDocument, isOpenDocument, isGeneratedRazorDocument);
                 return null;
