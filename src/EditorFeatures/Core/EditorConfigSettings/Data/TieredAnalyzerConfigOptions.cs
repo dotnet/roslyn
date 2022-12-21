@@ -27,7 +27,7 @@ internal sealed class TieredAnalyzerConfigOptions
     }
 
     public void GetInitialLocationAndValue<TValue>(
-        IOption option,
+        IOption2 option,
         out SettingLocation location,
         out TValue initialValue)
         where TValue : notnull

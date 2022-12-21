@@ -713,7 +713,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             return;
 
             // Local functions
-            void ProcessDiagnosticIdAndOption(string diagnosticId, IOption optionOpt, string editorConfigString)
+            void ProcessDiagnosticIdAndOption(string diagnosticId, IOption2 optionOpt, string editorConfigString)
             {
                 // Verify we have an entry for { diagnosticId, optionName }
                 var diagnosticIdString = $"# {diagnosticId}";

@@ -9,12 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using TOption = Microsoft.CodeAnalysis.Options.IOption2;
-#else
-using TOption = Microsoft.CodeAnalysis.Options.IOption;
-#endif
-
 namespace Microsoft.CodeAnalysis
 {
     internal static class AnalyzerConfigOptionsExtensions
@@ -25,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption2<T> option)
             => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 
-        private static T GetOptionWithAssertOnFailure<T>(AnalyzerConfigOptions analyzerConfigOptions, TOption option)
+        private static T GetOptionWithAssertOnFailure<T>(AnalyzerConfigOptions analyzerConfigOptions, IOption2 option)
         {
             if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {
@@ -39,19 +33,19 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        private static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
+        private static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, out T value)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, (T?)option.DefaultValue, out value!);
 
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, [MaybeNullWhen(false)] out T value)
+        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, [MaybeNullWhen(false)] out T value)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, defaultValue: default, out value);
 
-        public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
+        public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, T defaultValue)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<T?>(defaultValue), out var value) ? value! : throw ExceptionUtilities.Unreachable();
 
-        public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
+        public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, T defaultValue)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<CodeStyleOption2<T>?>(new CodeStyleOption2<T>(defaultValue, NotificationOption2.None)), out var style) ? style!.Value : throw ExceptionUtilities.Unreachable();
 
-        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, Optional<T?> defaultValue, out T? value)
+        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, Optional<T?> defaultValue, out T? value)
         {
             var hasEditorConfigStorage = false;
             foreach (var storageLocation in option.StorageLocations)

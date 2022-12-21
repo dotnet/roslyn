@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
 
-            var expectedOptions = new IOption[]
+            var expectedOptions = new IOption2[]
             {
                 FormattingOptions2.IndentationSize,
                 FormattingOptions2.InsertFinalNewLine,

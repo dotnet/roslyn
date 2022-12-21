@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private static IEnumerable<FunctionId> GetFunctionIds()
             => Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
 
-        public static IEnumerable<IOption> GetOptions()
+        public static IEnumerable<IOption2> GetOptions()
             => GetFunctionIds().Select(GetOption);
 
         public static Option2<bool> GetOption(FunctionId id)

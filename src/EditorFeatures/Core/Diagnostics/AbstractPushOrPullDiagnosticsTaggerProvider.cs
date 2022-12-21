@@ -91,8 +91,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
     // SingleDiagnosticKindTaggerProvider will defer to these to do the work so that they otherwise operate
     // identically.
 
-    protected abstract ImmutableArray<IOption> Options { get; }
-    protected virtual ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray<IOption>.Empty;
+    protected abstract ImmutableArray<IOption2> Options { get; }
+    protected virtual ImmutableArray<IOption2> FeatureOptions { get; } = ImmutableArray<IOption2>.Empty;
 
     protected abstract bool IsEnabled { get; }
 
