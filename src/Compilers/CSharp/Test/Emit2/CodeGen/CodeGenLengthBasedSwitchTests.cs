@@ -3350,7 +3350,8 @@ public class C
     [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
     public void GetDriveType()
     {
-        // Based on https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Unix/System.Native/Interop.MountPoints.FormatInfo.cs#L78-L327
+        // Based on https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Unix/System.Native/Interop.MountPoints.FormatInfo.cs#L78-L327A
+        // Buckets: 5, 3, 1, 3, 2, 2, 1, 1, 2, 1, 2, 1, 1, 3, 1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 3, 2, 4, 1, 2, 3, 1, 2, 4, 3, 2, 1, 2, 1, 1, 1, 1, 1, 2, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 10, 3, 2, 5, 1, 1, 3, 1, 1, 2, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 2, 3, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert("cddafs", "cddafs");
 assert("cd9660", "cddafs");
@@ -6088,7 +6089,7 @@ public class C
     public void GetContents()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Formats.Asn1/src/System/Formats/Asn1/WellKnownOids.cs#L317-L419
-        // Buckets: 6, 6, 9, 6, 7, 6, 5, 3, 3, 5, 3, 5, 2
+        // Buckets: 5, 2, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 2, 2, 1, 1, 3, 2, 2, 1, 3, 3, 2, 2, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1
         var source = """
 assert("1.2.840.113549.1.5.13");
 assert(null, "default");
@@ -8475,7 +8476,7 @@ public class C
     public void TryParseStatusFile()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/Common/src/Interop/Linux/procfs/Interop.ProcFsStat.TryReadStatusFile.cs#L66-L102
-        // Buckets: 3, 4
+        // Buckets: 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert("Pid");
 assert("VmHWM");
@@ -8773,7 +8774,7 @@ public class C
     public void GetHashForChannelBinding()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Net.Security/src/System/Net/Security/Pal.Managed/EndpointChannelBindingToken.cs#L31-L57
-        // Buckets: 2, 2, 3, 3, 3
+        // Buckets: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert("1.2.840.113549.2.5");
 assert("1.2.840.113549.1.1.4");
@@ -9345,7 +9346,7 @@ public class C
     public void FunctionAvailable()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Private.Xml/src/System/Xml/Xsl/XsltOld/XsltCompileContext.cs#L451-L485
-        // Buckets: 4, 2, 2, 4, 3, 2, 2, 2, 2
+        // Buckets: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert("last");
 assert("position");
@@ -10168,7 +10169,7 @@ public class C
     public void NormalizeTimeZone()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.ServiceModel.Syndication/src/System/ServiceModel/Syndication/DateTimeHelper.cs#L146-L212
-        // Buckets: 25, 5
+        // Buckets: 1, 1, 2, 2, 2, 2
         var source = """
 assert("UT");
 assert("Z");
@@ -10506,6 +10507,7 @@ public class C
     public void EmitMatchCharacterClass()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCompiler.cs#L5810-L5879
+        // Buckets: 3, 3, 2
         var source = """
 assert("\0\0\0\u03ff\ufffe\u07ff\ufffe\u07ff");
 assert("\0\0\0\u03FF\0\0\0\0");
@@ -10694,7 +10696,7 @@ public class C
     public void AcceptCommand()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/mono/wasm/debugger/BrowserDebugProxy/MonoProxy.cs#L274-L572
-        // Buckets: 4, 2, 2, 2, 2, 2, 2, 2
+        // Buckets: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert(null, "default");
 assert("", "default");
@@ -11394,7 +11396,7 @@ public class C
     public void IsOperator()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/tools/illink/src/linker/Linker.Steps/DiscoverCustomOperatorsHandler.cs#L156-L221
-        // Buckets: 5, 4, 7, 3
+        // Buckets: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert(null, "default");
 assert("", "default");
@@ -11724,7 +11726,7 @@ public class C
     public void EmitIL()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/coreclr/tools/Common/TypeSystem/IL/Stubs/UnsafeIntrinsics.cs#L21-L94
-        // Buckets: 4, 3, 2, 2, 3, 2, 2
+        // Buckets: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert("AsPointer");
 assert("As");
@@ -12403,7 +12405,7 @@ public class C
     public void GetWellKnownType()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/coreclr/tools/aot/ILLink.Shared/TypeSystemProxy/WellKnownType.cs#L48-L58
-        // Buckets: 2, 2
+        // Buckets: 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert("String");
 assert("Nullable`1");
@@ -12694,7 +12696,7 @@ public class C
     public void GetLocalizedString()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.ComponentModel.Primitives/src/System/ComponentModel/CategoryAttribute.cs#L202-L226
-        // Buckets: 5, 3, 4, 2, 3
+        // Buckets: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert("Action");
 assert("Appearance");
@@ -13330,7 +13332,7 @@ public class C
     public void ParseGraphicsUnits()
     {
         // Based on https://github.com/dotnet/runtime/blob/a30de6d40f69ef612b514344a5ec83fffd10b957/src/libraries/System.Drawing.Common/src/System/Drawing/FontConverter.cs#L255-L265
-        // Buckets: 4
+        // Buckets: 1, 1, 1, 1, 1, 1, 1
         var source = """
 assert("display");
 assert("doc");
