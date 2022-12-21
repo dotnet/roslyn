@@ -181,13 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            // Synthesize `ParamArrayAttribute`.
             if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
 
-            // Synthesize `*ConstantAttribute`.
             var defaultValue = this.ExplicitDefaultConstantValue;
             if (defaultValue != ConstantValue.NotAvailable &&
                 DefaultValueFromAttributes == ConstantValue.NotAvailable &&

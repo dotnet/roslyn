@@ -14225,6 +14225,8 @@ class Program
 5").VerifyDiagnostics();
         }
 
+        // delegate void <>f__AnonymousDelegate0<T1>([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] T1 d)
+        // (the decimal constant is equivalent to 1.1m)
         private static readonly string s_anonymousDelegateWithDecimalConstant = $$"""
             .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
                 extends [{{s_libPrefix}}]System.MulticastDelegate
@@ -14533,6 +14535,7 @@ class Program
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
         }
 
+        // delegate void <>f__AnonymousDelegate0<T1>([Optional, DateTimeConstant(100L)] T1 d)
         private static readonly string s_anonymousDelegateWithDateTimeConstant = $$"""
             .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
                 extends [{{s_libPrefix}}]System.MulticastDelegate
