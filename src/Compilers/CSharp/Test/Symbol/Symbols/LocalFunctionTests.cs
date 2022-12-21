@@ -202,16 +202,16 @@ class C
 
                 static void LocalFunc()
                 {
-                    var x = c.MyExtension;
-                    var y = new Func<string>(c.MyExtension);
+                    var x1 = c.MyExtension;
+                    var y1 = new Func<string>(c.MyExtension);
                 }
 
                 void NonStatic()
                 {
                     Action f = static () =>
                     {
-                        var x = c.MyExtension;
-                        var y = new Func<string>(c.MyExtension);
+                        var x2 = c.MyExtension;
+                        var y2 = new Func<string>(c.MyExtension);
                     };
                 }
 
@@ -225,18 +225,18 @@ class C
                         => string.Empty;
                 }
                 """).VerifyDiagnostics(
-                    // (9,13): error CS8421: A static local function cannot contain a reference to 'c'.
-                    //     var x = c.MyExtension;
-                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(9, 13),
-                    // (10,30): error CS8421: A static local function cannot contain a reference to 'c'.
-                    //     var y = new Func<string>(c.MyExtension);
-                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(10, 30),
-                    // (17,17): error CS8820: A static anonymous function cannot contain a reference to 'c'.
-                    //         var x = c.MyExtension;
-                    Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(17, 17),
-                    // (18,34): error CS8820: A static anonymous function cannot contain a reference to 'c'.
-                    //         var y = new Func<string>(c.MyExtension);
-                    Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(18, 34));
+                    // (9,14): error CS8421: A static local function cannot contain a reference to 'c'.
+                    //     var x1 = c.MyExtension;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(9, 14),
+                    // (10,31): error CS8421: A static local function cannot contain a reference to 'c'.
+                    //     var y1 = new Func<string>(c.MyExtension);
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(10, 31),
+                    // (17,18): error CS8820: A static anonymous function cannot contain a reference to 'c'.
+                    //         var x2 = c.MyExtension;
+                    Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(17, 18),
+                    // (18,35): error CS8820: A static anonymous function cannot contain a reference to 'c'.
+                    //         var y2 = new Func<string>(c.MyExtension);
+                    Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "c").WithArguments("c").WithLocation(18, 35));
         }
 
         [Fact]
@@ -251,16 +251,16 @@ class C
 
                 static void LocalFunc()
                 {
-                    var x = Extensions.MyExtension;
-                    var y = new Func<C, string>(Extensions.MyExtension);
+                    var x1 = Extensions.MyExtension;
+                    var y1 = new Func<C, string>(Extensions.MyExtension);
                 }
 
                 void NonStatic()
                 {
                     Action f = static () =>
                     {
-                        var x = Extensions.MyExtension;
-                        var y = new Func<C, string>(Extensions.MyExtension);
+                        var x2 = Extensions.MyExtension;
+                        var y2 = new Func<C, string>(Extensions.MyExtension);
                     };
                 }
 
@@ -273,7 +273,7 @@ class C
                     public static string MyExtension(this C c)
                         => string.Empty;
                 }
-                """).VerifyDiagnostics().VerifyEmitDiagnostics();
+                """).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -302,10 +302,10 @@ class C
                         {
                             Action f = static () =>
                             {
-                                var x1 = this.MyExtension;
-                                var x2 = new Func<string>(this.MyExtension);
-                                var y1 = base.MyExtension;
-                                var y2 = new Func<string>(base.MyExtension);
+                                var x3 = this.MyExtension;
+                                var x4 = new Func<string>(this.MyExtension);
+                                var y3 = base.MyExtension;
+                                var y4 = new Func<string>(base.MyExtension);
                             };
                         }
                     }
@@ -336,10 +336,10 @@ class C
                     //             var y2 = new Func<string>(base.MyExtension);
                     Diagnostic(ErrorCode.ERR_NoSuchMember, "MyExtension").WithArguments("Base", "MyExtension").WithLocation(16, 44),
                     // (25,31): error CS0117: 'Base' does not contain a definition for 'MyExtension'
-                    //                 var y1 = base.MyExtension;
+                    //                 var y3 = base.MyExtension;
                     Diagnostic(ErrorCode.ERR_NoSuchMember, "MyExtension").WithArguments("Base", "MyExtension").WithLocation(25, 31),
                     // (26,48): error CS0117: 'Base' does not contain a definition for 'MyExtension'
-                    //                 var y2 = new Func<string>(base.MyExtension);
+                    //                 var y4 = new Func<string>(base.MyExtension);
                     Diagnostic(ErrorCode.ERR_NoSuchMember, "MyExtension").WithArguments("Base", "MyExtension").WithLocation(26, 48));
         }
 
@@ -363,7 +363,7 @@ class C
                     static string MyExtension(this object o)
                         => string.Empty;
                 }
-                """).VerifyDiagnostics().VerifyEmitDiagnostics();
+                """).VerifyEmitDiagnostics();
         }
     }
 }
