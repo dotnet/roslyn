@@ -373,13 +373,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
-        private static bool IsContainerNode(SyntaxNode container) =>
-            container is CompilationUnitSyntax or
+        private static bool IsContainerNode(SyntaxNode container)
+            => container is CompilationUnitSyntax or
             BaseNamespaceDeclarationSyntax or
             BaseTypeDeclarationSyntax;
 
-        private static bool IsNamespaceOrTypeDeclaration(SyntaxNode node) =>
-            node is BaseNamespaceDeclarationSyntax or
+        private static bool IsNamespaceOrTypeDeclaration(SyntaxNode node)
+            => node is BaseNamespaceDeclarationSyntax or
             BaseTypeDeclarationSyntax or
             DelegateDeclarationSyntax;
 
@@ -790,7 +790,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         public override bool IsImportNode(SyntaxNode node)
             => node is UsingDirectiveSyntax;
 
-        [return: NotNullIfNotNull("name")]
+        [return: NotNullIfNotNull(nameof(name))]
         public override string? GetUnescapedName(string? name)
         {
             return name != null && name.Length > 1 && name[0] == '@'
@@ -1732,6 +1732,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var attribute = (AttributeSyntax)attributeNode;
             var argumentList = attribute.ArgumentList;
             var parsedArgumentList = SyntaxFactory.ParseAttributeArgumentList("(" + value + ")");
+
+            // Parsing here will always succeed since it only returns null when the text doesn't start with a ( and we
+            // enforce above that it has such a character.
+            Contract.ThrowIfNull(parsedArgumentList);
             var newArgumentList = argumentList != null
                 ? argumentList.WithArguments(parsedArgumentList.Arguments)
                 : parsedArgumentList;

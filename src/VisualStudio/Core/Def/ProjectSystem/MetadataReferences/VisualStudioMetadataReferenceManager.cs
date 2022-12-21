@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
     /// from <see cref="ITemporaryStorageServiceInternal"/>.
     /// </remarks>
-    internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
+    internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
     {
         private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
 
@@ -80,6 +81,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _temporaryStorageService = temporaryStorageService;
             _configurationService = configurationService;
             Assumes.Present(_temporaryStorageService);
+        }
+
+        public void Dispose()
+        {
+            using (_readerWriterLock.DisposableWrite())
+            {
+                // IVsSmartOpenScope can't be used as we shutdown, and this is pretty commonly hit according to 
+                // Windows Error Reporting as we try creating metadata for compilations.
+                SmartOpenScopeServiceOpt = null;
+            }
         }
 
         public IEnumerable<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
@@ -337,16 +348,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 moduleBuilder.Add(manifestModule);
 
             return AssemblyMetadata.Create(moduleBuilder.ToImmutable());
-        }
-
-        public void DisconnectFromVisualStudioNativeServices()
-        {
-            using (_readerWriterLock.DisposableWrite())
-            {
-                // IVsSmartOpenScope can't be used as we shutdown, and this is pretty commonly hit according to 
-                // Windows Error Reporting as we try creating metadata for compilations.
-                SmartOpenScopeServiceOpt = null;
-            }
         }
     }
 }

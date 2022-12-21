@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly AnalysisKind? _analysisKind;
         private readonly IPerformanceTrackerService? _performanceTracker;
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        private readonly HostWorkspaceServices _hostWorkspaceServices;
 
         public DiagnosticComputer(
             TextDocument? document,
@@ -52,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             AnalysisKind? analysisKind,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostWorkspaceServices hostWorkspaceServices)
         {
             _document = document;
             _project = project;
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _span = span;
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
-
+            _hostWorkspaceServices = hostWorkspaceServices;
             _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
@@ -127,9 +130,18 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             if (logPerformanceInfo && _performanceTracker != null)
             {
-                // +1 to include project itself
-                var unitCount = documentAnalysisScope != null ? 1 : _project.DocumentIds.Count + 1;
-                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount);
+                // Only log telemetry snapshot is we have an active telemetry session,
+                // i.e. user has not opted out of reporting telemetry.
+                var telemetryService = _hostWorkspaceServices.GetRequiredService<IWorkspaceTelemetryService>();
+                if (telemetryService.HasActiveSession)
+                {
+                    // +1 to include project itself
+                    var unitCount = 1;
+                    if (documentAnalysisScope == null)
+                        unitCount += _project.DocumentIds.Count;
+
+                    _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount, forSpanAnalysis: _span.HasValue);
+                }
             }
 
             var builderMap = await analysisResult.ToResultBuilderMapAsync(

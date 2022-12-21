@@ -97,6 +97,71 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IInvocation_Lambda_DefaultParameterValue()
+        {
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        const int N = 10;
+                        var lam = (int x = N) => x;
+                        /*<bind>*/lam();/*</bind>*/
+                    }
+                }
+                """;
+            var expectedOperationTree = """
+                IInvocationOperation (virtual System.Int32 <anonymous delegate>.Invoke([System.Int32 arg = 10])) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'lam()')
+                  Instance Receiver:
+                    ILocalReferenceOperation: lam (OperationKind.LocalReference, Type: <anonymous delegate>) (Syntax: 'lam')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: arg) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'lam()')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: 'lam()')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """;
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IInvocation_Lambda_ParamsArray()
+        {
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (params int[] xs) => xs.Length;
+                        /*<bind>*/lam(1, 2, 3);/*</bind>*/
+                    }
+                }
+                """;
+            var expectedOperationTree = """
+                IInvocationOperation (virtual System.Int32 <anonymous delegate>.Invoke(params System.Int32[] arg)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'lam(1, 2, 3)')
+                  Instance Receiver:
+                    ILocalReferenceOperation: lam (OperationKind.LocalReference, Type: <anonymous delegate>) (Syntax: 'lam')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: arg) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'lam(1, 2, 3)')
+                        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'lam(1, 2, 3)')
+                          Dimension Sizes(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'lam(1, 2, 3)')
+                          Initializer:
+                            IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'lam(1, 2, 3)')
+                              Element Values(3):
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """;
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void InvocationFlow_01()
@@ -346,7 +411,6 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
-
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]

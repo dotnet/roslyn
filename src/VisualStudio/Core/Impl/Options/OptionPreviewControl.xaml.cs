@@ -58,11 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 ViewModel.UpdatePreview(radioButton.Preview);
             }
-
-            if (listView.SelectedItem is CheckBoxWithComboOptionViewModel checkBoxWithCombo)
-            {
-                ViewModel.UpdatePreview(checkBoxWithCombo.GetPreview());
-            }
         }
 
         private void Options_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -79,12 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
                 {
                     radioButton.IsChecked = true;
-                    e.Handled = true;
-                }
-
-                if (listView.SelectedItem is CheckBoxWithComboOptionViewModel checkBoxWithCombo)
-                {
-                    checkBoxWithCombo.IsChecked = !checkBoxWithCombo.IsChecked;
                     e.Handled = true;
                 }
             }

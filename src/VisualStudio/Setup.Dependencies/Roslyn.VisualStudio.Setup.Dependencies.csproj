@@ -39,6 +39,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Nerdbank.Streams" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="StreamJsonRpc" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Threading" PkgDefEntry="BindingRedirect" />
 
     <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" PkgDefEntry="CodeBase" />

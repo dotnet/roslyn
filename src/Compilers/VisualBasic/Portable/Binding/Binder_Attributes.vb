@@ -370,7 +370,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundAttribute(node, methodSym, boundArguments, defaultArguments, boundNamedArguments, resultKind, type, hasErrors:=resultKind <> LookupResultKind.Good)
         End Function
 
-
         ' Given a list of arguments, create arrays of the bound arguments and pairs of names and expression syntax. Attribute arguments are bound but
         ' named arguments are not yet bound. Assumption is that the parser enforces that named arguments come after arguments.
         Private Function BindAttributeArguments(
@@ -911,7 +910,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Structure
 #End Region
-
 
     End Class
 

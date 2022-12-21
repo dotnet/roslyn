@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
@@ -38,8 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             XamlLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext)
+            IThreadingContext threadingContext,
+            ExportProvider exportProvider)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
         }
 

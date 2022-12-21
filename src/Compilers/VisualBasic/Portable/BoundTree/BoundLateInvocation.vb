@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Diagnostics
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundLateInvocation
         ''' <summary>

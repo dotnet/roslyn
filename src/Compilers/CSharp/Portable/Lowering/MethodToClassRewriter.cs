@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newLocals, declarations, expression, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
         }
 
-        [return: NotNullIfNotNull("type")]
+        [return: NotNullIfNotNull(nameof(type))]
         public sealed override TypeSymbol? VisitType(TypeSymbol? type)
         {
             return TypeMap.SubstituteType(type).Type;
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(receiver, VisitMethodSymbol(node.HasValueMethodOpt), whenNotNull, whenNullOpt, node.Id, type);
         }
 
-        [return: NotNullIfNotNull("method")]
+        [return: NotNullIfNotNull(nameof(method))]
         protected MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
         {
             if (method is null)
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        [return: NotNullIfNotNull("property")]
+        [return: NotNullIfNotNull(nameof(property))]
         private PropertySymbol? VisitPropertySymbol(PropertySymbol? property)
         {
             if (property is null)
@@ -697,7 +697,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
             internal BaseMethodWrapperSymbol(NamedTypeSymbol containingType, MethodSymbol methodBeingWrapped, SyntaxNode syntax, string name)
-                : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), syntax.GetLocation(), name, DeclarationModifiers.Private)
+                : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), syntax.GetLocation(), name, DeclarationModifiers.Private,
+                      isIterator: false)
             {
                 Debug.Assert(containingType.ContainingModule is SourceModuleSymbol);
                 Debug.Assert(ReferenceEquals(methodBeingWrapped, methodBeingWrapped.ConstructedFrom));
@@ -724,17 +725,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
-
-            internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
-            {
-                get
-                {
-                    // BaseMethodWrapperSymbol should not be rewritten by the IteratorRewriter
-                    return default;
-                }
-            }
-
-            internal override bool IsIterator => false;
         }
     }
 }

@@ -11,17 +11,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundDeconstructValuePlaceholder? Placeholder;
 
-        public BoundDeconstructValuePlaceholder SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder binder, bool success)
+        public BoundDeconstructValuePlaceholder SetInferredTypeWithAnnotations(TypeWithAnnotations type, bool success)
         {
             Debug.Assert(Placeholder is null);
 
-            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol: VariableSymbol, ValEscape, type.Type, hasErrors: this.HasErrors || !success);
+            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol: VariableSymbol, ValEscape, isDiscardExpression: IsDiscardExpression, type.Type, hasErrors: this.HasErrors || !success);
             return Placeholder;
         }
 
         public BoundDeconstructValuePlaceholder FailInference(Binder binder)
         {
-            return SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(binder.CreateErrorType()), binder, success: false);
+            return SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(binder.CreateErrorType()), success: false);
         }
     }
 }

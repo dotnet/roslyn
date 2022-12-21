@@ -228,7 +228,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim upperBound = UnwrapRaiseEvent(GetUpperBoundNode(node))
             Dim lowerBound = UnwrapRaiseEvent(GetLowerBoundNode(node))
 
-
             Dim parentSyntax As VisualBasicSyntaxNode = GetBindableParent(node)
             Dim lowerBoundOfParent = If(parentSyntax Is Nothing, Nothing, UnwrapRaiseEvent(GetLowerBoundNode(parentSyntax)))
 
@@ -413,7 +412,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public NotOverridable Overrides Function GetSyntaxDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             Throw New NotSupportedException()
         End Function
-
 
         ''' <summary>
         ''' Get all the syntax and declaration errors within the syntax tree associated with this object. Does not get
@@ -852,7 +850,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim rootNode As BoundNode = GetBoundRoot()
             Dim rootOperation As IOperation = _operationFactory.Value.Create(rootNode)
-
 
             Try
                 _rwLock.EnterWriteLock()
@@ -1462,7 +1459,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return binder
         End Function
 
-
         Private Function GetGroupJoinClauseLambdaBinder(join As GroupJoinClauseSyntax, position As Integer) As Binder
             Dim binder As Binder = Nothing
 
@@ -1554,8 +1550,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return binder
         End Function
-
-
 
         Private Function GetLetClauseLambdaBinder([let] As LetClauseSyntax, position As Integer) As Binder
             Dim binder As Binder = Nothing
