@@ -15333,6 +15333,14 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             comp2.VerifyDiagnostics(diagnostics);
 
             comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
             comp2.VerifyDiagnostics(diagnostics);
         }
 
@@ -15389,12 +15397,21 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 var lam = ([Optional, DateTimeConstant(100L)] {{type}} d) => { };
                 var lam2 = lam;
                 """;
-            var comp = CreateCompilation(source);
-            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
-            comp.VerifyDiagnostics(
+
+            var diagnostics = new[]
+            {
                 // (5,57): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DateTimeConstantAttribute..ctor'
                 // var lam = ([Optional, DateTimeConstant(100L)] DateTime  d) => { };
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.DateTimeConstantAttribute", ".ctor").WithLocation(5, 57));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.DateTimeConstantAttribute", ".ctor").WithLocation(5, 57)
+            };
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor);
+            comp.VerifyDiagnostics(diagnostics);
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
@@ -15506,6 +15523,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
 
             var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
             comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor);
             comp2.VerifyDiagnostics(diagnostics);
 
             comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
