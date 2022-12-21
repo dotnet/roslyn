@@ -161,6 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // last time we notified the client.  Report back either to the client so they can update accordingly.
             var orderedSources = await GetOrderedDiagnosticSourcesAsync(
                 diagnosticsParams, context, cancellationToken).ConfigureAwait(false);
+
             context.TraceInformation($"Processing {orderedSources.Length} documents");
 
             foreach (var diagnosticSource in orderedSources)
