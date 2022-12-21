@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we have no modifiers then the modifiers array is null; if we have any modifiers
         // then the modifiers array is non-null and not empty.
 
-        internal UnboundLambda AnalyzeAnonymousFunction(
+        private UnboundLambda AnalyzeAnonymousFunction(
             AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             // !!! The only binding operations allowed here - binding type references

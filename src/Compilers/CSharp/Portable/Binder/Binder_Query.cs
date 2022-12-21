@@ -40,16 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundFromExpression = BindToNaturalType(boundFromExpression, diagnostics);
             }
 
-            QueryTranslationState state = new QueryTranslationState();
+            (QueryTranslationState state, RangeVariableSymbol x) = MakeInitialQueryTranslationState(node, diagnostics);
             state.fromExpression = MakeMemberAccessValue(boundFromExpression, diagnostics);
-
-            var x = state.rangeVariable = state.AddRangeVariable(this, fromClause.Identifier, diagnostics);
-            for (int i = node.Body.Clauses.Count - 1; i >= 0; i--)
-            {
-                state.clauses.Push(node.Body.Clauses[i]);
-            }
-
-            state.selectOrGroup = node.Body.SelectOrGroup;
 
             // A from clause that explicitly specifies a range variable type
             //     from T x in e
@@ -71,17 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     from ... into x ...
                 // is translated into
                 //     from x in ( from ... ) ...
-                state.Clear();
+                x = PrepareQueryTranslationStateForContinuation(state, continuation, diagnostics);
                 state.fromExpression = result;
-                x = state.rangeVariable = state.AddRangeVariable(this, continuation.Identifier, diagnostics);
-                Debug.Assert(state.clauses.IsEmpty());
-                var clauses = continuation.Body.Clauses;
-                for (int i = clauses.Count - 1; i >= 0; i--)
-                {
-                    state.clauses.Push(clauses[i]);
-                }
 
-                state.selectOrGroup = continuation.Body.SelectOrGroup;
                 result = BindQueryInternal1(state, diagnostics);
                 result = MakeQueryClause(continuation.Body, result, x);
                 result = MakeQueryClause(continuation, result, x);
@@ -89,6 +73,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             state.Free();
             return MakeQueryClause(node, result);
+        }
+
+        private (QueryTranslationState, RangeVariableSymbol) MakeInitialQueryTranslationState(QueryExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            var fromClause = node.FromClause;
+            var state = new QueryTranslationState();
+
+            RangeVariableSymbol x = state.rangeVariable = state.AddRangeVariable(this, fromClause.Identifier, diagnostics);
+            for (int i = node.Body.Clauses.Count - 1; i >= 0; i--)
+            {
+                state.clauses.Push(node.Body.Clauses[i]);
+            }
+
+            state.selectOrGroup = node.Body.SelectOrGroup;
+
+            return (state, x);
+        }
+
+        private RangeVariableSymbol PrepareQueryTranslationStateForContinuation(QueryTranslationState state, QueryContinuationSyntax continuation, BindingDiagnosticBag diagnostics)
+        {
+            RangeVariableSymbol x;
+            state.Clear();
+            x = state.rangeVariable = state.AddRangeVariable(this, continuation.Identifier, diagnostics);
+            Debug.Assert(state.clauses.IsEmpty());
+            var clauses = continuation.Body.Clauses;
+            for (int i = clauses.Count - 1; i >= 0; i--)
+            {
+                state.clauses.Push(clauses[i]);
+            }
+
+            state.selectOrGroup = continuation.Body.SelectOrGroup;
+
+            return x;
         }
 
         private BoundExpression BindQueryInternal1(QueryTranslationState state, BindingDiagnosticBag diagnostics)

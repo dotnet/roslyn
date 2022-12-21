@@ -8442,6 +8442,212 @@ class Program
                     ("1005", "int M1() { int local(int p1) { int local() => p1; return local(); }; return local(0); }"),
                     ("1006", "int M1() { int local(int p1) { int local() { int local() => p1; return local(); }; return local(); }; return local(0); }"),
                     ("1007", "int M1() { int local(int p1) { int local() { var d = (int x) => p1; return d(0); }; return local(); }; return local(0); }"),
+
+                    ("1101", "object M1() => from p1 in new[] {1} select p1;"),
+                    ("1102", "object M1() => from p1 in new[] {1} group p1 by p1;"),
+                    ("1103", "object M1() => from p1 in new[] {1} where p1 > 0 select p1;"),
+                    ("1104", "object M1() => from p1 in new[] {1} orderby p1 group p1 by p1;"),
+                    ("1105", "object M1() => from p1 in new[] {1} orderby p1, p1 select p1;"),
+                    ("1106", "object M1() => from p1 in new[] {1} let x = p1 select p1;"),
+                    ("1107", "object M1() => from p1 in new[] {1} let x = p1 group p1 by p1;"),
+                    ("1108", "object M1() => from p1 in new[] {1} let x = p1 where p1 > 0 select p1;"),
+                    ("1109", "object M1() => from p1 in new[] {1} let x = p1 orderby p1 group p1 by p1;"),
+                    ("1110", "object M1() => from p1 in new[] {1} let x = p1 orderby p1, p1 select p1;"),
+                    ("1111", "object M1() => from p1 in new[] {1} where p1 > 0 let x = p1 select p1;"),
+                    ("1112", "object M1() => from p1 in new[] {1} orderby p1 let x = p1 group p1 by p1;"),
+                    ("1113", "object M1() => from p1 in new[] {1} from x in new[] {p1} select p1;"),
+                    ("1114", "object M1() => from p1 in new[] {1} from x in new[] {p1} group p1 by p1;"),
+                    ("1115", "object M1() => from p1 in new[] {1} from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1116", "object M1() => from p1 in new[] {1} from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1117", "object M1() => from p1 in new[] {1} from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1118", "object M1() => from p1 in new[] {1} where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1119", "object M1() => from p1 in new[] {1} orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1120", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x select p1;"),
+                    ("1121", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1122", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1123", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1124", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1125", "object M1() => from p1 in new[] {1} where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1126", "object M1() => from p1 in new[] {1} orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1127", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1128", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1129", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1130", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1131", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1132", "object M1() => from p1 in new[] {1} where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1133", "object M1() => from p1 in new[] {1} orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+
+                    ("1201", "object M1() => from y in new[] {1} from p1 in new[] {y} select p1;"),
+                    ("1202", "object M1() => from y in new[] {1} from p1 in new[] {y} group p1 by p1;"),
+                    ("1203", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 select p1;"),
+                    ("1204", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 group p1 by p1;"),
+                    ("1205", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1, p1 select p1;"),
+                    ("1206", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 select p1;"),
+                    ("1207", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 group p1 by p1;"),
+                    ("1208", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 where p1 > 0 select p1;"),
+                    ("1209", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 orderby p1 group p1 by p1;"),
+                    ("1210", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 orderby p1, p1 select p1;"),
+                    ("1211", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 let x = p1 select p1;"),
+                    ("1212", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 let x = p1 group p1 by p1;"),
+                    ("1213", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} select p1;"),
+                    ("1214", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} group p1 by p1;"),
+                    ("1215", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1216", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1217", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1218", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1219", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1220", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x select p1;"),
+                    ("1221", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1222", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1223", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1224", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1225", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1226", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1227", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1228", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1229", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1230", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1231", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1232", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1233", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+
+                    ("1301", "object M1() => from y in new[] {1} let p1 = y select p1;"),
+                    ("1302", "object M1() => from y in new[] {1} let p1 = y group p1 by p1;"),
+                    ("1303", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 select p1;"),
+                    ("1304", "object M1() => from y in new[] {1} let p1 = y orderby p1 group p1 by p1;"),
+                    ("1305", "object M1() => from y in new[] {1} let p1 = y orderby p1, p1 select p1;"),
+                    ("1306", "object M1() => from y in new[] {1} let p1 = y let x = p1 select p1;"),
+                    ("1307", "object M1() => from y in new[] {1} let p1 = y let x = p1 group p1 by p1;"),
+                    ("1308", "object M1() => from y in new[] {1} let p1 = y let x = p1 where p1 > 0 select p1;"),
+                    ("1309", "object M1() => from y in new[] {1} let p1 = y let x = p1 orderby p1 group p1 by p1;"),
+                    ("1310", "object M1() => from y in new[] {1} let p1 = y let x = p1 orderby p1, p1 select p1;"),
+                    ("1311", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 let x = p1 select p1;"),
+                    ("1312", "object M1() => from y in new[] {1} let p1 = y orderby p1 let x = p1 group p1 by p1;"),
+                    ("1313", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} select p1;"),
+                    ("1314", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} group p1 by p1;"),
+                    ("1315", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1316", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1317", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1318", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1319", "object M1() => from y in new[] {1} let p1 = y orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1320", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x select p1;"),
+                    ("1321", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1322", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1323", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1324", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1325", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1326", "object M1() => from y in new[] {1} let p1 = y orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1327", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1328", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1329", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1330", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1331", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1332", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1333", "object M1() => from y in new[] {1} let p1 = y orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+
+                    ("1401", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 select p1;"),
+                    ("1402", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 group p1 by p1;"),
+                    ("1403", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 select p1;"),
+                    ("1404", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 group p1 by p1;"),
+                    ("1405", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1, p1 select p1;"),
+                    ("1406", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 select p1;"),
+                    ("1407", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 group p1 by p1;"),
+                    ("1408", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 where p1 > 0 select p1;"),
+                    ("1409", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 orderby p1 group p1 by p1;"),
+                    ("1410", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 orderby p1, p1 select p1;"),
+                    ("1411", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 let x = p1 select p1;"),
+                    ("1412", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 let x = p1 group p1 by p1;"),
+                    ("1413", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} select p1;"),
+                    ("1414", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1415", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1416", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1417", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1418", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1419", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1420", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1421", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1422", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1423", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1424", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1425", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1426", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1427", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1428", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1429", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1430", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1431", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1432", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1433", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+
+                    ("1501", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 into u select u;"),
+
+                    ("1601", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 select p1;"),
+                    ("1602", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 group p1 by p1;"),
+                    ("1603", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 select p1;"),
+                    ("1604", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 group p1 by p1;"),
+                    ("1605", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1, p1 select p1;"),
+                    ("1606", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 select p1;"),
+                    ("1607", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 group p1 by p1;"),
+                    ("1608", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 where p1.Count() > 0 select p1;"),
+                    ("1609", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 orderby p1 group p1 by p1;"),
+                    ("1610", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 orderby p1, p1 select p1;"),
+                    ("1611", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 let x = p1 select p1;"),
+                    ("1612", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 let x = p1 group p1 by p1;"),
+                    ("1613", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} select p1;"),
+                    ("1614", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1615", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} where p1.Count() > 0 select p1;"),
+                    ("1616", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1617", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1618", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 from x in new[] {p1} select p1;"),
+                    ("1619", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1620", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x select p1;"),
+                    ("1621", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x group p1 by p1;"),
+                    ("1622", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x where p1.Count() > 0 select p1;"),
+                    ("1623", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x orderby p1 group p1 by p1;"),
+                    ("1624", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x orderby p1, p1 select p1;"),
+                    ("1625", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 join x in new[] {2} on p1.Count() equals x select p1;"),
+                    ("1626", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 join x in new[] {2} on p1.Count() equals x group p1 by p1;"),
+                    ("1627", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z select p1;"),
+                    ("1628", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z group p1 by p1;"),
+                    ("1629", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z where p1.Count() > 0 select p1;"),
+                    ("1630", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z orderby p1 group p1 by p1;"),
+                    ("1631", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z orderby p1, p1 select p1;"),
+                    ("1632", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 join x in new[] {2} on p1.Count() equals x into z select p1;"),
+                    ("1633", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 join x in new[] {2} on p1.Count() equals x into z group p1 by p1;"),
+
+                    ("1701", "object M1() => from y in new[] {1} select y + 1 into p1 select p1;"),
+                    ("1702", "object M1() => from y in new[] {1} select y + 1 into p1 group p1 by p1;"),
+                    ("1703", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 select p1;"),
+                    ("1704", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 group p1 by p1;"),
+                    ("1705", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1, p1 select p1;"),
+                    ("1706", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 select p1;"),
+                    ("1707", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 group p1 by p1;"),
+                    ("1708", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 where p1 > 0 select p1;"),
+                    ("1709", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 orderby p1 group p1 by p1;"),
+                    ("1710", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 orderby p1, p1 select p1;"),
+                    ("1711", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 let x = p1 select p1;"),
+                    ("1712", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 let x = p1 group p1 by p1;"),
+                    ("1713", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} select p1;"),
+                    ("1714", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1715", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1716", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1717", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1718", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1719", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1720", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1721", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1722", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1723", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1724", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1725", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1726", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1727", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1728", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1729", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1730", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1731", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1732", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1733", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
                 };
 
             foreach (var d in data)
@@ -8457,6 +8663,8 @@ class Program
             _ = tag;
 
             var source = @"
+using System.Linq;
+
 #line 1000
 class C1 (int p1)
 {
@@ -8466,7 +8674,7 @@ class C1 (int p1)
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            comp.VerifyEmitDiagnostics(
+            comp.GetEmitDiagnostics().Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
                 // (1000,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
                 // class C1 (int p1)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 15)
@@ -8600,6 +8808,135 @@ class C3 (int nameof)
                 );
 
             Assert.Equal(1, comp.GetTypeByMetadataName("C3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+        }
+
+        [Fact]
+        public void ParameterCapturing_015_AmbiguousDeclaration()
+        {
+            var source = @"
+class C1 (int p1, C1 p1)
+{
+    object M1(int x)
+    {
+        return p1;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // No unused warnings because we detected capturing
+            comp.VerifyEmitDiagnostics(
+                    // (2,22): error CS0100: The parameter name 'p1' is a duplicate
+                    // class C1 (int p1, C1 p1)
+                    Diagnostic(ErrorCode.ERR_DuplicateParamName, "p1").WithArguments("p1").WithLocation(2, 22),
+                    // (6,16): error CS0229: Ambiguity between 'int p1' and 'C1 p1'
+                    //         return p1;
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "p1").WithArguments("int p1", "C1 p1").WithLocation(6, 16)
+                );
+
+            Assert.Equal(2, comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+        }
+
+        public static IEnumerable<object[]> ParameterCapturing_016_Query_MemberData()
+        {
+            var data = new (string tag, string code)[]
+                {
+                    ("0001", "=> (from x in new[] {p1} select x).Single();"),
+                    ("0002", "=> (from x in new[] {1} let z = p1 select z).Single();"),
+                    ("0003", "=> (from x in new[] {1} select p1).Single();"),
+                    ("0004", "=> (from x in new[] {1, 123, 2} where x == p1 select x).Single();"),
+                    ("0005", "=> (from x in new[] {123} from y in new[] {p1} where x == y select x).Single();"),
+                    ("0006", "=> (from x in new[] {123} join y in new[] {p1} on x equals y select x).Single();"),
+                    ("0007", "=> (from x in new[] {123} join y in new[] {0} on x equals y + p1 select x).Single();"),
+                    ("0008", "=> (from x in new[] {0} join y in new[] {123} on x + p1 equals y select y).Single();"),
+                    ("0009", "=> (from x in new[] {123} join y in new[] {p1} on x equals y into z select x).Single();"),
+                    ("0010", "=> (from x in new[] {123} join y in new[] {0} on x equals y + p1 into z select x).Single();"),
+                    ("0011", "=> (from x in new[] {0} join y in new[] {123} on x + p1 equals y into z select z.Single()).Single();"),
+                    ("0012", "=> (from x in new[] {1} group x by p1).Single().Key;"),
+                    ("0013", "=> (from x in new[] {1} group p1 by x).Single().Single();"),
+                    ("0014", "=> (from x in new[] {1} orderby p1 select x + 122).Single();"),
+                    ("0015", "=> (from x in new[] {1} orderby p1, x select x + 122).Single();"),
+                    ("0016", "=> (from x in new[] {1} orderby x, p1 select x + 122).Single();"),
+                    ("0017", "=> (from x in new[] {1} select x into y select p1).Single();"),
+
+                    ("0101", "=> (from p1 in new[] {1} select p1 + 1 into y from x in new[] {p1} select x).Single();"),
+                    ("0102", "=> (from p1 in new[] {1} select p1 + 1 into y let z = p1 select z).Single();"),
+                    ("0103", "=> (from p1 in new[] {1} select p1 + 1 into y select p1).Single();"),
+                    ("0104", "=> (from p1 in new[] {1, 122, 2} select p1 + 1 into x where x == p1 select x).Single();"),
+                    ("0105", "=> (from p1 in new[] {122} select p1 + 1 into x from y in new[] {p1} where x == y select x).Single();"),
+                    ("0106", "=> (from p1 in new[] {122} select p1 + 1 into x join y in new[] {p1} on x equals y select x).Single();"),
+                    ("0107", "=> (from p1 in new[] {122} select p1 + 1 into x join y in new[] {0} on x equals y + p1 select x).Single();"),
+                    ("0108", "=> (from p1 in new[] {-1} select p1 + 1 into x join y in new[] {123} on x + p1 equals y select y).Single();"),
+                    ("0109", "=> (from p1 in new[] {122} select p1 + 1 into x join y in new[] {p1} on x equals y into z select x).Single();"),
+                    ("0110", "=> (from p1 in new[] {122} select p1 + 1 into x join y in new[] {0} on x equals y + p1 into z select x).Single();"),
+                    ("0111", "=> (from p1 in new[] {-1} select p1 + 1 into x  join y in new[] {123} on x + p1 equals y into z select z.Single()).Single();"),
+                    ("0112", "=> (from p1 in new[] {1} select p1 + 1 into x group x by p1).Single().Key;"),
+                    ("0113", "=> (from p1 in new[] {1} select p1 + 1 into x group p1 by x).Single().Single();"),
+                    ("0114", "=> (from p1 in new[] {0} select p1 + 1 into x orderby p1 select x + 122).Single();"),
+                    ("0115", "=> (from p1 in new[] {0} select p1 + 1 into x orderby p1, x select x + 122).Single();"),
+                    ("0116", "=> (from p1 in new[] {0} select p1 + 1 into x orderby x, p1 select x + 122).Single();"),
+                    ("0117", "=> (from p1 in new[] {1} select p1 + 1 into x select x into y select p1).Single();"),
+
+                    ("0201", "=> (from y in new[] {1} join p1 in new[] {1} on y equals p1 into u from x in new[] {p1} select x).Single();"),
+                    ("0202", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u let z = p1 select z).Single();"),
+                    ("0203", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u select p1).Single();"),
+                    ("0204", "=> (from x in new[] {1, 123, 2} join p1 in new[] {1} on x equals p1 into u where x == p1 select x).Single();"),
+                    ("0205", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u from y in new[] {p1} where x == y select x).Single();"),
+                    ("0206", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u join y in new[] {p1} on x equals y select x).Single();"),
+                    ("0207", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u join y in new[] {0} on x equals y + p1 select x).Single();"),
+                    ("0208", "=> (from x in new[] {0} join p1 in new[] {1} on x equals p1 into u join y in new[] {123} on x + p1 equals y select y).Single();"),
+                    ("0209", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u join y in new[] {p1} on x equals y into z select x).Single();"),
+                    ("0210", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u join y in new[] {0} on x equals y + p1 into z select x).Single();"),
+                    ("0211", "=> (from x in new[] {0} join p1 in new[] {1} on x equals p1 into u join y in new[] {123} on x + p1 equals y into z select z.Single()).Single();"),
+                    ("0212", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u group x by p1).Single().Key;"),
+                    ("0213", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u group p1 by x).Single().Single();"),
+                    ("0214", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u orderby p1 select x + 122).Single();"),
+                    ("0215", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u orderby p1, x select x + 122).Single();"),
+                    ("0216", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u orderby x, p1 select x + 122).Single();"),
+                    ("0217", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u select x into y select p1).Single();"),
+
+                    ("0301", "=> (from p1 in new[] {1} join x in new[] {p1} on 1 equals 1 select x).Single();"),
+                    ("0302", "=> (from p1 in new[] {1} join x in new[] {123} on 123 equals p1 select x).Single();"),
+                    ("0303", "=> (from x in new[] {123} join p1 in new[] {1} on p1 equals 123 select x).Single();"),
+                    ("0304", "=> (from p1 in new[] {1} join x in new[] {123} on p1 + 122 equals p1 select x).Single();"),
+                    ("0305", "=> (from x in new[] {123} join p1 in new[] {1} on p1 equals p1 + 122 select x).Single();"),
+                };
+
+            foreach (var d in data)
+            {
+                yield return new object[] { d.tag, d.code };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterCapturing_016_Query_MemberData))]
+        public void ParameterCapturing_016_Query(string tag, string code)
+        {
+            _ = tag;
+
+            var source = @"
+using System.Linq;
+
+class C1 (int p1)
+{
+    public int M1()
+" + code + @"
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123);
+        System.Console.Write(c1.M1());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            Assert.Equal(1, comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
         }
 
         [Fact]
