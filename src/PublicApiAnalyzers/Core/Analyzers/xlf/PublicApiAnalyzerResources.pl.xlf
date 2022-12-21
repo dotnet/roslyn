@@ -17,21 +17,6 @@
         <target state="translated">Dodaj wszystkie elementy w rozwiązaniu interfejsu API</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnnotateAllItemsInDocumentToTheApiTitle">
-        <source>Annotate all items in document '{0}' in the API</source>
-        <target state="translated">Dodawanie adnotacji do wszystkich elementów w dokumencie „{0}” w interfejsie API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInProjectToTheApiTitle">
-        <source>Annotate all items in project '{0}' in the API</source>
-        <target state="translated">Dodawanie adnotacji do wszystkich elementów w projekcie „{0}” w interfejsie API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInTheSolutionToTheApiTitle">
-        <source>Annotate all items in the solution in the API</source>
-        <target state="translated">Dodawanie adnotacji do wszystkich elementów w rozwiązaniu w interfejsie API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="translated">Wszystkie wewnętrzne typy i składowe powinny być zadeklarowane w pliku PublicAPI.txt z adnotacjami opcji dopuszczania wartości null. To zwraca uwagę na zmiany opcji dopuszczania wartości null interfejsu API w przeglądach kodu i historii kontroli źródła oraz pomaga zapobiegać zmianom powodującym nieprawidłowe działanie.</target>
@@ -177,16 +162,6 @@
         <target state="translated">Zawartość plików wewnętrznego interfejsu API jest nieprawidłowa</target>
         <note />
       </trans-unit>
-      <trans-unit id="InternalApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": InternalAPI.Unshipped.txt and internalAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">Rozwiązanie musi zawierać dwa pliki typu „AdditionalFiles”: PublicAPI.Unshipped.txt i PublicAPI.Shipped.txt. Brakuje co najmniej jednego z tych plików lub ma on nieprawidłowy typ.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InternalApiFilesMissingTitle">
-        <source>One or both of the internal API files are missing</source>
-        <target state="translated">Brak jednego lub obu plików wewnętrznego interfejsu API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
         <target state="translated">Wszystkie publiczne składowe powinny używać typów referencyjnych dopuszczających wartość null lub nie dopuszczających jej, ale nie nieświadomych typów referencyjnych.</target>
@@ -245,16 +220,6 @@
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
         <target state="translated">Zawartość plików publicznego interfejsu API jest nieprawidłowa</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">Rozwiązanie musi zawierać dwa pliki typu „AdditionalFiles”: PublicAPI.Unshipped.txt i PublicAPI.Shipped.txt. Brakuje co najmniej jednego z tych plików lub ma on nieprawidłowy typ.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingTitle">
-        <source>One or both of the public API files are missing</source>
-        <target state="translated">Brakuje co najmniej jednego pliku publicznego interfejsu API</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">

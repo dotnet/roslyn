@@ -143,9 +143,9 @@ namespace Analyzer.Utilities.Extensions
                         builder.AddRange(operations, i);
                     }
                 }
-                else if (builder != null)
+                else
                 {
-                    builder.Add(operation);
+                    builder?.Add(operation);
                 }
             }
 
@@ -262,6 +262,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return GetAncestor(ancestor, ancestorKind, predicate);
                 }
+
                 return (TOperation)ancestor;
             }
             else
@@ -295,6 +296,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return GetAncestor(ancestor, ancestorKinds, predicate);
                 }
+
                 return ancestor;
             }
             else
@@ -420,6 +422,7 @@ namespace Analyzer.Utilities.Extensions
                 case BinaryOperatorKind.Subtract:
                     binaryOperator = '-'; return true;
             }
+
             return false;
         }
 
@@ -741,19 +744,23 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        public static ITypeSymbol? GetThrownExceptionType(this IThrowOperation operation)
+        public static IOperation? GetThrownException(this IThrowOperation operation)
         {
             var thrownObject = operation.Exception;
 
             // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
+            // We also want to walk down explicit conversions such as "throw (Exception)new ArgumentNullException())".
             if (thrownObject is IConversionOperation conversion &&
-                conversion.IsImplicit)
+                conversion.Conversion.Exists)
             {
                 thrownObject = conversion.Operand;
             }
 
-            return thrownObject?.Type;
+            return thrownObject;
         }
+
+        public static ITypeSymbol? GetThrownExceptionType(this IThrowOperation operation)
+            => operation.GetThrownException()?.Type;
 
         /// <summary>
         /// Determines if the one of the invocation's arguments' values is an argument of the specified type, and if so, find
@@ -810,6 +817,7 @@ namespace Analyzer.Utilities.Extensions
                         {
                             return true;
                         }
+
                         stack.Add(current.Children.GetEnumerator());
                     }
                 }

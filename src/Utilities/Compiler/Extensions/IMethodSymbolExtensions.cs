@@ -337,7 +337,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return DisposeMethodKind.DisposeBool;
                 }
-                else if (method.HasDisposeAsyncMethodSignature(task, valueTask))
+                else if (method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTask) || method.HasDisposeAsyncMethodSignature(task, valueTask))
                 {
                     return DisposeMethodKind.DisposeAsync;
                 }

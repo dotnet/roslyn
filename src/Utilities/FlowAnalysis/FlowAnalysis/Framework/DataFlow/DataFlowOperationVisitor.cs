@@ -456,6 +456,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     {
                         MergeAnalysisDataFromUnhandledThrowOperations(caughtExceptionType: null);
                     }
+
                     break;
             }
 
@@ -1595,6 +1596,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                             predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, negatedConstantPattern.Value,
                                                 equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, isReferenceEquality: false, targetAnalysisData: targetAnalysisData);
                                         }
+
                                         break;
                                     }
                                     else
@@ -1608,6 +1610,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                     {
                                         predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Value, equals: false, targetAnalysisData: targetAnalysisData);
                                     }
+
                                     break;
 
                                 case "BinaryPattern":
@@ -3530,6 +3533,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         {
                             _escapedLocalFunctions.Add(methodReference.Method);
                         }
+
                         break;
                 }
             }
@@ -3644,6 +3648,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 PerformPredicateAnalysis(operation);
             }
+
             return value;
         }
 

@@ -200,7 +200,10 @@ namespace Analyzer.Utilities.Extensions
             }
 
             using var enumerator = source.GetEnumerator();
-            while (count > 0 && enumerator.MoveNext()) { count--; }
+            while (count > 0 && enumerator.MoveNext())
+            {
+                count--;
+            }
 
             return count > 0;
         }

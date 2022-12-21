@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private const string BailOnMissingPublicApiFilesEditorConfigOptionName = $"{BaseEditorConfigPath}.require_api_files";
         private const string NamespaceToIgnoreInTrackingEditorConfigOptionName = $"{BaseEditorConfigPath}.skip_namespaces";
 
-
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
             new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
@@ -102,47 +101,49 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            var errors = new List<Diagnostic>();
-            // Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics: https://github.com/dotnet/roslyn-analyzers/issues/3918
-            if (!TryGetAndValidateApiFiles(compilationContext.Options, compilationContext.Compilation, isPublic: true, compilationContext.CancellationToken, errors, out ApiData publicShippedData, out ApiData publicUnshippedData)
-                || !TryGetAndValidateApiFiles(compilationContext.Options, compilationContext.Compilation, isPublic: false, compilationContext.CancellationToken, errors, out ApiData internalShippedData, out ApiData internalUnshippedData))
+            CheckAndRegisterImplementation(isPublic: true);
+            CheckAndRegisterImplementation(isPublic: false);
+
+            void CheckAndRegisterImplementation(bool isPublic)
             {
-                compilationContext.RegisterCompilationEndAction(context =>
+                var errors = new List<Diagnostic>();
+                // Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics: https://github.com/dotnet/roslyn-analyzers/issues/3918
+                if (!TryGetAndValidateApiFiles(compilationContext.Options, compilationContext.Compilation, isPublic, compilationContext.CancellationToken, errors, out ApiData shippedData, out ApiData unshippedData))
                 {
-                    foreach (Diagnostic cur in errors)
+                    compilationContext.RegisterCompilationEndAction(context =>
                     {
-                        context.ReportDiagnostic(cur);
-                    }
-                });
+                        foreach (Diagnostic cur in errors)
+                        {
+                            context.ReportDiagnostic(cur);
+                        }
+                    });
 
-                return;
-            }
+                    return;
+                }
 
-            Debug.Assert(errors.Count == 0);
+                Debug.Assert(errors.Count == 0);
 
-            var publicImpl = new Impl(compilationContext.Compilation, publicShippedData, publicUnshippedData, isPublic: true, compilationContext.Options);
-            var internalImpl = new Impl(compilationContext.Compilation, internalShippedData, internalUnshippedData, isPublic: false, compilationContext.Options);
-            RegisterImplActions(compilationContext, publicImpl);
-            RegisterImplActions(compilationContext, internalImpl);
+                RegisterImplActions(compilationContext, new Impl(compilationContext.Compilation, shippedData, unshippedData, isPublic, compilationContext.Options));
 
-            static bool TryGetAndValidateApiFiles(AnalyzerOptions options, Compilation compilation, bool isPublic, CancellationToken cancellationToken, List<Diagnostic> errors, out ApiData shippedData, out ApiData unshippedData)
-            {
-                return TryGetApiData(options, compilation, isPublic, errors, cancellationToken, out shippedData, out unshippedData)
-                       && ValidateApiFiles(shippedData, unshippedData, isPublic, errors);
-            }
+                static bool TryGetAndValidateApiFiles(AnalyzerOptions options, Compilation compilation, bool isPublic, CancellationToken cancellationToken, List<Diagnostic> errors, out ApiData shippedData, out ApiData unshippedData)
+                {
+                    return TryGetApiData(options, compilation, isPublic, errors, cancellationToken, out shippedData, out unshippedData)
+                           && ValidateApiFiles(shippedData, unshippedData, isPublic, errors);
+                }
 
-            static void RegisterImplActions(CompilationStartAnalysisContext compilationContext, Impl impl)
-            {
-                compilationContext.RegisterSymbolAction(
-                    impl.OnSymbolAction,
-                    SymbolKind.NamedType,
-                    SymbolKind.Event,
-                    SymbolKind.Field,
-                    SymbolKind.Method);
-                compilationContext.RegisterSymbolAction(
-                    impl.OnPropertyAction,
-                    SymbolKind.Property);
-                compilationContext.RegisterCompilationEndAction(impl.OnCompilationEnd);
+                static void RegisterImplActions(CompilationStartAnalysisContext compilationContext, Impl impl)
+                {
+                    compilationContext.RegisterSymbolAction(
+                        impl.OnSymbolAction,
+                        SymbolKind.NamedType,
+                        SymbolKind.Event,
+                        SymbolKind.Field,
+                        SymbolKind.Method);
+                    compilationContext.RegisterSymbolAction(
+                        impl.OnPropertyAction,
+                        SymbolKind.Property);
+                    compilationContext.RegisterCompilationEndAction(impl.OnCompilationEnd);
+                }
             }
         }
 
@@ -330,19 +331,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     if (file.IsShipping)
                     {
-                        if (shippedText is null)
-                        {
-                            shippedText = new();
-                        }
+                        shippedText ??= new();
 
                         shippedText.Add(data);
                     }
                     else
                     {
-                        if (unshippedText is null)
-                        {
-                            unshippedText = new();
-                        }
+                        unshippedText ??= new();
 
                         unshippedText.Add(data);
                     }

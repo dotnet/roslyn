@@ -259,10 +259,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     return propertySetAnalysisResult;
                 }
 
-                if (allResults == null)
-                {
-                    allResults = PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>.GetInstance();
-                }
+                allResults ??= PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>.GetInstance();
 
                 foreach (KeyValuePair<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> kvp
                     in propertySetAnalysisResult.HazardousUsages)
