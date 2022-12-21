@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !(decodedData is FieldWellKnownAttributeData fieldData && fieldData.ConstValue != CodeAnalysis.ConstantValue.Unset))
             {
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
-                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                     diagnostics,
                     syntax: SyntaxNode);
             }

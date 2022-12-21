@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 DefaultValueFromAttributes == ConstantValue.NotAvailable)
                             {
                                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
-                                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                                     diagnostics,
                                     parameterEqualsValue.Value.Syntax.Location);
                             }

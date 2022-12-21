@@ -14894,12 +14894,25 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 var lam = ({{type}} d = 1.1m) => { };
                 var lam2 = lam;
                 """;
-            var comp = CreateCompilation(source);
-            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
-            comp.VerifyDiagnostics(
+
+            var diagnostics = new[]
+            {
                 // (1,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
                 // var lam = (decimal  d = 1.1m) => { };
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 25)
+            };
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         WellKnownMember? member = defaultValue.SpecialType switch
                         {
-                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                             SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
                             _ => null
                         };
