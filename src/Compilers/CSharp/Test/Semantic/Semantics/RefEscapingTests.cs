@@ -1389,17 +1389,18 @@ unsafe class Program
                     static Span<int> Test1()
                     {
                         var s1 = ReturnsSpan({{outVarDeclaration}});
-                        return s1; // 1
+                        return s1;
                     }
                     static Span<int> Test2()
                     {
                         ref var s2 = ref ReturnsSpan({{outVarDeclaration}});
-                        s2 = stackalloc int[1];
-                        return s2; // 2
+                        s2 = stackalloc int[1]; // 1
+                        return s2;
                     }
                     static void Test3()
                     {
-                        ReturnsSpan({{outVarDeclaration}}) = stackalloc int[1];
+                        ReturnsSpan({{outVarDeclaration}}) =
+                            stackalloc int[1]; // 2
                     }
                     static ref Span<int> ReturnsSpan([UnscopedRef] out Span<int> x)
                     {
@@ -1410,12 +1411,12 @@ unsafe class Program
                 """;
             var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (8,16): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
-                //         return s1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(8, 16),
-                // (14,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         return s2; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(14, 16));
+                // (13,14): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s2 = stackalloc int[1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(13, 14),
+                // (19,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //             stackalloc int[1]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(19, 13));
         }
 
         [Theory]
