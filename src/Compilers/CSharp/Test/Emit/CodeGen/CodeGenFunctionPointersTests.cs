@@ -11547,6 +11547,24 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_Default_Standalone()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public A(object value) { }
+                }
+
+                [A(default(delegate*<void>))]
+                unsafe class C { }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,4): error CS1503: Argument 1: cannot convert from 'delegate*<void>' to 'object'
+                // [A(default(delegate*<void>))]
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(delegate*<void>)").WithArguments("1", "delegate*<void>", "object").WithLocation(6, 4));
+        }
+
         [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
         public void SwitchExpression_01()
         {
