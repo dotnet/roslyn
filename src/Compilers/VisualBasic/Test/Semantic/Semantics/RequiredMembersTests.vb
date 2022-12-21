@@ -1,144 +1,687 @@
 ﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
+Imports Microsoft.CodeAnalysis.CSharp
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class RequiredMembersTests
         Inherits BasicTestBase
 
+        Private Function CreateCSharpCompilationWithRequiredMembers(source As String) As CSharpCompilation
+            Return CreateCSharpCompilation(source, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+        End Function
+
         <Fact>
         Public Sub CannotInheritFromTypesWithRequiredMembers()
+            Dim csharp = "
+public class Base
+{
+    public required int Field { get; set; }
+}
+public class Derived : Base {}"
 
+            Dim csharpReference = CreateCSharpCompilationWithRequiredMembers(csharp).EmitToImageReference()
+
+            Dim vb = CreateCompilation("
+Class VbDerivedBase
+    Inherits Base
+End Class
+
+Class VbDerivedDerived
+    Inherits Derived
+End Class", references:={csharpReference})
+
+            vb.AssertTheseDiagnostics(<expected>
+BC37322: Cannot inherit from 'Base' because it has required members.
+    Inherits Base
+    ~~~~~~~~~~~~~
+BC37322: Cannot inherit from 'Derived' because it has required members.
+    Inherits Derived
+    ~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
+
+        Private Function GetCDefinition(hasSetsRequiredMembers As Boolean, Optional typeKind As String = "class") As String
+            Return $"
+using System.Diagnostics.CodeAnalysis;
+public {typeKind} C
+{{
+    public required int Prop {{ get; set; }}
+    public required int Field;
+
+    {If(hasSetsRequiredMembers, "[SetsRequiredMembers]", "")}    
+    public C() {{}}
+}}"
+        End Function
 
         <Theory>
-        Public Sub EnforcedRequiredMembers_NoInheritance_NoneSet(<CombinatorialValues("As New C()", "= new C()")> constructor As String)
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_NoInheritance_NoneSet(<CombinatorialValues("As New C()", " = New C()")> constructor As String)
 
-        End Sub
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetCDefinition(hasSetsRequiredMembers:=False))
 
-        <Theory>
-        Public Sub EnforcedRequiredMembers_NoInheritance_PartialSet(<CombinatorialValues("As New C()", "= new C()")> constructor As String)
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor}
+    End Sub
+End Module"
 
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_NoInheritance_AllSet(<CombinatorialValues("As New C()", "= new C()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_NoInheritance_HasSetsRequiredMembers(<CombinatorialValues("As New C()", "= new C()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_NoInheritance_Unsettable(<CombinatorialValues("As New C()", "= new C()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_Inheritance_NoneSet(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_Inheritance_PartialSet(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_Inheritance_AllSet(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_Inheritance_NoneSet_HasSetsRequiredMembers(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_Inheritance_NoMembersOnDerivedType(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_ThroughRetargeting_NoneSet(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_ThroughRetargeting_AllSet(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_ThroughRetargeting_HasSetsRequiredMembers(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_Override_NoneSet(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_Override_AllSet(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Theory>
-        Public Sub EnforcedRequiredMembers_Override_HasSetsRequiredMembers(<CombinatorialValues("As New Derived()", "= new Derived()")> constructor As String)
-
-        End Sub
-
-        <Fact>
-        Public Sub EnforcedRequiredMembers_ShadowedFromMetadata_01()
-
-        End Sub
-
-        <Fact>
-        Public Sub CoClassWithRequiredMembers_NoneSet()
-
-        End Sub
-
-        <Fact>
-        Public Sub CoClassWithRequiredMembers_AllSet()
-
-        End Sub
-
-        <Fact>
-        Public Sub RequiredMemberInAttribute_NoneSet()
-
-        End Sub
-
-        <Fact>
-        Public Sub RequiredMemberInAttribute_AllSet()
-
-        End Sub
-
-        <Theory>
-        <InlineData("Structure")>
-        <InlineData("Class")>
-        Public Sub ForbidRequiredAsNew_NoInheritance(typeKind As String)
-
-        End Sub
-
-        <Fact>
-        Public Sub ForbidRequiredAsNew_Inheritance()
-
-        End Sub
-
-        <Theory>
-        <InlineData("Structure")>
-        <InlineData("Class")>
-        Public Sub AllowRequiredAsNew_SetsRequiredMembersOnConstructor(typeKind As String)
-
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %>
+                     ~
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %>
+                     ~
+                                        </expected>)
         End Sub
 
         <Theory>
         <CombinatorialData>
-        Public Sub PublicAPITests(isRequired As Boolean)
+        Public Sub EnforcedRequiredMembers_NoInheritance_PartialSet(<CombinatorialValues("As New C()", " = new C()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetCDefinition(hasSetsRequiredMembers:=False))
 
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor} With {{ .Prop = 1 }}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %> With { .Prop = 1 }
+                     ~
+                                        </expected>)
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_NoInheritance_AllSet(<CombinatorialValues("As New C()", " = new C()")> constructor As String)
+
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetCDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor} With {{ .Prop = 1, .Field = 2 }}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_NoInheritance_HasSetsRequiredMembers(<CombinatorialValues("As New C()", " = new C()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetCDefinition(hasSetsRequiredMembers:=True))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics
+        End Sub
+
+        Private Function GetBaseDerivedDefinition(hasSetsRequiredMembers As Boolean) As String
+            Return $"
+using System.Diagnostics.CodeAnalysis;
+public class Base
+{{
+    public required int Prop1 {{ get; set; }}
+    public required int Field1;
+
+    {If(hasSetsRequiredMembers, "[SetsRequiredMembers]", "")}    
+    public Base() {{}}
+}}
+public class Derived : Base
+{{
+    public required int Prop2 {{ get; set; }}
+    public required int Field2;
+
+    {If(hasSetsRequiredMembers, "[SetsRequiredMembers]", "")}    
+    public Derived() {{}}
+}}
+public class DerivedDerived : Derived
+{{
+    {If(hasSetsRequiredMembers, "[SetsRequiredMembers]", "")}    
+    public DerivedDerived() {{}}
+}}"
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_Inheritance_NoneSet(<CombinatorialValues("As New DerivedDerived()", " = new DerivedDerived()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetBaseDerivedDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Field1 As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %>
+                     ~~~~~~~~~~~~~~
+BC37321: Required member 'Public Field2 As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %>
+                     ~~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property Prop1 As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %>
+                     ~~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property Prop2 As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %>
+                     ~~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_Inheritance_PartialSet(<CombinatorialValues("As New DerivedDerived()", " = new DerivedDerived()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetBaseDerivedDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor} With {{ .Prop1 = 1, .Field2 = 2 }}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Field1 As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %> With { .Prop1 = 1, .Field2 = 2 }
+                     ~~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property Prop2 As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %> With { .Prop1 = 1, .Field2 = 2 }
+                     ~~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_Inheritance_AllSet(<CombinatorialValues("As New DerivedDerived()", " = new DerivedDerived()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetBaseDerivedDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor} With {{ .Prop1 = 1, .Prop2 = 2, .Field1 = 1, .Field2 = 2 }}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_Inheritance_NoneSet_HasSetsRequiredMembers(<CombinatorialValues("As New DerivedDerived()", " = new DerivedDerived()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetBaseDerivedDefinition(hasSetsRequiredMembers:=True))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub EnforcedRequiredMembers_ThroughRetargeting_NoneSet()
+            Dim retargetedCode = GetCDefinition(hasSetsRequiredMembers:=False)
+
+            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+
+            Dim originalBasic = CreateCompilation("
+Public Class Base
+    Public Property C As C
+End Class", {originalC.EmitToImageReference()})
+
+            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+
+            Dim comp = CreateCompilation("
+Module M
+    Public Sub Main()
+        Dim b As New Base() With { .C = New C() }
+    End Sub
+End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute constructor.
+        Dim b As New Base() With { .C = New C() }
+                                            ~
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute constructor.
+        Dim b As New Base() With { .C = New C() }
+                                            ~
+                                        </expected>)
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_ThroughRetargeting_AllSet(<CombinatorialValues("As New Derived()", " = new Derived()")> constructor As String)
+            Dim retargetedCode = GetCDefinition(hasSetsRequiredMembers:=False)
+
+            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+
+            Dim originalBasic = CreateCompilation("
+Public Class Base
+    Public Property C As C
+End Class", {originalC.EmitToImageReference()})
+
+            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+
+            Dim comp = CreateCompilation("
+Module M
+    Public Sub Main()
+        Dim b As New Base() With { .C = New C() With { .Field = 1, .Prop = 1 } }
+    End Sub
+End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageReference()})
+
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_ThroughRetargeting_HasSetsRequiredMembers(<CombinatorialValues("As New Derived()", " = new Derived()")> constructor As String)
+
+            Dim retargetedCode = GetCDefinition(hasSetsRequiredMembers:=True)
+
+            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+
+            Dim originalBasic = CreateCompilation("
+Public Class Base
+    Public Property C As C
+End Class", {originalC.EmitToImageReference()})
+
+            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+
+            Dim comp = CreateCompilation("
+Module M
+    Public Sub Main()
+        Dim b As New Base() With { .C = New C() }
+    End Sub
+End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageReference()})
+
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        Private Function GetDerivedOverrideDefinition(hasSetsRequiredMembers As Boolean) As String
+            Return $"
+using System.Diagnostics.CodeAnalysis;
+public class Base
+{{
+    public virtual required int Prop {{ get; set; }}
+
+    {If(hasSetsRequiredMembers, "[SetsRequiredMembers]", "")}    
+    public Base() {{}}
+}}
+public class Derived : Base
+{{
+    public override required int Prop {{ get; set; }}
+
+    {If(hasSetsRequiredMembers, "[SetsRequiredMembers]", "")}    
+    public Derived() {{}}
+}}"
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_Override_NoneSet(<CombinatorialValues("As New Derived()", " = new Derived()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetDerivedOverrideDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Overrides Property Prop As Integer' must be set in the object initializer or attribute constructor.
+        Dim t <%= constructor %>
+                     ~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_Override_AllSet(<CombinatorialValues("As New Derived()", " = new Derived()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetDerivedOverrideDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor} With {{ .Prop = 1 }}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_Override_HasSetsRequiredMembers(<CombinatorialValues("As New Derived()", " = new Derived()")> constructor As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetDerivedOverrideDefinition(hasSetsRequiredMembers:=True))
+
+            Dim vbCode = $"
+Module M
+    Sub Main()
+        Dim t {constructor}
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub EnforcedRequiredMembers_ShadowedFromMetadata_01()
+            Dim malformedDefinition = CreateCompilation("
+Imports System.Diagnostics.CodeAnalysis
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+<RequiredMember>
+Public Class Derived
+    Inherits Base
+    <RequiredMember>
+    Public Shadows Property P As Integer
+
+    Public Sub New()
+    End Sub
+
+    <SetsRequiredMembers>
+    Public Sub New(unused As Integer)
+    End Sub
+End Class
+", targetFramework:=TargetFramework.Net70)
+
+            Dim comp = CreateCompilation("
+Module M
+    Sub Main()
+        Dim d1 = New Derived()
+        Dim d2 = New Derived(1)
+    End Sub
+End Module", {malformedDefinition.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37323: The required members list for 'Derived' is malformed and cannot be interpreted.
+        Dim d1 = New Derived()
+                 ~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub EnforcedRequiredMembers_ShadowedFromMetadata_02()
+            Dim malformedDefinition = CreateCompilation("
+Imports System.Diagnostics.CodeAnalysis
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+<RequiredMember>
+Public Class Derived
+    Inherits Base
+    Public Shadows Property P As Integer
+
+    Public Sub New()
+    End Sub
+
+    <SetsRequiredMembers>
+    Public Sub New(unused As Integer)
+    End Sub
+End Class
+", targetFramework:=TargetFramework.Net70)
+
+            Dim comp = CreateCompilation("
+Module M
+    Sub Main()
+        Dim d1 = New Derived()
+        Dim d2 = New Derived(1)
+    End Sub
+End Module", {malformedDefinition.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37323: The required members list for 'Derived' is malformed and cannot be interpreted.
+        Dim d1 = New Derived()
+                 ~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub EnforcedRequiredMembers_ShadowedFromMetadata_03()
+            Dim malformedDefinition = CreateCompilation("
+Imports System.Diagnostics.CodeAnalysis
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+Public Class Derived
+    Inherits Base
+    Public Shadows Property P As Integer
+
+    Public Sub New()
+    End Sub
+
+    <SetsRequiredMembers>
+    Public Sub New(unused As Integer)
+    End Sub
+End Class
+", targetFramework:=TargetFramework.Net70)
+
+            Dim comp = CreateCompilation("
+Module M
+    Sub Main()
+        Dim d1 = New Derived()
+        Dim d2 = New Derived(1)
+    End Sub
+End Module", {malformedDefinition.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37323: The required members list for 'Derived' is malformed and cannot be interpreted.
+        Dim d1 = New Derived()
+                 ~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub CoClassWithRequiredMembers_NoneSet()
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers("
+using System;
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""00020810-0000-0000-C000-000000000046"")]
+[CoClass(typeof(C))]
+public interface I
+{
+}
+
+public class C : I
+{
+    public required int P { get; set; }
+}
+")
+            Dim comp = CreateCompilation("
+Module M
+    Sub Main()
+        Dim i = New I()
+    End Sub
+End Module", {cComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute constructor.
+        Dim i = New I()
+                    ~
+                                        </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub CoClassWithRequiredMembers_AllSet()
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers("
+using System;
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""00020810-0000-0000-C000-000000000046"")]
+[CoClass(typeof(C))]
+public interface I
+{
+    public int P { get; set; }
+}
+
+public class C : I
+{
+    public required int P { get; set; }
+}
+")
+            Dim comp = CreateCompilation("
+Module M
+    Sub Main()
+        Dim i = New I() With { .P = 1 }
+    End Sub
+End Module", {cComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute constructor.
+        Dim i = New I() With { .P = 1 }
+                    ~
+                                        </expected>)
+        End Sub
+
+        Public Function GetAttributeDefinition(hasSetsRequiredMembers As Boolean) As String
+            Return $"
+using System;
+public class AttrAttribute : Attribute
+{{
+    {If(hasSetsRequiredMembers, "[SetsRequiredMembers]", "")}
+    public AttrAttribute() {{}}
+
+    public required int P {{ get; set; }}
+}}
+"
+        End Function
+
+        <Fact>
+        Public Sub RequiredMemberInAttribute_NoneSet()
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetAttributeDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbCode = $"
+<Attr>
+Class C
+End Class"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute constructor.
+<Attr>
+ ~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub RequiredMemberInAttribute_AllSet()
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetAttributeDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbCode = $"
+<Attr(P:=1)>
+Class C
+End Class"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PublicAPITests()
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetCDefinition(hasSetsRequiredMembers:=False))
+
+            Dim vbComp = CreateCompilation("", {cComp.EmitToImageReference()})
+
+            Dim c = vbComp.GetTypeByMetadataName("C")
+            Assert.False(c.HasRequiredMembersError)
+            Dim prop = c.GetMember(Of PropertySymbol)("Prop")
+            Dim field = c.GetMember(Of FieldSymbol)("Field")
+
+            AssertEx.Equal(Of Symbol)({field, prop}, From kvp In c.AllRequiredMembers
+                                                     Order By kvp.Key
+                                                     Select kvp.Value)
+
+            Assert.True(prop.IsRequired)
+            Assert.True(field.IsRequired)
+        End Sub
+
+        <Theory>
+        <InlineData("class")>
+        <InlineData("struct")>
+        Public Sub GenericConstrainedToNew_Forbidden(typeKind As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetCDefinition(hasSetsRequiredMembers:=False, typeKind))
+
+            Dim vbCode = "
+Module M
+    Sub Main()
+        Generic(Of C)()
+    End Sub
+
+    Sub Generic(Of T As New)()
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37324: 'C' cannot satisfy the 'New' constraint on parameter 'T' in the generic type or or method 'Public Sub Generic(Of T As New)()' because 'C' has required members.
+        Generic(Of C)()
+        ~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Theory>
+        <InlineData("class")>
+        <InlineData("struct")>
+        Public Sub GenericConstrainedToNew_HasSetsRequiredMembers_Allowed(typeKind As String)
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(GetCDefinition(hasSetsRequiredMembers:=True, typeKind))
+
+            Dim vbCode = "
+Module M
+    Sub Main()
+        Generic(Of C)()
+    End Sub
+
+    Sub Generic(Of T As New)()
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
         End Sub
     End Class
 End Namespace
