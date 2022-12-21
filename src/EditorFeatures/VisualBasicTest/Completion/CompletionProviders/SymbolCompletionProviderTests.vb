@@ -5528,7 +5528,21 @@ End
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInherits_QualifiedNameAsGenericParameter() As Task
+        Public Async Function TestInherits_GenericParameter() As Task
+            Const markup = "
+Structure somestruct
+End Structure
+
+Class SomeClass
+    Inherits List(Of $$)
+End Class
+"
+
+            Await VerifyItemExistsAsync(markup, "somestruct")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInherits_QualifiedNameAsGenericParameter1() As Task
             Const markup = "
 Namespace MyNameSpace
     Structure somestruct
@@ -5537,6 +5551,22 @@ End Namespace
 
 Class SomeClass
     Inherits List(Of MyNameSpace.$$)
+End Class
+"
+
+            Await VerifyItemExistsAsync(markup, "somestruct")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInherits_QualifiedNameAsGenericParameter2() As Task
+            Const markup = "
+Namespace MyNameSpace
+    Structure somestruct
+    End Structure
+End Namespace
+
+Class SomeClass
+    Inherits List(Of MyNameSpace.$$.Foo)
 End Class
 "
 
