@@ -56,10 +56,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 #endif
 
-        [Fact]
-        public void CreateFromImage_Assembly()
+        [Theory, CombinatorialData]
+        public void CreateFromImage_Assembly(bool immutableArray)
         {
-            var r = MetadataReference.CreateFromImage(ResourcesNet451.mscorlib);
+            var peImage = ResourcesNet451.mscorlib;
+            var r = immutableArray
+                ? MetadataReference.CreateFromImage(peImage.AsImmutable())
+                : MetadataReference.CreateFromImage(peImage.AsEnumerable());
 
             Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
             Assert.Null(r.FilePath);
@@ -69,12 +72,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(r.Properties.Aliases.IsEmpty);
         }
 
-        [Fact]
-        public void CreateFromImage_Module()
+        [Theory, CombinatorialData]
+        public void CreateFromImage_Module(bool immutableArray)
         {
-            var r = MetadataReference.CreateFromImage(
-                TestResources.MetadataTests.NetModule01.ModuleCS00,
-                MetadataReferenceProperties.Module);
+            var peImage = TestResources.MetadataTests.NetModule01.ModuleCS00;
+            var r = immutableArray
+                ? MetadataReference.CreateFromImage(peImage.AsImmutable(), MetadataReferenceProperties.Module)
+                : MetadataReference.CreateFromImage(peImage.AsEnumerable(), MetadataReferenceProperties.Module);
 
             Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
             Assert.Null(r.FilePath);

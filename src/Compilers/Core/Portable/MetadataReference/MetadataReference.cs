@@ -122,7 +122,12 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider? documentation = null,
             string? filePath = null)
         {
-            var metadata = AssemblyMetadata.CreateFromImage(peImage);
+            Metadata metadata = properties.Kind switch
+            {
+                MetadataImageKind.Module => ModuleMetadata.CreateFromImage(peImage),
+                _ => AssemblyMetadata.CreateFromImage(peImage),
+            };
+
             return new MetadataImageReference(metadata, properties, documentation, filePath, display: null);
         }
 
