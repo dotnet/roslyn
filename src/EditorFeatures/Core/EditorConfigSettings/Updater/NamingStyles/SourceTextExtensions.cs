@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.EditorConfig.Parsing;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using NamingStylesParser = Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles.EditorConfigNamingStylesParser;
@@ -21,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 {
     internal static class SourceTextExtensions
     {
-        public static SourceText WithNamingStyles(this SourceText sourceText, OptionSet options)
+        public static SourceText WithNamingStyles(this SourceText sourceText, IGlobalOptionService globalOptions)
         {
-            var (common, csharp, visualBasic) = GetPreferencesForAllLanguages(options);
+            var (common, csharp, visualBasic) = GetPreferencesForAllLanguages(globalOptions);
 
             sourceText = WithNamingStyles(sourceText, csharp, Language.CSharp);
             sourceText = WithNamingStyles(sourceText, visualBasic, Language.VisualBasic);
@@ -79,10 +78,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        private static (IEnumerable<NamingRule> Common, IEnumerable<NamingRule> CSharp, IEnumerable<NamingRule> VisualBasic) GetPreferencesForAllLanguages(OptionSet options)
+        private static (IEnumerable<NamingRule> Common, IEnumerable<NamingRule> CSharp, IEnumerable<NamingRule> VisualBasic) GetPreferencesForAllLanguages(IGlobalOptionService globalOptions)
         {
-            var csharpNamingStylePreferences = options.GetOption((PerLanguageOption<NamingStylePreferences>)NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
-            var vbNamingStylePreferences = options.GetOption((PerLanguageOption<NamingStylePreferences>)NamingStyleOptions.NamingPreferences, LanguageNames.VisualBasic);
+            var csharpNamingStylePreferences = globalOptions.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
+            var vbNamingStylePreferences = globalOptions.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.VisualBasic);
 
             var commonOptions = GetCommonOptions(csharpNamingStylePreferences, vbNamingStylePreferences);
             var csharpOnlyOptions = GetOptionsUniqueOptions(csharpNamingStylePreferences, commonOptions);

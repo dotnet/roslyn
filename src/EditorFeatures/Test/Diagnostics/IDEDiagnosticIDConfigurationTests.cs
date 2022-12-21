@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static void VerifyConfigureSeverityCore(string expected, string languageName)
         {
             using var workspace = new TestWorkspace();
-            var optionSet = workspace.Options;
 
             var diagnosticIdAndOptions = GetIDEDiagnosticIdsAndOptions(languageName);
             var expectedMap = GetExpectedMap(expected, out var expectedLines);

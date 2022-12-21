@@ -31,14 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         protected readonly string FileName;
         protected readonly TOptionsUpdater SettingsUpdater;
         protected readonly Workspace Workspace;
+        public readonly IGlobalOptionService GlobalOptions;
 
         protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope);
 
-        protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace)
+        protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
         {
             FileName = fileName;
             SettingsUpdater = settingsUpdater;
             Workspace = workspace;
+            GlobalOptions = globalOptions;
         }
 
         protected void Update()
@@ -53,15 +55,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 return;
             }
 
-            var optionMappingService = solution.Services.GetRequiredService<IEditorConfigOptionMappingService>();
-
             var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
             var projectDirectoryOptions = project.GetAnalyzerConfigOptions();
 
             // TODO: Support for multiple languages https://github.com/dotnet/roslyn/issues/65859
             var options = new TieredAnalyzerConfigOptions(
                 new CombinedAnalyzerConfigOptions(configFileDirectoryOptions, projectDirectoryOptions),
-                solution.Options.AsAnalyzerConfigOptions(optionMappingService.Mapping, LanguageNames.CSharp),
+                GlobalOptions,
                 language: LanguageNames.CSharp,
                 editorConfigFileName: FileName);
 
