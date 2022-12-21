@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             return Hash.Combine(obj.Length,
                 Hash.Combine(contentsHash,
-                Hash.Combine(encodingHash, obj.ChecksumAlgorithm.GetHashCode())));
+                Hash.Combine(encodingHash, ((int)obj.ChecksumAlgorithm).GetHashCode())));
         }
     }
 }

@@ -5303,7 +5303,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
-        <target state="needs-review-translation">Vlastnost nebo indexer nejde předat jako parametr ref nebo out.</target>
+        <target state="new">A non ref-returning property or indexer may not be used as an out or ref value</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8511,7 +8511,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
-        <target state="translated">Protože se jedná o asynchronní metodu, vrácený výraz musí být typu {0} a ne typu {1}.</target>
+        <target state="new">Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
