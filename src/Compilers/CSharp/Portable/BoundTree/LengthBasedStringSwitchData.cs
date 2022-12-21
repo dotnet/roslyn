@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = new StringBuilder();
             builder.AppendLine("Length dispatch:");
-            builder.AppendLine($"Buckets: {string.Join(", ", _charJumpTables.Select(t => t.charCaseLabels.Length))}");
+            builder.AppendLine($"Buckets: {string.Join(", ", _stringJumpTables.Select(t => t.stringCaseLabels.Length))}");
             builder.AppendLine($"  case null: {readable(_lengthJumpTable.nullCaseLabel)}");
             dump(_lengthJumpTable.lengthCaseLabels);
             builder.AppendLine();
