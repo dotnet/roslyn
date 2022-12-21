@@ -17,21 +17,6 @@
         <target state="translated">Aggiungi tutti gli elementi della soluzione all'API</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnnotateAllItemsInDocumentToTheApiTitle">
-        <source>Annotate all items in document '{0}' in the API</source>
-        <target state="translated">Annota tutti gli elementi del documento '{0}' nell'API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInProjectToTheApiTitle">
-        <source>Annotate all items in project '{0}' in the API</source>
-        <target state="translated">Annota tutti gli elementi del progetto '{0}' nell'API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInTheSolutionToTheApiTitle">
-        <source>Annotate all items in the solution in the API</source>
-        <target state="translated">Annota tutti gli elementi della soluzione nell'API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="translated">Tutti i tipi e i membri interni devono essere dichiarati con annotazioni di supporto dei valori Null in InternalAPI.txt. In questo modo si richiama l'attenzione sulle modifiche del supporto dei valori Null all'API nelle revisioni del codice e nella cronologia del controllo del codice sorgente e si contribuisce a evitare modifiche che causano un'interruzione.</target>
@@ -177,16 +162,6 @@
         <target state="translated">Il contenuto dei file dell'API interna non è valido:</target>
         <note />
       </trans-unit>
-      <trans-unit id="InternalApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": InternalAPI.Unshipped.txt and internalAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">La soluzione deve contenere due file con il tipo "AdditionalFiles": InternalAPI.unshipped.txt e InternalAPI.shipped.txt. Almeno uno di questi file manca o è di tipo errato.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InternalApiFilesMissingTitle">
-        <source>One or both of the internal API files are missing</source>
-        <target state="translated">Uno o entrambi i file dell'API interna sono mancanti</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
         <target state="translated">Tutti i membri interni devono usare tipi riferimento nullable o non nullable, ma non tipi riferimento oblivious.</target>
@@ -245,16 +220,6 @@
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
         <target state="translated">Il contenuto dei file dell'API pubblica non è valido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">La soluzione deve contenere due file con il tipo "AdditionalFiles": PublicAPI.unshipped.txt e PublicAPI.shipped.txt. Almeno uno di questi file manca o è di tipo errato.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingTitle">
-        <source>One or both of the public API files are missing</source>
-        <target state="translated">Uno o entrambi i file dell'API pubblica sono mancanti</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">

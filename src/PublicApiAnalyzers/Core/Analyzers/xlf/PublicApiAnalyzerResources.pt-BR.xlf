@@ -17,21 +17,6 @@
         <target state="translated">Adicione todos os itens da solução à API</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnnotateAllItemsInDocumentToTheApiTitle">
-        <source>Annotate all items in document '{0}' in the API</source>
-        <target state="translated">Anote todos os itens no documento '{0}' na API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInProjectToTheApiTitle">
-        <source>Annotate all items in project '{0}' in the API</source>
-        <target state="translated">Anotar todos os itens no projeto '{0}' na API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInTheSolutionToTheApiTitle">
-        <source>Annotate all items in the solution in the API</source>
-        <target state="translated">Anote todos os itens da solução na API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="translated">Todos os tipos e membros internos devem ser declarados com anotações de nulidade em InternalAPI.txt. Isso chama a atenção para as alterações de nulidade da API nas revisões de código e no histórico de controle do código-fonte e ajuda a evitar alterações significativas.</target>
@@ -177,16 +162,6 @@
         <target state="translated">O conteúdo dos arquivos internos da API é inválido</target>
         <note />
       </trans-unit>
-      <trans-unit id="InternalApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": InternalAPI.Unshipped.txt and internalAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">A solução deve conter dois arquivos do tipo "AdditionalFiles": InternalAPI.Unshipped.txt e internalAPI.Shipped.txt. Pelo menos um desses arquivos está ausente ou tem o tipo errado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InternalApiFilesMissingTitle">
-        <source>One or both of the internal API files are missing</source>
-        <target state="translated">Um ou ambos os arquivos internos da API estão ausentes</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
         <target state="translated">Todos os membros internos devem usar tipos de referência anuláveis ​​ou não anuláveis, mas nenhum tipo de referência inconsciente.</target>
@@ -245,16 +220,6 @@
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
         <target state="translated">O conteúdo dos arquivos da API pública é inválido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">A solução precisa conter dois arquivos com o tipo "AdditionalFiles": PublicAPI.Unshipped.txt e PublicAPI.Shipped.txt. Pelo menos um desses arquivos está ausente ou tem o tipo errado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingTitle">
-        <source>One or both of the public API files are missing</source>
-        <target state="translated">Um ou ambos os arquivos de API pública estão ausentes</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">
