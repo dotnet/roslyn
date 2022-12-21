@@ -289,8 +289,9 @@ DoneWithBindingAttributes:
 
         Private Shared Function MyGroupCollectionCandidateHasPublicParameterlessConstructor(candidate As SourceNamedTypeSymbol) As Boolean
             ' Simply calling HasPublicParameterlessConstructor might get us in a cycle.
+            Debug.Assert(candidate.TypeKind = TypeKind.Class)
             If candidate.MembersHaveBeenCreated Then
-                Return HasPublicParameterlessConstructor(candidate)
+                Return HasPublicParameterlessConstructor(candidate, synthesizedIfMissing:=False) = ConstructorConstraintError.None
             Else
                 Return candidate.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor()
             End If
@@ -300,7 +301,11 @@ DoneWithBindingAttributes:
         Protected Overrides Sub VerifyMembers()
             If Me.TypeKind = TypeKind.Class Then
                 Debug.Assert(MembersHaveBeenCreated)
-                Debug.Assert(HasPublicParameterlessConstructor(Me) = InferFromSyntaxIfClassWillHavePublicParameterlessConstructor())
+                Dim constructorConstraintError As ConstructorConstraintError = HasPublicParameterlessConstructor(Me, synthesizedIfMissing:=False)
+                Debug.Assert(constructorConstraintError =
+                             If(InferFromSyntaxIfClassWillHavePublicParameterlessConstructor(),
+                                ConstructorConstraintError.None,
+                                ConstructorConstraintError.NoPublicParameterlessConstructor))
             End If
         End Sub
 #End If

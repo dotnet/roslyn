@@ -1160,6 +1160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 DeriveCompilerFeatureRequiredUseSiteInfo(errorInfo)
                 EnsureTypeParametersAreLoaded(errorInfo)
                 CheckUnmanagedCallersOnly(errorInfo)
+                CheckRequiredMembersError(errorInfo)
                 Return InitializeUseSiteInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
@@ -1214,6 +1215,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
 
             errorInfo = _containingType.GetCompilerFeatureRequiredDiagnostic()
+        End Sub
+
+        Private Sub CheckRequiredMembersError(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo Is Nothing AndAlso
+               MethodKind = MethodKind.Constructor AndAlso
+               (Not HasSetsRequiredMembers) AndAlso
+               ContainingType.HasRequiredMembersError Then
+
+                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_RequiredMembersInvalid, ContainingType)
+            End If
+
         End Sub
 
         Private Function InitializeUseSiteInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)
