@@ -1565,8 +1565,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
                         {
-                            (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
-                            (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                            (ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                            (ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
                             (_, false) => ErrorCode.ERR_RefAssignNarrower,
                             (_, true) => ErrorCode.WRN_RefAssignNarrower
                         };
