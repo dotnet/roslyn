@@ -648,6 +648,7 @@ $@"class C
         [InlineData("static")]
         [InlineData("const")]
         [InlineData("readonly")]
+        [InlineData("async")]
         public async Task DoNotSuggestRequiredOnFilteredKeywordMembers(string keyword)
         {
             var markup = $$"""
@@ -663,6 +664,7 @@ $@"class C
         [InlineData("static")]
         [InlineData("const")]
         [InlineData("readonly")]
+        [InlineData("async")]
         public async Task DoNotSuggestFilteredKeywordsOnRequiredMembers(string keyword)
         {
             var markup = $$"""

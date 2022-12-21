@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
 internal class RequiredKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
-    private static readonly ISet<SyntaxKind> s_validModifiers = SyntaxKindSet.AllMemberModifiers.Where(s => s is not (SyntaxKind.RequiredKeyword or SyntaxKind.StaticKeyword or SyntaxKind.ReadOnlyKeyword or SyntaxKind.ConstKeyword)).ToSet();
+    private static readonly ISet<SyntaxKind> s_validModifiers = SyntaxKindSet.AllMemberModifiers.Where(s => s is not (SyntaxKind.RequiredKeyword or SyntaxKind.StaticKeyword or SyntaxKind.ReadOnlyKeyword or SyntaxKind.ConstKeyword or SyntaxKind.AsyncKeyword)).ToSet();
 
     private static readonly ISet<SyntaxKind> s_validTypeDeclarations = SyntaxKindSet.ClassStructRecordTypeDeclarations;
 
