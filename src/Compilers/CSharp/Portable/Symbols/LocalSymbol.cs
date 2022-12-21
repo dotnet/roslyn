@@ -355,18 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the scope to which a local can "escape" ref assignments or other form of aliasing
-        /// Makes sense only for locals with formal scopes - i.e. source locals
-        /// </summary>
-        internal abstract uint RefEscapeScope { get; }
-
-        /// <summary>
-        /// Returns the scope to which values of a local can "escape" via ordinary assignments
-        /// Makes sense only for ref-like locals with formal scopes - i.e. source locals
-        /// </summary>
-        internal abstract uint ValEscapeScope { get; }
-
-        /// <summary>
         /// When a local variable's type is inferred, it may not be used in the
         /// expression that computes its value (and type). This property returns
         /// the expression where a reference to an inferred variable is forbidden.

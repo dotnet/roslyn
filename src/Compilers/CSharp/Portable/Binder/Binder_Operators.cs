@@ -4277,32 +4277,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(Conversions.HasIdentityConversion(falseType, type));
             }
 
-            if (!hasErrors)
-            {
-                var currentScope = this.LocalScopeDepth;
-
-                // val-escape must agree on both branches.
-                uint whenTrueEscape = GetValEscape(trueExpr, currentScope);
-                uint whenFalseEscape = GetValEscape(falseExpr, currentScope);
-
-                if (whenTrueEscape != whenFalseEscape)
-                {
-                    // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
-                    if (whenTrueEscape < whenFalseEscape)
-                        CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
-                    else
-                        CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
-
-                    diagnostics.Add(this.InUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
-                    hasErrors = !this.InUnsafeRegion;
-                }
-            }
-
             trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
             falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
             return new BoundConditionalOperator(node, isRef: true, condition, trueExpr, falseExpr, constantValueOpt: null, type, wasTargetTyped: false, type, hasErrors);
         }
+    }
 
+    partial class RefSafetyAnalysis
+    {
+        private void ValidateRefConditionalOperator(SyntaxNode node, BoundExpression trueExpr, BoundExpression falseExpr, BindingDiagnosticBag diagnostics)
+        {
+            var currentScope = _localScopeDepth;
+
+            // val-escape must agree on both branches.
+            uint whenTrueEscape = GetValEscape(trueExpr, currentScope);
+            uint whenFalseEscape = GetValEscape(falseExpr, currentScope);
+
+            if (whenTrueEscape != whenFalseEscape)
+            {
+                // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
+                if (whenTrueEscape < whenFalseEscape)
+                    CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
+                else
+                    CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
+
+                diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
+            }
+        }
+    }
+
+    partial class Binder
+    {
         /// <summary>
         /// Constant folding for conditional (aka ternary) operators.
         /// </summary>

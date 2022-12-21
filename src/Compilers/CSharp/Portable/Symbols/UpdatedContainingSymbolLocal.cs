@@ -88,8 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsPinned => _underlyingLocal.IsPinned;
         internal override bool IsKnownToReferToTempIfReferenceType => _underlyingLocal.IsKnownToReferToTempIfReferenceType;
         internal override bool IsCompilerGenerated => _underlyingLocal.IsCompilerGenerated;
-        internal override uint RefEscapeScope => _underlyingLocal.RefEscapeScope;
-        internal override uint ValEscapeScope => _underlyingLocal.ValEscapeScope;
         internal override DeclarationScope Scope => _underlyingLocal.Scope;
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics = null) =>
             _underlyingLocal.GetConstantValue(node, inProgress, diagnostics);
