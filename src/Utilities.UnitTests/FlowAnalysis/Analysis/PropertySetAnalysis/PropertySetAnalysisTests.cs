@@ -30,7 +30,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Just a container for parameters necessary for PropertySetAnalysis for unit tests below.
         /// </summary>
-        private class PropertySetAnalysisParameters
+        private sealed class PropertySetAnalysisParameters
         {
             public PropertySetAnalysisParameters(string typeToTrack, ConstructorMapper constructorMapper, PropertyMapperCollection propertyMapperCollection, HazardousUsageEvaluatorCollection hazardousUsageEvaluatorCollection)
             {

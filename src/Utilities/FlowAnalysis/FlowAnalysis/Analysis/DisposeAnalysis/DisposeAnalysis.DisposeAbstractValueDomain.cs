@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         /// <summary>
         /// Abstract value domain for <see cref="DisposeAnalysis"/> to merge and compare <see cref="DisposeAbstractValue"/> values.
         /// </summary>
-        private class DisposeAbstractValueDomain : AbstractValueDomain<DisposeAbstractValue>
+        private sealed class DisposeAbstractValueDomain : AbstractValueDomain<DisposeAbstractValue>
         {
             public static DisposeAbstractValueDomain Default = new();
             private readonly SetAbstractDomain<IOperation> _disposingOperationsDomain = SetAbstractDomain<IOperation>.Default;

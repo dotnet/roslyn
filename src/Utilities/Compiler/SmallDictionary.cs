@@ -688,7 +688,7 @@ namespace Analyzer.Utilities
             }
 
 #pragma warning disable CA1063, CA1816 // Implement IDisposable Correctly
-            public class EnumerableCore : IEnumerator<K>
+            public sealed class EnumerableCore : IEnumerator<K>
             {
                 private Enumerator _e;
 
@@ -805,7 +805,7 @@ namespace Analyzer.Utilities
                 return new Enumerator(_dict);
             }
 
-            public class EnumerableCore : IEnumerator<V>
+            public sealed class EnumerableCore : IEnumerator<V>
             {
                 private Enumerator _e;
 
@@ -911,7 +911,7 @@ namespace Analyzer.Utilities
             return new Enumerator(this);
         }
 
-        public class EnumerableCore : IEnumerator<KeyValuePair<K, V>>
+        public sealed class EnumerableCore : IEnumerator<KeyValuePair<K, V>>
         {
             private Enumerator _e;
 
