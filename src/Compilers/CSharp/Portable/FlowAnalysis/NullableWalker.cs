@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal VariableState(VariablesSnapshot variables, LocalStateSnapshot variableNullableStates)
             {
+                Debug.Assert(variables.Id == variableNullableStates.Id);
+                Debug.Assert((variables.VariableSlot.Count() + 1) * 2 == variableNullableStates.State.Capacity);
                 Variables = variables;
                 VariableNullableStates = variableNullableStates;
             }
@@ -1729,6 +1731,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
             try
             {
+#if DEBUG
+                if (initialState.HasValue)
+                {
+                    Debug.Assert(walker._variables.Id == initialState.Value.Id);
+                    Debug.Assert(initialState.Value.Capacity == walker._variables.NextAvailableIndex);
+                }
+#endif
                 bool badRegion = false;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
                 diagnostics?.AddRange(walker.Diagnostics);
@@ -11324,7 +11333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public LocalState CreateNestedMethodState(Variables variables)
             {
                 Debug.Assert(Id == variables.Container!.Id);
-                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(capacity: variables.NextAvailableIndex, reachable: true));
+                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(capacity: 1, reachable: true));
             }
 
             private static BitVector CreateBitVector(int capacity, bool reachable)
@@ -11337,7 +11346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return state;
             }
 
-            private int Capacity => _state.Capacity / 2;
+            public int Capacity => _state.Capacity / 2;
 
             private void EnsureCapacity(int capacity)
             {
