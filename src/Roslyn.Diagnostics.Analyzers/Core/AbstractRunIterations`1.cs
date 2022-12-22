@@ -71,11 +71,11 @@ namespace Roslyn.Diagnostics.Analyzers
             context.RegisterRefactoring(
                 CodeAction.Create(
                     RoslynDiagnosticsAnalyzersResources.Run_iterations,
-                    cancellationToken => RunIterationsAsync(context.Document, method, convertToTheory, cancellationToken),
+                    cancellationToken => AbstractRunIterations<TMethodDeclarationSyntax>.RunIterationsAsync(context.Document, method, convertToTheory, cancellationToken),
                     equivalenceKey: nameof(RoslynDiagnosticsAnalyzersResources.Run_iterations)));
         }
 
-        private async Task<Document> RunIterationsAsync(Document document, TMethodDeclarationSyntax method, bool convertToTheory, CancellationToken cancellationToken)
+        private static async Task<Document> RunIterationsAsync(Document document, TMethodDeclarationSyntax method, bool convertToTheory, CancellationToken cancellationToken)
         {
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
             SyntaxNode updatedMethod = method;
