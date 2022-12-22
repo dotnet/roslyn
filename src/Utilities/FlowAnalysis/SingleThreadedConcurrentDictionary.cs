@@ -12,14 +12,14 @@ namespace Analyzer.Utilities
     /// dataflow analysis.  This way DFA is invoked only once per key, even if multiple
     /// threads simultaneously request the same key.</remarks>
 #pragma warning disable CA1812    // SingleThreadedConcurrentDictionary is too used.
-    internal class SingleThreadedConcurrentDictionary<TKey, TValue>
+    internal sealed class SingleThreadedConcurrentDictionary<TKey, TValue>
         where TValue : class
 #pragma warning restore CA1812
     {
         /// <summary>
         /// An Entry itself serves a lock object, and contains the real value.
         /// </summary>
-        private class Entry
+        private sealed class Entry
         {
             public TValue? Value { get; set; }
         }

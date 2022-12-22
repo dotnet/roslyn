@@ -305,8 +305,8 @@ namespace Analyzer.Utilities
             }
 
             // If not found, then we try to match with the symbol full declaration ID...
-            if (_wildcardNamesBySymbolKind.ContainsKey(AllKinds) &&
-                _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var unprefixedFirstMatchOrDefault &&
+            if (_wildcardNamesBySymbolKind.TryGetValue(AllKinds, out var value) &&
+                value.FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var unprefixedFirstMatchOrDefault &&
                 !string.IsNullOrWhiteSpace(unprefixedFirstMatchOrDefault.Key))
             {
                 (firstMatchName, firstMatchValue) = unprefixedFirstMatchOrDefault;

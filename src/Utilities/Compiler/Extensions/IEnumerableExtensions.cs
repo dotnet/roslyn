@@ -208,7 +208,7 @@ namespace Analyzer.Utilities.Extensions
             return count > 0;
         }
 
-        private class ComparisonComparer<T> : Comparer<T>
+        private sealed class ComparisonComparer<T> : Comparer<T>
         {
             private readonly Comparison<T> _compare;
 
