@@ -5,7 +5,9 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct PublicApiFile
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public PublicApiFile(string path, bool isPublic)
         {
