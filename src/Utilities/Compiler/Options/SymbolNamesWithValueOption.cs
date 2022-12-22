@@ -315,8 +315,8 @@ namespace Analyzer.Utilities
             }
 
             // If not found, then we try to match with the symbol name...
-            if (_wildcardNamesBySymbolKind.ContainsKey(AllKinds) &&
-                _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbol.Name.StartsWith(kvp.Key, StringComparison.Ordinal)) is var partialFirstMatchOrDefault &&
+            if (_wildcardNamesBySymbolKind.TryGetValue(AllKinds, out var allKindsValue) &&
+                allKindsValue.FirstOrDefault(kvp => symbol.Name.StartsWith(kvp.Key, StringComparison.Ordinal)) is var partialFirstMatchOrDefault &&
                 !string.IsNullOrWhiteSpace(partialFirstMatchOrDefault.Key))
             {
                 (firstMatchName, firstMatchValue) = partialFirstMatchOrDefault;
