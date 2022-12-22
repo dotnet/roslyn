@@ -107,6 +107,7 @@ namespace Analyzer.Utilities
                 {
                     ProcessWildcardName(parts, wildcardNamesBuilder);
                 }
+#pragma warning disable CA1847 // Use 'string.Contains(char)' instead of 'string.Contains(string)' when searching for a single character
                 else if (parts.SymbolName.Equals(".ctor", StringComparison.Ordinal) ||
                     parts.SymbolName.Equals(".cctor", StringComparison.Ordinal) ||
                     !parts.SymbolName.Contains(".", StringComparison.Ordinal) && !parts.SymbolName.Contains(":", StringComparison.Ordinal))
@@ -117,6 +118,7 @@ namespace Analyzer.Utilities
                 {
                     ProcessSymbolName(parts, compilation, optionalPrefix, symbolsBuilder);
                 }
+#pragma warning restore CA1847 // Use 'string.Contains(char)' instead of 'string.Contains(string)' when searching for a single character
             }
 
             if (namesBuilder.Count == 0 && symbolsBuilder.Count == 0 && wildcardNamesBuilder.Count == 0)
