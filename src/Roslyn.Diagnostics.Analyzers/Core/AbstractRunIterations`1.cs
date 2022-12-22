@@ -126,7 +126,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 updatedMethod = syntaxGenerator.WithStatements(updatedMethod, new[] { assignment }.Concat(statements));
             }
 
-            var root = await method.SyntaxTree.GetRootAsync(cancellationToken);
+            var root = await method.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(root.ReplaceNode(method, updatedMethod));
         }
 
