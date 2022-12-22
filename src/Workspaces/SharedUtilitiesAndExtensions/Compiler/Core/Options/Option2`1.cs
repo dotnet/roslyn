@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Marker interface for options that has the same value for all languages.
     /// </summary>
-    internal interface ISingleValuedOption : IOptionWithGroup
+    internal interface ISingleValuedOption : IOption2
     {
         /// <summary>
         /// The language name that supports this option, or null if it's supported by multiple languages.
@@ -102,8 +102,6 @@ namespace Microsoft.CodeAnalysis.Options
         ImmutableArray<OptionStorageLocation> IOption.StorageLocations
             => this.StorageLocations.As<OptionStorageLocation>();
 #endif
-
-        OptionGroup IOptionWithGroup.Group => this.Group;
 
         OptionDefinition IOption2.OptionDefinition => OptionDefinition;
 

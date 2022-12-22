@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var dataSnapshot = settingsProvider.GetCurrentDataSnapshot();
 
             // multiple settings may share the same option (e.g. settings representing flags of an enum):
-            var optionsForSettings = dataSnapshot.GroupBy(s => s.Option).Select(g => g.Key).ToArray();
+            var optionsForSettings = dataSnapshot.GroupBy(s => s.Key.Option).Select(g => g.Key).ToArray();
 
             var optionsCount = CSharpFormattingOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count();
             Assert.Equal(optionsCount, optionsForSettings.Length);

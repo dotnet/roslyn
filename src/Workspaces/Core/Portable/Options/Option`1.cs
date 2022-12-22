@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.Options
             this.StorageLocations = storageLocations;
         }
 
-        OptionGroup IOptionWithGroup.Group => this.Group;
-
         object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => false;

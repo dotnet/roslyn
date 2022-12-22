@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             foreach (var optionGrouping in options
                                            .Where(o => o.StorageLocations.Any(static l => l is IEditorConfigStorageLocation2))
-                                           .GroupBy(o => (o as IOptionWithGroup)?.Group ?? OptionGroup.Default)
+                                           .GroupBy(o => o.OptionDefinition.Group)
                                            .OrderBy(g => g.Key.Priority))
             {
                 editorconfig.AppendLine($"# {optionGrouping.Key.Description}");

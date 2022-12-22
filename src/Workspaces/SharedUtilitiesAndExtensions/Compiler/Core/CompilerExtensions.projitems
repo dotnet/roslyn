@@ -391,7 +391,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\IEditorConfigStorageLocation2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOption2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionWithGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey2.cs" />

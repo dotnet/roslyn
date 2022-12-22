@@ -63,8 +63,6 @@ namespace Microsoft.CodeAnalysis.Options
 
         OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 
-        OptionGroup IOptionWithGroup.Group => this.Group;
-
         object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => true;

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// Marker interface for <see cref="PerLanguageOption2{T}"/>.
     /// This option may apply to multiple languages, such that the option can have a different value for each language.
     /// </summary>
-    internal interface IPerLanguageValuedOption : IOptionWithGroup
+    internal interface IPerLanguageValuedOption : IOption2
     {
     }
 
@@ -103,8 +103,6 @@ namespace Microsoft.CodeAnalysis.Options
             OptionDefinition = new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T));
             this.StorageLocations = storageLocations;
         }
-
-        OptionGroup IOptionWithGroup.Group => this.Group;
 
         OptionDefinition IOption2.OptionDefinition => OptionDefinition;
 
