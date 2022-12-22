@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
@@ -84,14 +85,14 @@ namespace Roslyn.Diagnostics.Analyzers
                 foreach (var attribute in syntaxGenerator.GetAttributes(method))
                 {
                     var name = syntaxGenerator.GetName(attribute);
-                    if (name.EndsWith("Fact"))
+                    if (name.EndsWith("Fact", StringComparison.Ordinal))
                     {
                         updatedMethod = updatedMethod.ReplaceNode(
                             attribute,
                             ReplaceName(syntaxGenerator, attribute, name[0..^4] + "Theory"));
                         break;
                     }
-                    else if (name.EndsWith("FactAttribute"))
+                    else if (name.EndsWith("FactAttribute", StringComparison.Ordinal))
                     {
                         updatedMethod = updatedMethod.ReplaceNode(
                             attribute,
