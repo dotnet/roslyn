@@ -32,7 +32,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 "FactAttribute" => "TheoryAttribute",
                 "CustomFact" => "CustomTheory",
                 "CustomFactAttribute" => "CustomTheoryAttribute",
-                _ => throw new ArgumentException(),
+                _ => throw new ArgumentException("Unexpected argument", nameof(attributeName)),
             };
 
             await new VerifyCS.Test
@@ -83,7 +83,7 @@ class CustomTheoryAttribute : TheoryAttribute {{ }}
                 "FactAttribute" => "Theory",
                 "CustomFact" => "CustomTheory",
                 "CustomFactAttribute" => "CustomTheory",
-                _ => throw new ArgumentException(),
+                _ => throw new ArgumentException("Unexpected argument", nameof(attributeName)),
             };
 
             await new VerifyVB.Test
@@ -128,7 +128,7 @@ Class CustomTheoryAttribute : Inherits TheoryAttribute : End Class
                 "FactAttribute" => "TheoryAttribute",
                 "CustomFact" => "CustomTheory",
                 "CustomFactAttribute" => "CustomTheoryAttribute",
-                _ => throw new ArgumentException(),
+                _ => throw new ArgumentException("Unexpected argument", nameof(attributeName)),
             };
 
             await new VerifyCS.Test
@@ -179,7 +179,7 @@ class CustomTheoryAttribute : TheoryAttribute {{ }}
                 "FactAttribute" => "Theory",
                 "CustomFact" => "CustomTheory",
                 "CustomFactAttribute" => "CustomTheory",
-                _ => throw new ArgumentException(),
+                _ => throw new ArgumentException("Unexpected argument", nameof(attributeName)),
             };
 
             await new VerifyVB.Test
