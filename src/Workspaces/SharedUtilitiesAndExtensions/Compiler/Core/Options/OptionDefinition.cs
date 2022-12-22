@@ -11,6 +11,10 @@ namespace Microsoft.CodeAnalysis.Options
     [NonDefaultable]
     internal readonly struct OptionDefinition : IEquatable<OptionDefinition>
     {
+        // Editorconfig name prefixes used for C#/VB specific options:
+        public const string CSharpConfigNamePrefix = "csharp_";
+        public const string VisualBasicConfigNamePrefix = "visual_basic_";
+
         private const string FeatureConfig = "config";
 
         private readonly string? _name;

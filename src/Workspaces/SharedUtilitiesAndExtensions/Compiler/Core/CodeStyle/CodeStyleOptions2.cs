@@ -341,9 +341,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         #endregion
 
-        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = CreateOption(
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = new(
+            "CodeStyleOptions",
             CodeStyleOptionGroups.ExpressionLevelPreferences,
-            nameof(PreferSystemHashCode),
+            "PreferSystemHashCode",
             IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode);
 
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreateOption(

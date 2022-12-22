@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Specifies that an option should be read from an .editorconfig file.
     /// </summary>
-    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation2, IEditorConfigStorageLocation2
+    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation2, IEditorConfigStorageLocation
     {
         public string KeyName { get; }
 
@@ -43,20 +42,19 @@ namespace Microsoft.CodeAnalysis.Options
             _serializeValue = serializeValue;
         }
 
-        public bool TryGetOption(StructuredAnalyzerConfigOptions options, Type type, out object? result)
+        bool IEditorConfigStorageLocation.TryParseValue(string value, out object? result)
         {
-            if (options.TryGetValue(KeyName, out var value))
+            if (TryParseValue(value, out var typedResult))
             {
-                var ret = TryGetOption(value, out var typedResult);
                 result = typedResult;
-                return ret;
+                return true;
             }
 
             result = null;
             return false;
         }
 
-        internal bool TryGetOption(string value, [MaybeNullWhen(false)] out T result)
+        internal bool TryParseValue(string value, [MaybeNullWhen(false)] out T result)
         {
             var optionalValue = _parseValue(value);
             if (optionalValue.HasValue)
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Options
             return editorConfigStringForValue;
         }
 
-        string IEditorConfigStorageLocation2.GetEditorConfigStringValue(object? value)
+        string IEditorConfigStorageLocation.GetEditorConfigStringValue(object? value)
             => GetEditorConfigStringValue((T)value!);
 
 #if !CODE_STYLE

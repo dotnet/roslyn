@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
-    [ExportSolutionOptionProvider, Shared]
+    [ExportEditorConfigOptionProvider, Shared]
     internal class SimplificationOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

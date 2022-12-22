@@ -89,20 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #if DEBUG
             foreach (var option in options)
             {
-                if (option is ISingleValuedOption singleValuedOption)
-                {
-                    Debug.Assert(option.StorageLocations.OfType<IEditorConfigStorageLocation2>().Single() is { } editorConfigLocation &&
-                        (
-                        (singleValuedOption.LanguageName is null && (editorConfigLocation.KeyName.StartsWith("dotnet_") || editorConfigLocation.KeyName == "file_header_template")) ||
-                        (singleValuedOption.LanguageName == LanguageNames.CSharp && editorConfigLocation.KeyName.StartsWith("csharp_")) ||
-                        (singleValuedOption.LanguageName == LanguageNames.VisualBasic && editorConfigLocation.KeyName.StartsWith("visual_basic_"))
-                        )
-                    );
-                }
-                else
-                {
-                    Debug.Assert(option is IPerLanguageValuedOption);
-                }
+                Debug.Assert(option.StorageLocations.Single() is IEditorConfigStorageLocation);
             }
 #endif
 

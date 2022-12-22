@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    [ExportSolutionOptionProvider, Shared]
+    [ExportEditorConfigOptionProvider, Shared]
     internal sealed class SolutionCodeStyleOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

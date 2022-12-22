@@ -10,6 +10,7 @@ using System.Reflection;
 using Xunit;
 using Microsoft.VisualStudio.LanguageServices.Options;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
@@ -20,6 +21,26 @@ public class VisualStudioOptionStorageTests
     {
         var storages = VisualStudioOptionStorage.Storages;
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
+
+        // Options with per-language values shouldn't be defined in langauge-specific assembly since then they wouldn't be applicable to the other language.
+
+        var perLanguageOptionsDefinedInIncorrectAssembly =
+            from info in infos
+            where info.Value.Option.IsPerLanguage && info.Value.ContainingAssemblyLanguage is "CSharp" or "VisualBasic"
+            select info;
+
+        Assert.Empty(perLanguageOptionsDefinedInIncorrectAssembly);
+
+        // languge specific options have correct name prefix and are defined in language specific assemblies:
+
+        var languageSpecificOptionsHaveIncorrectPrefix =
+            from info in infos
+            where !info.Value.Option.StorageLocations.IsEmpty // TODO: remove condition once all options have config name
+            where info.Key.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "CSharp" ||
+                  info.Key.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "VisualBasic"
+            select info;
+
+        Assert.Empty(languageSpecificOptionsHaveIncorrectPrefix);
 
         // no two option names map to the same storage (however, there may be multiple option definitions that share the same option name and storage):
 

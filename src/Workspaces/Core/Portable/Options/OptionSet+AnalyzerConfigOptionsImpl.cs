@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
-                if (!_mapping.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
+                if (!_mapping.TryMapEditorConfigKeyToOption(key, out var option))
                 {
                     // There are couple of reasons this assert might fire:
                     //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.Options
                     return false;
                 }
 
-                value = storageLocation.GetEditorConfigStringValue((OptionKey)optionKey, _optionSet);
+                var storageLocation = (IEditorConfigStorageLocation)option.StorageLocations.Single();
+                var optionKey = new OptionKey(option, option.IsPerLanguage ? _language : null);
+                value = storageLocation.GetEditorConfigStringValue(optionKey, _optionSet);
                 return true;
             }
 

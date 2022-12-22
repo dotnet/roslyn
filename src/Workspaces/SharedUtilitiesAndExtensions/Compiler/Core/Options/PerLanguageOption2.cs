@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -102,6 +103,22 @@ namespace Microsoft.CodeAnalysis.Options
         {
             OptionDefinition = new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T));
             this.StorageLocations = storageLocations;
+
+            VerifyNamingConvention();
+        }
+
+        [Conditional("DEBUG")]
+        private void VerifyNamingConvention()
+        {
+            // TODO: remove, once all options have editorconfig-like name
+            if (StorageLocations.IsEmpty)
+            {
+                return;
+            }
+
+            // options with per-language values shouldn't have language-specific prefix
+            Debug.Assert(!OptionDefinition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(!OptionDefinition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
 
         OptionDefinition IOption2.OptionDefinition => OptionDefinition;

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Options
             return _underlyingOptions.GetOption(optionKey);
         }
 
-        private bool TryGetAnalyzerConfigOption(OptionKey option, out object? value)
+        private bool TryGetAnalyzerConfigOption(OptionKey optionKey, out object? value)
         {
             if (_configOptions == null)
             {
@@ -69,22 +70,27 @@ namespace Microsoft.CodeAnalysis.Options
                 return false;
             }
 
-            var editorConfigPersistence = (IEditorConfigStorageLocation?)option.Option.StorageLocations.SingleOrDefault(static location => location is IEditorConfigStorageLocation);
-            if (editorConfigPersistence == null)
+            if (optionKey.Option is not IOption2 internallyDefinedOption)
             {
                 value = null;
                 return false;
             }
 
-            try
+            if (internallyDefinedOption.Type == typeof(NamingStylePreferences))
             {
-                return editorConfigPersistence.TryGetOption(_configOptions, option.Option.Type, out value);
+                var preferences = _configOptions.GetNamingStylePreferences();
+                value = preferences;
+                return !preferences.IsEmpty;
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+
+            if (!_configOptions.TryGetValue(internallyDefinedOption.OptionDefinition.ConfigName, out var stringValue))
             {
                 value = null;
                 return false;
             }
+
+            var storage = (IEditorConfigStorageLocation)internallyDefinedOption.StorageLocations.Single();
+            return storage.TryParseValue(stringValue, out value);
         }
 
         public T GetOption<T>(PerLanguageOption<T> option)

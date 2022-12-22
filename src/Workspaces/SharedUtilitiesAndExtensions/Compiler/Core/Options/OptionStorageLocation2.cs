@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Options
     internal static partial class Extensions
     {
         public static string GetOptionConfigName(this ImmutableArray<OptionStorageLocation2> locations, string? feature, string? name)
-            => GetOptionConfigName(locations.OfType<IEditorConfigStorageLocation2>(), feature, name);
+            => GetOptionConfigName(locations.OfType<IEditorConfigStorageLocation>(), feature, name);
 
 #if !CODE_STYLE
         public static string GetOptionConfigName(this ImmutableArray<OptionStorageLocation> locations, string? feature, string? name)
-            => GetOptionConfigName(locations.OfType<IEditorConfigStorageLocation2>(), feature, name);
+            => GetOptionConfigName(locations.OfType<IEditorConfigStorageLocation>(), feature, name);
 #endif
 
-        private static string GetOptionConfigName(IEnumerable<IEditorConfigStorageLocation2> locations, string? feature, string? name)
+        private static string GetOptionConfigName(IEnumerable<IEditorConfigStorageLocation> locations, string? feature, string? name)
         {
             // If this option is an editorconfig option we use the editorconfig name specified in the storage location.
             // Otherwise, the option is a global option. If it is a global option with a new unique name then feature is unspecified and we use the name as is.

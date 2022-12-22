@@ -52,27 +52,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         }
 
         [Theory]
-        [InlineData("never:none", (int)AccessibilityModifiersRequired.Never, ReportDiagnostic.Suppress)]
-        [InlineData("always:suggestion", (int)AccessibilityModifiersRequired.Always, ReportDiagnostic.Info)]
-        [InlineData("for_non_interface_members:warning", (int)AccessibilityModifiersRequired.ForNonInterfaceMembers, ReportDiagnostic.Warn)]
-        [InlineData("omit_if_default:error", (int)AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
-
-        [WorkItem(27685, "https://github.com/dotnet/roslyn/issues/27685")]
-        [InlineData("never : none", (int)AccessibilityModifiersRequired.Never, ReportDiagnostic.Suppress)]
-        [InlineData("always : suggestion", (int)AccessibilityModifiersRequired.Always, ReportDiagnostic.Info)]
-        [InlineData("for_non_interface_members : warning", (int)AccessibilityModifiersRequired.ForNonInterfaceMembers, ReportDiagnostic.Warn)]
-        [InlineData("omit_if_default : error", (int)AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
-        public void TestParseEditorConfigAccessibilityModifiers(string args, int value, ReportDiagnostic severity)
+        [InlineData("never:none", AccessibilityModifiersRequired.Never, ReportDiagnostic.Suppress)]
+        [InlineData("always:suggestion", AccessibilityModifiersRequired.Always, ReportDiagnostic.Info)]
+        [InlineData("for_non_interface_members:warning", AccessibilityModifiersRequired.ForNonInterfaceMembers, ReportDiagnostic.Warn)]
+        [InlineData("omit_if_default:error", AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
+        [InlineData("never : none", AccessibilityModifiersRequired.Never, ReportDiagnostic.Suppress), WorkItem(27685, "https://github.com/dotnet/roslyn/issues/27685")]
+        [InlineData("always : suggestion", AccessibilityModifiersRequired.Always, ReportDiagnostic.Info)]
+        [InlineData("for_non_interface_members : warning", AccessibilityModifiersRequired.ForNonInterfaceMembers, ReportDiagnostic.Warn)]
+        [InlineData("omit_if_default : error", AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
+        internal void TestParseEditorConfigAccessibilityModifiers(string configurationString, AccessibilityModifiersRequired value, ReportDiagnostic severity)
         {
-            var storageLocation = CodeStyleOptions2.AccessibilityModifiersRequired.StorageLocations
-                .OfType<EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>>()
-                .Single();
-            var allRawConventions = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, args));
+            var storageLocation = (EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>)CodeStyleOptions2.AccessibilityModifiersRequired.StorageLocations.Single();
+            Assert.True(storageLocation.TryParseValue(configurationString, out var parsedCodeStyleOption));
 
-            Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(CodeStyleOption2<AccessibilityModifiersRequired>), out var parsedCodeStyleOption));
-            var codeStyleOption = (CodeStyleOption2<AccessibilityModifiersRequired>)parsedCodeStyleOption!;
-            Assert.Equal((AccessibilityModifiersRequired)value, codeStyleOption.Value);
-            Assert.Equal(severity, codeStyleOption.Notification.Severity);
+            Assert.Equal(value, parsedCodeStyleOption!.Value);
+            Assert.Equal(severity, parsedCodeStyleOption.Notification.Severity);
         }
 
         [Theory]
@@ -86,13 +80,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData(" crlf ", "\r\n")]
         public void TestParseEditorConfigEndOfLine(string configurationString, string newLine)
         {
-            var storageLocation = FormattingOptions.NewLine.StorageLocations
-                .OfType<EditorConfigStorageLocation<string>>()
-                .Single();
-            var allRawConventions = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, configurationString));
-
-            Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(string), out var parsedNewLine));
-            Assert.Equal(newLine, (string?)parsedNewLine);
+            var storageLocation = (EditorConfigStorageLocation<string>)FormattingOptions2.NewLine.StorageLocations.Single();
+            Assert.True(storageLocation.TryParseValue(configurationString, out var parsedNewLine));
+            Assert.Equal(newLine, parsedNewLine);
         }
     }
 }

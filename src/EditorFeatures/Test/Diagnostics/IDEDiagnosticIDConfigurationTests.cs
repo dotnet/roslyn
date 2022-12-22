@@ -673,13 +673,8 @@ dotnet_diagnostic.JSON002.severity = %value%
                 var hasEditorConfigCodeStyleOptions = false;
                 foreach (var option in options.OrderBy(o => o.Name))
                 {
-                    var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
-                    if (editorConfigLocation == null)
-                    {
-                        continue;
-                    }
-
-                    var editorConfigString = editorConfigLocation.GetEditorConfigString(option.DefaultValue);
+                    var editorConfigLocation = (IEditorConfigStorageLocation)option.StorageLocations.Single();
+                    var editorConfigString = $"{option.OptionDefinition.ConfigName} = {editorConfigLocation.GetEditorConfigStringValue(option.DefaultValue)}";
 
                     ProcessDiagnosticIdAndOption(diagnosticId, option, editorConfigString);
                     hasEditorConfigCodeStyleOptions = true;

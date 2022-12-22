@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options.Providers
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal abstract class ExportOptionProviderAttribute : ExportAttribute
+    internal sealed class ExportEditorConfigOptionProviderAttribute : ExportAttribute
     {
         /// <summary>
         /// Optional source language for language specific option providers.  See <see cref="LanguageNames"/>.
@@ -17,33 +17,10 @@ namespace Microsoft.CodeAnalysis.Options.Providers
         /// </summary>
         public string Language { get; }
 
-        /// <summary>
-        /// True if the option is a client global option provided by <see cref="IGlobalOptionService"/>.
-        /// </summary>
-        public bool IsGlobal { get; }
-
-        public ExportOptionProviderAttribute(string language, bool isGlobal)
+        public ExportEditorConfigOptionProviderAttribute(string language = "")
             : base(typeof(IOptionProvider))
         {
             Language = language;
-            IsGlobal = isGlobal;
-        }
-    }
-
-    /// <summary>
-    /// Options that are part of the solution snapshot.
-    /// Some of these options may be configurable per document via editorconfig.
-    /// </summary>
-    internal sealed class ExportSolutionOptionProviderAttribute : ExportOptionProviderAttribute
-    {
-        public ExportSolutionOptionProviderAttribute()
-            : this(language: string.Empty)
-        {
-        }
-
-        public ExportSolutionOptionProviderAttribute(string language)
-            : base(language, isGlobal: false)
-        {
         }
     }
 }

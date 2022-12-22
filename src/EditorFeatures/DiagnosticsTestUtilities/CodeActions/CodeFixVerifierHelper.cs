@@ -128,10 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     continue;
                 }
 
-                var editorConfigStorageLocation = optionKey.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().Single();
-
-                var line = editorConfigStorageLocation.GetEditorConfigString(value);
-                analyzerConfig.AppendLine(line);
+                var editorConfigStorageLocation = (IEditorConfigStorageLocation)optionKey.Option.StorageLocations.Single();
+                analyzerConfig.AppendLine($"{optionKey.Option.OptionDefinition.ConfigName} = {editorConfigStorageLocation.GetEditorConfigStringValue(value)}");
             }
 
             return SourceText.From(analyzerConfig.ToString(), Encoding.UTF8);

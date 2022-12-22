@@ -28,10 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
     internal static class CSharpSyntaxWrappingOptionsProviders
     {
         public static CSharpSyntaxWrappingOptions GetCSharpSyntaxWrappingOptions(this AnalyzerConfigOptions options, CodeActionOptions fallbackOptions)
-            => new(
+        {
+            var newLineBeforeOpenBraceDefault = ((CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions).NewLines.ToNewLineBeforeOpenBracePlacement();
+
+            return new(
                 options.GetCSharpSyntaxFormattingOptions((CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions),
-                operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
+                operatorPlacement: options.GetEditorConfigOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.Common.OperatorPlacementWhenWrapping),
                 wrappingColumn: fallbackOptions.WrappingColumn,
-                newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace).HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers));
+                newLinesForBracesInObjectCollectionArrayInitializers: options.GetEditorConfigOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace, newLineBeforeOpenBraceDefault).HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers));
+        }
     }
 }

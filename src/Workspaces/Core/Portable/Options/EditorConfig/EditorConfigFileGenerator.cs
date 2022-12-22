@@ -52,10 +52,7 @@ namespace Microsoft.CodeAnalysis.Options
             editorconfig.AppendLine($"#### {feature} ####");
             editorconfig.AppendLine();
 
-            foreach (var optionGrouping in options
-                                           .Where(o => o.StorageLocations.Any(static l => l is IEditorConfigStorageLocation2))
-                                           .GroupBy(o => o.OptionDefinition.Group)
-                                           .OrderBy(g => g.Key.Priority))
+            foreach (var optionGrouping in options.GroupBy(o => o.OptionDefinition.Group).OrderBy(g => g.Key.Priority))
             {
                 editorconfig.AppendLine($"# {optionGrouping.Key.Description}");
 

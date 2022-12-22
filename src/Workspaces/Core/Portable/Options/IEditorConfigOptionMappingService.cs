@@ -15,13 +15,8 @@ namespace Microsoft.CodeAnalysis.Options
     internal interface IEditorConfigOptionMapping
     {
         /// <summary>
-        /// Map an <strong>.editorconfig</strong> key to a corresponding <see cref="IEditorConfigStorageLocation2"/> and <see cref="OptionKey2"/>.
+        /// Map an <strong>.editorconfig</strong> key to a corresponding <see cref="OptionKey2"/>.
         /// </summary>
-        /// <param name="key">The <strong>.editorconfig</strong> key.</param>
-        /// <param name="language">The language to use for the <paramref name="optionKey"/>.</param>
-        /// <param name="storageLocation">The <see cref="IEditorConfigStorageLocation2"/> for the key.</param>
-        /// <param name="optionKey">The <see cref="OptionKey2"/> for the key and language.</param>
-        /// <returns><see langword="true"/> if a matching option was found; otherwise, <see langword="false"/>.</returns>
-        bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey2 optionKey);
+        bool TryMapEditorConfigKeyToOption(string key, [NotNullWhen(true)] out IOption2? option);
     }
 }

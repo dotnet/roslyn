@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -88,6 +89,23 @@ namespace Microsoft.CodeAnalysis.Options
             OptionDefinition = new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T));
             this.StorageLocations = storageLocations;
             LanguageName = languageName;
+
+            VerifyNamingConvention();
+        }
+
+        [Conditional("DEBUG")]
+        private void VerifyNamingConvention()
+        {
+            // TODO: remove, once all options have editorconfig-like name
+            if (StorageLocations.IsEmpty)
+            {
+                return;
+            }
+
+            Debug.Assert(LanguageName is null == (OptionDefinition.ConfigName.StartsWith("dotnet_", StringComparison.Ordinal) ||
+                OptionDefinition.ConfigName is "file_header_template" or "insert_final_newline"));
+            Debug.Assert(LanguageName is LanguageNames.CSharp == OptionDefinition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(LanguageName is LanguageNames.VisualBasic == OptionDefinition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
 
 #if CODE_STYLE

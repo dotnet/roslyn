@@ -21,11 +21,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
             MyBase.New(formattingOptions, wrappingColumn, operatorPlacement)
         End Sub
 
-        Public Shared Function Create(options As AnalyzerConfigOptions, ideOptions As CodeActionOptions) As VisualBasicSyntaxWrappingOptions
+        Public Shared Function Create(options As AnalyzerConfigOptions, fallbackOptions As CodeActionOptions) As VisualBasicSyntaxWrappingOptions
             Return New VisualBasicSyntaxWrappingOptions(
-                formattingOptions:=VisualBasicSyntaxFormattingOptions.Create(options, DirectCast(ideOptions.CleanupOptions.FormattingOptions, VisualBasicSyntaxFormattingOptions)),
-                operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
-                wrappingColumn:=ideOptions.WrappingColumn)
+                formattingOptions:=VisualBasicSyntaxFormattingOptions.Create(options, DirectCast(fallbackOptions.CleanupOptions.FormattingOptions, VisualBasicSyntaxFormattingOptions)),
+                operatorPlacement:=options.GetEditorConfigOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.Common.OperatorPlacementWhenWrapping),
+                wrappingColumn:=fallbackOptions.WrappingColumn)
         End Function
     End Class
 End Namespace

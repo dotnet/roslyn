@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal sealed partial class FormattingOptions2
     {
 #if !CODE_STYLE
-        [ExportSolutionOptionProvider, Shared]
+        [ExportEditorConfigOptionProvider, Shared]
         internal sealed class Provider : IOptionProvider
         {
             [ImportingConstructor]

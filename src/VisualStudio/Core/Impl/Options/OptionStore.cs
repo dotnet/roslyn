@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -37,13 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
-                if (!_store.EditorConfigOptionMapping.TryMapEditorConfigKeyToOption(key, _language, out var storage, out var optionKey))
+                if (!_store.EditorConfigOptionMapping.TryMapEditorConfigKeyToOption(key, out var option))
                 {
                     value = null;
                     return false;
                 }
 
-                value = storage.GetEditorConfigStringValue(_store.GetOption(optionKey));
+                var storageLocation = (IEditorConfigStorageLocation)option.StorageLocations.Single();
+                var optionKey = new OptionKey2(option, option.IsPerLanguage ? _language : null);
+                value = storageLocation.GetEditorConfigStringValue(_store.GetOption(optionKey));
                 return true;
             }
 

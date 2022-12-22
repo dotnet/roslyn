@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
-    [ExportSolutionOptionProvider, Shared]
+    [ExportEditorConfigOptionProvider, Shared]
     internal class GenerationOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

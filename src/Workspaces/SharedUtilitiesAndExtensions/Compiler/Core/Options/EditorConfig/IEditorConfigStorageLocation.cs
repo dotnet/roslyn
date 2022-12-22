@@ -13,6 +13,24 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal interface IEditorConfigStorageLocation
     {
-        bool TryGetOption(StructuredAnalyzerConfigOptions options, Type type, out object? value);
+        bool TryParseValue(string value, out object? result);
+
+        /// <summary>
+        /// The name of the editorconfig key for the option.
+        /// </summary>
+        string KeyName { get; }
+
+        /// <summary>
+        /// Gets the editorconfig string representation for the specified <paramref name="value"/>. 
+        /// </summary>
+        string GetEditorConfigStringValue(object? value);
+
+#if !CODE_STYLE
+        /// <summary>
+        /// Gets the editorconfig string representation for the option value stored in <paramref name="optionSet"/>.
+        /// May combine values of multiple options stored in the set.
+        /// </summary>
+        string GetEditorConfigStringValue(OptionKey optionKey, OptionSet optionSet);
+#endif
     }
 }
