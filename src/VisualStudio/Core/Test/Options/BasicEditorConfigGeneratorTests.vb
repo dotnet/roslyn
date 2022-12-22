@@ -155,7 +155,7 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorToggleOptions()
             Using workspace = TestWorkspace.CreateVisualBasic("")
-                Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey2(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.VisualBasic),
+                Dim changedOptions = workspace.Options.WithChangedOption(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.VisualBasic,
                                                                          New CodeStyleOption2(Of Boolean)(False, NotificationOption2.[Error]))
                 Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true

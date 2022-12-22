@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 
         private static (IEnumerable<NamingRule> Common, IEnumerable<NamingRule> CSharp, IEnumerable<NamingRule> VisualBasic) GetPreferencesForAllLanguages(OptionSet options)
         {
-            var csharpNamingStylePreferences = options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
-            var vbNamingStylePreferences = options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.VisualBasic);
+            var csharpNamingStylePreferences = options.GetOption((PerLanguageOption<NamingStylePreferences>)NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
+            var vbNamingStylePreferences = options.GetOption((PerLanguageOption<NamingStylePreferences>)NamingStyleOptions.NamingPreferences, LanguageNames.VisualBasic);
 
             var commonOptions = GetCommonOptions(csharpNamingStylePreferences, vbNamingStylePreferences);
             var csharpOnlyOptions = GetOptionsUniqueOptions(csharpNamingStylePreferences, commonOptions);

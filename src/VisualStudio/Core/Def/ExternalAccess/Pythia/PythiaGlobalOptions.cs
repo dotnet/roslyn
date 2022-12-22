@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         public bool ShowDebugInfo
         {
             get => _globalOptions.GetOption(s_showDebugInfoOption);
-            set => _globalOptions.SetGlobalOption(new OptionKey(s_showDebugInfoOption), value);
+            set => _globalOptions.SetGlobalOption(s_showDebugInfoOption, value);
         }
 
         public bool RemoveRecommendationLimit
         {
             get => _globalOptions.GetOption(s_removeRecommendationLimitOption);
-            set => _globalOptions.SetGlobalOption(new OptionKey(s_removeRecommendationLimitOption), value);
+            set => _globalOptions.SetGlobalOption(s_removeRecommendationLimitOption, value);
         }
 
         public const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
