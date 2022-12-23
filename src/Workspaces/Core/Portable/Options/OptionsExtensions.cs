@@ -11,8 +11,11 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal static class OptionsExtensions
     {
+        public static Option<T> ToPublicOption<T>(this Option2<T> option)
+            => new(option.OptionDefinition, ((IOption2)option).StorageLocations);
+
         public static Option<CodeStyleOption<T>> ToPublicOption<T>(this Option2<CodeStyleOption2<T>> option)
-            => new Option<CodeStyleOption<T>>(
+            => new(
                 option.OptionDefinition.Feature,
                 option.OptionDefinition.Group,
                 option.OptionDefinition.Name,
@@ -20,8 +23,11 @@ namespace Microsoft.CodeAnalysis.Options
                 ((IOption2)option).StorageLocations,
                 option.OptionDefinition.IsEditorConfigOption);
 
+        public static PerLanguageOption<T> ToPublicOption<T>(this PerLanguageOption2<T> option)
+            => new(option.OptionDefinition, ((IOption2)option).StorageLocations);
+
         public static PerLanguageOption<CodeStyleOption<T>> ToPublicOption<T>(this PerLanguageOption2<CodeStyleOption2<T>> option)
-            => new PerLanguageOption<CodeStyleOption<T>>(
+            => new(
                 option.OptionDefinition.Feature,
                 option.OptionDefinition.Group,
                 option.OptionDefinition.Name,

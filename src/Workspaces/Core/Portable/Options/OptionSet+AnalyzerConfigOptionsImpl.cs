@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             public override NamingStylePreferences GetNamingStylePreferences()
-                => _optionSet.GetOption((PerLanguageOption<NamingStylePreferences>)NamingStyleOptions.NamingPreferences, _language);
+                => _optionSet.GetOption(NamingStyleOptions.NamingPreferences.ToPublicOption(), _language);
 
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {

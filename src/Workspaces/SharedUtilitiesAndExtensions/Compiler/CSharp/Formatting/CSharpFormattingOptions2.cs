@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 parseValue: list => ParseSpacingWithinParenthesesList(list),
 #if !CODE_STYLE
                 getValueFromOptionSet: set =>
-                    (set.GetOption((Option<bool>)SpaceWithinExpressionParentheses) ? SpacePlacementWithinParentheses.Expressions : 0) |
-                    (set.GetOption((Option<bool>)SpaceWithinCastParentheses) ? SpacePlacementWithinParentheses.TypeCasts : 0) |
-                    (set.GetOption((Option<bool>)SpaceWithinOtherParentheses) ? SpacePlacementWithinParentheses.ControlFlowStatements : 0),
+                    (set.GetOption(SpaceWithinExpressionParentheses.ToPublicOption()) ? SpacePlacementWithinParentheses.Expressions : 0) |
+                    (set.GetOption(SpaceWithinCastParentheses.ToPublicOption()) ? SpacePlacementWithinParentheses.TypeCasts : 0) |
+                    (set.GetOption(SpaceWithinOtherParentheses.ToPublicOption()) ? SpacePlacementWithinParentheses.ControlFlowStatements : 0),
 #endif
                 serializeValue: ToEditorConfigValue));
 
@@ -312,15 +312,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 parseValue: list => ParseNewLineBeforeOpenBracePlacementList(list),
 #if !CODE_STYLE
                 getValueFromOptionSet: set =>
-                    (set.GetOption((Option<bool>)NewLinesForBracesInTypes) ? NewLineBeforeOpenBracePlacement.Types : 0) |
-                    (set.GetOption((Option<bool>)NewLinesForBracesInAnonymousTypes) ? NewLineBeforeOpenBracePlacement.AnonymousTypes : 0) |
-                    (set.GetOption((Option<bool>)NewLinesForBracesInObjectCollectionArrayInitializers) ? NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers : 0) |
-                    (set.GetOption((Option<bool>)NewLinesForBracesInProperties) ? NewLineBeforeOpenBracePlacement.Properties : 0) |
-                    (set.GetOption((Option<bool>)NewLinesForBracesInMethods) ? NewLineBeforeOpenBracePlacement.Methods : 0) |
-                    (set.GetOption((Option<bool>)NewLinesForBracesInAccessors) ? NewLineBeforeOpenBracePlacement.Accessors : 0) |
-                    (set.GetOption((Option<bool>)NewLinesForBracesInAnonymousMethods) ? NewLineBeforeOpenBracePlacement.AnonymousMethods : 0) |
-                    (set.GetOption((Option<bool>)NewLinesForBracesInLambdaExpressionBody) ? NewLineBeforeOpenBracePlacement.LambdaExpressionBody : 0) |
-                    (set.GetOption((Option<bool>)NewLinesForBracesInControlBlocks) ? NewLineBeforeOpenBracePlacement.ControlBlocks : 0),
+                    (set.GetOption(NewLinesForBracesInTypes.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.Types : 0) |
+                    (set.GetOption(NewLinesForBracesInAnonymousTypes.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.AnonymousTypes : 0) |
+                    (set.GetOption(NewLinesForBracesInObjectCollectionArrayInitializers.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers : 0) |
+                    (set.GetOption(NewLinesForBracesInProperties.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.Properties : 0) |
+                    (set.GetOption(NewLinesForBracesInMethods.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.Methods : 0) |
+                    (set.GetOption(NewLinesForBracesInAccessors.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.Accessors : 0) |
+                    (set.GetOption(NewLinesForBracesInAnonymousMethods.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.AnonymousMethods : 0) |
+                    (set.GetOption(NewLinesForBracesInLambdaExpressionBody.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.LambdaExpressionBody : 0) |
+                    (set.GetOption(NewLinesForBracesInControlBlocks.ToPublicOption()) ? NewLineBeforeOpenBracePlacement.ControlBlocks : 0),
 #endif
                 serializeValue: ToEditorConfigValue));
 
