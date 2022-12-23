@@ -22,16 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         internal static ImmutableArray<IOption2> AllOptions { get; }
 
         private static Option2<T> CreateOption<T>(
-            OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+            OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
             => CodeStyleHelpers.CreateOption(
                 group, nameof(CSharpCodeStyleOptions), name, defaultValue,
                 s_allOptionsBuilder, storageLocation, LanguageNames.CSharp);
-
-        private static Option2<T> CreateOption<T>(
-            OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
-            => CodeStyleHelpers.CreateOption(
-                group, nameof(CSharpCodeStyleOptions), name, defaultValue,
-                s_allOptionsBuilder, storageLocation1, storageLocation2, LanguageNames.CSharp);
 
         private static Option2<CodeStyleOption2<bool>> CreateOption(
             OptionGroup group, string name, CodeStyleOption2<bool> defaultValue, string editorconfigKeyName)

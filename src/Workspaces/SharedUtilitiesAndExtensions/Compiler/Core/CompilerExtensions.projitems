@@ -388,7 +388,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocation`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\IEditorConfigStorageLocation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionDefinition.cs" />

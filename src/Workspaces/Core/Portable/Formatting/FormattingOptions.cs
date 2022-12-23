@@ -27,6 +27,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <inheritdoc cref="FormattingOptions2.IndentStyle"/>
         public static PerLanguageOption<IndentStyle> SmartIndent { get; } = new(
             FormattingOptions2.SmartIndent.OptionDefinition,
-            FormattingOptions2.SmartIndent.StorageLocations.As<OptionStorageLocation>());
+            ((IOption2)FormattingOptions2.SmartIndent).StorageLocations);
     }
 }

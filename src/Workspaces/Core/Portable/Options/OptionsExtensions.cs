@@ -12,27 +12,21 @@ namespace Microsoft.CodeAnalysis.Options
     internal static class OptionsExtensions
     {
         public static Option<CodeStyleOption<T>> ToPublicOption<T>(this Option2<CodeStyleOption2<T>> option)
-        {
-            RoslynDebug.Assert(option != null);
-
-            return new Option<CodeStyleOption<T>>(
+            => new Option<CodeStyleOption<T>>(
                 option.Feature,
                 option.Group,
                 option.Name,
                 defaultValue: new CodeStyleOption<T>(option.DefaultValue),
-                option.StorageLocations.As<OptionStorageLocation>());
-        }
+                ((IOption2)option).StorageLocations,
+                option.OptionDefinition.IsEditorConfigOption);
 
         public static PerLanguageOption<CodeStyleOption<T>> ToPublicOption<T>(this PerLanguageOption2<CodeStyleOption2<T>> option)
-        {
-            RoslynDebug.Assert(option != null);
-
-            return new PerLanguageOption<CodeStyleOption<T>>(
+            => new PerLanguageOption<CodeStyleOption<T>>(
                 option.Feature,
                 option.Group,
                 option.Name,
                 defaultValue: new CodeStyleOption<T>(option.DefaultValue),
-                option.StorageLocations.As<OptionStorageLocation>());
-        }
+                ((IOption2)option).StorageLocations,
+                option.OptionDefinition.IsEditorConfigOption);
     }
 }

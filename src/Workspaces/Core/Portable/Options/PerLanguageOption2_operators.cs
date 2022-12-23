@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return null;
             }
 
-            return new PerLanguageOption<T>(option.OptionDefinition, option.StorageLocations.As<OptionStorageLocation>());
+            return new PerLanguageOption<T>(option.OptionDefinition, ((IOption2)option).StorageLocations);
         }
     }
 }

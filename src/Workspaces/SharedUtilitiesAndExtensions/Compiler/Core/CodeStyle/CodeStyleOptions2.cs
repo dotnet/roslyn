@@ -21,21 +21,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private static PerLanguageOption2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
         {
-            var option = new PerLanguageOption2<T>("CodeStyleOptions", group, name, defaultValue, ImmutableArray.Create<OptionStorageLocation2>(storageLocation));
-            s_allOptionsBuilder.Add(option);
-            return option;
-        }
-
-        private static PerLanguageOption2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue)
-        {
-            var option = new PerLanguageOption2<T>("CodeStyleOptions", group, name, defaultValue);
+            var option = new PerLanguageOption2<T>("CodeStyleOptions", group, name, defaultValue, storageLocation);
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
         private static Option2<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
         {
-            var option = new Option2<T>("CodeStyleOptions", group, name, defaultValue, ImmutableArray.Create<OptionStorageLocation2>(storageLocation));
+            var option = new Option2<T>("CodeStyleOptions", group, name, defaultValue, storageLocation);
             s_allOptionsBuilder.Add(option);
             return option;
         }

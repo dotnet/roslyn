@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, out T value)
         {
+            Contract.ThrowIfFalse(option.OptionDefinition.IsEditorConfigOption);
+
             if (typeof(T) == typeof(NamingStylePreferences) && StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions))
             {
                 var preferences = structuredOptions.GetNamingStylePreferences();
@@ -30,8 +32,10 @@ namespace Microsoft.CodeAnalysis
                 return !preferences.IsEmpty;
             }
 
+            Contract.ThrowIfNull(option.StorageLocation);
+
             if (analyzerConfigOptions.TryGetValue(option.OptionDefinition.ConfigName, out var stringValue) &&
-               ((EditorConfigStorageLocation<T>)option.StorageLocations.Single()).TryParseValue(stringValue, out value!))
+               ((EditorConfigStorageLocation<T>)option.StorageLocation).TryParseValue(stringValue, out value!))
             {
                 return true;
             }

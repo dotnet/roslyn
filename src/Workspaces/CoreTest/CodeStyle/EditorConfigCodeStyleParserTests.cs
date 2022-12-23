@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("omit_if_default : error", AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
         internal void TestParseEditorConfigAccessibilityModifiers(string configurationString, AccessibilityModifiersRequired value, ReportDiagnostic severity)
         {
-            var storageLocation = (EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>)CodeStyleOptions2.AccessibilityModifiersRequired.StorageLocations.Single();
-            Assert.True(storageLocation.TryParseValue(configurationString, out var parsedCodeStyleOption));
+            Assert.True(CodeStyleOptions2.AccessibilityModifiersRequired.StorageLocation!.TryParseValue(configurationString, out var parsedCodeStyleOption));
 
             Assert.Equal(value, parsedCodeStyleOption!.Value);
             Assert.Equal(severity, parsedCodeStyleOption.Notification.Severity);
@@ -80,8 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData(" crlf ", "\r\n")]
         public void TestParseEditorConfigEndOfLine(string configurationString, string newLine)
         {
-            var storageLocation = (EditorConfigStorageLocation<string>)FormattingOptions2.NewLine.StorageLocations.Single();
-            Assert.True(storageLocation.TryParseValue(configurationString, out var parsedNewLine));
+            Assert.True(FormattingOptions2.NewLine.StorageLocation!.TryParseValue(configurationString, out var parsedNewLine));
             Assert.Equal(newLine, parsedNewLine);
         }
     }

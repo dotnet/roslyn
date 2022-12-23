@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             AllOptions = s_allOptionsBuilder.ToImmutable()
         End Sub
 
-        Private Shared Function CreateOption(Of T)(group As OptionGroup, name As String, defaultValue As T, storageLocation As OptionStorageLocation2) As Option2(Of T)
-            Return CodeStyleHelpers.CreateOption(group, NameOf(VisualBasicCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocation, LanguageNames.VisualBasic)
+        Private Shared Function CreateOption(Of T)(group As OptionGroup, name As String, defaultValue As T, storageLocation As EditorConfigStorageLocation(Of T)) As Option2(Of T)
+            Return CodeStyleHelpers.CreateOption(group, "VisualBasicCodeStyleOptions", name, defaultValue, s_allOptionsBuilder, storageLocation, LanguageNames.VisualBasic)
         End Function
 
         Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of Boolean), editorconfigKeyName As String) As Option2(Of CodeStyleOption2(Of Boolean))
@@ -31,25 +31,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         Public Shared ReadOnly Property AllOptions As ImmutableArray(Of IOption2)
 
         Public Shared ReadOnly PreferredModifierOrder As Option2(Of CodeStyleOption2(Of String)) = CreateOption(
-            VisualBasicCodeStyleOptionGroups.Modifier, NameOf(PreferredModifierOrder),
+            VisualBasicCodeStyleOptionGroups.Modifier, "PreferredModifierOrder",
             VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder,
             "visual_basic_preferred_modifier_order")
 
         Public Shared ReadOnly PreferIsNotExpression As Option2(Of CodeStyleOption2(Of Boolean)) = CreateOption(
-            VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, NameOf(PreferIsNotExpression),
+            VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, "PreferIsNotExpression",
             VisualBasicIdeCodeStyleOptions.Default.PreferIsNotExpression,
             "visual_basic_style_prefer_isnot_expression")
 
         Public Shared ReadOnly PreferSimplifiedObjectCreation As Option2(Of CodeStyleOption2(Of Boolean)) = CreateOption(
-            VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, NameOf(PreferSimplifiedObjectCreation),
+            VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, "PreferSimplifiedObjectCreation",
             VisualBasicIdeCodeStyleOptions.Default.PreferSimplifiedObjectCreation,
             "visual_basic_style_prefer_simplified_object_creation")
 
         Public Shared ReadOnly UnusedValueExpressionStatement As Option2(Of CodeStyleOption2(Of UnusedValuePreference)) =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
                 group:=VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
-                feature:=NameOf(VisualBasicCodeStyleOptions),
-                name:=NameOf(UnusedValueExpressionStatement),
+                feature:="VisualBasicCodeStyleOptions",
+                name:="UnusedValueExpressionStatement",
                 editorConfigName:="visual_basic_style_unused_value_expression_statement_preference",
                 defaultValue:=VisualBasicIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
                 optionsBuilder:=s_allOptionsBuilder,
@@ -58,8 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         Public Shared ReadOnly UnusedValueAssignment As Option2(Of CodeStyleOption2(Of UnusedValuePreference)) =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
                 group:=VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
-                feature:=NameOf(VisualBasicCodeStyleOptions),
-                name:=NameOf(UnusedValueAssignment),
+                feature:="VisualBasicCodeStyleOptions",
+                name:="UnusedValueAssignment",
                 editorConfigName:="visual_basic_style_unused_value_assignment_preference",
                 defaultValue:=VisualBasicIdeCodeStyleOptions.Default.UnusedValueAssignment,
                 optionsBuilder:=s_allOptionsBuilder,

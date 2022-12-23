@@ -118,25 +118,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string name,
             T defaultValue,
             ImmutableArray<IOption2>.Builder optionsBuilder,
-            OptionStorageLocation2 storageLocation,
+            EditorConfigStorageLocation<T> storageLocation,
             string languageName)
         {
-            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation), languageName);
-            optionsBuilder.Add(option);
-            return option;
-        }
-
-        public static Option2<T> CreateOption<T>(
-            OptionGroup group,
-            string feature,
-            string name,
-            T defaultValue,
-            ImmutableArray<IOption2>.Builder optionsBuilder,
-            OptionStorageLocation2 storageLocation1,
-            OptionStorageLocation2 storageLocation2,
-            string languageName)
-        {
-            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2), languageName);
+            var option = new Option2<T>(feature, group, name, defaultValue, storageLocation, languageName);
             optionsBuilder.Add(option);
             return option;
         }

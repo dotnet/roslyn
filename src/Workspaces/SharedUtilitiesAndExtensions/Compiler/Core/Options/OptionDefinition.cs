@@ -44,7 +44,12 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public Type Type { get; }
 
-        public OptionDefinition(string? feature, OptionGroup group, string? name, string configName, object? defaultValue, Type type)
+        /// <summary>
+        /// True if the value of the option may be stored in an editorconfig file.
+        /// </summary>
+        public bool IsEditorConfigOption { get; }
+
+        public OptionDefinition(string? feature, OptionGroup group, string? name, string configName, object? defaultValue, Type type, bool isEditorConfigOption)
         {
             ConfigName = configName;
             Feature = feature ?? FeatureConfig;
@@ -52,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Options
             Group = group;
             DefaultValue = defaultValue;
             Type = type;
+            IsEditorConfigOption = isEditorConfigOption;
         }
 
         /// <summary>

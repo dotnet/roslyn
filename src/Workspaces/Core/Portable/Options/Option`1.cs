@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => _optionDefinition.Type;
 
-        /// <inheritdoc cref="Option2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         [Obsolete("Use a constructor that specifies an explicit default value.")]
@@ -46,7 +45,8 @@ namespace Microsoft.CodeAnalysis.Options
                    OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
                    defaultValue,
-                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
+                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                   isEditorConfigOption: false)
         {
         }
 
@@ -55,20 +55,26 @@ namespace Microsoft.CodeAnalysis.Options
                    OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
                    defaultValue,
-                   (storageLocations ?? throw new ArgumentNullException(nameof(storageLocations))).ToImmutableArray())
+                   PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations)).ToImmutableArray(),
+                   isEditorConfigOption: false)
         {
+            // should not be used internally to create options
+            Debug.Assert(storageLocations.All(l => l is not IEditorConfigStorageLocation));
         }
 
-        internal Option(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T)), storageLocations)
+        internal Option(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
+            : this(new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption), storageLocations)
         {
         }
 
         internal Option(OptionDefinition optionDefinition, ImmutableArray<OptionStorageLocation> storageLocations)
         {
             _optionDefinition = optionDefinition;
-            this.StorageLocations = storageLocations;
+            StorageLocations = storageLocations;
         }
+
+        IEditorConfigStorageLocation? IOption2.StorageLocation
+            => StorageLocations is [IEditorConfigStorageLocation location] ? location : null;
 
         object? IOption.DefaultValue => this.DefaultValue;
 

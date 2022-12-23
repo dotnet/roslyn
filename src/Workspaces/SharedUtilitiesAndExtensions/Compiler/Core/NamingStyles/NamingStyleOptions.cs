@@ -23,11 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// and the level to which those rules should be enforced.
         /// </summary>
         internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption2<NamingStylePreferences>(
-            FeatureName, nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
-            new NamingStylePreferenceEditorConfigStorageLocation());
-
-        public static OptionKey2 GetNamingPreferencesOptionKey(string language)
-            => new(NamingPreferences, language);
+            FeatureName, "NamingPreferences", defaultValue: NamingStylePreferences.Default);
     }
 
     internal interface NamingStylePreferencesProvider

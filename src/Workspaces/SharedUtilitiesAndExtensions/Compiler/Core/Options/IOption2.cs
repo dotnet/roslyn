@@ -4,10 +4,6 @@
 
 using System;
 
-#if CODE_STYLE
-using System.Collections.Immutable;
-#endif
-
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
@@ -23,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Options
 #endif
     {
         OptionDefinition OptionDefinition { get; }
+        IEditorConfigStorageLocation? StorageLocation { get; }
 
 #if CODE_STYLE
         string Feature { get; }
@@ -30,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Options
         Type Type { get; }
         object? DefaultValue { get; }
         bool IsPerLanguage { get; }
-
-        ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 #endif
     }
 }

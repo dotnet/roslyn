@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -76,12 +77,8 @@ namespace Microsoft.CodeAnalysis.Options
                 return false;
             }
 
-            if (internallyDefinedOption.Type == typeof(NamingStylePreferences))
-            {
-                var preferences = _configOptions.GetNamingStylePreferences();
-                value = preferences;
-                return !preferences.IsEmpty;
-            }
+            // Naming style option is not public. We should not call this API internally.
+            Contract.ThrowIfTrue(internallyDefinedOption.Type == typeof(NamingStylePreferences));
 
             if (!_configOptions.TryGetValue(internallyDefinedOption.OptionDefinition.ConfigName, out var stringValue))
             {
@@ -89,8 +86,16 @@ namespace Microsoft.CodeAnalysis.Options
                 return false;
             }
 
+            // The option is in _configOptions so it must have editorconfig storage location:
             var storage = (IEditorConfigStorageLocation)internallyDefinedOption.StorageLocations.Single();
-            return storage.TryParseValue(stringValue, out value);
+            if (!storage.TryParseValue(stringValue, out var internalValue))
+            {
+                value = null;
+                return false;
+            }
+
+            value = internalValue is ICodeStyleOption codeStyleOption ? codeStyleOption.AsPublicCodeStyleOption() : internalValue;
+            return true;
         }
 
         public T GetOption<T>(PerLanguageOption<T> option)

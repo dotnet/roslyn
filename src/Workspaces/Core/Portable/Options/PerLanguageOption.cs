@@ -6,6 +6,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -29,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
-        /// <inheritdoc cref="PerLanguageOption2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Options
                    OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
                    defaultValue,
-                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
+                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                   isEditorConfigOption: false)
         {
         }
 
@@ -46,12 +48,15 @@ namespace Microsoft.CodeAnalysis.Options
                    OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
                    defaultValue,
-                   (storageLocations ?? throw new ArgumentNullException(nameof(storageLocations))).ToImmutableArray())
+                   PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations)).ToImmutableArray(),
+                   isEditorConfigOption: false)
         {
+            // should not be used internally to create options
+            Debug.Assert(storageLocations.All(l => l is not IEditorConfigStorageLocation));
         }
 
-        internal PerLanguageOption(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T)), storageLocations)
+        internal PerLanguageOption(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
+            : this(new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption), storageLocations)
         {
         }
 
@@ -60,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Options
             _optionDefinition = optionDefinition;
             StorageLocations = storageLocations;
         }
+
+        IEditorConfigStorageLocation? IOption2.StorageLocation
+            => StorageLocations is [IEditorConfigStorageLocation location] ? location : null;
 
         OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 

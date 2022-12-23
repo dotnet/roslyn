@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -54,40 +55,17 @@ namespace Microsoft.CodeAnalysis.Options
         /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => OptionDefinition.Type;
 
-        /// <summary>
-        /// Storage locations for the option.
-        /// </summary>
-        public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
+        public EditorConfigStorageLocation<T>? StorageLocation { get; }
 
-        public Option2(string? feature, string? name, T defaultValue)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation2>.Empty)
+        public Option2(string? feature, string? name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null)
+            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocation)
         {
         }
 
-        public Option2(string? feature, string? name, T defaultValue, OptionStorageLocation2 storageLocation)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, ImmutableArray.Create(storageLocation))
+        public Option2(string? feature, OptionGroup group, string? name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null)
         {
-        }
-
-        public Option2(string? feature, OptionGroup group, string? name, T defaultValue)
-            : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
-        {
-        }
-
-        public Option2(string? feature, OptionGroup group, string? name, T defaultValue, OptionStorageLocation2 storageLocation)
-            : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
-        {
-        }
-
-        public Option2(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
-            : this(feature, group, name, defaultValue, storageLocations, null)
-        {
-        }
-
-        public Option2(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations, string? languageName)
-        {
-            OptionDefinition = new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T));
-            this.StorageLocations = storageLocations;
+            OptionDefinition = new OptionDefinition(feature, group, name, storageLocation.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption: storageLocation != null);
+            StorageLocation = storageLocation;
             LanguageName = languageName;
 
             VerifyNamingConvention();
@@ -96,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Options
         [Conditional("DEBUG")]
         private void VerifyNamingConvention()
         {
-            // TODO: remove, once all options have editorconfig-like name
-            if (StorageLocations.IsEmpty)
+            // TODO: remove, once all options have editorconfig-like name https://github.com/dotnet/roslyn/issues/65787
+            if (StorageLocation is null)
             {
                 return;
             }
@@ -107,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Options
             Debug.Assert(LanguageName is LanguageNames.CSharp == OptionDefinition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
             Debug.Assert(LanguageName is LanguageNames.VisualBasic == OptionDefinition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
+
+        IEditorConfigStorageLocation? IOption2.StorageLocation => StorageLocation;
 
 #if CODE_STYLE
         object? IOption2.DefaultValue => this.DefaultValue;
@@ -118,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Options
         bool IOption.IsPerLanguage => false;
 
         ImmutableArray<OptionStorageLocation> IOption.StorageLocations
-            => this.StorageLocations.As<OptionStorageLocation>();
+            => (StorageLocation != null) ? ImmutableArray.Create((OptionStorageLocation)StorageLocation) : ImmutableArray<OptionStorageLocation>.Empty;
 #endif
 
         OptionDefinition IOption2.OptionDefinition => OptionDefinition;

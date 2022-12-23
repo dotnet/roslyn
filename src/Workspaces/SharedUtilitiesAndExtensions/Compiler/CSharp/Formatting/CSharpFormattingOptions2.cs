@@ -64,25 +64,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         internal static ImmutableArray<IOption2> AllOptions { get; }
 
-        private static Option2<T> CreateOption<T>(
-            OptionGroup group, string name, T defaultValue,
-            EditorConfigStorageLocation<T> storageLocation1)
+        private static Option2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
         {
-            var option = new Option2<T>(
-                "CSharpFormattingOptions",
-                group, name, defaultValue,
-                ImmutableArray.Create<OptionStorageLocation2>(storageLocation1), LanguageNames.CSharp);
-
+            var option = new Option2<T>("CSharpFormattingOptions", group, name, defaultValue, storageLocation, LanguageNames.CSharp);
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
         private static Option2<bool> CreateNewLineForBracesLegacyOption(string name, bool defaultValue)
-            => new(
-                feature: "CSharpFormattingOptions",
-                CSharpFormattingOptionGroups.NewLine,
-                name,
-                defaultValue);
+            => new("CSharpFormattingOptions", CSharpFormattingOptionGroups.NewLine, name, defaultValue);
 
         public static Option2<bool> SpacingAfterMethodDeclarationName { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpacingAfterMethodDeclarationName),
