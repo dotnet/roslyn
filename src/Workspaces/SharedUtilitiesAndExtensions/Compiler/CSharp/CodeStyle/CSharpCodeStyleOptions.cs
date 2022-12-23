@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             OptionGroup group, CodeStyleOption2<bool> defaultValue, string name)
             => CreateOption(
                 group, name, defaultValue,
-                EditorConfigStorageLocation.ForBoolCodeStyleOption(name, defaultValue));
+                EditorConfigStorageLocation.ForBoolCodeStyleOption(defaultValue));
 
         private static Option2<CodeStyleOption2<string>> CreateOption(
             OptionGroup group, CodeStyleOption2<string> defaultValue, string name)
             => CreateOption(
                 group, name, defaultValue,
-                EditorConfigStorageLocation.ForStringCodeStyleOption(name, defaultValue));
+                EditorConfigStorageLocation.ForStringCodeStyleOption(defaultValue));
 
         public static readonly Option2<CodeStyleOption2<bool>> VarForBuiltInTypes = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, CSharpSimplifierOptions.Default.VarForBuiltInTypes,
@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, editorconfigKeyName,
             defaultValue,
             new EditorConfigStorageLocation<CodeStyleOption2<ExpressionBodyPreference>>(
-                editorconfigKeyName,
                 s => ParseExpressionBodyPreference(s, defaultValue),
                 v => GetExpressionBodyPreferenceEditorConfigString(v, defaultValue)));
 
@@ -157,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.CodeBlockPreferences, name,
             defaultValue,
             new EditorConfigStorageLocation<CodeStyleOption2<PreferBracesPreference>>(
-                name,
                 s => ParsePreferBracesPreference(s, defaultValue),
                 v => GetPreferBracesPreferenceEditorConfigString(v, defaultValue)));
 
@@ -200,7 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 CSharpCodeStyleOptionGroups.UsingDirectivePreferences, editorconfigKeyName,
                 defaultValue,
                 new EditorConfigStorageLocation<CodeStyleOption2<AddImportPlacement>>(
-                    editorconfigKeyName,
                     s => ParseUsingDirectivesPlacement(s, defaultValue),
                     v => GetUsingDirectivesPlacementEditorConfigString(v, defaultValue)));
 
@@ -234,34 +231,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_embedded_statements_on_same_line_experimental",
             CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine,
-            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_embedded_statements_on_same_line_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
+            EditorConfigStorageLocation.ForBoolCodeStyleOption(CodeStyleOptions2.TrueWithSilentEnforcement));
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_blank_lines_between_consecutive_braces_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLinesBetweenConsecutiveBraces,
-            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_lines_between_consecutive_braces_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
+            EditorConfigStorageLocation.ForBoolCodeStyleOption(CodeStyleOptions2.TrueWithSilentEnforcement));
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterColonInConstructorInitializer { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterColonInConstructorInitializer,
-            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
+            EditorConfigStorageLocation.ForBoolCodeStyleOption(CodeStyleOptions2.TrueWithSilentEnforcement));
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInConditionalExpression { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInConditionalExpression,
-            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
+            EditorConfigStorageLocation.ForBoolCodeStyleOption(CodeStyleOptions2.TrueWithSilentEnforcement));
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInArrowExpressionClause { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInArrowExpressionClause,
-            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
+            EditorConfigStorageLocation.ForBoolCodeStyleOption(CodeStyleOptions2.TrueWithSilentEnforcement));
 
         private static Option2<CodeStyleOption2<NamespaceDeclarationPreference>> CreateNamespaceDeclarationOption(CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, string editorconfigKeyName)
             => CreateOption(
                 CSharpCodeStyleOptionGroups.CodeBlockPreferences, editorconfigKeyName,
                 defaultValue,
                 new EditorConfigStorageLocation<CodeStyleOption2<NamespaceDeclarationPreference>>(
-                    editorconfigKeyName,
                     s => ParseNamespaceDeclaration(s, defaultValue),
                     v => GetNamespaceDeclarationEditorConfigString(v, defaultValue)));
 

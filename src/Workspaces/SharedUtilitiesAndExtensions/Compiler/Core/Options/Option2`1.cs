@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.Options
 
         public Option2(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null)
         {
-            Debug.Assert(storageLocation == null || storageLocation.KeyName == name);
-
             OptionDefinition = new OptionDefinition(group, name, defaultValue, typeof(T), isEditorConfigOption: storageLocation != null);
             StorageLocation = storageLocation;
             LanguageName = languageName;

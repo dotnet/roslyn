@@ -38,20 +38,19 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static PerLanguageOption2<bool> UseTabs = new(
             FormattingOptionGroups.IndentationAndSpacing, "indent_style", LineFormattingOptions.Default.UseTabs,
-            new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"));
+            new EditorConfigStorageLocation<bool>(s => s == "tab", isSet => isSet ? "tab" : "space"));
 
         public static PerLanguageOption2<int> TabSize = new(
             FormattingOptionGroups.IndentationAndSpacing, "tab_width", LineFormattingOptions.Default.TabSize,
-            EditorConfigStorageLocation.ForInt32Option("tab_width"));
+            EditorConfigStorageLocation.ForInt32Option());
 
         public static PerLanguageOption2<int> IndentationSize = new(
             FormattingOptionGroups.IndentationAndSpacing, "indent_size", LineFormattingOptions.Default.IndentationSize,
-            EditorConfigStorageLocation.ForInt32Option("indent_size"));
+            EditorConfigStorageLocation.ForInt32Option());
 
         public static PerLanguageOption2<string> NewLine = new(
             FormattingOptionGroups.NewLine, "end_of_line", LineFormattingOptions.Default.NewLine,
             new EditorConfigStorageLocation<string>(
-                "end_of_line",
                 parseValue: value => value.Trim() switch
                 {
                     "lf" => "\n",
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static Option2<bool> InsertFinalNewLine = new(
             FormattingOptionGroups.NewLine, "insert_final_newline", DocumentFormattingOptions.Default.InsertFinalNewLine,
-            EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
+            EditorConfigStorageLocation.ForBoolOption());
 
         public static PerLanguageOption2<IndentStyle> SmartIndent = new(
             FormattingOptionGroups.IndentationAndSpacing, "FormattingOptions_SmartIndent", defaultValue: IndentationOptions.DefaultIndentStyle);

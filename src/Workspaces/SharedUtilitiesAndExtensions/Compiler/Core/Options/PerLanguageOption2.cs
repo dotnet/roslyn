@@ -48,8 +48,6 @@ namespace Microsoft.CodeAnalysis.Options
 
         public PerLanguageOption2(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null)
         {
-            Debug.Assert(storageLocation == null || storageLocation.KeyName == name);
-
             var isEditorConfigOption = storageLocation != null || typeof(T) == typeof(NamingStylePreferences);
             OptionDefinition = new OptionDefinition(group, name, defaultValue, typeof(T), isEditorConfigOption);
             StorageLocation = storageLocation;

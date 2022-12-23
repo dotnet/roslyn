@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Editing
         public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
             CodeStyleOptionGroups.Usings, "dotnet_sort_system_directives_first",
             AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
-            EditorConfigStorageLocation.ForBoolOption("dotnet_sort_system_directives_first"));
+            EditorConfigStorageLocation.ForBoolOption());
 
         public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
             CodeStyleOptionGroups.Usings, "dotnet_separate_import_directive_groups",
             SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups,
-            EditorConfigStorageLocation.ForBoolOption("dotnet_separate_import_directive_groups"));
+            EditorConfigStorageLocation.ForBoolOption());
 
         public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(
             PlaceSystemNamespaceFirst,

@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Options
                 name,
                 ((IOption2)option).StorageLocations);
 
-
         // The following are used only to implement equality/ToString of public Option<T> and PerLanguageOption<T> options.
         // Public options can be instantiated with non-unique config name and thus we need to include default value in the equality
         // to avoid collisions among them.

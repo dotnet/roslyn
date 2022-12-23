@@ -27,20 +27,20 @@ namespace Microsoft.CodeAnalysis.Options
         private static readonly Func<string, string> s_serializeString =
             value => value.ToString().Replace("\r", "\\r").Replace("\n", "\\n");
 
-        public static EditorConfigStorageLocation<bool> ForBoolOption(string keyName)
-            => new(keyName, s_parseBool, s_serializeBoolean);
+        public static EditorConfigStorageLocation<bool> ForBoolOption()
+            => new(s_parseBool, s_serializeBoolean);
 
-        public static EditorConfigStorageLocation<int> ForInt32Option(string keyName)
-            => new(keyName, s_parseInt32, s_serializeInt32);
+        public static EditorConfigStorageLocation<int> ForInt32Option()
+            => new(s_parseInt32, s_serializeInt32);
 
-        public static EditorConfigStorageLocation<string> ForStringOption(string keyName, string emptyStringRepresentation)
-            => new(keyName, s_parseString, (string value) => string.IsNullOrEmpty(value) ? emptyStringRepresentation : s_serializeString(value));
+        public static EditorConfigStorageLocation<string> ForStringOption(string emptyStringRepresentation)
+            => new(s_parseString, (string value) => string.IsNullOrEmpty(value) ? emptyStringRepresentation : s_serializeString(value));
 
-        public static EditorConfigStorageLocation<CodeStyleOption2<bool>> ForBoolCodeStyleOption(string keyName, CodeStyleOption2<bool> defaultValue)
-            => new(keyName, str => ParseBoolCodeStyleOption(str, defaultValue), value => GetBoolCodeStyleOptionEditorConfigStringForValue(value, defaultValue));
+        public static EditorConfigStorageLocation<CodeStyleOption2<bool>> ForBoolCodeStyleOption(CodeStyleOption2<bool> defaultValue)
+            => new(str => ParseBoolCodeStyleOption(str, defaultValue), value => GetBoolCodeStyleOptionEditorConfigStringForValue(value, defaultValue));
 
-        public static EditorConfigStorageLocation<CodeStyleOption2<string>> ForStringCodeStyleOption(string keyName, CodeStyleOption2<string> defaultValue)
-            => new(keyName, str => ParseStringCodeStyleOption(str, defaultValue), value => GetStringCodeStyleOptionEditorConfigStringForValue(value, defaultValue));
+        public static EditorConfigStorageLocation<CodeStyleOption2<string>> ForStringCodeStyleOption(CodeStyleOption2<string> defaultValue)
+            => new(str => ParseStringCodeStyleOption(str, defaultValue), value => GetStringCodeStyleOptionEditorConfigStringForValue(value, defaultValue));
 
         private static Optional<CodeStyleOption2<bool>> ParseBoolCodeStyleOption(string str, CodeStyleOption2<bool> defaultValue)
             => CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(str, defaultValue, out var result) ? result : new Optional<CodeStyleOption2<bool>>();

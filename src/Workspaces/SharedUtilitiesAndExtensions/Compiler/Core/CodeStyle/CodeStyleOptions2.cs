@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string editorconfigKeyName)
             => CreateOption(
                 group, editorconfigKeyName, defaultValue,
-                EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue));
+                EditorConfigStorageLocation.ForBoolCodeStyleOption(defaultValue));
 
         private static PerLanguageOption2<CodeStyleOption2<bool>> CreateQualifyAccessOption(string editorconfigKeyName)
             => CreateOption(
@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 "dotnet_style_operator_placement_when_wrapping",
                 IdeCodeStyleOptions.CommonOptions.Default.OperatorPlacementWhenWrapping,
                 new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
-                    "dotnet_style_operator_placement_when_wrapping",
                     OperatorPlacementUtilities.Parse,
                     OperatorPlacementUtilities.GetEditorConfigString));
 
@@ -181,7 +180,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_code_quality_unused_parameters",
             IdeCodeStyleOptions.CommonOptions.Default.UnusedParameters,
             new EditorConfigStorageLocation<CodeStyleOption2<UnusedParametersPreference>>(
-                    "dotnet_code_quality_unused_parameters",
                     s => ParseUnusedParametersPreference(s, IdeCodeStyleOptions.CommonOptions.Default.UnusedParameters),
                     o => GetUnusedParametersPreferenceEditorConfigString(o, IdeCodeStyleOptions.CommonOptions.Default.UnusedParameters)));
 
@@ -190,7 +188,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 CodeStyleOptionGroups.Modifier, "dotnet_style_require_accessibility_modifiers",
                 IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired,
                 new EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>(
-                    "dotnet_style_require_accessibility_modifiers",
                     s => ParseAccessibilityModifiersRequired(s, IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired),
                     v => GetAccessibilityModifiersRequiredEditorConfigString(v, IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired)));
 
@@ -201,13 +198,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly Option2<string> FileHeaderTemplate = CreateCommonOption(
             CodeStyleOptionGroups.Usings, "file_header_template",
             DocumentFormattingOptions.Default.FileHeaderTemplate,
-            EditorConfigStorageLocation.ForStringOption("file_header_template", emptyStringRepresentation: "unset"));
+            EditorConfigStorageLocation.ForStringOption(emptyStringRepresentation: "unset"));
 
         internal static readonly Option2<string> RemoveUnnecessarySuppressionExclusions = CreateCommonOption(
             CodeStyleOptionGroups.Suppressions,
             "dotnet_remove_unnecessary_suppression_exclusions",
             IdeCodeStyleOptions.CommonOptions.Default.RemoveUnnecessarySuppressionExclusions,
-            EditorConfigStorageLocation.ForStringOption("dotnet_remove_unnecessary_suppression_exclusions", emptyStringRepresentation: "none"));
+            EditorConfigStorageLocation.ForStringOption(emptyStringRepresentation: "none"));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new(new[]
@@ -242,7 +239,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return CreateOption(
                 CodeStyleOptionGroups.Parentheses, name, defaultValue,
                 new EditorConfigStorageLocation<CodeStyleOption2<ParenthesesPreference>>(
-                    name,
                     s => ParseParenthesesPreference(s, defaultValue),
                     v => GetParenthesesPreferenceEditorConfigString(v, defaultValue)));
         }
@@ -296,7 +292,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 "dotnet_style_prefer_foreach_explicit_cast_in_source",
                 IdeCodeStyleOptions.CommonOptions.Default.ForEachExplicitCastInSource,
                 new EditorConfigStorageLocation<CodeStyleOption2<ForEachExplicitCastInSourcePreference>>(
-                    "dotnet_style_prefer_foreach_explicit_cast_in_source",
                     s => ParseForEachExplicitCastInSourcePreference(s, IdeCodeStyleOptions.CommonOptions.Default.ForEachExplicitCastInSource),
                     v => GetForEachExplicitCastInSourceEditorConfigString(v, IdeCodeStyleOptions.CommonOptions.Default.ForEachExplicitCastInSource)));
 

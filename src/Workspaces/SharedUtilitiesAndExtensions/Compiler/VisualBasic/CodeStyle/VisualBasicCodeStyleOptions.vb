@@ -19,11 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         End Function
 
         Private Shared Function CreateOption(group As OptionGroup, defaultValue As CodeStyleOption2(Of Boolean), name As String) As Option2(Of CodeStyleOption2(Of Boolean))
-            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForBoolCodeStyleOption(name, defaultValue))
+            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForBoolCodeStyleOption(defaultValue))
         End Function
 
         Private Shared Function CreateOption(group As OptionGroup, defaultValue As CodeStyleOption2(Of String), name As String) As Option2(Of CodeStyleOption2(Of String))
-            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForStringCodeStyleOption(name, defaultValue))
+            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForStringCodeStyleOption(defaultValue))
         End Function
 
         Public Shared ReadOnly Property AllOptions As ImmutableArray(Of IOption2)

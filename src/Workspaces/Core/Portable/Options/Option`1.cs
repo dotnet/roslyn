@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         private Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
-            : this(new OptionDefinition(group, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption), feature, name, storageLocations)
+            : this(new OptionDefinition(group, feature + "_" + name, defaultValue, typeof(T), isEditorConfigOption), feature, name, storageLocations)
         {
         }
 

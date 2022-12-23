@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 defaultValue,
                 optionsBuilder,
                 new EditorConfigStorageLocation<CodeStyleOption2<UnusedValuePreference>>(
-                    editorConfigName,
                     s => ParseUnusedExpressionAssignmentPreference(s, defaultValue),
                     o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue)),
                 languageName);

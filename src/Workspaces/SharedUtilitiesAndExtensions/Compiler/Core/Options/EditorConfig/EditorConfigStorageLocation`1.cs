@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation2, IEditorConfigStorageLocation
     {
-        public string KeyName { get; }
-
         private readonly Func<string, Optional<T>> _parseValue;
         private readonly Func<T, string> _serializeValue;
 
@@ -23,21 +21,18 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly Func<OptionSet, T>? _getValueFromOptionSet;
 
         public EditorConfigStorageLocation(
-            string keyName,
             Func<string, Optional<T>> parseValue,
             Func<T, string> serializeValue,
             Func<OptionSet, T>? getValueFromOptionSet)
-            : this(keyName, parseValue, serializeValue)
+            : this(parseValue, serializeValue)
         {
             _getValueFromOptionSet = getValueFromOptionSet;
         }
 #endif
         public EditorConfigStorageLocation(
-            string keyName,
             Func<string, Optional<T>> parseValue,
             Func<T, string> serializeValue)
         {
-            KeyName = keyName;
             _parseValue = parseValue;
             _serializeValue = serializeValue;
         }
