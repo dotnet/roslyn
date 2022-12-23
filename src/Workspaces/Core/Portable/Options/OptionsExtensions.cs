@@ -13,18 +13,18 @@ namespace Microsoft.CodeAnalysis.Options
     {
         public static Option<CodeStyleOption<T>> ToPublicOption<T>(this Option2<CodeStyleOption2<T>> option)
             => new Option<CodeStyleOption<T>>(
-                option.Feature,
-                option.Group,
-                option.Name,
+                option.OptionDefinition.Feature,
+                option.OptionDefinition.Group,
+                option.OptionDefinition.Name,
                 defaultValue: new CodeStyleOption<T>(option.DefaultValue),
                 ((IOption2)option).StorageLocations,
                 option.OptionDefinition.IsEditorConfigOption);
 
         public static PerLanguageOption<CodeStyleOption<T>> ToPublicOption<T>(this PerLanguageOption2<CodeStyleOption2<T>> option)
             => new PerLanguageOption<CodeStyleOption<T>>(
-                option.Feature,
-                option.Group,
-                option.Name,
+                option.OptionDefinition.Feature,
+                option.OptionDefinition.Group,
+                option.OptionDefinition.Name,
                 defaultValue: new CodeStyleOption<T>(option.DefaultValue),
                 ((IOption2)option).StorageLocations,
                 option.OptionDefinition.IsEditorConfigOption);

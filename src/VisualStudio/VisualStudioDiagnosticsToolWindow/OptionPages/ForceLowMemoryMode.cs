@@ -32,7 +32,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
         private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Feature == FeatureName)
+            if (e.Option == Enabled || e.Option == SizeInMegabytes)
             {
                 RefreshFromSettings();
             }

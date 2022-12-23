@@ -164,9 +164,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var globalOptions = GetGlobalOptionService(workspace.Services);
-            var option1 = new Option2<int>("Feature1", "Name1", defaultValue: 1);
-            var option2 = new Option2<int>("Feature2", "Name2", defaultValue: 2);
-            var option3 = new Option2<int>("Feature3", "Name3", defaultValue: 3);
+            var option1 = new Option2<int>(feature: null, "test_option1", defaultValue: 1);
+            var option2 = new Option2<int>(feature: null, "test_option2", defaultValue: 2);
+            var option3 = new Option2<int>(feature: null, "test_option3", defaultValue: 3);
 
             var changedOptions = new List<OptionChangedEventArgs>();
 
@@ -184,9 +184,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             AssertEx.Equal(new[]
             {
-                "Name1=5",
-                "Name2=6",
-            }, changedOptions.Select(e => $"{e.OptionKey.Option.Name}={e.Value}"));
+                "test_option1=5",
+                "test_option2=6",
+            }, changedOptions.Select(e => $"{e.Option.OptionDefinition.ConfigName}={e.Value}"));
 
             values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey2(option1), new OptionKey2(option2), new OptionKey2(option3)));
             Assert.Equal(5, values[0]);

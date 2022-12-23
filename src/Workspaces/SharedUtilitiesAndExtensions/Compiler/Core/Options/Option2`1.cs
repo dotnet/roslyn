@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -33,21 +32,12 @@ namespace Microsoft.CodeAnalysis.Options
     {
     }
 
-    /// <summary>
-    /// An global option. An instance of this class can be used to access an option value from an OptionSet.
-    /// </summary>
     internal partial class Option2<T> : ISingleValuedOption<T>
     {
         public OptionDefinition OptionDefinition { get; }
 
-        /// <inheritdoc cref="OptionDefinition.Feature"/>
-        public string Feature => OptionDefinition.Feature;
-
         /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => OptionDefinition.Group;
-
-        /// <inheritdoc cref="OptionDefinition.Name"/>
-        public string Name => OptionDefinition.Name;
 
         /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)OptionDefinition.DefaultValue!;
@@ -89,12 +79,11 @@ namespace Microsoft.CodeAnalysis.Options
         IEditorConfigStorageLocation? IOption2.StorageLocation => StorageLocation;
 
 #if CODE_STYLE
-        object? IOption2.DefaultValue => this.DefaultValue;
-
         bool IOption2.IsPerLanguage => false;
 #else
+        string IOption.Feature => OptionDefinition.Feature;
+        string IOption.Name => OptionDefinition.Name;
         object? IOption.DefaultValue => this.DefaultValue;
-
         bool IOption.IsPerLanguage => false;
 
         ImmutableArray<OptionStorageLocation> IOption.StorageLocations

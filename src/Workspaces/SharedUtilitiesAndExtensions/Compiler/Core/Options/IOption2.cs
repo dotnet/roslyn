@@ -22,10 +22,6 @@ namespace Microsoft.CodeAnalysis.Options
         IEditorConfigStorageLocation? StorageLocation { get; }
 
 #if CODE_STYLE
-        string Feature { get; }
-        string Name { get; }
-        Type Type { get; }
-        object? DefaultValue { get; }
         bool IsPerLanguage { get; }
 #endif
     }

@@ -671,7 +671,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             foreach (var (diagnosticId, options) in diagnosticIdAndOptions)
             {
                 var hasEditorConfigCodeStyleOptions = false;
-                foreach (var option in options.OrderBy(o => o.Name))
+                foreach (var option in options.OrderBy(o => o.OptionDefinition.ConfigName))
                 {
                     var editorConfigLocation = (IEditorConfigStorageLocation)option.StorageLocations.Single();
                     var editorConfigString = $"{option.OptionDefinition.ConfigName} = {editorConfigLocation.GetEditorConfigStringValue(option.DefaultValue)}";
@@ -713,7 +713,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 var diagnosticIdString = $"# {diagnosticId}";
                 if (optionOpt != null)
                 {
-                    diagnosticIdString += $", {optionOpt.Name}";
+                    diagnosticIdString += $", {optionOpt.OptionDefinition.ConfigName}";
                 }
 
                 if (expectedLines.Length == 0)

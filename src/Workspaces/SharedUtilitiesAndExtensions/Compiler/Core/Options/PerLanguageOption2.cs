@@ -30,14 +30,8 @@ namespace Microsoft.CodeAnalysis.Options
     {
         public OptionDefinition OptionDefinition { get; }
 
-        /// <inheritdoc cref="OptionDefinition.Feature"/>
-        public string Feature => OptionDefinition.Feature;
-
         /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => OptionDefinition.Group;
-
-        /// <inheritdoc cref="OptionDefinition.Name"/>
-        public string Name => OptionDefinition.Name;
 
         /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => OptionDefinition.Type;
@@ -79,12 +73,11 @@ namespace Microsoft.CodeAnalysis.Options
         IEditorConfigStorageLocation? IOption2.StorageLocation => StorageLocation;
 
 #if CODE_STYLE
-        object? IOption2.DefaultValue => this.DefaultValue;
-
         bool IOption2.IsPerLanguage => true;
 #else
+        string IOption.Feature => OptionDefinition.Feature;
+        string IOption.Name => OptionDefinition.Name;
         object? IOption.DefaultValue => this.DefaultValue;
-
         bool IOption.IsPerLanguage => true;
 
         ImmutableArray<OptionStorageLocation> IOption.StorageLocations

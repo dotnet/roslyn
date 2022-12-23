@@ -77,6 +77,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
         }
 
         [Fact]
+        public void Names()
+        {
+            var option1 = new Option2<bool>(feature: null, name: "name", false);
+            Assert.Equal("config", option1.OptionDefinition.Feature);
+            Assert.Equal("name", option1.OptionDefinition.Name);
+            Assert.Equal("name", option1.OptionDefinition.ConfigName);
+            Assert.Equal("name", option1.ToString());
+
+            var option2 = new PerLanguageOption2<bool>(feature: null, name: "name", false);
+            Assert.Equal("config", option2.OptionDefinition.Feature);
+            Assert.Equal("name", option2.OptionDefinition.Name);
+            Assert.Equal("name", option2.OptionDefinition.ConfigName);
+            Assert.Equal("name", option2.ToString());
+        }
+
+        [Fact]
         [Obsolete]
         public void ToStringForObsoleteOption()
         {
