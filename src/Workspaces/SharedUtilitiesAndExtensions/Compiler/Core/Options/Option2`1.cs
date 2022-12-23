@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public Option2(string? feature, OptionGroup group, string? name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null)
         {
-            OptionDefinition = new OptionDefinition(feature, group, name, storageLocation.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption: storageLocation != null);
+            OptionDefinition = new OptionDefinition(group, storageLocation.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption: storageLocation != null);
             StorageLocation = storageLocation;
             LanguageName = languageName;
 
@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Options
 #if CODE_STYLE
         bool IOption2.IsPerLanguage => false;
 #else
-        string IOption.Feature => OptionDefinition.Feature;
-        string IOption.Name => OptionDefinition.Name;
+        string IOption.Feature => "config";
+        string IOption.Name => OptionDefinition.ConfigName;
         object? IOption.DefaultValue => this.DefaultValue;
         bool IOption.IsPerLanguage => false;
 

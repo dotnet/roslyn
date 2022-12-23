@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Recommendations;
 #pragma warning disable RS0030 // Do not used banned APIs: PerLanguageOption<T>
 public static class RecommendationOptions
 {
-    public static PerLanguageOption<bool> HideAdvancedMembers { get; } = RecommendationOptions2.HideAdvancedMembers.ToPublicOption();
-    public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = RecommendationOptions2.FilterOutOfScopeLocals.ToPublicOption();
+    public static PerLanguageOption<bool> HideAdvancedMembers { get; } = RecommendationOptions2.HideAdvancedMembers.ToPublicOption("RecommendationOptions", "HideAdvancedMembers");
+    public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = RecommendationOptions2.FilterOutOfScopeLocals.ToPublicOption("RecommendationOptions", "FilterOutOfScopeLocals");
 }
 #pragma warning restore
 

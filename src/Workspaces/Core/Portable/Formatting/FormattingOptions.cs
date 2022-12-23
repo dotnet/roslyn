@@ -12,21 +12,25 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <inheritdoc cref="FormattingOptions2"/>
     public static partial class FormattingOptions
     {
+        private const string FeatureName = "FormattingOptions";
+
         /// <inheritdoc cref="FormattingOptions2.UseTabs"/>
-        public static PerLanguageOption<bool> UseTabs { get; } = FormattingOptions2.UseTabs.ToPublicOption();
+        public static PerLanguageOption<bool> UseTabs { get; } = FormattingOptions2.UseTabs.ToPublicOption(FeatureName, "UseTabs");
 
         /// <inheritdoc cref="FormattingOptions2.TabSize"/>
-        public static PerLanguageOption<int> TabSize { get; } = FormattingOptions2.TabSize.ToPublicOption();
+        public static PerLanguageOption<int> TabSize { get; } = FormattingOptions2.TabSize.ToPublicOption(FeatureName, "TabSize");
 
         /// <inheritdoc cref="FormattingOptions2.IndentationSize"/>
-        public static PerLanguageOption<int> IndentationSize { get; } = FormattingOptions2.IndentationSize.ToPublicOption();
+        public static PerLanguageOption<int> IndentationSize { get; } = FormattingOptions2.IndentationSize.ToPublicOption(FeatureName, "IndentationSize");
 
         /// <inheritdoc cref="FormattingOptions2.NewLine"/>
-        public static PerLanguageOption<string> NewLine { get; } = FormattingOptions2.NewLine.ToPublicOption();
+        public static PerLanguageOption<string> NewLine { get; } = FormattingOptions2.NewLine.ToPublicOption(FeatureName, "NewLine");
 
         /// <inheritdoc cref="FormattingOptions2.IndentStyle"/>
         public static PerLanguageOption<IndentStyle> SmartIndent { get; } = new(
             FormattingOptions2.SmartIndent.OptionDefinition,
+            FeatureName,
+            "SmartIndent",
             ((IOption2)FormattingOptions2.SmartIndent).StorageLocations);
     }
 }

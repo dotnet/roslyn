@@ -16,19 +16,14 @@ namespace Microsoft.CodeAnalysis.Options
     {
         private readonly OptionDefinition _optionDefinition;
 
-        /// <inheritdoc cref="OptionDefinition.Feature"/>
-        public string Feature => _optionDefinition.Feature;
+        public string Feature { get; }
 
-        /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => _optionDefinition.Group;
 
-        /// <inheritdoc cref="OptionDefinition.Name"/>
-        public string Name => _optionDefinition.Name;
+        public string Name { get; }
 
-        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
-        /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => _optionDefinition.Type;
 
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
@@ -62,13 +57,15 @@ namespace Microsoft.CodeAnalysis.Options
             Debug.Assert(storageLocations.All(l => l is not IEditorConfigStorageLocation));
         }
 
-        internal Option(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
-            : this(new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption), storageLocations)
+        private Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
+            : this(new OptionDefinition(group, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption), feature, name, storageLocations)
         {
         }
 
-        internal Option(OptionDefinition optionDefinition, ImmutableArray<OptionStorageLocation> storageLocations)
+        internal Option(OptionDefinition optionDefinition, string feature, string name, ImmutableArray<OptionStorageLocation> storageLocations)
         {
+            Feature = feature;
+            Name = name;
             _optionDefinition = optionDefinition;
             StorageLocations = storageLocations;
         }
@@ -93,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
-        public override string ToString() => _optionDefinition.PublicOptionDefinitionToString();
+        public override string ToString() => this.PublicOptionDefinitionToString();
 
         public override int GetHashCode() => _optionDefinition.GetHashCode();
 
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return true;
             }
 
-            return other is not null && _optionDefinition.PublicOptionDefinitionEquals(other.OptionDefinition);
+            return other is not null && this.PublicOptionDefinitionEquals(other);
         }
 
         public static implicit operator OptionKey(Option<T> option)

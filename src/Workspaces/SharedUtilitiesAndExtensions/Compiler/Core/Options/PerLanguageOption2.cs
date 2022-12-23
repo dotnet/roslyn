@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Options
         public PerLanguageOption2(string? feature, OptionGroup group, string? name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null)
         {
             var isEditorConfigOption = storageLocation != null || typeof(T) == typeof(NamingStylePreferences);
-            OptionDefinition = new OptionDefinition(feature, group, name, storageLocation.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption);
+            OptionDefinition = new OptionDefinition(group, storageLocation.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption);
             StorageLocation = storageLocation;
 
             VerifyNamingConvention();
@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Options
 #if CODE_STYLE
         bool IOption2.IsPerLanguage => true;
 #else
-        string IOption.Feature => OptionDefinition.Feature;
-        string IOption.Name => OptionDefinition.Name;
+        string IOption.Feature => "config";
+        string IOption.Name => OptionDefinition.ConfigName;
         object? IOption.DefaultValue => this.DefaultValue;
         bool IOption.IsPerLanguage => true;
 

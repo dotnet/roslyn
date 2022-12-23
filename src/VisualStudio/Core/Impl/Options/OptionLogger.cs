@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal static class OptionLogger
     {
-        private const string Name = nameof(Name);
+        private const string ConfigName = nameof(ConfigName);
         private const string Language = nameof(Language);
         private const string Change = nameof(Change);
         private const string All = nameof(All);
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             return KeyValueLogMessage.Create(m =>
             {
-                m[Name] = optionKey.Option.OptionDefinition.Name;
+                m[ConfigName] = optionKey.Option.OptionDefinition.ConfigName;
                 m[Language] = optionKey.Language ?? All;
                 m[Change] = CreateOptionValue(oldValue, currentValue);
             });

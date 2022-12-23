@@ -15,15 +15,6 @@ namespace Microsoft.CodeAnalysis.Options
         public const string CSharpConfigNamePrefix = "csharp_";
         public const string VisualBasicConfigNamePrefix = "visual_basic_";
 
-        private const string FeatureConfig = "config";
-
-        private readonly string? _name;
-
-        /// <summary>
-        /// Feature this option is associated with. Obsolete.
-        /// </summary>
-        public string Feature { get; }
-
         /// <summary>
         /// Optional group/sub-feature for this option.
         /// </summary>
@@ -49,21 +40,14 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public bool IsEditorConfigOption { get; }
 
-        public OptionDefinition(string? feature, OptionGroup group, string? name, string configName, object? defaultValue, Type type, bool isEditorConfigOption)
+        public OptionDefinition(OptionGroup group, string configName, object? defaultValue, Type type, bool isEditorConfigOption)
         {
             ConfigName = configName;
-            Feature = feature ?? FeatureConfig;
-            _name = name;
             Group = group;
             DefaultValue = defaultValue;
             Type = type;
             IsEditorConfigOption = isEditorConfigOption;
         }
-
-        /// <summary>
-        /// The legacy name of the option.
-        /// </summary>
-        public string Name => _name ?? ConfigName;
 
         public override bool Equals(object? obj)
             => obj is OptionDefinition key && Equals(key);
@@ -82,32 +66,5 @@ namespace Microsoft.CodeAnalysis.Options
 
         public static bool operator !=(OptionDefinition left, OptionDefinition right)
             => !left.Equals(right);
-
-        #region Backward compat helpers
-
-        // The following are used only to implement equality/ToString of public Option<T> and PerLanguageOption<T> options.
-        // Public options can be instantiated with non-unique config name and thus we need to include default value in the equality
-        // to avoid collisions among them.
-
-        public string PublicOptionDefinitionToString()
-            => $"{Feature} - {_name}";
-
-        public bool PublicOptionDefinitionEquals(OptionDefinition other)
-        {
-            var equals = this.Name == other.Name &&
-                this.Feature == other.Feature &&
-                this.Group == other.Group;
-
-            // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
-            // So, we skip these fields for equality checks of code style options.
-            if (equals && !(this.DefaultValue is ICodeStyleOption))
-            {
-                equals = Equals(this.DefaultValue, other.DefaultValue) && this.Type == other.Type;
-            }
-
-            return equals;
-        }
-
-        #endregion
     }
 }
