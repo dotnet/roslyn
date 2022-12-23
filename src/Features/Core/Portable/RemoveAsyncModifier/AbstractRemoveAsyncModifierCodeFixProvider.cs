@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
         private static bool ShouldOfferFix(ITypeSymbol returnType, KnownTypes knownTypes)
             => IsTaskType(returnType, knownTypes)
-                || returnType.OriginalDefinition.Equals(knownTypes._taskOfTType)
-                || returnType.OriginalDefinition.Equals(knownTypes._valueTaskOfTTypeOpt);
+                || returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType)
+                || returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTTypeOpt);
 
         private static bool IsTaskType(ITypeSymbol returnType, KnownTypes knownTypes)
-            => returnType.OriginalDefinition.Equals(knownTypes._taskType)
-                || returnType.OriginalDefinition.Equals(knownTypes._valueTaskType);
+            => returnType.OriginalDefinition.Equals(knownTypes.TaskType)
+                || returnType.OriginalDefinition.Equals(knownTypes.ValueTaskType);
 
         private SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode node, ITypeSymbol returnType, KnownTypes knownTypes, bool needsReturnStatementAdded)
         {
@@ -199,14 +199,14 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         private static SyntaxNode GetReturnTaskCompletedTaskStatement(SyntaxGenerator generator, ITypeSymbol returnType, KnownTypes knownTypes)
         {
             SyntaxNode invocation;
-            if (returnType.OriginalDefinition.Equals(knownTypes._taskType))
+            if (returnType.OriginalDefinition.Equals(knownTypes.TaskType))
             {
-                var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes._taskType);
+                var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes.TaskType);
                 invocation = generator.MemberAccessExpression(taskTypeExpression, nameof(Task.CompletedTask));
             }
             else
             {
-                invocation = generator.ObjectCreationExpression(knownTypes._valueTaskType);
+                invocation = generator.ObjectCreationExpression(knownTypes.ValueTaskType);
             }
 
             var statement = generator.ReturnStatement(invocation);
@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
         private static SyntaxNode WrapExpressionWithTaskFromResult(SyntaxGenerator generator, SyntaxNode expression, ITypeSymbol returnType, KnownTypes knownTypes)
         {
-            if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
+            if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
             {
-                var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes._taskType);
+                var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes.TaskType);
                 var unwrappedReturnType = returnType.GetTypeArguments()[0];
                 var memberName = generator.GenericName(nameof(Task.FromResult), unwrappedReturnType);
                 var taskFromResult = generator.MemberAccessExpression(taskTypeExpression, memberName);
