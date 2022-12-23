@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             var defaultCodeStyle = (CodeStyleOption2<bool>)((ICodeStyleOption)CodeStyleOption2<bool>.Default).WithValue(defaultValue);
 
             return new Option2<CodeStyleOption2<bool>>(
-                feature: "TestFeature",
-                name: "TestOption",
+                name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
                 new EditorConfigStorageLocation<CodeStyleOption2<bool>>("dotnet_test_option", _ => defaultCodeStyle, _ => "default"));
         }
@@ -92,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
         {
             var defaultCodeStyle = (CodeStyleOption2<T>)((ICodeStyleOption)CodeStyleOption2<T>.Default).WithValue(defaultValue);
             return new Option2<CodeStyleOption2<T>>(
-                feature: "TestFeature",
-                name: "TestOption",
+                name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
                 new EditorConfigStorageLocation<CodeStyleOption2<T>>("dotnet_test_option", _ => defaultCodeStyle, _ => "default"));
         }

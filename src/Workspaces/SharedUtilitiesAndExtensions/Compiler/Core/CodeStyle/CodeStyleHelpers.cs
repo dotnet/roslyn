@@ -114,14 +114,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public static Option2<T> CreateOption<T>(
             OptionGroup group,
-            string feature,
             string name,
             T defaultValue,
             ImmutableArray<IOption2>.Builder optionsBuilder,
             EditorConfigStorageLocation<T> storageLocation,
             string languageName)
         {
-            var option = new Option2<T>(feature, group, name, defaultValue, storageLocation, languageName);
+            var option = new Option2<T>(group, name, defaultValue, storageLocation, languageName);
             optionsBuilder.Add(option);
             return option;
         }
@@ -138,16 +137,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public static Option2<CodeStyleOption2<UnusedValuePreference>> CreateUnusedExpressionAssignmentOption(
             OptionGroup group,
-            string feature,
-            string name,
             string editorConfigName,
             CodeStyleOption2<UnusedValuePreference> defaultValue,
             ImmutableArray<IOption2>.Builder optionsBuilder,
             string languageName)
             => CreateOption(
                 group,
-                feature,
-                name,
+                editorConfigName,
                 defaultValue,
                 optionsBuilder,
                 new EditorConfigStorageLocation<CodeStyleOption2<UnusedValuePreference>>(

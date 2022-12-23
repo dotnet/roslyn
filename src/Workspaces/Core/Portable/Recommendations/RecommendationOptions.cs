@@ -17,8 +17,8 @@ public static class RecommendationOptions
 
 internal static class RecommendationOptions2
 {
-    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("RecommendationOptions", "HideAdvancedMembers", RecommendationServiceOptions.Default.HideAdvancedMembers);
-    public static readonly PerLanguageOption2<bool> FilterOutOfScopeLocals = new("RecommendationOptions", "FilterOutOfScopeLocals", RecommendationServiceOptions.Default.FilterOutOfScopeLocals);
+    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("RecommendationOptions_HideAdvancedMembers", RecommendationServiceOptions.Default.HideAdvancedMembers);
+    public static readonly PerLanguageOption2<bool> FilterOutOfScopeLocals = new("RecommendationOptions_FilterOutOfScopeLocals", RecommendationServiceOptions.Default.FilterOutOfScopeLocals);
 }
 
 [DataContract]

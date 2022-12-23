@@ -8,9 +8,9 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 {
     internal sealed class KeybindingResetOptions
     {
-        public static readonly Option2<ReSharperStatus> ReSharperStatus = new("KeybindingResetOptions", "ReSharperStatus", defaultValue: KeybindingReset.ReSharperStatus.NotInstalledOrDisabled);
-        public static readonly Option2<bool> NeedsReset = new("KeybindingResetOptions", "NeedsReset", defaultValue: false);
-        public static readonly Option2<bool> NeverShowAgain = new("KeybindingResetOptions", "NeverShowAgain", defaultValue: false);
-        public static readonly Option2<bool> EnabledFeatureFlag = new("KeybindingResetOptions", "EnabledFeatureFlag", defaultValue: false);
+        public static readonly Option2<ReSharperStatus> ReSharperStatus = new("KeybindingResetOptions_ReSharperStatus", defaultValue: KeybindingReset.ReSharperStatus.NotInstalledOrDisabled);
+        public static readonly Option2<bool> NeedsReset = new("KeybindingResetOptions_NeedsReset", defaultValue: false);
+        public static readonly Option2<bool> NeverShowAgain = new("KeybindingResetOptions_NeverShowAgain", defaultValue: false);
+        public static readonly Option2<bool> EnabledFeatureFlag = new("KeybindingResetOptions_EnabledFeatureFlag", defaultValue: false);
     }
 }

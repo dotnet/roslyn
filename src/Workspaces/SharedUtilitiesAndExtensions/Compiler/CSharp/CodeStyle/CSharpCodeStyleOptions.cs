@@ -14,9 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
     internal static partial class CSharpCodeStyleOptions
     {
-        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = CodeStyleOptions2.TrueWithSuggestionEnforcement;
-        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = CodeStyleOptions2.TrueWithSilentEnforcement;
-
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
         internal static ImmutableArray<IOption2> AllOptions { get; }
@@ -24,99 +21,83 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         private static Option2<T> CreateOption<T>(
             OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
             => CodeStyleHelpers.CreateOption(
-                group, nameof(CSharpCodeStyleOptions), name, defaultValue,
+                group, name, defaultValue,
                 s_allOptionsBuilder, storageLocation, LanguageNames.CSharp);
 
         private static Option2<CodeStyleOption2<bool>> CreateOption(
-            OptionGroup group, string name, CodeStyleOption2<bool> defaultValue, string editorconfigKeyName)
+            OptionGroup group, CodeStyleOption2<bool> defaultValue, string name)
             => CreateOption(
                 group, name, defaultValue,
-                EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue));
+                EditorConfigStorageLocation.ForBoolCodeStyleOption(name, defaultValue));
 
         private static Option2<CodeStyleOption2<string>> CreateOption(
-            OptionGroup group, string name, CodeStyleOption2<string> defaultValue, string editorconfigKeyName)
+            OptionGroup group, CodeStyleOption2<string> defaultValue, string name)
             => CreateOption(
                 group, name, defaultValue,
-                EditorConfigStorageLocation.ForStringCodeStyleOption(editorconfigKeyName, defaultValue));
+                EditorConfigStorageLocation.ForStringCodeStyleOption(name, defaultValue));
 
         public static readonly Option2<CodeStyleOption2<bool>> VarForBuiltInTypes = CreateOption(
-            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarForBuiltInTypes),
-            CSharpSimplifierOptions.Default.VarForBuiltInTypes,
+            CSharpCodeStyleOptionGroups.VarPreferences, CSharpSimplifierOptions.Default.VarForBuiltInTypes,
             "csharp_style_var_for_built_in_types");
 
         public static readonly Option2<CodeStyleOption2<bool>> VarWhenTypeIsApparent = CreateOption(
-            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarWhenTypeIsApparent),
-            CSharpSimplifierOptions.Default.VarWhenTypeIsApparent,
+            CSharpCodeStyleOptionGroups.VarPreferences, CSharpSimplifierOptions.Default.VarWhenTypeIsApparent,
             "csharp_style_var_when_type_is_apparent");
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(
-            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarElsewhere),
-            CSharpSimplifierOptions.Default.VarElsewhere,
+            CSharpCodeStyleOptionGroups.VarPreferences, CSharpSimplifierOptions.Default.VarElsewhere,
             "csharp_style_var_elsewhere");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferConditionalDelegateCall = CreateOption(
-            CSharpCodeStyleOptionGroups.NullCheckingPreferences, nameof(PreferConditionalDelegateCall),
-            CSharpIdeCodeStyleOptions.Default.PreferConditionalDelegateCall,
+            CSharpCodeStyleOptionGroups.NullCheckingPreferences, CSharpIdeCodeStyleOptions.Default.PreferConditionalDelegateCall,
             "csharp_style_conditional_delegate_call");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferSwitchExpression = CreateOption(
-            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferSwitchExpression),
-            CSharpIdeCodeStyleOptions.Default.PreferSwitchExpression,
+            CSharpCodeStyleOptionGroups.PatternMatching, CSharpIdeCodeStyleOptions.Default.PreferSwitchExpression,
             "csharp_style_prefer_switch_expression");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferPatternMatching = CreateOption(
-            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatching),
-            CSharpIdeCodeStyleOptions.Default.PreferPatternMatching,
+            CSharpCodeStyleOptionGroups.PatternMatching, CSharpIdeCodeStyleOptions.Default.PreferPatternMatching,
             "csharp_style_prefer_pattern_matching");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferPatternMatchingOverAsWithNullCheck = CreateOption(
-            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatchingOverAsWithNullCheck),
-            CSharpIdeCodeStyleOptions.Default.PreferPatternMatchingOverAsWithNullCheck,
+            CSharpCodeStyleOptionGroups.PatternMatching, CSharpIdeCodeStyleOptions.Default.PreferPatternMatchingOverAsWithNullCheck,
             "csharp_style_pattern_matching_over_as_with_null_check");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferPatternMatchingOverIsWithCastCheck = CreateOption(
-            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatchingOverIsWithCastCheck),
-            CSharpIdeCodeStyleOptions.Default.PreferPatternMatchingOverIsWithCastCheck,
+            CSharpCodeStyleOptionGroups.PatternMatching, CSharpIdeCodeStyleOptions.Default.PreferPatternMatchingOverIsWithCastCheck,
             "csharp_style_pattern_matching_over_is_with_cast_check");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferNotPattern = CreateOption(
-            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferNotPattern),
-            CSharpIdeCodeStyleOptions.Default.PreferNotPattern,
+            CSharpCodeStyleOptionGroups.PatternMatching, CSharpIdeCodeStyleOptions.Default.PreferNotPattern,
             "csharp_style_prefer_not_pattern");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferExtendedPropertyPattern = CreateOption(
-            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferExtendedPropertyPattern),
-            CSharpIdeCodeStyleOptions.Default.PreferExtendedPropertyPattern,
+            CSharpCodeStyleOptionGroups.PatternMatching, CSharpIdeCodeStyleOptions.Default.PreferExtendedPropertyPattern,
             "csharp_style_prefer_extended_property_pattern");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferThrowExpression = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
-            CSharpSimplifierOptions.Default.PreferThrowExpression,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpSimplifierOptions.Default.PreferThrowExpression,
             "csharp_style_throw_expression");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferInlinedVariableDeclaration = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferInlinedVariableDeclaration),
-            CSharpIdeCodeStyleOptions.Default.PreferInlinedVariableDeclaration,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.PreferInlinedVariableDeclaration,
             "csharp_style_inlined_variable_declaration");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferDeconstructedVariableDeclaration = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferDeconstructedVariableDeclaration),
-            CSharpIdeCodeStyleOptions.Default.PreferDeconstructedVariableDeclaration,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.PreferDeconstructedVariableDeclaration,
             "csharp_style_deconstructed_variable_declaration");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferIndexOperator = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferIndexOperator),
-            CSharpIdeCodeStyleOptions.Default.PreferIndexOperator,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.PreferIndexOperator,
             "csharp_style_prefer_index_operator");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferRangeOperator = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferRangeOperator),
-            CSharpIdeCodeStyleOptions.Default.PreferRangeOperator,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.PreferRangeOperator,
             "csharp_style_prefer_range_operator");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferUtf8StringLiterals = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "PreferUtf8StringLiterals",
-            CSharpIdeCodeStyleOptions.Default.PreferUtf8StringLiterals,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.PreferUtf8StringLiterals,
             "csharp_style_prefer_utf8_string_literals");
 
         public static readonly CodeStyleOption2<ExpressionBodyPreference> NeverWithSilentEnforcement =
@@ -135,11 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             new(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.Silent);
 
         private static Option2<CodeStyleOption2<ExpressionBodyPreference>> CreatePreferExpressionBodyOption(
-            string optionName,
             CodeStyleOption2<ExpressionBodyPreference> defaultValue,
             string editorconfigKeyName)
         => CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, optionName,
+            CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, editorconfigKeyName,
             defaultValue,
             new EditorConfigStorageLocation<CodeStyleOption2<ExpressionBodyPreference>>(
                 editorconfigKeyName,
@@ -147,85 +127,77 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 v => GetExpressionBodyPreferenceEditorConfigString(v, defaultValue)));
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedConstructors = CreatePreferExpressionBodyOption(
-            nameof(PreferExpressionBodiedConstructors), defaultValue: NeverWithSilentEnforcement, "csharp_style_expression_bodied_constructors");
+            defaultValue: NeverWithSilentEnforcement, editorconfigKeyName: "csharp_style_expression_bodied_constructors");
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedMethods = CreatePreferExpressionBodyOption(
-            nameof(PreferExpressionBodiedMethods), defaultValue: NeverWithSilentEnforcement, "csharp_style_expression_bodied_methods");
+            defaultValue: NeverWithSilentEnforcement, editorconfigKeyName: "csharp_style_expression_bodied_methods");
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedOperators = CreatePreferExpressionBodyOption(
-            nameof(PreferExpressionBodiedOperators), defaultValue: NeverWithSilentEnforcement, "csharp_style_expression_bodied_operators");
+            defaultValue: NeverWithSilentEnforcement, editorconfigKeyName: "csharp_style_expression_bodied_operators");
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedProperties = CreatePreferExpressionBodyOption(
-            nameof(PreferExpressionBodiedProperties), defaultValue: WhenPossibleWithSilentEnforcement, "csharp_style_expression_bodied_properties");
+            defaultValue: WhenPossibleWithSilentEnforcement, editorconfigKeyName: "csharp_style_expression_bodied_properties");
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedIndexers = CreatePreferExpressionBodyOption(
-            nameof(PreferExpressionBodiedIndexers), defaultValue: WhenPossibleWithSilentEnforcement, "csharp_style_expression_bodied_indexers");
+            defaultValue: WhenPossibleWithSilentEnforcement, editorconfigKeyName: "csharp_style_expression_bodied_indexers");
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedAccessors = CreatePreferExpressionBodyOption(
-            nameof(PreferExpressionBodiedAccessors), defaultValue: WhenPossibleWithSilentEnforcement, "csharp_style_expression_bodied_accessors");
+            defaultValue: WhenPossibleWithSilentEnforcement, editorconfigKeyName: "csharp_style_expression_bodied_accessors");
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedLambdas = CreatePreferExpressionBodyOption(
-            nameof(PreferExpressionBodiedLambdas), defaultValue: WhenPossibleWithSilentEnforcement, "csharp_style_expression_bodied_lambdas");
+            defaultValue: WhenPossibleWithSilentEnforcement, editorconfigKeyName: "csharp_style_expression_bodied_lambdas");
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedLocalFunctions = CreatePreferExpressionBodyOption(
-            nameof(PreferExpressionBodiedLocalFunctions), defaultValue: NeverWithSilentEnforcement, "csharp_style_expression_bodied_local_functions");
+            defaultValue: NeverWithSilentEnforcement, editorconfigKeyName: "csharp_style_expression_bodied_local_functions");
 
         private static Option2<CodeStyleOption2<PreferBracesPreference>> CreatePreferBracesOption(
-            string optionName,
             CodeStyleOption2<PreferBracesPreference> defaultValue,
-            string editorconfigKeyName)
+            string name)
         => CreateOption(
-            CSharpCodeStyleOptionGroups.CodeBlockPreferences, optionName,
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, name,
             defaultValue,
             new EditorConfigStorageLocation<CodeStyleOption2<PreferBracesPreference>>(
-                editorconfigKeyName,
+                name,
                 s => ParsePreferBracesPreference(s, defaultValue),
                 v => GetPreferBracesPreferenceEditorConfigString(v, defaultValue)));
 
         public static readonly Option2<CodeStyleOption2<PreferBracesPreference>> PreferBraces = CreatePreferBracesOption(
-            nameof(PreferBraces), CSharpSimplifierOptions.Default.PreferBraces, "csharp_prefer_braces");
+            CSharpSimplifierOptions.Default.PreferBraces, "csharp_prefer_braces");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferSimpleDefaultExpression = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimpleDefaultExpression),
-            CSharpSimplifierOptions.Default.PreferSimpleDefaultExpression,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpSimplifierOptions.Default.PreferSimpleDefaultExpression,
             "csharp_prefer_simple_default_expression");
 
         public static readonly Option2<CodeStyleOption2<string>> PreferredModifierOrder = CreateOption(
-            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferredModifierOrder),
-            CSharpIdeCodeStyleOptions.Default.PreferredModifierOrder,
+            CSharpCodeStyleOptionGroups.Modifier, CSharpIdeCodeStyleOptions.Default.PreferredModifierOrder,
             "csharp_preferred_modifier_order");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferStaticLocalFunction = CreateOption(
-            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferStaticLocalFunction),
-            CSharpIdeCodeStyleOptions.Default.PreferStaticLocalFunction,
+            CSharpCodeStyleOptionGroups.Modifier, CSharpIdeCodeStyleOptions.Default.PreferStaticLocalFunction,
             "csharp_prefer_static_local_function");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferReadOnlyStruct = CreateOption(
-            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferReadOnlyStruct),
-            CSharpIdeCodeStyleOptions.Default.PreferReadOnlyStruct,
+            CSharpCodeStyleOptionGroups.Modifier, CSharpIdeCodeStyleOptions.Default.PreferReadOnlyStruct,
             "csharp_style_prefer_readonly_struct");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferSimpleUsingStatement = CreateOption(
-            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferSimpleUsingStatement),
-            CSharpIdeCodeStyleOptions.Default.PreferSimpleUsingStatement,
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, CSharpIdeCodeStyleOptions.Default.PreferSimpleUsingStatement,
             "csharp_prefer_simple_using_statement");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferLocalOverAnonymousFunction = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferLocalOverAnonymousFunction),
-            CSharpIdeCodeStyleOptions.Default.PreferLocalOverAnonymousFunction,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.PreferLocalOverAnonymousFunction,
             "csharp_style_prefer_local_over_anonymous_function");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferTupleSwap = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferTupleSwap),
-            CSharpIdeCodeStyleOptions.Default.PreferTupleSwap,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.PreferTupleSwap,
             "csharp_style_prefer_tuple_swap");
 
         public static readonly CodeStyleOption2<AddImportPlacement> PreferOutsidePlacementWithSilentEnforcement =
            new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
 
-        private static Option2<CodeStyleOption2<AddImportPlacement>> CreateUsingDirectivePlacementOption(string optionName, CodeStyleOption2<AddImportPlacement> defaultValue, string editorconfigKeyName)
+        private static Option2<CodeStyleOption2<AddImportPlacement>> CreateUsingDirectivePlacementOption(CodeStyleOption2<AddImportPlacement> defaultValue, string editorconfigKeyName)
             => CreateOption(
-                CSharpCodeStyleOptionGroups.UsingDirectivePreferences, optionName,
+                CSharpCodeStyleOptionGroups.UsingDirectivePreferences, editorconfigKeyName,
                 defaultValue,
                 new EditorConfigStorageLocation<CodeStyleOption2<AddImportPlacement>>(
                     editorconfigKeyName,
@@ -233,66 +205,60 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                     v => GetUsingDirectivesPlacementEditorConfigString(v, defaultValue)));
 
         public static readonly Option2<CodeStyleOption2<AddImportPlacement>> PreferredUsingDirectivePlacement = CreateUsingDirectivePlacementOption(
-            "PreferredUsingDirectivePlacement", AddImportPlacementOptions.Default.UsingDirectivePlacement, "csharp_using_directive_placement");
+            AddImportPlacementOptions.Default.UsingDirectivePlacement, "csharp_using_directive_placement");
 
         internal static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueExpressionStatement =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
                 CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
-                feature: nameof(CSharpCodeStyleOptions),
-                name: "UnusedValueExpressionStatement",
                 editorConfigName: "csharp_style_unused_value_expression_statement_preference",
-                CSharpIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
-                s_allOptionsBuilder,
-                LanguageNames.CSharp);
+                defaultValue: CSharpIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
+                optionsBuilder: s_allOptionsBuilder,
+                languageName: LanguageNames.CSharp);
 
         internal static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueAssignment =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
                 CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
-                feature: nameof(CSharpCodeStyleOptions),
-                name: "UnusedValueAssignment",
                 editorConfigName: "csharp_style_unused_value_assignment_preference",
-                CSharpIdeCodeStyleOptions.Default.UnusedValueAssignment,
-                s_allOptionsBuilder,
-                LanguageNames.CSharp);
+                defaultValue: CSharpIdeCodeStyleOptions.Default.UnusedValueAssignment,
+                optionsBuilder: s_allOptionsBuilder,
+                languageName: LanguageNames.CSharp);
 
         public static readonly Option2<CodeStyleOption2<bool>> ImplicitObjectCreationWhenTypeIsApparent = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(ImplicitObjectCreationWhenTypeIsApparent),
-            CSharpIdeCodeStyleOptions.Default.ImplicitObjectCreationWhenTypeIsApparent,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.ImplicitObjectCreationWhenTypeIsApparent,
             "csharp_style_implicit_object_creation_when_type_is_apparent");
 
         internal static readonly Option2<CodeStyleOption2<bool>> PreferNullCheckOverTypeCheck = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNullCheckOverTypeCheck),
-            CSharpIdeCodeStyleOptions.Default.PreferNullCheckOverTypeCheck,
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, CSharpIdeCodeStyleOptions.Default.PreferNullCheckOverTypeCheck,
             "csharp_style_prefer_null_check_over_type_check");
 
         public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowEmbeddedStatementsOnSameLine),
+            CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_embedded_statements_on_same_line_experimental",
             CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine,
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_embedded_statements_on_same_line_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLinesBetweenConsecutiveBraces),
+            CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_blank_lines_between_consecutive_braces_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLinesBetweenConsecutiveBraces,
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_lines_between_consecutive_braces_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterColonInConstructorInitializer { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLineAfterColonInConstructorInitializer),
+            CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterColonInConstructorInitializer,
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInConditionalExpression { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLineAfterTokenInConditionalExpression),
+            CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInConditionalExpression,
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInArrowExpressionClause { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLineAfterTokenInArrowExpressionClause),
+            CSharpCodeStyleOptionGroups.NewLinePreferences, "csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental",
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInArrowExpressionClause,
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental", CodeStyleOptions2.TrueWithSilentEnforcement));
 
-        private static Option2<CodeStyleOption2<NamespaceDeclarationPreference>> CreateNamespaceDeclarationOption(string optionName, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, string editorconfigKeyName)
+        private static Option2<CodeStyleOption2<NamespaceDeclarationPreference>> CreateNamespaceDeclarationOption(CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, string editorconfigKeyName)
             => CreateOption(
-                CSharpCodeStyleOptionGroups.CodeBlockPreferences, optionName,
+                CSharpCodeStyleOptionGroups.CodeBlockPreferences, editorconfigKeyName,
                 defaultValue,
                 new EditorConfigStorageLocation<CodeStyleOption2<NamespaceDeclarationPreference>>(
                     editorconfigKeyName,
@@ -300,18 +266,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                     v => GetNamespaceDeclarationEditorConfigString(v, defaultValue)));
 
         public static readonly Option2<CodeStyleOption2<NamespaceDeclarationPreference>> NamespaceDeclarations = CreateNamespaceDeclarationOption(
-            "NamespaceDeclarations",
             CSharpSyntaxFormattingOptions.Default.NamespaceDeclarations,
             "csharp_style_namespace_declarations");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferMethodGroupConversion = CreateOption(
-            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferMethodGroupConversion),
-            CSharpIdeCodeStyleOptions.Default.PreferMethodGroupConversion,
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, CSharpIdeCodeStyleOptions.Default.PreferMethodGroupConversion,
             "csharp_style_prefer_method_group_conversion");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferTopLevelStatements = CreateOption(
-            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferTopLevelStatements),
-            CSharpSyntaxFormattingOptions.Default.PreferTopLevelStatements,
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, CSharpSyntaxFormattingOptions.Default.PreferTopLevelStatements,
             "csharp_style_prefer_top_level_statements");
 
         static CSharpCodeStyleOptions()

@@ -79,13 +79,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
         [Fact]
         public void Names()
         {
-            var option1 = new Option2<bool>(feature: null, name: "name", false);
+            var option1 = new Option2<bool>(name: "name", false);
             Assert.Equal("config", ((IOption)option1).Feature);
             Assert.Equal("name", ((IOption)option1).Name);
             Assert.Equal("name", option1.OptionDefinition.ConfigName);
             Assert.Equal("name", option1.ToString());
 
-            var option2 = new PerLanguageOption2<bool>(feature: null, name: "name", false);
+            var option2 = new PerLanguageOption2<bool>(name: "name", false);
             Assert.Equal("config", ((IOption)option2).Feature);
             Assert.Equal("name", ((IOption)option2).Name);
             Assert.Equal("name", option2.OptionDefinition.ConfigName);

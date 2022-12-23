@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal static class DiagnosticTaggingOptions
 {
     public static readonly Option2<bool> PullDiagnosticTagging = new(
-        "DiagnosticTaggingOptions", "PullDiagnosticTagging", defaultValue: true);
+        "DiagnosticTaggingOptions_PullDiagnosticTagging", defaultValue: true);
 }
 
 /// <summary>

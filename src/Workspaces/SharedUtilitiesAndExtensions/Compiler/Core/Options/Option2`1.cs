@@ -47,14 +47,16 @@ namespace Microsoft.CodeAnalysis.Options
 
         public EditorConfigStorageLocation<T>? StorageLocation { get; }
 
-        public Option2(string? feature, string? name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocation)
+        public Option2(string name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null)
+            : this(group: OptionGroup.Default, name: name, defaultValue: defaultValue, storageLocation: storageLocation)
         {
         }
 
-        public Option2(string? feature, OptionGroup group, string? name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null)
+        public Option2(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null)
         {
-            OptionDefinition = new OptionDefinition(group, storageLocation.GetOptionConfigName(feature, name), defaultValue, typeof(T), isEditorConfigOption: storageLocation != null);
+            Debug.Assert(storageLocation == null || storageLocation.KeyName == name);
+
+            OptionDefinition = new OptionDefinition(group, name, defaultValue, typeof(T), isEditorConfigOption: storageLocation != null);
             StorageLocation = storageLocation;
             LanguageName = languageName;
 

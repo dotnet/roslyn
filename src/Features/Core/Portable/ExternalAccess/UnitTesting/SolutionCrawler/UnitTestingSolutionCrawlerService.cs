@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
     {
-        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions", "Solution Crawler", defaultValue: true);
+        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions_Solution Crawler", defaultValue: true);
 
         /// <summary>
         /// nested class of <see cref="UnitTestingSolutionCrawlerRegistrationService"/> since it is tightly coupled with it.

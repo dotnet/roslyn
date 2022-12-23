@@ -2,30 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionViewOptions
     {
-        private const string FeatureName = "CompletionOptions";
-
         public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems =
-            new(FeatureName, nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true);
+            new("CompletionOptions_HighlightMatchingPortionsOfCompletionListItems", defaultValue: true);
 
         public static readonly PerLanguageOption2<bool> ShowCompletionItemFilters =
-            new(FeatureName, nameof(ShowCompletionItemFilters), defaultValue: true);
+            new("CompletionOptions_ShowCompletionItemFilters", defaultValue: true);
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.
         public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
-            new(FeatureName, nameof(EnableArgumentCompletionSnippets), defaultValue: null);
+            new("CompletionOptions_EnableArgumentCompletionSnippets", defaultValue: null);
 
         public static readonly PerLanguageOption2<bool> BlockForCompletionItems =
-            new(FeatureName, nameof(BlockForCompletionItems), defaultValue: true);
+            new("CompletionOptions_BlockForCompletionItems", defaultValue: true);
     }
 }
