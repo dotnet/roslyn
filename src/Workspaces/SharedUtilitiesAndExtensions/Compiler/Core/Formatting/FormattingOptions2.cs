@@ -37,19 +37,19 @@ namespace Microsoft.CodeAnalysis.Formatting
 #endif
 
         public static PerLanguageOption2<bool> UseTabs = new(
-            FormattingOptionGroups.IndentationAndSpacing, "indent_style", LineFormattingOptions.Default.UseTabs,
+            "indent_style", LineFormattingOptions.Default.UseTabs, FormattingOptionGroups.IndentationAndSpacing,
             new EditorConfigStorageLocation<bool>(s => s == "tab", isSet => isSet ? "tab" : "space"));
 
         public static PerLanguageOption2<int> TabSize = new(
-            FormattingOptionGroups.IndentationAndSpacing, "tab_width", LineFormattingOptions.Default.TabSize,
+            "tab_width", LineFormattingOptions.Default.TabSize, FormattingOptionGroups.IndentationAndSpacing,
             EditorConfigStorageLocation.ForInt32Option());
 
         public static PerLanguageOption2<int> IndentationSize = new(
-            FormattingOptionGroups.IndentationAndSpacing, "indent_size", LineFormattingOptions.Default.IndentationSize,
+            "indent_size", LineFormattingOptions.Default.IndentationSize, FormattingOptionGroups.IndentationAndSpacing,
             EditorConfigStorageLocation.ForInt32Option());
 
         public static PerLanguageOption2<string> NewLine = new(
-            FormattingOptionGroups.NewLine, "end_of_line", LineFormattingOptions.Default.NewLine,
+            "end_of_line", LineFormattingOptions.Default.NewLine, FormattingOptionGroups.NewLine,
             new EditorConfigStorageLocation<string>(
                 parseValue: value => value.Trim() switch
                 {
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }));
 
         internal static Option2<bool> InsertFinalNewLine = new(
-            FormattingOptionGroups.NewLine, "insert_final_newline", DocumentFormattingOptions.Default.InsertFinalNewLine,
+            "insert_final_newline", DocumentFormattingOptions.Default.InsertFinalNewLine, FormattingOptionGroups.NewLine,
             EditorConfigStorageLocation.ForBoolOption());
 
         public static PerLanguageOption2<IndentStyle> SmartIndent = new(
-            FormattingOptionGroups.IndentationAndSpacing, "FormattingOptions_SmartIndent", defaultValue: IndentationOptions.DefaultIndentStyle);
+            "FormattingOptions_SmartIndent", defaultValue: IndentationOptions.DefaultIndentStyle, group: FormattingOptionGroups.IndentationAndSpacing);
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption2> Options = ImmutableArray.Create<IOption2>(

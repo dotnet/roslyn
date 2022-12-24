@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private static PerLanguageOption2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
         {
-            var option = new PerLanguageOption2<T>(group, name, defaultValue, storageLocation);
+            var option = new PerLanguageOption2<T>(name, defaultValue, group, storageLocation);
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
         private static Option2<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
         {
-            var option = new Option2<T>(group, name, defaultValue, storageLocation);
+            var option = new Option2<T>(name, defaultValue, group, storageLocation);
             s_allOptionsBuilder.Add(option);
             return option;
         }
@@ -322,9 +322,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         #endregion
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = new(
-            CodeStyleOptionGroups.ExpressionLevelPreferences,
             "CodeStyleOptions_PreferSystemHashCode",
-            IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode);
+            IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode,
+            CodeStyleOptionGroups.ExpressionLevelPreferences);
 
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, IdeCodeStyleOptions.CommonOptions.Default.PreferNamespaceAndFolderMatchStructure,

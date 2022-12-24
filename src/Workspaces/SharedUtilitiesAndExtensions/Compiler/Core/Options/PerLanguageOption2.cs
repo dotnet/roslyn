@@ -41,15 +41,10 @@ namespace Microsoft.CodeAnalysis.Options
 
         public EditorConfigStorageLocation<T>? StorageLocation { get; }
 
-        public PerLanguageOption2(string name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null)
-            : this(OptionGroup.Default, name, defaultValue, storageLocation)
-        {
-        }
-
-        public PerLanguageOption2(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T>? storageLocation = null)
+        public PerLanguageOption2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null)
         {
             var isEditorConfigOption = storageLocation != null || typeof(T) == typeof(NamingStylePreferences);
-            OptionDefinition = new OptionDefinition(group, name, defaultValue, typeof(T), isEditorConfigOption);
+            OptionDefinition = new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), isEditorConfigOption);
             StorageLocation = storageLocation;
 
             VerifyNamingConvention();

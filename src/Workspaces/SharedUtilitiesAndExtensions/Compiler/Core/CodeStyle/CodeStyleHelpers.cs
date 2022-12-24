@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             EditorConfigStorageLocation<T> storageLocation,
             string languageName)
         {
-            var option = new Option2<T>(group, name, defaultValue, storageLocation, languageName);
+            var option = new Option2<T>(name, defaultValue, group, storageLocation, languageName);
             optionsBuilder.Add(option);
             return option;
         }

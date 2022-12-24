@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static Option2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
         {
-            var option = new Option2<T>(group, name, defaultValue, storageLocation, LanguageNames.CSharp);
+            var option = new Option2<T>(name, defaultValue, group, storageLocation, LanguageNames.CSharp);
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
         private static Option2<bool> CreateNewLineForBracesLegacyOption(string name, bool defaultValue)
-            => new(CSharpFormattingOptionGroups.NewLine, name, defaultValue);
+            => new(name, defaultValue, CSharpFormattingOptionGroups.NewLine);
 
         public static Option2<bool> SpacingAfterMethodDeclarationName { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, "csharp_space_between_method_declaration_name_and_open_parenthesis",
@@ -115,19 +115,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         // Legacy options, only to be used in OptionSets and global options.
 
         public static Option2<bool> SpaceWithinExpressionParentheses { get; } = new Option2<bool>(
-            CSharpFormattingOptionGroups.Spacing,
-            name: "CSharpFormattingOptions_SpaceWithinExpressionParentheses",
-            defaultValue: CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinExpressionParentheses));
+            "CSharpFormattingOptions_SpaceWithinExpressionParentheses",
+            CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinExpressionParentheses),
+            CSharpFormattingOptionGroups.Spacing);
 
         public static Option2<bool> SpaceWithinCastParentheses { get; } = new Option2<bool>(
-            CSharpFormattingOptionGroups.Spacing,
-            name: "CSharpFormattingOptions_SpaceWithinCastParentheses",
-            defaultValue: CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinCastParentheses));
+            "CSharpFormattingOptions_SpaceWithinCastParentheses",
+            CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinCastParentheses),
+            CSharpFormattingOptionGroups.Spacing);
 
         public static Option2<bool> SpaceWithinOtherParentheses { get; } = new Option2<bool>(
-            CSharpFormattingOptionGroups.Spacing,
-            name: "CSharpFormattingOptions_SpaceWithinOtherParentheses",
-            defaultValue: CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinOtherParentheses));
+            "CSharpFormattingOptions_SpaceWithinOtherParentheses",
+            CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinOtherParentheses),
+            CSharpFormattingOptionGroups.Spacing);
 
         // editor config option:
         public static Option2<SpacePlacementWithinParentheses> SpaceBetweenParentheses { get; } = CreateOption(

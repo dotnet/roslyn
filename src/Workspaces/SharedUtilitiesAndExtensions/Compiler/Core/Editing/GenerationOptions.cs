@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Editing
     internal class GenerationOptions
     {
         public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
-            CodeStyleOptionGroups.Usings, "dotnet_sort_system_directives_first",
-            AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
+            "dotnet_sort_system_directives_first", AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
+            CodeStyleOptionGroups.Usings,
             EditorConfigStorageLocation.ForBoolOption());
 
         public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
-            CodeStyleOptionGroups.Usings, "dotnet_separate_import_directive_groups",
-            SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups,
+            "dotnet_separate_import_directive_groups", SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups,
+            CodeStyleOptionGroups.Usings,
             EditorConfigStorageLocation.ForBoolOption());
 
         public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(

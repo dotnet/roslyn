@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             return new Option2<CodeStyleOption2<bool>>(
                 name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
-                new EditorConfigStorageLocation<CodeStyleOption2<bool>>(_ => defaultCodeStyle, _ => "default"));
+                storageLocation: new EditorConfigStorageLocation<CodeStyleOption2<bool>>(_ => defaultCodeStyle, _ => "default"));
         }
 
         private static Option2<CodeStyleOption2<T>> CreateEnumOption<T>(T defaultValue)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             return new Option2<CodeStyleOption2<T>>(
                 name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
-                new EditorConfigStorageLocation<CodeStyleOption2<T>>(_ => defaultCodeStyle, _ => "default"));
+                storageLocation: new EditorConfigStorageLocation<CodeStyleOption2<T>>(_ => defaultCodeStyle, _ => "default"));
         }
 
         private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
