@@ -1534,6 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class RefSafetyAnalysis
     {
+#nullable enable
         private void ValidateAssignment(
             SyntaxNode node,
             BoundExpression op1,
@@ -1556,8 +1557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
                     // 2. `e1` must have the same *safe-to-escape* as `e2`
 
-                    var leftEscape = GetRefEscape(op1, _localScopeDepth);
-                    var rightEscape = GetRefEscape(op2, _localScopeDepth);
+                    var leftEscape = GetRefEscape(op1);
+                    var rightEscape = GetRefEscape(op2);
                     if (leftEscape < rightEscape)
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
@@ -1576,8 +1577,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
                     {
-                        leftEscape = GetValEscape(op1, _localScopeDepth);
-                        rightEscape = GetValEscape(op2, _localScopeDepth);
+                        leftEscape = GetValEscape(op1);
+                        rightEscape = GetValEscape(op2);
 
                         Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
 
@@ -1600,7 +1601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!hasErrors && op1.Type.IsRefLikeType)
                 {
-                    var leftEscape = GetValEscape(op1, _localScopeDepth);
+                    var leftEscape = GetValEscape(op1);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
             }
@@ -1624,6 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return "";
             }
         }
+#nullable disable
     }
 
     partial class Binder

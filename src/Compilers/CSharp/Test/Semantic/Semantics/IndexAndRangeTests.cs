@@ -1971,6 +1971,12 @@ class Program
                 // (77,26): error CS8352: Cannot use variable 's91' in this context because it may expose referenced variables outside of their declaration scope
                 //         return new Index(s91) .. new Index(s92);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s91").WithArguments("s91").WithLocation(77, 26),
+                // (77,34): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new Index(s91) .. new Index(s92);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s92)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(77, 34),
+                // (77,44): error CS8352: Cannot use variable 's92' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new Index(s91) .. new Index(s92);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s92").WithArguments("s92").WithLocation(77, 44),
                 // (84,16): error CS8347: Cannot use a result of 'Range.Range(Index, Index)' in this context because it may expose variables referenced by parameter 'start' outside of their declaration scope
                 //         return new Range(new Index(s101), new Index(s102));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new Range(new Index(s101), new Index(s102))").WithArguments("System.Range.Range(System.Index, System.Index)", "start").WithLocation(84, 16),

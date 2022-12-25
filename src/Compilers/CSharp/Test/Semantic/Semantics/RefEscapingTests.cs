@@ -829,10 +829,11 @@ unsafe class Program
             var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion == LanguageVersion.CSharp10)
             {
+                // PROTOTYPE: Should report ERR_EscapeCall as well since the other diagnostic is an error rather than a warning.
                 comp.VerifyDiagnostics(
-                    // (7,20): error CS8347: Cannot use a result of 'Program.ReturnsRef1(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                    //         return ref ReturnsRef1(out var _);
-                    Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(out var _)").WithArguments("Program.ReturnsRef1(out int)", "x").WithLocation(7, 20),
+                    //// (7,20): error CS8347: Cannot use a result of 'Program.ReturnsRef1(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    ////         return ref ReturnsRef1(out var _);
+                    //Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(out var _)").WithArguments("Program.ReturnsRef1(out int)", "x").WithLocation(7, 20),
                     // (7,36): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                     //         return ref ReturnsRef1(out var _);
                     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "var _").WithLocation(7, 36));

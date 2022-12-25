@@ -20594,7 +20594,7 @@ class C
         }
 
         [Fact]
-        public void RefInitializer_Nested()
+        public void RefInitializer_Nested_01()
         {
             var source = @"
 class C
@@ -20640,6 +20640,35 @@ ref struct Item
   IL_002a:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void RefInitializer_Nested_02()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        int x = 42;
+        Container r;
+        r = new Container { item = { field = ref x } };
+    }
+}
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (7,38): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new Container { item = { field = ref x } };
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(7, 38));
         }
 
         [Fact]
@@ -21335,6 +21364,35 @@ public ref struct R
                 //         r = new R() with { field = ref x }; // 4
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 28)
                 );
+        }
+
+        [Fact]
+        public void RefWith_Nested()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        int x = 42;
+        Container r;
+        r = new Container() with { item = new Item { field = ref x } };
+    }
+}
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new Container() with { item = new Item { field = ref x } };
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(7, 54));
         }
 
         [Fact]
@@ -29556,6 +29614,135 @@ Block[B2] - Exit
                 // (27,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
+        }
+
+        [Fact]
+        public void PROTOTYPE_Assignment_01()
+        {
+            var source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        R r = default;
+                        int i = 0;
+                        r = new R(ref i);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         r = new R(ref i);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i)").WithArguments("R.R(ref int)", "i").WithLocation(11, 13),
+                // (11,23): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         r = new R(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(11, 23));
+        }
+
+        [WorkItem(65596, "https://github.com/dotnet/roslyn/issues/65596")]
+        [Fact]
+        public void PROTOTYPE_NestedCalls()
+        {
+            var source = """
+                #pragma warning disable 8321
+
+                static string BuildString(ref Builder<char> builder)
+                {
+                    string name = "";
+                    return builder
+                        .Append(name)
+                        .Append(name)
+                        .Append(name)
+                        .Append(name)
+                        .ToString();
+                }
+
+                ref struct Builder<T>
+                {
+                    public override string ToString() => "";
+                }
+
+                static class Extensions
+                {
+                    public static ref Builder<char> Append(this ref Builder<char> builder, string txt) => ref builder;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PROTOTYPE_01()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        var sx = new S<int>(ref x);
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PROTOTYPE_02()
+        {
+            var source = """
+                #pragma warning disable 8321
+                static S2 Inner1(ref S s)
+                {
+                    return new S2 { S = s };
+                }
+                ref struct S
+                {
+                }
+                ref struct S2
+                {
+                    public S S;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PROTOTYPE_03()
+        {
+            var source = """
+                #pragma warning disable 8321
+                static S2 Inner1()
+                {
+                    int i = 0;
+                    var s = new S(ref i);
+                    return new S2 { S = s };
+                }
+                ref struct S
+                {
+                    public S(ref int i) { }
+                }
+                ref struct S2
+                {
+                    public S S;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //     return new S2 { S = s };
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "S = s").WithArguments("s").WithLocation(6, 21));
         }
     }
 }

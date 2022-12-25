@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.AwaitOpt is { } awaitableInfo)
             {
                 uint valEscapeScope = node.ExpressionOpt is { } expr
-                    ? GetValEscape(expr, _localScopeDepth)
+                    ? GetValEscape(expr)
                     : _localScopeDepth;
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, valEscapeScope);
             }
@@ -344,14 +345,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
         {
             using var _1 = new LocalScope(this, node.InnerLocals);
-            using var _2 = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
+            using var _2 = new PatternInput(this, GetValEscape(node.Expression));
             base.VisitSwitchStatement(node);
             return null;
         }
 
         public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
-            using var _ = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
+            using var _ = new PatternInput(this, GetValEscape(node.Expression));
             base.VisitConvertedSwitchExpression(node);
             return null;
         }
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the initializer. Validate the escape values for the initializer instead.
 
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
-                        refEscapeScope >= GetRefEscape(initializer, _localScopeDepth));
+                        refEscapeScope >= GetRefEscape(initializer));
 
                     if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true)
                     {
@@ -446,10 +447,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // default to the current scope in case we need to handle self-referential error cases.
                     SetLocalScopes(localSymbol, _localScopeDepth, _localScopeDepth);
 
-                    valEscapeScope = GetValEscape(initializer, _localScopeDepth);
+                    valEscapeScope = GetValEscape(initializer);
                     if (localSymbol.RefKind != RefKind.None)
                     {
-                        refEscapeScope = GetRefEscape(initializer, _localScopeDepth);
+                        refEscapeScope = GetRefEscape(initializer);
                     }
 
                     SetLocalScopes(localSymbol, refEscapeScope, valEscapeScope);
@@ -491,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            using var _ = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
+            using var _ = new PatternInput(this, GetValEscape(node.Expression));
             return base.VisitIsPatternExpression(node);
         }
 
@@ -594,7 +595,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
                     node.ArgsToParamsOpt,
-                    _localScopeDepth,
                     _diagnostics);
             }
 
@@ -617,13 +617,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         Debug.Assert(receiver != null);
-                        valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver, _localScopeDepth) : GetValEscape(receiver, _localScopeDepth);
+                        valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver) : GetValEscape(receiver);
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         continue;
                     case >= 0:
-                        valEscapeScope = GetValEscape(arguments[argIndex], _localScopeDepth);
+                        valEscapeScope = GetValEscape(arguments[argIndex]);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
@@ -635,7 +635,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
-            base.VisitObjectCreationExpression(node);
+            VisitList(node.Arguments);
+
+            VisitObjectCreationExpressionBase(node);
 
             if (!node.HasErrors)
             {
@@ -648,11 +650,100 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
                     node.ArgsToParamsOpt,
-                    _localScopeDepth,
                     _diagnostics);
             }
 
             return null;
+        }
+
+        public override BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
+        {
+            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
+            VisitList(node.Arguments);
+
+            // PROTOTYPE: Test.
+            VisitObjectCreationExpressionBase(node);
+            return null;
+        }
+
+        public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+        {
+            // PROTOTYPE: Test.
+            VisitObjectCreationExpressionBase(node);
+            return null;
+        }
+
+        public override BoundNode? VisitNewT(BoundNewT node)
+        {
+            VisitObjectCreationExpressionBase(node);
+            return null;
+        }
+
+        public override BoundNode? VisitWithExpression(BoundWithExpression node)
+        {
+            Visit(node.Receiver);
+            VisitObjectCreationInitializer(node.InitializerExpression);
+            return null;
+        }
+
+        private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
+        {
+            if (node.InitializerExpressionOpt is { } initializer)
+            {
+                VisitObjectCreationInitializer(initializer);
+            }
+        }
+
+        private void VisitObjectCreationInitializer(BoundObjectInitializerExpressionBase node)
+        {
+            switch (node)
+            {
+                case BoundObjectInitializerExpression objectInitializer:
+                    foreach (var initializer in objectInitializer.Initializers)
+                    {
+                        switch (initializer)
+                        {
+                            case BoundAssignmentOperator assignment:
+                                switch (assignment.Left)
+                                {
+                                    case BoundObjectInitializerMember:
+                                        // PROTOTYPE: Check indexer args.
+                                        switch (assignment.Right)
+                                        {
+                                            case BoundObjectInitializerExpression memberInitializer:
+                                                VisitObjectCreationInitializer(memberInitializer);
+                                                break;
+                                            default:
+                                                Visit(assignment.Right);
+                                                break;
+                                        }
+                                        break;
+                                    default:
+                                        Visit(initializer);
+                                        break;
+                                }
+                                break;
+                            default:
+                                Visit(initializer);
+                                break;
+                        }
+                    }
+                    break;
+                case BoundCollectionInitializerExpression collectionInitializer:
+                    foreach (var initializer in collectionInitializer.Initializers)
+                    {
+                        switch (initializer)
+                        {
+                            case BoundCollectionElementInitializer:
+                                // PROTOTYPE: Check Add() method.
+                                goto default;
+                            default:
+                                Visit(initializer);
+                                break;
+                        }
+                    }
+                    break;
+            }
         }
 
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
@@ -671,7 +762,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
                     node.ArgsToParamsOpt,
-                    _localScopeDepth,
                     _diagnostics);
             }
 
@@ -694,7 +784,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
                     argsToParamsOpt: default,
-                    _localScopeDepth,
                     _diagnostics);
             }
 
@@ -704,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, GetValEscape(node.Expression, _localScopeDepth));
+            GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, GetValEscape(node.Expression));
             using var _ = new PlaceholderRegion(this, placeholders);
             base.VisitAwaitExpression(node);
             return null;
@@ -756,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right, _localScopeDepth)));
+            placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right)));
 
             var parameters = deconstructMethod.Parameters;
             int n = variables.Count;
@@ -769,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var nestedVariables = variable.NestedVariables;
                 var arg = (BoundDeconstructValuePlaceholder)invocation.Arguments[i + offset];
                 uint valEscape = nestedVariables is null
-                    ? GetValEscape(variable.Expression, _localScopeDepth)
+                    ? GetValEscape(variable.Expression)
                     : _localScopeDepth;
                 placeholders.Add((arg, valEscape));
             }
@@ -784,7 +873,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invocation.Arguments,
                 invocation.ArgumentRefKindsOpt,
                 invocation.ArgsToParamsOpt,
-                _localScopeDepth,
                 _diagnostics);
 
             for (int i = 0; i < n; i++)
@@ -828,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return expr is BoundTupleExpression tuple
                     ? new DeconstructionVariable(expr, valEscape: uint.MaxValue, GetDeconstructionAssignmentVariables(tuple))
-                    : new DeconstructionVariable(expr, GetValEscape(expr, _localScopeDepth), null);
+                    : new DeconstructionVariable(expr, GetValEscape(expr), null);
             }
         }
 
@@ -853,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
-            uint collectionEscape = GetValEscape(node.Expression, _localScopeDepth);
+            uint collectionEscape = GetValEscape(node.Expression);
             using var _ = new LocalScope(this, ImmutableArray<LocalSymbol>.Empty);
 
             foreach (var local in node.IterationVariables)
