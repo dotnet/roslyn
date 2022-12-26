@@ -3,7 +3,6 @@
 #nullable enable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpSymbolIsBannedInAnalyzersAnalyzer,
