@@ -133,7 +133,7 @@ public async Task TestMethodAsync() { }
             }
         }
 
-        internal class TestWithSuppressor : VerifyCS.Test
+        internal sealed class TestWithSuppressor : VerifyCS.Test
         {
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {

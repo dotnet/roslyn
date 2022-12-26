@@ -120,7 +120,7 @@ End Class";
 #pragma warning restore RS0030 // Do not use banned APIs
 
         [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Used via new() constraint: https://github.com/dotnet/roslyn-analyzers/issues/3199")]
-        internal class TestCSharpUpgradeMSBuildWorkspaceAnalyzer : CSharpUpgradeMSBuildWorkspaceAnalyzer
+        internal sealed class TestCSharpUpgradeMSBuildWorkspaceAnalyzer : CSharpUpgradeMSBuildWorkspaceAnalyzer
         {
             public TestCSharpUpgradeMSBuildWorkspaceAnalyzer()
                 : base(performAssemblyChecks: false)
@@ -129,7 +129,7 @@ End Class";
         }
 
         [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Used via new() constraint: https://github.com/dotnet/roslyn-analyzers/issues/3199")]
-        internal class TestVisualBasicUpgradeMSBuildWorkspaceAnalyzer : VisualBasicUpgradeMSBuildWorkspaceAnalyzer
+        internal sealed class TestVisualBasicUpgradeMSBuildWorkspaceAnalyzer : VisualBasicUpgradeMSBuildWorkspaceAnalyzer
         {
             public TestVisualBasicUpgradeMSBuildWorkspaceAnalyzer()
                 : base(performAssemblyChecks: false)

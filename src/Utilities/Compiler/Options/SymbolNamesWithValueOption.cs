@@ -107,6 +107,7 @@ namespace Analyzer.Utilities
                 {
                     ProcessWildcardName(parts, wildcardNamesBuilder);
                 }
+#pragma warning disable CA1847 // Use 'string.Contains(char)' instead of 'string.Contains(string)' when searching for a single character
                 else if (parts.SymbolName.Equals(".ctor", StringComparison.Ordinal) ||
                     parts.SymbolName.Equals(".cctor", StringComparison.Ordinal) ||
                     !parts.SymbolName.Contains(".", StringComparison.Ordinal) && !parts.SymbolName.Contains(":", StringComparison.Ordinal))
@@ -117,6 +118,7 @@ namespace Analyzer.Utilities
                 {
                     ProcessSymbolName(parts, compilation, optionalPrefix, symbolsBuilder);
                 }
+#pragma warning restore CA1847 // Use 'string.Contains(char)' instead of 'string.Contains(string)' when searching for a single character
             }
 
             if (namesBuilder.Count == 0 && symbolsBuilder.Count == 0 && wildcardNamesBuilder.Count == 0)
@@ -305,8 +307,8 @@ namespace Analyzer.Utilities
             }
 
             // If not found, then we try to match with the symbol full declaration ID...
-            if (_wildcardNamesBySymbolKind.ContainsKey(AllKinds) &&
-                _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var unprefixedFirstMatchOrDefault &&
+            if (_wildcardNamesBySymbolKind.TryGetValue(AllKinds, out var value) &&
+                value.FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var unprefixedFirstMatchOrDefault &&
                 !string.IsNullOrWhiteSpace(unprefixedFirstMatchOrDefault.Key))
             {
                 (firstMatchName, firstMatchValue) = unprefixedFirstMatchOrDefault;
@@ -315,8 +317,8 @@ namespace Analyzer.Utilities
             }
 
             // If not found, then we try to match with the symbol name...
-            if (_wildcardNamesBySymbolKind.ContainsKey(AllKinds) &&
-                _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbol.Name.StartsWith(kvp.Key, StringComparison.Ordinal)) is var partialFirstMatchOrDefault &&
+            if (_wildcardNamesBySymbolKind.TryGetValue(AllKinds, out var allKindsValue) &&
+                allKindsValue.FirstOrDefault(kvp => symbol.Name.StartsWith(kvp.Key, StringComparison.Ordinal)) is var partialFirstMatchOrDefault &&
                 !string.IsNullOrWhiteSpace(partialFirstMatchOrDefault.Key))
             {
                 (firstMatchName, firstMatchValue) = partialFirstMatchOrDefault;

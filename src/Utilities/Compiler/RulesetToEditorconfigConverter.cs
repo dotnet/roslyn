@@ -160,11 +160,13 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig
                         }
                         else if (node is XText xtext)
                         {
+#pragma warning disable CA1847 // Use 'string.Contains(char)' instead of 'string.Contains(string)' when searching for a single character - Retained for clarity
                             if (xtext.Value.Contains("\r", StringComparison.Ordinal) || xtext.Value.Contains("\n", StringComparison.Ordinal))
                             {
                                 // Indicates start of new Rule/XmlComment.
                                 UpdateCurrentRuleIdPostCommentAndResetState();
                             }
+#pragma warning restore CA1847 // Use 'string.Contains(char)' instead of 'string.Contains(string)' when searching for a single character
                         }
                         else
                         {

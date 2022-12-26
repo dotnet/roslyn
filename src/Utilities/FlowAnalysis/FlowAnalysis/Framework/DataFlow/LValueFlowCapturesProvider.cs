@@ -55,12 +55,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 foreach (var captureId in lvalueFlowCaptureIdBuilder)
                 {
-                    if (rvalueFlowCaptureIds.ContainsKey(captureId))
+                    if (rvalueFlowCaptureIds.TryGetValue(captureId, out var operations))
                     {
                         // Flow capture reference is used on left side as well as right side for
                         // CFG generated for coalesce assignment operation ('??=')
                         // Do not fire an assert for this known anomaly.
-                        var operations = rvalueFlowCaptureIds[captureId];
                         if (operations.Count == 1 &&
                             operations.Single().Parent?.Kind == OperationKind.FlowCapture)
                         {
