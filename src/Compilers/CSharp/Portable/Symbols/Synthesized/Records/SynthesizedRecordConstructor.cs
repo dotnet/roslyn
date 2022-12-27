@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -313,19 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool checkIdentifier(Binder enclosingBinder, IdentifierNameSyntax id)
             {
-                // PROTOTYPE(PrimaryConstructors): Handle "Color Color" scenario when parameter reference is getting reinterpreted as a type reference instead. 
-
+                Debug.Assert(lookupResult?.IsClear != false);
                 lookupResult ??= LookupResult.GetInstance();
-                lookupResult.Clear();
-
-                LookupOptions options = LookupOptions.AllMethodsOnArityZero;
-                if (SyntaxFacts.IsInvoked(id))
-                {
-                    options |= LookupOptions.MustBeInvocableIfMember;
-                }
 
                 var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                enclosingBinder.LookupSymbolsWithFallback(lookupResult, id.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: options);
+                enclosingBinder.LookupIdentifier(lookupResult, id, SyntaxFacts.IsInvoked(id), ref useSiteInfo);
 
                 if (lookupResult.IsMultiViable)
                 {
@@ -341,6 +334,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (isInsideNameof.GetValueOrDefault())
                             {
                                 break;
+                            }
+                            else if (lookupResult.IsSingleViable)
+                            {
+                                Debug.Assert(lookupResult.SingleSymbolOrDefault == (object)parameter);
+
+                                // Check for left of potential color color member access 
+                                if (isTypeOrValueReceiver(enclosingBinder, id, parameter.Type, out SyntaxNode? memberAccessNode, out string? memberName, out int targetMemberArity, out bool invoked))
+                                {
+                                    lookupResult.Clear();
+                                    if (treatAsInstanceMemberAccess(enclosingBinder, parameter.Type, memberAccessNode, memberName, targetMemberArity, invoked))
+                                    {
+                                        captured.Add(parameter);
+                                        detectedCapture = true;
+                                    }
+
+                                    // We cleared the lookupResult and the candidate list within it.
+                                    // Do not attempt to continue the enclosing foreach
+                                    break;
+                                }
                             }
 
                             captured.Add(parameter);
@@ -359,7 +371,104 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                lookupResult.Clear();
                 return true;
+            }
+
+            bool isTypeOrValueReceiver(
+                Binder enclosingBinder,
+                IdentifierNameSyntax id,
+                TypeSymbol type,
+                [NotNullWhen(true)] out SyntaxNode? memberAccessNode,
+                [NotNullWhen(true)] out string? memberName,
+                out int targetMemberArity,
+                out bool invoked)
+            {
+                memberAccessNode = null;
+                memberName = null;
+                targetMemberArity = 0;
+                invoked = false;
+
+                switch (id.Parent)
+                {
+                    case MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.SimpleMemberAccessExpression } memberAccess when memberAccess.Expression == id:
+                        var simpleName = memberAccess.Name;
+                        memberAccessNode = simpleName;
+                        memberName = simpleName.Identifier.ValueText;
+                        targetMemberArity = simpleName.Arity;
+                        invoked = SyntaxFacts.IsInvoked(memberAccess);
+                        break;
+                    case QualifiedNameSyntax qualifiedName when qualifiedName.Left == id:
+                        simpleName = qualifiedName.Right;
+                        memberAccessNode = simpleName;
+                        memberName = simpleName.Identifier.ValueText;
+                        targetMemberArity = simpleName.Arity;
+                        invoked = false;
+                        break;
+                    case FromClauseSyntax { Parent: QueryExpressionSyntax query } fromClause when query.FromClause == fromClause && fromClause.Expression == id:
+                        memberName = GetFirstInvokedMethodName(query, out memberAccessNode);
+                        targetMemberArity = 0;
+                        invoked = true;
+                        break;
+                }
+
+                return memberAccessNode is not null && enclosingBinder.IsPotentialColorColorReceiver(id, type);
+            }
+
+            // Follows the logic of BindInstanceMemberAccess
+            bool treatAsInstanceMemberAccess(
+                Binder enclosingBinder,
+                TypeSymbol type,
+                SyntaxNode memberAccessNode,
+                string memberName,
+                int targetMemberArity,
+                bool invoked)
+            {
+                Debug.Assert(!type.IsDynamic());
+                Debug.Assert(lookupResult.IsClear);
+
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                enclosingBinder.LookupInstanceMember(lookupResult, type, leftIsBaseReference: false, memberName, targetMemberArity, invoked, ref useSiteInfo);
+
+                bool treatAsInstanceMemberAccess;
+                if (lookupResult.IsMultiViable)
+                {
+                    // This branch follows the logic of BindMemberOfType
+                    Debug.Assert(lookupResult.Symbols.Any());
+
+                    var members = ArrayBuilder<Symbol>.GetInstance();
+                    Symbol symbol = enclosingBinder.GetSymbolOrMethodOrPropertyGroup(lookupResult, memberAccessNode, memberName, targetMemberArity, members, BindingDiagnosticBag.Discarded, wasError: out _,
+                                                                                     qualifierOpt: null);
+
+                    if ((object)symbol == null)
+                    {
+                        Debug.Assert(members.Count > 0);
+
+                        bool haveInstanceCandidates;
+                        lookupResult.Clear();
+                        enclosingBinder.CheckWhatCandidatesWeHave(members, type, memberName, targetMemberArity,
+                                                                  ref lookupResult, ref useSiteInfo,
+                                                                  out haveInstanceCandidates, out _);
+
+                        treatAsInstanceMemberAccess = haveInstanceCandidates;
+                    }
+                    else
+                    {
+                        // methods are special because of extension methods.
+                        Debug.Assert(symbol.Kind != SymbolKind.Method);
+                        treatAsInstanceMemberAccess = !(symbol.IsStatic || symbol.Kind == SymbolKind.NamedType);
+                    }
+
+                    members.Free();
+                }
+                else
+                {
+                    // At this point this could only be an extension method access or an error
+                    treatAsInstanceMemberAccess = true;
+                }
+
+                lookupResult.Clear();
+                return treatAsInstanceMemberAccess;
             }
 
             bool checkQuery(QueryExpressionSyntax query, Binder enclosingBinder)

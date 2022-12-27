@@ -57,6 +57,11 @@
         <target state="translated">L'opérateur '{0}' ne peut pas être appliqué à 'default' et à l'opérande de type '{1}', car il s'agit d'un paramètre de type qui n'est pas connu en tant que type référence</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
+        <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
+        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">Impossible d'utiliser un type référence Nullable dans la création d'objet.</target>

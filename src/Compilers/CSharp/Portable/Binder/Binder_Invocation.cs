@@ -1564,6 +1564,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpression GetValueExpressionIfTypeOrValueReceiver(BoundExpression receiver)
+        {
+            if ((object)receiver == null)
+            {
+                return null;
+            }
+
+            switch (receiver)
+            {
+                case BoundTypeOrValueExpression typeOrValueExpression:
+                    return typeOrValueExpression.Data.ValueExpression;
+
+                case BoundQueryClause queryClause:
+                    // a query clause may wrap a TypeOrValueExpression.
+                    return GetValueExpressionIfTypeOrValueReceiver(queryClause.Value);
+
+                default:
+                    return null;
+            }
+        }
+
         /// <summary>
         /// Return the delegate type if this expression represents a delegate.
         /// </summary>

@@ -1686,7 +1686,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
         {
             var membersAndInitializers = this.GetMembersAndInitializers();
-            return membersAndInitializers.NonTypeMembers.Where(IsInstanceFieldOrEvent);
+
+            IEnumerable<Symbol> result = membersAndInitializers.NonTypeMembers.Where(IsInstanceFieldOrEvent);
+
+            if (membersAndInitializers.PrimaryConstructor?.GetBackingFields() is { } backingFields &&
+                backingFields != (object)SpecializedCollections.EmptyEnumerable<FieldSymbol>())
+            {
+                result = result.Concat(backingFields);
+            }
+
+            return result;
         }
 
         protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)

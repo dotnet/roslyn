@@ -57,6 +57,11 @@
         <target state="translated">Оператор "{0}" не может быть применен к "default" и операнду типа "{1}", так как это параметр типа, который не является ссылочным типом.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
+        <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
+        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">При создании объекта невозможно использовать ссылочный тип, допускающий значения NULL.</target>

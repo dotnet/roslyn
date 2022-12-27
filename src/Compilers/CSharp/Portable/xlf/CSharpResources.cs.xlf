@@ -57,6 +57,11 @@
         <target state="translated">Operátor {0} nejde použít pro default a operand typu {1}, protože se jedná o parametr typu, který není znám jako odkazový typ.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
+        <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
+        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">K vytvoření objektu nejde použít typ odkazu s možnou hodnotou null.</target>

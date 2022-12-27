@@ -2274,6 +2274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_OptionalParamValueMismatch:
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.ERR_InvalidPrimaryConstructorParameterReference:
+                case ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

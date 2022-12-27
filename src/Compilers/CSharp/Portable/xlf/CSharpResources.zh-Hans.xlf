@@ -57,6 +57,11 @@
         <target state="translated">运算符“{0}”不能应用于 "default" 和类型为“{1}”的操作数，因为它是一个类型参数，而且不是已知的引用类型</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
+        <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
+        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">无法在对象创建中使用可为 null 的引用类型。</target>

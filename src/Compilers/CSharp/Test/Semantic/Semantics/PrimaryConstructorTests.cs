@@ -8939,6 +8939,1835 @@ class Program
             Assert.Equal(1, comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_017_ColorColor_MemberAccess_Static_FieldPropertyEvent(
+            [CombinatorialValues(
+                @"const string Red = ""Red"";",
+                @"static string Red { get; } = ""Red"";",
+                @"static event System.Func<string> Red = () => ""Red"";",
+                @"static string Red = ""Red"";"
+                )]
+            string member)
+        {
+            var source = @"
+class Color
+{
+    public " + member + @"
+
+    public class C1 (Color Color)
+    {
+        public object M1() {var val = Color.Red; return val; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1();
+        System.Console.Write(val is System.Func<string> d ? d() : val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_018_ColorColor_MemberAccess_Static_Method()
+        {
+            var source = @"
+class Color
+{
+    public static string Red() => ""Red"";
+
+    public class C1 (Color Color)
+    {
+        public object M1() => Color.Red();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1();
+        System.Console.Write(val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_019_ColorColor_MemberAccess_Type()
+        {
+            var source = @"
+class Color
+{
+    public class Red;
+
+    public class C1 (Color Color)
+    {
+        public object M1(object input)
+        {
+            switch(input)
+            {
+                case Color.Red: return ""Red"";
+            }
+
+            return ""Blue"";
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1(new Color.Red());
+        System.Console.Write(val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_020_ColorColor_MemberAccess_Instance_FieldPropertyEvent(
+            [CombinatorialValues(
+                @"string Red { get; } = ""Red"";",
+                @"event System.Func<string> Red = () => ""Red"";",
+                @"string Red = ""Red"";"
+                )]
+            string member)
+        {
+            var source = @"
+class Color
+{
+    public " + member + @"
+
+    public class C1 (Color Color)
+    {
+        public object M1() {var val = Color.Red; return val; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(new Color());
+        object val = c1.M1();
+        System.Console.Write(val is System.Func<string> d ? d() : val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_021_ColorColor_MemberAccess_Instance_Method()
+        {
+            var source = @"
+class Color
+{
+    public string Red() => ""Red"";
+
+    public class C1 (Color Color)
+    {
+        public object M1() => Color.Red();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(new Color());
+        object val = c1.M1();
+        System.Console.Write(val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_022_ColorColor_MemberAccess_Instance_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""0"");
+    }
+    
+    public void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""1"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"0").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_024_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""static"");
+    }
+    
+    public void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""instance"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_025_ColorColor_MemberAccess_ExtensionAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_026_ColorColor_MemberAccess_ExtensionAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1<T>(this Color @this, T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_027_ColorColor_MemberAccess_InstanceInapplicableAndStaticApplicableDueToArguments_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(string.Empty);
+    }
+}
+
+class Color
+{
+    public void M1(int x)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1(string x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(string.Empty);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_028_ColorColor_MemberAccess_InstanceApplicableAndStaticInapplicableDueToArguments_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(0);
+    }
+}
+
+class Color
+{
+    public void M1(int x)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1(string x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(0);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_029_ColorColor_MemberAccess_ExtensionApplicableAndStaticInapplicableDueToArgument_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(string.Empty);
+    }
+}
+
+class Color
+{
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, string x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(string.Empty);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_030_ColorColor_MemberAccess_ExtensionInapplicableAndStaticApplicableDueToArguments_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(0);
+    }
+}
+
+class Color
+{
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, string x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(0);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_030_ColorColor_MemberAccess_Extension_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(string.Empty);
+    }
+}
+
+class Color
+{
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, string x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"extension").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_031_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x, int y = 0) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_032_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+    
+    public void M1<T>(T x, int y = 0) where T : unmanaged
+    {
+        System.Console.WriteLine(""instance"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_033_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+    
+    public void M1<T>(T x, int y = 0) where T : unmanaged
+    {
+        System.Console.WriteLine(""instance"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_034_ColorColor_MemberAccess_InstanceAndStaticAmbiguity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // If we treat receiver as value, we capture the parameter and 'S1' becomes managed. Then static method becomes inapplicable due to constraint and we would call instance method.
+            // If we treat receiver as type, we don't capture the parameter and 'S1' remains unmanaged. Then both methods applicable, but we would call static method because optional parameter isn't needed for it.
+            // Neither choice leads to an error, but each would result in distinct behavior.
+            // We decided to treat this as an ambiguity.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_035_ColorColor_MemberAccess_ExtensionInapplicableBasedOnReceiverAndStaticApplicable_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(0);
+    }
+}
+
+class Color
+{
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this S1 @this, int x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_036_ColorColor_MemberAccess_InstanceInapplicableAndStaticApplicableDueToArity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1<int>(0);
+    }
+}
+
+class Color
+{
+    public void M1(int x)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_037_ColorColor_MemberAccess_InstanceApplicableAndStaticInapplicableDueToArity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1<int>(0);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"instance").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_038_ColorColor_MemberAccess_ExtensionApplicableAndStaticInapplicableDueToArity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1<int>(0);
+    }
+}
+
+class Color
+{
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1<T>(this Color @this, T x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"extension").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_039_ColorColor_MemberAccess_ExtensionInapplicableAndStaticApplicableDueToArity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1<int>(0);
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, int x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_040_ColorColor_MemberAccess_InstanceAndStatic_Nameof_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        System.Console.WriteLine(nameof(Color.M1));
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"M1").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_041_ColorColor_MemberAccess_ExtensionAndStatic_Nameof_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        System.Console.WriteLine(nameof(Color.M1));
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, S1 x, int y = 0)
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"M1").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_042_ColorColor_MemberAccess_InstanceAndStatic_InStaticInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public static string F = Color.M1(new S1());
+}
+
+class Color
+{
+    public string M1(S1 x, int y = 0) => ""instance"";
+    
+    public static string M1<T>(T x) where T : unmanaged => ""static"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(S1.F);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_043_ColorColor_MemberAccess_InstanceAndStatic_InStaticInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    static int F = Color.M1(new S1());
+}
+
+class Color
+{
+    public int M1(S1 x) => 0;
+    
+    public static int M1<T>(T x) where T : unmanaged => 0;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17),
+                // (4,20): error CS9500: Cannot use primary constructor parameter 'Color Color' in this context.
+                //     static int F = Color.M1(new S1());
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 20)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_044_ColorColor_MemberAccess_InstanceAndStatic_InStaticMethod_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public static string Test() => Color.M1(new S1());
+}
+
+class Color
+{
+    public string M1(S1 x, int y = 0) => ""instance"";
+    
+    public static string M1<T>(T x) where T : unmanaged => ""static"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(S1.Test());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_045_ColorColor_MemberAccess_InstanceAndStatic_InStaticMethod_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public static int Test() => Color.M1(new S1());
+}
+
+class Color
+{
+    public int M1(S1 x) => 0;
+    
+    public static int M1<T>(T x) where T : unmanaged => 0;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17),
+                // (4,33): error CS9500: Cannot use primary constructor parameter 'Color Color' in this context.
+                //     public static int Test() => Color.M1(new S1());
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 33)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_046_ColorColor_MemberAccess_InstanceAndStatic_InInstanceInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public string F = Color.M1(new S1());
+}
+
+class Color
+{
+    public string M1(S1 x, int y = 0) => ""instance"";
+    
+    public static string M1<T>(T x) => ""static"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(new S1(new Color()).F);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_047_ColorColor_MemberAccess_InstanceAndStatic_InInstanceInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public string F = Color.M1(new S1());
+}
+
+class Color
+{
+    public string M1(S1 x) => ""instance"";
+    
+    public static string M1<T>(T x) where T : unmanaged => ""static"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(new S1(new Color()).F);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"instance").VerifyDiagnostics();
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_048_ColorColor_MemberAccess_InstanceAndStatic_InConstructorBody_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public S1() : this(new Color())
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_049_ColorColor_MemberAccess_InstanceAndStatic_InConstructorInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public S1() : this(
+        Color.M1(
+            new Color()))
+    {
+    }
+}
+
+class Color
+{
+    public Color M1(S1 x, int y = 0) => null;
+    
+    public static Color M1<T>(T x) where T : unmanaged => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_050_ColorColor_MemberAccess_InstanceAndStatic_InBaseInitializer_Method()
+        {
+            var source = @"
+class S1(Color Color)
+    : Base(Color.M1(default(S1)))
+{
+}
+
+class Color
+{
+    public string M1(S1 x, int y = 0) => ""instance"";
+    
+    public static string M1<T>(T x) => ""static"";
+}
+
+class Base
+{
+    public Base(string x)
+    {
+        System.Console.WriteLine(x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new S1(new Color());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,16): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // class S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 16)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_051_ColorColor_MemberAccess_InstanceAndStatic_InBaseInitializer_Method()
+        {
+            var source = @"
+class S1(Color Color)
+    : Base(Color.M1(null))
+{
+}
+
+class Color
+{
+    public string M1(S1 x) => ""instance"";
+    
+    public static string M1<T>(T x) => ""static"";
+}
+
+class Base
+{
+    public Base(string x)
+    {
+        System.Console.WriteLine(x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new S1(new Color());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"instance").VerifyDiagnostics();
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_052_ColorColor_QualifiedName_Static_FieldPropertyEvent(
+            [CombinatorialValues(
+                @"static string Red { get; } = ""Red"";",
+                @"static event System.Func<string> Red = () => ""Red"";",
+                @"static string Red = ""Red"";"
+                )]
+            string member)
+        {
+            var source = @"
+class Color
+{
+    public " + member + @"
+
+    public class C1 (Color Color)
+    {
+        public void M1(object x)
+        {
+            if (x is Color.Red)
+            {}
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28),
+                // (10,22): error CS0150: A constant value is expected
+                //             if (x is Color.Red)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "Color.Red").WithLocation(10, 22)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_053_ColorColor_MemberAccess_Constant()
+        {
+            var source = @"
+class Color
+{
+    public const string Red = ""Red"";
+
+    public class C1 (Color Color)
+    {
+        public void M1(object x)
+        {
+            if (x is Color.Red)
+            {
+                System.Console.Write(x);
+            }
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        c1.M1(""Red"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_054_ColorColor_QualifiedName_Type()
+        {
+            var source = @"
+class Color
+{
+    public class Red;
+
+    public class C1 (Color Color)
+    {
+        public object M1(object input)
+        {
+            if (input is Color.Red)
+            {
+                return ""Red"";
+            }
+
+            return ""Blue"";
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1(new Color.Red());
+        System.Console.Write(val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        public static IEnumerable<object[]> ParameterCapturing_055_ColorColor_Query_Method_MemberData()
+        {
+            var data = new (string tag, string method, string query)[]
+                {
+                    ("01", "Cast", "from int i in Color select i"),
+                    ("02", "Select", "from i in Color select i"),
+                    ("03", "SelectMany", "from i in Color from j in new[] {1} select i + j"),
+                    ("04", "Select", "from i in Color let j = i + 1 select i + j"),
+                    ("05", "Where", "from i in Color where i > 0 select i"),
+                    ("06", "Join", "from i in Color join j in new[] {1} on i equals j select i + j"),
+                    ("07", "GroupJoin", "from i in Color join j in new[] {1} on i equals j into g select i + g.Count()"),
+                    ("08", "OrderBy", "from i in Color orderby i select i"),
+                    ("09", "OrderBy", "from i in Color orderby i ascending select i"),
+                    ("10", "OrderBy", "from i in Color orderby i, i select i"),
+                    ("11", "OrderBy", "from i in Color orderby i ascending, i select i"),
+                    ("12", "OrderByDescending", "from i in Color orderby i descending select i"),
+                    ("13", "OrderByDescending", "from i in Color orderby i descending, i select i"),
+                    ("14", "GroupBy1", "from i in Color group i by i"),
+                    ("15", "GroupBy2", "from i in Color group i + 1 by i"),
+                };
+
+            foreach (var isStatic in new[] { false, true })
+            {
+                foreach (var d in data)
+                {
+                    yield return new object[] { isStatic, d.tag, d.method, d.query };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterCapturing_055_ColorColor_Query_Method_MemberData))]
+        public void ParameterCapturing_055_ColorColor_Query_Method(bool isStatic, string tag, string methodName, string query)
+        {
+            _ = tag;
+
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C1 (Color Color)
+{
+    public object M1() => " + query + @";
+}
+
+public class Color
+{
+";
+            if (isStatic)
+            {
+                source += "static ";
+            }
+
+            switch (methodName)
+            {
+                case "Cast":
+            source += @"
+    public IEnumerable<T> Cast<T>()
+    {
+        System.Console.Write(""Cast"");
+        return new T[] {};
+    }
+";
+                    break;
+
+                case "Where":
+            source += @"
+    public IEnumerable<int> Where(Func<int, bool> predicate)
+    {
+        System.Console.Write(""Where"");
+        return new int[] {};
+    }
+";
+                    break;
+
+                case "Select":
+                    source += @"
+    public IEnumerable<V> Select<V>(Func<int, V> selector)
+    {
+        System.Console.Write(""Select"");
+        return new V[] {};
+    }
+";
+                    break;
+
+                case "SelectMany":
+                    source += @"
+    public IEnumerable<V> SelectMany<U, V>(Func<int, IEnumerable<U>> selector, Func<int,U,V> resultSelector)
+    {
+        System.Console.Write(""SelectMany"");
+        return new V[] {};
+    }
+";
+                    break;
+
+                case "Join":
+                    source += @"
+	public IEnumerable<V> Join<U,K,V>(IEnumerable<U> inner, Func<int,K> outerKeySelector, Func<U,K> innerKeySelector, Func<int,U,V> resultSelector)
+    {
+        System.Console.Write(""Join"");
+        return new V[] {};
+    }
+";
+                    break;
+
+                case "GroupJoin":
+                    source += @"
+	public IEnumerable<V> GroupJoin<U,K,V>(IEnumerable<U> inner, Func<int,K> outerKeySelector, Func<U,K> innerKeySelector, Func<int,IEnumerable<U>,V> resultSelector)
+    {
+        System.Console.Write(""GroupJoin"");
+        return new V[] {};
+    }
+";
+                    break;
+
+                case "OrderBy":
+                    source += @"
+	public IOrderedEnumerable<int> OrderBy<K>(Func<int,K> keySelector)
+    {
+        System.Console.Write(""OrderBy"");
+        return (new int[] {}).OrderBy(keySelector);
+    }
+";
+                    break;
+
+                case "OrderByDescending":
+                    source += @"
+	public IOrderedEnumerable<int> OrderByDescending<K>(Func<int,K> keySelector)
+    {
+        System.Console.Write(""OrderByDescending"");
+        return (new int[] {}).OrderByDescending(keySelector);
+    }
+";
+                    break;
+
+                case "GroupBy1":
+                    source += @"
+	public IEnumerable<K> GroupBy<K>(Func<int,K> keySelector)
+    {
+        System.Console.Write(""GroupBy1"");
+        return new K[] {};
+    }
+";
+                    break;
+
+                case "GroupBy2":
+                    source += @"
+	public IEnumerable<K> GroupBy<K,E>(Func<int,K> keySelector, Func<int,E> elementSelector)
+    {
+        System.Console.Write(""GroupBy2"");
+        return new K[] {};
+    }
+";
+                    break;
+            }
+
+            source += @"
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(" + (isStatic ? "default" : "new Color()") + @");
+        c1.M1();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: methodName);
+            var diagnostics = verifier.Diagnostics.Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective);
+
+            if (isStatic)
+            {
+                diagnostics.Verify(
+                    // (6,24): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                    // public class C1 (Color Color)
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 24)
+                    );
+            }
+            else
+            {
+                diagnostics.Verify();
+            }
+
+            Assert.Equal(isStatic, comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().IsEmpty());
+        }
+
+        [Fact]
+        public void ParameterCapturing_056_CapturingOfAManagedParameterMakesStructManaged()
+        {
+            var source = @"
+struct S1(string p1)
+{
+    public string Test() => p1;
+}
+
+struct S2(string p1)
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test(new S1());
+        Test(new S2());
+    }
+
+    static void Test<T>(T x) where T : unmanaged {}
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,18): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S2(string p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(7, 18),
+                // (15,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Program.Test<T>(T)'
+                //         Test(new S1());
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("Program.Test<T>(T)", "T", "S1").WithLocation(15, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+            Assert.Empty(comp.GetTypeByMetadataName("S2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_057_ColorColor_MemberAccess_InstanceAndStatic_Property()
+        {
+            //  public class Color
+            //  {
+            //      public int P => 1;
+            //      public static string P => "1";
+            //  }
+            var ilSource = @"
+.class public auto ansi beforefieldinit Color
+    extends System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname 
+        instance int32 get_P () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldc.i4.1
+        IL_0001: ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Color::get_P()
+    }
+
+    .method public hidebysig specialname static 
+        string get_P () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldstr ""1""
+        IL_0005: ret
+    }
+
+    .property string P()
+    {
+        .get string Color::get_P()
+    }
+}
+";
+
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        _ = Color.P;
+    }
+}
+";
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,19): error CS0229: Ambiguity between 'Color.P' and 'Color.P'
+                //         _ = Color.P;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("Color.P", "Color.P").WithLocation(6, 19)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_058_ColorColor_MemberAccess_InstanceAndStatic_Property()
+        {
+            var source = @"
+interface I1
+{
+    int P => 1;
+}
+
+interface I2
+{
+    string P => ""1"";
+}
+
+interface Color : I1, I2
+{}
+
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        _ = Color.P;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (19,19): error CS0229: Ambiguity between 'I1.P' and 'I2.P'
+                //         _ = Color.P;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("I1.P", "I2.P").WithLocation(19, 19)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
         [Fact]
         public void CycleDueToIndexerNameAttribute()
         {
