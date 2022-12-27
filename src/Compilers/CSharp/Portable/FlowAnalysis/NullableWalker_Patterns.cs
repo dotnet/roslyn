@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             BoundDecisionDag decisionDag,
             BoundExpression expression,
-            TypeWithState expressionType,
+            TypeWithState expressionTypeWithState,
             PossiblyConditionalState? stateWhenNotNullOpt)
         {
             // We reuse the slot at the beginning of a switch (or is-pattern expression), pretending that we are
@@ -339,9 +339,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of analysis based on this choice.
             var rootTemp = BoundDagTemp.ForOriginalInput(expression);
             int originalInputSlot = MakeSlot(expression);
+            var expressionTypeWithAnnotations = expressionTypeWithState.ToTypeWithAnnotations(compilation);
             if (originalInputSlot <= 0)
             {
-                originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(compilation), rootTemp);
+                originalInputSlot = makeDagTempSlot(expressionTypeWithAnnotations, rootTemp);
+                if (!IsConditionalState)
+                {
+                    TrackNullableStateForAssignment(valueOpt: null, expressionTypeWithAnnotations, originalInputSlot, expressionTypeWithState);
+                }
             }
             Debug.Assert(originalInputSlot > 0);
 
@@ -357,8 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note we customize equality in BoundDagTemp
             var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
-            Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionType.Type));
-            tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
+            Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionTypeWithState.Type));
+            tempMap.Add(rootTemp, (originalInputSlot, expressionTypeWithState.Type));
 
             var nodeStateMap = PooledDictionary<BoundDecisionDagNode, (PossiblyConditionalState state, bool believedReachable)>.GetInstance();
             nodeStateMap.Add(decisionDag.RootNode, (state: PossiblyConditionalState.Create(this), believedReachable: true));
@@ -503,16 +508,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundDagIndexerEvaluation e:
                                     {
+                                        // tDest = tSource[index]
                                         Debug.Assert(inputSlot > 0);
                                         TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: false);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
+                                        TrackNullableStateForAssignment(valueOpt: null, type, outputSlot, type.ToTypeWithState());
                                         addToTempMap(output, outputSlot, type.Type);
                                         break;
                                     }
                                 case BoundDagSliceEvaluation e:
                                     {
+                                        // tDest = tSource[range]
                                         Debug.Assert(inputSlot > 0);
                                         TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: true);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
