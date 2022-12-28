@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new TypeSymbol Type => base.Type!;
         public UnaryOperatorKind OperatorKind { get; }
         public BoundExpression Operand { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public MethodSymbol? MethodOpt { get; }
         public TypeSymbol? ConstrainedToTypeOpt { get; }
         public override LookupResultKind ResultKind { get; }
@@ -1977,7 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Condition { get; }
         public BoundExpression Consequence { get; }
         public BoundExpression Alternative { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public ErrorCode NoCommonTypeError { get; }
 
         [DebuggerStepThrough]
@@ -2020,7 +2020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Condition { get; }
         public BoundExpression Consequence { get; }
         public BoundExpression Alternative { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public TypeSymbol? NaturalTypeOpt { get; }
         public bool WasTargetTyped { get; }
 
@@ -2567,7 +2567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new TypeSymbol Type => base.Type!;
         public BoundTypeExpression? TargetType { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultExpression(this);
@@ -2671,7 +2671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new TypeSymbol Type => base.Type!;
         public BoundTypeExpression SourceType { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSizeOfOperator(this);
@@ -2713,7 +2713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsBaseConversion { get; }
         public bool Checked { get; }
         public bool ExplicitCastInCode { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public ConversionGroup? ConversionGroupOpt { get; }
         public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; }
 
@@ -4045,7 +4045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstantValueOpt = constantValueOpt;
         }
 
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLiteral(this);
@@ -4267,7 +4267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new TypeSymbol Type => base.Type!;
         public LocalSymbol LocalSymbol { get; }
         public BoundLocalDeclarationKind DeclarationKind { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public bool IsNullableUnknown { get; }
 
         [DebuggerStepThrough]
@@ -6100,7 +6100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Expanded { get; }
         public override ImmutableArray<int> ArgsToParamsOpt { get; }
         public override BitVector DefaultArguments { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public override BoundObjectInitializerExpressionBase? InitializerExpressionOpt { get; }
         public override bool WasTargetTyped { get; }
 
@@ -6848,7 +6848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new TypeSymbol Type => base.Type!;
         public BoundExpression? ReceiverOpt { get; }
         public FieldSymbol FieldSymbol { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public override LookupResultKind ResultKind { get; }
         public bool IsByValue { get; }
         public bool IsDeclaration { get; }
@@ -7281,7 +7281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new TypeSymbol Type => base.Type!;
         public BoundExpression Argument { get; }
-        public ConstantValue ConstantValueOpt { get; }
+        public override ConstantValue ConstantValueOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitNameOfOperator(this);
@@ -7311,7 +7311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public ImmutableArray<BoundExpression> Parts { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
     }
 
     internal sealed partial class BoundUnconvertedInterpolatedString : BoundInterpolatedStringBase
