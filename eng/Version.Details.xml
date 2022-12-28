@@ -26,9 +26,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>3003926e4126f827bca50d5b3ee179afc86d8a7b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview1.22626.3">
+    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview1.22627.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>c9438da737f74865349f2d97845a2cf166b52b02</Sha>
+      <Sha>7e6a84e731f88f44db6a3c5ed0ede5d3d6f6b872</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
