@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return node.Update(
                 node.OperatorKind,
-                node.ConstantValue,
+                node.ConstantValueOpt,
                 VisitMethodSymbol(node.Method),
                 VisitType(node.ConstrainedToType),
                 node.ResultKind,

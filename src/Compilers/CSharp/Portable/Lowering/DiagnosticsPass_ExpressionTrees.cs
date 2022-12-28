@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)
         {
-            if (_inExpressionLambda && node.ConstantValue == null)
+            if (_inExpressionLambda && node.ConstantValueOpt == null)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node);
             }

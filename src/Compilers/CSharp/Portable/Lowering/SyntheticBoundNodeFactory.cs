@@ -1585,14 +1585,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol boolType = Compilation.GetSpecialType(CodeAnalysis.SpecialType.System_Boolean);
 
             // Fold compile-time comparisons.
-            if (rewrittenExpr.ConstantValue != null)
+            if (rewrittenExpr.ConstantValueOpt != null)
             {
                 switch (operatorKind)
                 {
                     case BinaryOperatorKind.Equal:
-                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValueOpt.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                     case BinaryOperatorKind.NotEqual:
-                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValueOpt.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                 }
             }
 

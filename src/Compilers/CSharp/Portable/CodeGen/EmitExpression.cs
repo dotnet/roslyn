@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            var constantValue = expression.ConstantValue;
+            var constantValue = expression.ConstantValueOpt;
             if (constantValue != null)
             {
                 if (!used)
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(!receiverType.IsValueType ||
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
-            var receiverConstant = receiver.ConstantValue;
+            var receiverConstant = receiver.ConstantValueOpt;
             if (receiverConstant?.IsNull == false)
             {
                 // const but not null, must be a reference type
@@ -1400,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(receiver.Type.IsVerifierReference(), "this is not a reference");
             Debug.Assert(receiver.Kind != BoundKind.BaseReference, "base should always use call");
 
-            var constVal = receiver.ConstantValue;
+            var constVal = receiver.ConstantValueOpt;
             if (constVal != null)
             {
                 // only when this is a constant Null, we need a callvirt
@@ -1817,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var current = expression;
                 while (true)
                 {
-                    if (current.ConstantValue != null)
+                    if (current.ConstantValueOpt != null)
                     {
                         return true;
                     }
@@ -2300,7 +2300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // in-place is not advantageous for reference types or constants
             if (!rightType.IsTypeParameter())
             {
-                if (rightType.IsReferenceType || (right.ConstantValue != null && rightType.SpecialType != SpecialType.System_Decimal))
+                if (rightType.IsReferenceType || (right.ConstantValueOpt != null && rightType.SpecialType != SpecialType.System_Decimal))
                 {
                     return false;
                 }
@@ -3361,7 +3361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </remarks>
         private void EmitConditionalOperator(BoundConditionalOperator expr, bool used)
         {
-            Debug.Assert(expr.ConstantValue == null, "Constant value should have been emitted directly");
+            Debug.Assert(expr.ConstantValueOpt == null, "Constant value should have been emitted directly");
 
             object consequenceLabel = new object();
             object doneLabel = new object();

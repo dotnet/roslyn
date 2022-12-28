@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (expression.ConstantValue != null)
+            else if (expression.ConstantValueOpt != null)
             {
                 decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
                 if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } simplifiedResult)
@@ -598,10 +598,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 convertedExpression = expression;
                 // If the expression does not have a constant value, an error will be reported in the caller
-                if (!hasErrors && expression.ConstantValue is object)
+                if (!hasErrors && expression.ConstantValueOpt is object)
                 {
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    if (expression.ConstantValue == ConstantValue.Null)
+                    if (expression.ConstantValueOpt == ConstantValue.Null)
                     {
                         // Pointers are value types, but they can be assigned null, so they can be matched against null.
                         if (inputType.IsNonNullableValueType() && !inputType.IsPointerOrFunctionPointer())
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     convertedExpression = BindToNaturalType(expression, diagnostics);
 
-                    constantValue = convertedExpression.ConstantValue;
+                    constantValue = convertedExpression.ConstantValueOpt;
                     if (constantValue == ConstantValue.Null)
                     {
                         diagnostics.Add(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, convertedExpression.Syntax.Location, inputType);
@@ -684,14 +684,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var conversion = (BoundConversion)convertedExpression;
                     BoundExpression operand = conversion.Operand;
-                    if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
+                    if (inputType.IsNullableType() && (convertedExpression.ConstantValueOpt == null || !convertedExpression.ConstantValueOpt.IsNull))
                     {
                         // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
                         // We are not interested in the diagnostic that get created here
                         convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), BindingDiagnosticBag.Discarded);
                     }
                     else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
-                        && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
+                        && operand.ConstantValueOpt != null && convertedExpression.ConstantValueOpt == null)
                     {
                         // A boxed constant (or string converted to object) is a special case because we prefer
                         // to compare to the pre-converted value by casting the input value to the type of the constant
@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            constantValue = convertedExpression.ConstantValue;
+            constantValue = convertedExpression.ConstantValueOpt;
             return convertedExpression;
         }
 

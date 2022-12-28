@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression? VisitExpressionImpl(BoundExpression node)
         {
-            ConstantValue? constantValue = node.ConstantValue;
+            ConstantValue? constantValue = node.ConstantValueOpt;
             if (constantValue != null)
             {
                 TypeSymbol? type = node.Type;
@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         internal static bool CanBePassedByReference(BoundExpression expr)
         {
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return false;
             }

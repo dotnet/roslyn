@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = new BoundDefaultExpression(
                             defaultExpr.Syntax,
                             targetType: null,
-                            defaultExpr.ConstantValue,
+                            defaultExpr.ConstantValueOpt,
                             CreateErrorType(),
                             hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
                     }
@@ -2596,7 +2596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // It's possible for the S -> T conversion to produce a 'better' constant value.  If this 
                 // constant value is produced place it in the tree so that it gets emitted.  This maintains 
                 // parity with the native compiler which also evaluated the conversion at compile time. 
-                if (underlyingExpr.ConstantValue != null &&
+                if (underlyingExpr.ConstantValueOpt != null &&
                     !underlyingExpr.HasErrors && !bag.HasAnyErrors())
                 {
                     underlyingExpr.WasCompilerGenerated = true;
@@ -3922,7 +3922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var constantValue = expression.ConstantValue;
+            var constantValue = expression.ConstantValueOpt;
 
             if (constantValue == null || constantValue.IsBad || expression.Type.SpecialType != SpecialType.System_Int32)
             {
@@ -3941,7 +3941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var constantValue = expression.ConstantValue;
+            var constantValue = expression.ConstantValueOpt;
             if (constantValue == null || constantValue.IsBad)
             {
                 return false;
@@ -6677,7 +6677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void WarnOnAccessOfOffDefault(SyntaxNode node, BoundExpression boundLeft, BindingDiagnosticBag diagnostics)
         {
-            if ((boundLeft is BoundDefaultLiteral || boundLeft is BoundDefaultExpression) && boundLeft.ConstantValue == ConstantValue.Null &&
+            if ((boundLeft is BoundDefaultLiteral || boundLeft is BoundDefaultExpression) && boundLeft.ConstantValueOpt == ConstantValue.Null &&
                 Compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, boundLeft.Type);
@@ -7417,7 +7417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: true,
                         explicitCastInCode: false,
                         conversionGroupOpt: null,
-                        constantValueOpt: expr.ConstantValue,
+                        constantValueOpt: expr.ConstantValueOpt,
                         type: underlyingType);
                 }
             }
@@ -7860,7 +7860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Answer: Because multidimensional arrays can have nonzero lower bounds in the CLR.
                 if (rank == 1 && !index.HasAnyErrors)
                 {
-                    ConstantValue constant = index.ConstantValue;
+                    ConstantValue constant = index.ConstantValueOpt;
                     if (constant != null && constant.IsNegativeNumeric)
                     {
                         Error(diagnostics, ErrorCode.WRN_NegativeArrayIndex, index.Syntax);

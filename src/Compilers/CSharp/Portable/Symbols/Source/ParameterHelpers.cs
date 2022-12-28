@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //
             // Also when valuetype S has a parameterless constructor, 
             // new S() is clearly not a constant expression and should produce an error
-            if (expression.ConstantValue != null)
+            if (expression.ConstantValueOpt != null)
             {
                 return true;
             }

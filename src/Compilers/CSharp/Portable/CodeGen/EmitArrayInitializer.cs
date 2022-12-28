@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            return includeConstants || init.ConstantValue == null;
+            return includeConstants || init.ConstantValueOpt == null;
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static ConstantValue AsConstOrDefault(BoundExpression init)
         {
-            ConstantValue initConstantValueOpt = init.ConstantValue;
+            ConstantValue initConstantValueOpt = init.ConstantValueOpt;
 
             if (initConstantValueOpt != null)
             {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (!init.IsDefaultValue())
                     {
                         initCount += 1;
-                        if (init.ConstantValue != null)
+                        if (init.ConstantValueOpt != null)
                         {
                             constInits += 1;
                         }
@@ -508,19 +508,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (start is not null)
             {
                 // The start expression needs to be 0.
-                if (start.ConstantValue?.IsDefaultValue != true || start.ConstantValue.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                if (start.ConstantValueOpt?.IsDefaultValue != true || start.ConstantValueOpt.Discriminator != ConstantValueTypeDiscriminator.Int32)
                 {
                     return false;
                 }
 
                 // The length expression needs to be an Int32, and it needs to be in the range [0, elementCount].
                 Debug.Assert(length is not null);
-                if (length.ConstantValue?.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                if (length.ConstantValueOpt?.Discriminator != ConstantValueTypeDiscriminator.Int32)
                 {
                     return false;
                 }
 
-                lengthForConstructor = length.ConstantValue.Int32Value;
+                lengthForConstructor = length.ConstantValueOpt.Int32Value;
 
                 if (lengthForConstructor > elementCount || lengthForConstructor < 0)
                 {
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var initializers = initializer.Initializers;
-            if (initializers.Any(static init => init.ConstantValue == null))
+            if (initializers.Any(static init => init.ConstantValueOpt == null))
             {
                 return -1;
             }
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             foreach (var init in initializer.Initializers)
             {
-                init.ConstantValue.Serialize(writer);
+                init.ConstantValueOpt.Serialize(writer);
             }
 
             data = writer.ToImmutableArray();
