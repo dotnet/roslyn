@@ -4764,7 +4764,7 @@ class Program
             }
             """);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/65221")]
+        [Fact]
         public Task ExtractMethod_InsideThisInitializer()
         => TestInRegularAndScript1Async(
             """
@@ -4788,7 +4788,7 @@ class Program
                 {
                 }
 
-                private static NewMethod(int y)
+                private static int NewMethod(int y)
                 {
                     return y + 1;
                 }
