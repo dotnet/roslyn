@@ -2521,6 +2521,70 @@ class C
             }.RunAsync();
         }
 
+        [Fact]
+        [WorkItem(55610, "https://github.com/dotnet/roslyn/issues/55610")]
+        public async Task TestMultipleMethodsSelected_WithTypeContainingBaseClass()
+        {
+            var code = """
+                class Base
+                {
+                }
+
+                class Derived : Base
+                {
+                    [|public void M() { }
+                    public void N() { }|]
+                }
+                """;
+
+            await new Test()
+            {
+                TestCode = code,
+                FixedCode = code
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestMultipleMethodsSelected_HighlightedMembersAreSelected()
+        {
+            var code = """
+                class C
+                {
+                    [|public void M() { }
+                    public void N() { }|]
+                    public void O() { }
+                }
+                """;
+
+            var expected1 = """
+                class C : MyBase
+                {
+                    public void O() { }
+                }
+                """;
+
+            var expected2 = """
+                internal class MyBase
+                {
+                    public void M() { }
+                    public void N() { }
+                }
+                """;
+
+            await new Test()
+            {
+                TestCode = code,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
+        }
+
         private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
             => memberNames.Select(m => (m, true));
 
@@ -2531,13 +2595,13 @@ class C
         {
             private readonly IEnumerable<(string name, bool makeAbstract)>? _dialogSelection;
             private readonly bool _sameFile;
-            private readonly bool isClassDeclarationSelection;
+            private readonly bool _isClassDeclarationSelection;
 
             public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)>? dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
             {
                 _dialogSelection = dialogSelection;
                 _sameFile = sameFile;
-                this.isClassDeclarationSelection = isClassDeclarationSelection;
+                _isClassDeclarationSelection = isClassDeclarationSelection;
             }
 
             public string FileName { get; set; } = "MyBase.cs";
@@ -2553,12 +2617,12 @@ class C
                 {
                     if (selectedMembers.IsEmpty)
                     {
-                        Assert.True(isClassDeclarationSelection);
+                        Assert.True(_isClassDeclarationSelection);
                         selections = availableMembers.Select(member => (member, makeAbstract: false));
                     }
                     else
                     {
-                        Assert.False(isClassDeclarationSelection);
+                        Assert.False(_isClassDeclarationSelection);
                         selections = selectedMembers.Select(m => (m, makeAbstract: false));
                     }
                 }
