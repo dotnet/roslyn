@@ -11344,7 +11344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return state;
             }
 
-            public int Capacity => _state.Capacity / 2;
+            private int Capacity => _state.Capacity / 2;
 
             private void EnsureCapacity(int capacity)
             {
