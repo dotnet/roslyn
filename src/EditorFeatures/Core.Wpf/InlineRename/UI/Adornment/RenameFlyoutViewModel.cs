@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
+            InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(VisualStudio.Text.SpanTrackingMode.EdgeInclusive);
 
             RegisterOleComponent();
         }
@@ -59,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public InlineRenameSession Session => _session;
+
+        public ITrackingSpan InitialTrackingSpan { get; }
 
         public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
