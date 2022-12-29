@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal VariableState(VariablesSnapshot variables, LocalStateSnapshot variableNullableStates)
             {
                 Debug.Assert(variables.Id == variableNullableStates.Id);
-                Debug.Assert((variables.VariableSlot.Count() + 1) * 2 == variableNullableStates.State.Capacity);
                 Variables = variables;
                 VariableNullableStates = variableNullableStates;
             }
@@ -1735,7 +1734,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (initialState.HasValue)
                 {
                     Debug.Assert(walker._variables.Id == initialState.Value.Id);
-                    Debug.Assert(initialState.Value.Capacity == walker._variables.NextAvailableIndex);
                 }
 #endif
                 bool badRegion = false;
