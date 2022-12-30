@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CSharpCompletionCommandHandlerTests_DefaultsSource
 
-        <WpfTheory, CombinatorialData>
-        Public Async Function TestNoItemMatchesDefaults(isAggressive As Boolean) As Task
+        <WpfFact>
+        Public Async Function TestNoItemMatchesDefaults() As Task
             ' We are not adding the additional file which contains type MyAB and MyA
             ' the the suggestion from default source doesn't match anything in the completion list.
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -32,10 +32,6 @@ class C
 }
                               </Document>,
                               extraExportedTypes:={GetType(MockDefaultSource)}.ToList())
-
-                If isAggressive Then
-                    state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
-                End If
 
                 state.SendInvokeCompletionList()
 
@@ -131,8 +127,8 @@ class My
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
-        Public Async Function DoNotChangeIfPreselection(isAggressive As Boolean) As Task
+        <WpfFact, CombinatorialData>
+        Public Async Function DoNotChangeIfPreselection() As Task
             Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
 using NS1;
@@ -144,9 +140,6 @@ class C
     }
 }
                               </Document>)
-                If isAggressive Then
-                    state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
-                End If
 
                 state.SendInvokeCompletionList()
 
