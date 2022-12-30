@@ -490,6 +490,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return AddStatementsToLocalFunctionStatement(destinationMember, statements, localFunctionStatement);
             }
+            else if (destinationMember is AnonymousFunctionExpressionSyntax anonymousFunctionSyntax)
+            {
+                return AddStatementsToAnonymousFunctions(destinationMember, statements, anonymousFunctionSyntax);
+            }
             else if (destinationMember is AccessorDeclarationSyntax accessorDeclaration)
             {
                 return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
@@ -596,6 +600,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var finalMember = localFunctionStatement
                 .WithExpressionBody(null)
                 .WithSemicolonToken(default)
+                .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+
+            return Cast<TDeclarationNode>(finalMember);
+        }
+
+        private static TDeclarationNode AddStatementsToAnonymousFunctions<TDeclarationNode>(
+            TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, AnonymousFunctionExpressionSyntax anonymousFunctionSyntax) where TDeclarationNode : SyntaxNode
+        {
+            if (anonymousFunctionSyntax.ExpressionBody is ExpressionSyntax expressionBody)
+            {
+                var semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+                if (expressionBody.TryConvertToStatement(semicolonToken, createReturnStatementForExpression: false, out var statement))
+                {
+                    var block = SyntaxFactory.Block(statement);
+                    anonymousFunctionSyntax = anonymousFunctionSyntax.WithBlock(block).WithExpressionBody(null);
+                }
+            }
+
+            var body = anonymousFunctionSyntax.Block;
+
+            if (body is null)
+                return destinationMember;
+
+            var finalMember = anonymousFunctionSyntax
+                .WithExpressionBody(null)
                 .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
 
             return Cast<TDeclarationNode>(finalMember);

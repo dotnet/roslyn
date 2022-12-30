@@ -5241,17 +5241,17 @@ public class Class
             await TestMissingAsync(code, codeActionIndex: CodeActionIndex);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/65222")]
-        public async Task TestExtractLocalFunction_LambdaInitializer()
+        [Fact]
+        public async Task TestExtractLocalFunction_LambdaBlockInitializer()
         {
             var code = """
                 class C
                 {
                     public C(int y)
-                        : this(y, (x) => 
-                            {
-                                return [|y + 1|];
-                            })
+                        : this(y, (x) =>
+                        {
+                            return [|x + 1|];
+                        })
                     {
                     }
                 
@@ -5265,15 +5265,15 @@ public class Class
                 class C
                 {
                     public C(int y)
-                        : this(y, (x) => 
-                            {
-                                return NewMethod(x);
+                        : this(y, (x) =>
+                        {
+                            return {|Rename:NewMethod|}(x);
 
-                                int NewMethod(int x)
-                                {
-                                    return x + 1;
-                                }
-                            })
+                            static int NewMethod(int x)
+                            {
+                                return x + 1;
+                            }
+                        })
                     {
                     }
                 
