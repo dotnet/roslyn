@@ -2604,7 +2604,8 @@ class C
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs"
             }.RunAsync();
         }
 
