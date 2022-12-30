@@ -756,9 +756,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (_snapshotData.Defaults.IsDefaultOrEmpty || itemSelection.SelectedItemIndex == SuggestionItemIndex)
                     return itemSelection;
 
-                // "Preselect" is only used when we have high confidence with the selection, so don't override it.
+                // "Preselect" is only used when we have high confidence with the selection, so don't override it;
+                // unless it's an IntelliCode item, in which case the default item wins.
                 var selectedItem = items[itemSelection.SelectedItemIndex].CompletionItem;
-                if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect)
+                if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect && !selectedItem.IsPreferredItem())
                     return itemSelection;
 
                 var tick = Environment.TickCount;
@@ -818,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // so we just need to search for the first item that matches the suggested default.
                     for (var i = 0; i < inferiorItemIndex; ++i)
                     {
-                        if (items[i].CompletionItem.DisplayText == defaultText)
+                        if (items[i].CompletionItem.FilterText == defaultText)
                         {
                             // If user hasn't typed anything, we'd like to hard select the default item.
                             // This way, they can easily commit the default item which matches what WLC shows.
