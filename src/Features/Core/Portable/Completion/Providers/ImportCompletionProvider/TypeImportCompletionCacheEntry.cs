@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
                 }
 
-                // C# and VB the display text is different for generics, i.e. <T> and (Of T). For simpllicity, we only cache for one language.
+                // C# and VB the display text is different for generics, i.e. <T> and (Of T). For simplicity, we only cache for one language.
                 // But when we trigger in a project with different language than when the cache entry was created for, we will need to
                 // change the generic suffix accordingly.
                 if (!isSameLanguage && info.IsGeneric)
@@ -159,11 +159,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
             {
-                // We want to cache items with EditoBrowsableState == Advanced regardless of current "hide adv members" option value
-                var (isBrowsable, isEditorBrowsableStateAdvanced) = symbol.IsEditorBrowsableWithState(
-                    hideAdvancedMembers: false,
-                    _editorBrowsableInfo.Compilation,
-                    _editorBrowsableInfo);
+                bool isBrowsable, isEditorBrowsableStateAdvanced;
+                try
+                {
+                    // We want to cache items with EditorBrowsableState == Advanced regardless of current "hide adv members" option value
+                    (isBrowsable, isEditorBrowsableStateAdvanced) = symbol.IsEditorBrowsableWithState(
+                        hideAdvancedMembers: false,
+                        _editorBrowsableInfo.Compilation,
+                        _editorBrowsableInfo);
+                }
+                catch (Exception)
+                {
+                    // Reading attribute data from random PE metadata might throw, so we simply ignore such symbols.
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1680786
+                    return;
+                }
 
                 if (!isBrowsable)
                 {
