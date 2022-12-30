@@ -138,6 +138,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static class PooledDictionaryWithCustomBoundDefaultComparison
+        {
+            private sealed class CustomEqualityComparer : IEqualityComparer<object>
+            {
+                public static CustomEqualityComparer Instance { get; } = new();
+
+                private CustomEqualityComparer()
+                {
+                }
+
+                public new bool Equals(object? x, object? y)
+                {
+                    if (TryGetType(x, out var type1) && TryGetType(y, out var type2))
+                    {
+                        return type1.Equals(type2, TypeCompareKind.ConsiderEverything);
+                    }
+
+                    return EqualityComparer<object>.Default.Equals(x, y);
+                }
+
+                private static bool TryGetType(object? x, [NotNullWhen(true)] out TypeSymbol? type)
+                {
+                    type = (x as BoundDefaultExpression)?.Type ?? (x as BoundDefaultLiteral)?.Type;
+                    return type is not null;
+                }
+
+                public int GetHashCode(object obj)
+                {
+                    if (TryGetType(obj, out var type))
+                    {
+                        return type.GetHashCode();
+                    }
+
+                    return EqualityComparer<object>.Default.GetHashCode(obj);
+                }
+            }
+
+            private static readonly ObjectPool<PooledDictionary<object, PlaceholderLocal>> s_poolInstance
+                = PooledDictionary<object, PlaceholderLocal>.CreatePool(CustomEqualityComparer.Instance);
+
+            internal static PooledDictionary<object, PlaceholderLocal> GetInstance()
+            {
+                var instance = s_poolInstance.Allocate();
+                Debug.Assert(instance.Count == 0);
+                return instance;
+            }
+        }
+
         private Variables _variables;
 
         /// <summary>
@@ -1949,7 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundKind.Conversion:
                         {
-                            int slot = getPlaceholderSlot(node);
+                            int slot = GetPlaceholderSlot(node);
                             if (slot > 0)
                             {
                                 return slot;
@@ -1990,35 +2038,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
-                    case BoundKind.DefaultLiteral:
+
                     case BoundKind.DefaultExpression:
+
+                        if (node.Type is not null)
+                        {
+                            return GetOrCreatePlaceholderSlot(node);
+                        }
+
+                        return GetPlaceholderSlot(node);
+
+                    case BoundKind.DefaultLiteral:
                     case BoundKind.ObjectCreationExpression:
                     case BoundKind.DynamicObjectCreationExpression:
                     case BoundKind.AnonymousObjectCreationExpression:
                     case BoundKind.NewT:
                     case BoundKind.TupleLiteral:
                     case BoundKind.ConvertedTupleLiteral:
-                        return getPlaceholderSlot(node);
                     case BoundKind.ConditionalAccess:
-                        return getPlaceholderSlot(node);
+                        return GetPlaceholderSlot(node);
                     case BoundKind.ConditionalReceiver:
                         return _lastConditionalAccessSlot;
                     default:
                         {
-                            int slot = getPlaceholderSlot(node);
+                            int slot = GetPlaceholderSlot(node);
                             return (slot > 0) ? slot : base.MakeSlot(node);
                         }
                 }
 
-                return -1;
-            }
-
-            int getPlaceholderSlot(BoundExpression expr)
-            {
-                if (_placeholderLocalsOpt != null && _placeholderLocalsOpt.TryGetValue(expr, out var placeholder))
-                {
-                    return GetOrCreateSlot(placeholder);
-                }
                 return -1;
             }
 
@@ -2035,6 +2082,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return null;
             }
+        }
+
+        private int GetPlaceholderSlot(BoundExpression expr)
+        {
+            if (_placeholderLocalsOpt != null && _placeholderLocalsOpt.TryGetValue(expr, out var placeholder))
+            {
+                return GetOrCreateSlot(placeholder);
+            }
+            return -1;
         }
 
         protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false, bool createIfMissing = true)
@@ -4010,7 +4066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int GetOrCreatePlaceholderSlot(object identifier, TypeWithAnnotations type)
         {
-            _placeholderLocalsOpt ??= PooledDictionary<object, PlaceholderLocal>.GetInstance();
+            _placeholderLocalsOpt ??= PooledDictionaryWithCustomBoundDefaultComparison.GetInstance();
             if (!_placeholderLocalsOpt.TryGetValue(identifier, out var placeholder))
             {
                 placeholder = new PlaceholderLocal(CurrentSymbol, identifier, type);
@@ -8007,7 +8063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.Boxing:
-                    resultState = getBoxingConversionResultState(targetTypeWithNullability, operandType);
+                    resultState = getBoxingConversionResultState(conversionOperand, targetTypeWithNullability, operandType);
                     break;
 
                 case ConversionKind.Unboxing:
@@ -8074,7 +8130,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         canConvertNestedNullability = conversion.Exists;
                     }
 
-                    resultState = conversion.IsReference ? getReferenceConversionResultState(targetTypeWithNullability, operandType) : operandType.State;
+                    resultState = conversion.IsReference
+                        ? getReferenceConversionResultState(targetTypeWithNullability, operandType)
+                        : (operandType.State == NullableFlowState.MaybeDefault && GetPlaceholderStateOrMaybeDefault(conversionOperand) == NullableFlowState.NotNull ? NullableFlowState.NotNull : operandType.State);
                     break;
 
                 case ConversionKind.ImplicitNullable:
@@ -8245,7 +8303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Converting to a less-derived type (object, interface, type parameter).
             // If the operand is MaybeNull, the result should be
             // MaybeNull (if the target type allows) or MaybeDefault otherwise.
-            static NullableFlowState getBoxingConversionResultState(TypeWithAnnotations targetType, TypeWithState operandType)
+            NullableFlowState getBoxingConversionResultState(BoundExpression conversionOperand, TypeWithAnnotations targetType, TypeWithState operandType)
             {
                 var state = operandType.State;
                 if (state == NullableFlowState.MaybeNull)
@@ -8267,6 +8325,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else if (state == NullableFlowState.MaybeDefault)
+                {
+                    return GetPlaceholderStateOrMaybeDefault(conversionOperand);
+                }
+
                 return state;
             }
 
@@ -10453,6 +10516,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundUserDefinedConditionalLogicalOperator userDefined => InferResultNullability(userDefined),
                 _ => throw ExceptionUtilities.UnexpectedValue(node)
             };
+        }
+
+        private NullableFlowState GetPlaceholderStateOrMaybeDefault(BoundExpression node)
+        {
+            var slot = GetPlaceholderSlot(node);
+            if (State.HasValue(slot))
+            {
+                return State[slot];
+            }
+
+            return NullableFlowState.MaybeDefault;
         }
 
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
