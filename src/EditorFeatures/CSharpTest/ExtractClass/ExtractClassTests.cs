@@ -2545,6 +2545,29 @@ class C
         }
 
         [Fact]
+        [WorkItem(55610, "https://github.com/dotnet/roslyn/issues/55610")]
+        public async Task TestClassSelected_WithTypeContainingBaseClass()
+        {
+            var code = """
+                class Base
+                {
+                }
+
+                class $$Derived : Base
+                {
+                    public void M() { }
+                    public void N() { }
+                }
+                """;
+
+            await new Test()
+            {
+                TestCode = code,
+                FixedCode = code
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestMultipleMethodsSelected_HighlightedMembersAreSelected()
         {
             var code = """
