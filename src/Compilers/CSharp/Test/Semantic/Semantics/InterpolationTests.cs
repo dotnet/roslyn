@@ -14412,6 +14412,8 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23));
 
             comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.Net50);
+            // PROTOTYPE: No error reported at (17,23) because CheckInterpolatedStringHandlerConversionEscape()
+            // now returns an escape scope that includes the scope of data.Construction.
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
@@ -14421,10 +14423,7 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(17, 16),
                 // (17,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20),
-                // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23));
+                Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20));
         }
 
         [Theory]
@@ -14614,6 +14613,8 @@ public ref struct S1
             );
 
             comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular11, targetFramework: TargetFramework.Net50);
+            // PROTOTYPE: No error reported at (15,23) because CheckInterpolatedStringHandlerConversionEscape()
+            // now returns an escape scope that includes the scope of data.Construction.
             comp.VerifyDiagnostics(
                 // (10,100): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
                 //     public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { s1.Handler = this; }
@@ -14626,10 +14627,7 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(15, 16),
                 // (15,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
-                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{s2}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20),
-                // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, $"{s2}");
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{s2}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20)
             );
         }
 

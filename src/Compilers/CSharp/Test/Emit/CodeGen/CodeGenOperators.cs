@@ -5218,6 +5218,8 @@ class Test
             return builder.ToString();
         }
 
+        // PROTOTYPE: This test is now much slower than the corresponding VB test.
+        // Are we visiting binary expressions exponentially?
         [ConditionalFact(typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]

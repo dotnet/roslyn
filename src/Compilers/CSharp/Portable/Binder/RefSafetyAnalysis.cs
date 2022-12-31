@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -206,6 +205,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, uint valEscapeScope)
         {
             _placeholderScopes ??= new Dictionary<BoundValuePlaceholderBase, uint>();
+            // PROTOTYPE: Several placeholder kinds may be included multiple times currently.
+            if (placeholder is BoundInterpolatedStringHandlerPlaceholder or BoundInterpolatedStringArgumentPlaceholder or BoundDeconstructValuePlaceholder)
+            {
+                if (_placeholderScopes.TryGetValue(placeholder, out var value))
+                {
+                    Debug.Assert(value == valEscapeScope);
+                    return;
+                }
+            }
             _placeholderScopes.Add(placeholder, valEscapeScope);
         }
 
@@ -221,6 +229,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private uint GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
+            // PROTOTYPE: BoundInterpolatedStringArgumentPlaceholder is not always included currently. (See also assert in Visit() method below.)
+            if (placeholder is BoundInterpolatedStringArgumentPlaceholder)
+            {
+                return _placeholderScopes?.TryGetValue(placeholder, out uint value) == true
+                    ? value
+                    : CallingMethodScope;
+            }
+
             Debug.Assert(_placeholderScopes is { });
             return _placeholderScopes[placeholder];
         }
@@ -238,11 +254,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is BoundValuePlaceholderBase placeholder
                 // CheckValEscapeOfObjectInitializer() does not use BoundObjectOrCollectionValuePlaceholder.
                 // CheckInterpolatedStringHandlerConversionEscape() does not use BoundInterpolatedStringHandlerPlaceholder.
-                && node is not (BoundObjectOrCollectionValuePlaceholder or BoundInterpolatedStringHandlerPlaceholder))
+                // PROTOTYPE: BoundInterpolatedStringArgumentPlaceholder is temporarily ignored, but should be included for the assert.
+                && node is not (BoundObjectOrCollectionValuePlaceholder or BoundInterpolatedStringHandlerPlaceholder or BoundInterpolatedStringArgumentPlaceholder))
             {
                 Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
             }
 #endif
+            if (node is BoundExpression expr)
+            {
+                VisitExpression(expr);
+                return null;
+            }
             return base.Visit(node);
         }
 
@@ -254,9 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             using var _ = new LocalScope(this, fieldEqualsValue.Locals);
 
-            base.Visit(value);
-
-            ValidateEscape(value, CallingMethodScope, isByRef: field.RefKind != RefKind.None, _diagnostics);
+            var result = VisitExpression(value, checkingReceiver: false, isRef: field.RefKind != RefKind.None);
+            ReportRefEscapeErrors(result, CallingMethodScope);
         }
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -303,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.AwaitOpt is { } awaitableInfo)
             {
                 uint valEscapeScope = node.ExpressionOpt is { } expr
-                    ? GetValEscape(expr)
+                    ? GetValEscape(expr).EscapeScope
                     : _localScopeDepth;
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, valEscapeScope);
             }
@@ -345,16 +366,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
         {
             using var _1 = new LocalScope(this, node.InnerLocals);
-            using var _2 = new PatternInput(this, GetValEscape(node.Expression));
+            using var _2 = new PatternInput(this, GetValEscape(node.Expression).EscapeScope);
             base.VisitSwitchStatement(node);
             return null;
         }
 
-        public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        private Result VisitSwitchExpression(BoundSwitchExpression node, uint escapeTo, bool isRef)
         {
-            using var _ = new PatternInput(this, GetValEscape(node.Expression));
-            base.VisitConvertedSwitchExpression(node);
-            return null;
+            using var _ = new PatternInput(this, VisitExpression(node.Expression).EscapeScope);
+            var escapeScope = Result.Create(node.Syntax, node, checkingReceiver: false, isRef, CallingMethodScope);
+            foreach (var arm in node.SwitchArms)
+            {
+                escapeScope = Result.Max(escapeScope, VisitSwitchExpressionArm(arm, escapeTo, isRef));
+            }
+            return escapeScope;
         }
 
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
@@ -363,10 +388,590 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitSwitchSection(node);
         }
 
-        public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+        private Result VisitSwitchExpressionArm(BoundSwitchExpressionArm node, uint escapeTo, bool isRef)
         {
             using var _ = new LocalScope(this, node.Locals);
-            return base.VisitSwitchExpressionArm(node);
+            Visit(node.Pattern);
+            Visit(node.WhenClause);
+            return VisitExpression(node.Value, escapeTo, isRef: isRef);
+        }
+
+        // PROTOTYPE: Remove this.
+        private Result DefaultVisit(BoundExpression node, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            // Visit sub-expressions.
+            base.Visit(node);
+
+            uint escapeScope = isRef
+                ? _localScopeDepth
+                : CallingMethodScope;
+            return Result.Create(node.Syntax, node, checkingReceiver, isRef, escapeScope);
+        }
+
+        private Result VisitThisReference(SyntaxNode node, BoundThisReference expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            var thisParam = GetThisParameter((MethodSymbol)_symbol);
+            uint escapeScope = thisParam is null
+                ? CallingMethodScope
+                : (isRef ? GetParameterRefEscape(thisParam) : GetParameterValEscape(thisParam));
+            return Result.Create(node, expr, checkingReceiver, isRef, escapeScope);
+        }
+
+        private Result VisitParameter(SyntaxNode node, BoundParameter expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            var parameter = expr.ParameterSymbol;
+            uint refEscapeScope = GetParameterRefEscape(parameter);
+            uint valEscapeScope = GetParameterValEscape(parameter);
+            return Result.Create(node, expr, checkingReceiver, isRef, refEscapeScope, valEscapeScope, hasErrors: false);
+        }
+
+        private Result VisitLocal(SyntaxNode node, BoundLocal expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            var scopes = GetLocalScopes(expr.LocalSymbol);
+            return Result.Create(node, expr, checkingReceiver, isRef, scopes.RefEscapeScope, scopes.ValEscapeScope, hasErrors: false);
+        }
+
+        private Result VisitTupleExpression(SyntaxNode node, BoundTupleExpression expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CheckValEscape(expr, expr.Arguments, escapeTo, _diagnostics);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitRefValueOperator(SyntaxNode node, BoundRefValueOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            // The undocumented __refvalue(tr, T) expression results in an lvalue of type T.
+            // for compat reasons it is not ref-returnable (since TypedReference is not val-returnable)
+            if (isRef)
+            {
+                if (escapeTo is CallingMethodScope or ReturnOnlyScope)
+                {
+                    return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+                }
+
+                // it can, however, ref-escape to any other level (since TypedReference can val-escape to any other level)
+                return Result.Create(node, expr, checkingReceiver, isRef, CurrentMethodScope);
+            }
+            else
+            {
+                // for compat reasons
+                return Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope);
+            }
+        }
+
+        private Result VisitValuePlaceholderBase(SyntaxNode syntax, BoundValuePlaceholderBase expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                var escapeScope = GetPlaceholderScope(expr);
+                return Result.Create(syntax, expr, checkingReceiver, isRef, escapeScope);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitCapturedReceiverPlaceholder(SyntaxNode node, BoundCapturedReceiverPlaceholder expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (isRef)
+            {
+                // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                var escapeScope = expr.LocalScopeDepth;
+                if (escapeScope <= escapeTo)
+                {
+                    return Result.Create(node, expr, checkingReceiver, isRef, escapeScope);
+                }
+                return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+            }
+            else
+            {
+                // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                BoundExpression underlyingReceiver = expr.Receiver;
+                return CheckValEscape(underlyingReceiver.Syntax, underlyingReceiver, escapeTo, checkingReceiver, _diagnostics);
+            }
+        }
+
+        private Result VisitStackAllocArrayCreationBase(SyntaxNode syntax, BoundStackAllocArrayCreationBase expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                uint escapeScope = expr.Type?.IsRefLikeType != true
+                    ? CallingMethodScope
+                    : CurrentMethodScope;
+                return Result.Create(syntax, expr, checkingReceiver, isRef, escapeScope);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitUnconvertedConditionalOperator(SyntaxNode node, BoundUnconvertedConditionalOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return Result.Max(CheckValEscape(expr.Consequence.Syntax, expr.Consequence, escapeTo, checkingReceiver: false, diagnostics: _diagnostics),
+                    CheckValEscape(expr.Alternative.Syntax, expr.Alternative, escapeTo, checkingReceiver: false, diagnostics: _diagnostics));
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitConditionalOperator(SyntaxNode node, BoundConditionalOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            Result whenTrueResult = VisitExpression(expr.Consequence, escapeTo, checkingReceiver: false, isRef);
+            Result whenFalseResult = VisitExpression(expr.Alternative, escapeTo, checkingReceiver: false, isRef);
+
+            if (expr.IsRef)
+            {
+                ValidateRefConditionalOperator(node, whenTrueResult, whenFalseResult);
+            }
+
+            return Result.Max(whenTrueResult, whenFalseResult);
+        }
+
+        private Result VisitNullCoalescingOperator(BoundNullCoalescingOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return Result.Max(CheckValEscape(expr.LeftOperand.Syntax, expr.LeftOperand, escapeTo, checkingReceiver, _diagnostics),
+                    CheckValEscape(expr.RightOperand.Syntax, expr.RightOperand, escapeTo, checkingReceiver, _diagnostics));
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitFieldAccess(SyntaxNode node, BoundFieldAccess expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (isRef)
+            {
+                return CheckFieldRefEscape(node, expr, escapeTo, _diagnostics);
+            }
+            else
+            {
+                var fieldSymbol = expr.FieldSymbol;
+
+                if (fieldSymbol.IsStatic || !expr.Type.IsRefLikeType || !fieldSymbol.ContainingType.IsRefLikeType)
+                {
+                    // PROTOTYPE: Need to visit receiver.
+
+                    // Already an error state.
+                    return Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope);
+                }
+
+                // for ref-like fields defer to the receiver.
+                return CheckValEscape(node, expr.ReceiverOpt, escapeTo, true, _diagnostics);
+            }
+        }
+
+        private Result VisitEventAccess(SyntaxNode node, BoundEventAccess expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (isRef)
+            {
+                // not field-like events are RValues
+                if (expr.IsUsableAsField)
+                {
+                    return CheckFieldLikeEventRefEscape(node, expr, escapeTo, _diagnostics);
+                }
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitImplicitIndexerAccess(SyntaxNode node, BoundImplicitIndexerAccess expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            // Note: the Argument and LengthOrCountAccess use is purely local
+
+            switch (expr.IndexerOrSliceAccess)
+            {
+                case BoundIndexerAccess indexerAccess:
+                    var indexerSymbol = indexerAccess.Indexer;
+
+                    if (isRef && indexerSymbol.RefKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return CheckInvocationEscape(
+                        indexerAccess.Syntax,
+                        indexerAccess,
+                        indexerSymbol,
+                        new InvocationArguments(this), // PROTOTYPE: Replace with using statement.
+                        expr.Receiver,
+                        indexerSymbol.Parameters,
+                        indexerAccess.Arguments,
+                        indexerAccess.ArgumentRefKindsOpt,
+                        indexerAccess.ArgsToParamsOpt,
+                        checkingReceiver,
+                        escapeTo,
+                        _diagnostics,
+                        isRef);
+
+                case BoundArrayAccess:
+                    return isRef
+                        // array elements are readwrite variables
+                        ? Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope)
+                        : CreateDefaultValScope(node, expr, checkingReceiver);
+
+                case BoundCall call:
+                    var methodSymbol = call.Method;
+                    if (isRef && methodSymbol.RefKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return CheckInvocationEscape(
+                        call.Syntax,
+                        call,
+                        methodSymbol,
+                        new InvocationArguments(this), // PROTOTYPE: Replace with using statement.
+                        expr.Receiver,
+                        methodSymbol.Parameters,
+                        call.Arguments,
+                        call.ArgumentRefKindsOpt,
+                        call.ArgsToParamsOpt,
+                        checkingReceiver,
+                        escapeTo,
+                        _diagnostics,
+                        isRef);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expr.IndexerOrSliceAccess.Kind);
+            }
+
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitPropertyAccess(SyntaxNode node, BoundPropertyAccess expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            var propertySymbol = expr.PropertySymbol;
+
+            if (isRef && propertySymbol.RefKind == RefKind.None)
+            {
+                return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+            }
+
+            // not passing any arguments/parameters
+            return CheckInvocationEscape(
+                node,
+                expr,
+                propertySymbol,
+                new InvocationArguments(this), // PROTOTYPE: Replace with using statement.
+                expr.ReceiverOpt,
+                default,
+                default,
+                default,
+                default,
+                checkingReceiver,
+                escapeTo,
+                _diagnostics,
+                isRef);
+        }
+
+        private Result VisitObjectCreationExpression(SyntaxNode node, BoundObjectCreationExpression expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            using var _ = GetArgumentPlaceholders(receiverOpt: null, expr.Arguments);
+            VisitList(expr.Arguments);
+
+            var constructor = expr.Constructor;
+            var escapeScope = CheckInvocationEscape(
+                node,
+                expr,
+                constructor,
+                new InvocationArguments(this), // PROTOTYPE: Replace with using statement.
+                null,
+                constructor.Parameters,
+                expr.Arguments,
+                expr.ArgumentRefKindsOpt,
+                expr.ArgsToParamsOpt,
+                checkingReceiver,
+                escapeTo,
+                _diagnostics,
+                isRefEscape: false);
+
+            escapeScope = Result.Max(escapeScope, VisitObjectCreationExpressionBase(expr));
+
+            if (!expr.HasErrors)
+            {
+                CheckInvocationArgMixing(
+                    node,
+                    constructor,
+                    new InvocationArguments(this), // PROTOTYPE: Replace with using statement.
+                    receiverOpt: null,
+                    constructor.Parameters,
+                    expr.Arguments,
+                    expr.ArgumentRefKindsOpt,
+                    expr.ArgsToParamsOpt,
+                    _diagnostics);
+            }
+
+            if (isRef)
+            {
+                return Result.Create(node, expr, checkingReceiver, isRef, _localScopeDepth);
+            }
+
+            if (!expr.Type.IsRefLikeType)
+            {
+                return Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope);
+            }
+
+            return escapeScope;
+        }
+
+        private Result VisitWithExpression(SyntaxNode node, BoundWithExpression expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                var escape = (Result)CheckValEscape(node, expr.Receiver, escapeTo, checkingReceiver: false, _diagnostics);
+
+                var initializerExpr = expr.InitializerExpression;
+                escape = Result.Max(escape, CheckValEscape(initializerExpr.Syntax, initializerExpr, escapeTo, checkingReceiver: false, diagnostics: _diagnostics));
+
+                return escape;
+            }
+
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitUnaryOperator(SyntaxNode node, BoundUnaryOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CheckValEscape(node, expr.Operand, escapeTo, checkingReceiver: false, diagnostics: _diagnostics);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitConversion(SyntaxNode node, BoundConversion expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (isRef)
+            {
+                if (expr.Conversion == Conversion.ImplicitThrow)
+                {
+                    return CheckRefEscape(node, expr.Operand, escapeTo, checkingReceiver, _diagnostics);
+                }
+                return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+            }
+            else
+            {
+                Debug.Assert(expr.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
+
+                if (expr.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                {
+                    return CheckInterpolatedStringHandlerConversionEscape(expr.Operand, escapeTo, _diagnostics);
+                }
+
+                var result = CheckValEscape(node, expr.Operand, escapeTo, checkingReceiver: false, diagnostics: _diagnostics);
+                if (expr.Type?.IsRefLikeType != true)
+                {
+                    return Result.Create(node, expr, checkingReceiver, isRef: false, CallingMethodScope);
+                }
+                return result;
+            }
+        }
+
+        private Result VisitIncrementOperator(SyntaxNode node, BoundIncrementOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CheckValEscape(node, expr.Operand, escapeTo, checkingReceiver: false, diagnostics: _diagnostics);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return Result.Max(CheckValEscape(expr.Left.Syntax, expr.Left, escapeTo, checkingReceiver: false, diagnostics: _diagnostics),
+                    CheckValEscape(expr.Right.Syntax, expr.Right, escapeTo, checkingReceiver: false, diagnostics: _diagnostics));
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitBinaryOperator(SyntaxNode node, BoundBinaryOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (isRef)
+            {
+                return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+            }
+
+            if (expr.OperatorKind == BinaryOperatorKind.Utf8Addition)
+            {
+                return Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope);
+            }
+
+            var stack = ArrayBuilder<BoundExpression>.GetInstance();
+            stack.Push(expr.Right);
+
+            BoundExpression current = expr.Left;
+            while (current.Kind == BoundKind.BinaryOperator)
+            {
+                expr = (BoundBinaryOperator)current;
+                stack.Push(expr.Right);
+                current = expr.Left;
+            }
+
+            Result result = VisitExpression(current, escapeTo, checkingReceiver);
+            while (stack.Count > 0)
+            {
+                current = stack.Pop();
+                result = Result.Max(result, VisitExpression(current, escapeTo, checkingReceiver));
+            }
+
+            stack.Free();
+            return result;
+        }
+
+        private Result VisitRangeExpression(SyntaxNode node, BoundRangeExpression expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                var escapeScope = Result.Create(node, expr, checkingReceiver, isRef: false, CallingMethodScope);
+                if (expr.LeftOperandOpt is { } left)
+                {
+                    escapeScope = Result.Max(escapeScope, CheckValEscape(left.Syntax, left, escapeTo, checkingReceiver: false, diagnostics: _diagnostics));
+                }
+                if (expr.RightOperandOpt is { } right)
+                {
+                    escapeScope = Result.Max(escapeScope, CheckValEscape(right.Syntax, right, escapeTo, checkingReceiver: false, diagnostics: _diagnostics));
+                }
+                return escapeScope;
+            }
+
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitUserDefinedConditionalLogicalOperator(SyntaxNode node, BoundUserDefinedConditionalLogicalOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return Result.Max(CheckValEscape(expr.Left.Syntax, expr.Left, escapeTo, checkingReceiver: false, diagnostics: _diagnostics),
+                    CheckValEscape(expr.Right.Syntax, expr.Right, escapeTo, checkingReceiver: false, diagnostics: _diagnostics));
+            }
+
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitQueryClause(SyntaxNode node, BoundQueryClause expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CheckValEscape(expr.Value.Syntax, expr.Value, escapeTo, checkingReceiver: false, diagnostics: _diagnostics);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitRangeVariable(SyntaxNode node, BoundRangeVariable expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CheckValEscape(expr.Value.Syntax, expr.Value, escapeTo, checkingReceiver: false, diagnostics: _diagnostics);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitObjectInitializerExpression(SyntaxNode node, BoundObjectInitializerExpression expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CheckValEscapeOfObjectInitializer(expr, escapeTo, _diagnostics);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitInterpolatedStringHandlerPlaceholder(SyntaxNode node, BoundInterpolatedStringHandlerPlaceholder expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                // The handler placeholder cannot escape out of the current expression, as it's a compiler-synthesized
+                // location.
+                return Result.Create(node, expr, checkingReceiver, isRef, _localScopeDepth);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitDisposableValuePlaceholder(SyntaxNode node, BoundDisposableValuePlaceholder expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                // Disposable value placeholder is only ever used to lookup a pattern dispose method
+                // then immediately discarded. The actual expression will be generated during lowering 
+                return Result.Create(node, expr, checkingReceiver, isRef, _localScopeDepth);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitPointerElementAccess(SyntaxNode node, BoundPointerElementAccess expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (isRef)
+            {
+                // pointer dereferencing are readwrite variables
+                return Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope);
+            }
+            else
+            {
+                return CheckValEscape(expr.Expression.Syntax, expr.Expression, escapeTo, checkingReceiver, _diagnostics);
+            }
+        }
+
+        private Result VisitPointerIndirectionOperator(SyntaxNode node, BoundPointerIndirectionOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (isRef)
+            {
+                // pointer dereferencing are readwrite variables
+                return Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope);
+            }
+            else
+            {
+                return CheckValEscape(expr.Operand.Syntax, expr.Operand, escapeTo, checkingReceiver, _diagnostics);
+            }
+        }
+
+        private Result VisitArrayAccess(SyntaxNode node, BoundArrayAccess expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (isRef)
+            {
+                // array elements are readwrite variables
+                return Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope);
+            }
+            return CreateDefaultValScope(node, expr, checkingReceiver);
+        }
+
+        private Result VisitAsOperator(SyntaxNode node, BoundAsOperator expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CreateDefaultValScope(node, expr, checkingReceiver);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitAwaitExpression(SyntaxNode node, BoundAwaitExpression expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CreateDefaultValScope(node, expr, checkingReceiver);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result VisitConditionalAccess(SyntaxNode node, BoundConditionalAccess expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            if (!isRef)
+            {
+                return CreateDefaultValScope(node, expr, checkingReceiver);
+            }
+            return DefaultVisit(expr, escapeTo, checkingReceiver, isRef);
+        }
+
+        private Result CreateDefaultValScope(SyntaxNode node, BoundExpression expr, bool checkingReceiver)
+        {
+            if (expr.Type?.IsRefLikeType != true)
+            {
+                return Result.Create(node, expr, checkingReceiver, isRef: false, CallingMethodScope);
+            }
+            // only possible in error cases (if possible at all)
+            return Result.Create(node, expr, checkingReceiver, isRef: false, refEscapeScope: UndefinedScope, _localScopeDepth, hasErrors: true);
+        }
+
+        private Result VisitThrowExpression(SyntaxNode node, BoundThrowExpression expr, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            return Result.Create(node, expr, checkingReceiver, isRef, CallingMethodScope);
         }
 
         public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
@@ -407,7 +1012,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _localEscapeScopes ??= new Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>();
-            _localEscapeScopes.Add(local, (refEscapeScope, valEscapeScope));
+            // PROTOTYPE: Should use .Add(..., ...) but we're currently traversing nodes multiple times.
+            _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
         }
 
 #pragma warning disable IDE0060
@@ -422,8 +1028,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            base.VisitLocalDeclaration(node);
-
             if (node.InitializerOpt is { } initializer)
             {
                 var localSymbol = (SourceLocalSymbol)node.LocalSymbol;
@@ -435,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the initializer. Validate the escape values for the initializer instead.
 
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
-                        refEscapeScope >= GetRefEscape(initializer));
+                        refEscapeScope >= GetRefEscape(initializer).EscapeScope);
 
                     if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true)
                     {
@@ -447,10 +1051,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // default to the current scope in case we need to handle self-referential error cases.
                     SetLocalScopes(localSymbol, _localScopeDepth, _localScopeDepth);
 
-                    valEscapeScope = GetValEscape(initializer);
-                    if (localSymbol.RefKind != RefKind.None)
+                    bool isRef = localSymbol.RefKind != RefKind.None;
+                    var result = VisitExpression(initializer, isRef: isRef);
+                    valEscapeScope = result.ValEscapeScope;
+                    if (isRef)
                     {
-                        refEscapeScope = GetRefEscape(initializer);
+                        refEscapeScope = result.RefEscapeScope;
                     }
 
                     SetLocalScopes(localSymbol, refEscapeScope, valEscapeScope);
@@ -462,7 +1068,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitReturnStatement(BoundReturnStatement node)
         {
-            base.VisitReturnStatement(node);
             if (node.ExpressionOpt is { Type: { } } expr)
             {
                 ValidateEscape(expr, ReturnOnlyScope, node.RefKind != RefKind.None, _diagnostics);
@@ -480,19 +1085,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
+        private Result VisitAssignmentOperator(BoundAssignmentOperator node, uint escapeTo, bool isRef)
         {
-            base.VisitAssignmentOperator(node);
-            if (node.Left.Kind != BoundKind.DiscardExpression)
+            // PROTOTYPE: We need a single code path where we visit left and right,
+            // rather than visiting some here, some in ValidateAssignment.
+            if (node.Left.Kind == BoundKind.DiscardExpression)
+            {
+                VisitExpression(node.Right, isRef: isRef);
+            }
+            else
             {
                 ValidateAssignment(node.Syntax, node.Left, node.Right, node.IsRef, _diagnostics);
             }
-            return null;
+            // PROTOTYPE: Previously we had a specific check for !assignment.IsRef (see also
+            // "Only ref-assignments can be LValues"). Where is that now?
+            return VisitExpression(node.Left, escapeTo, isRef: isRef, node: node.Syntax);
         }
 
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            using var _ = new PatternInput(this, GetValEscape(node.Expression));
+            using var _ = new PatternInput(this, GetValEscape(node.Expression).EscapeScope);
             return base.VisitIsPatternExpression(node);
         }
 
@@ -555,16 +1167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
-        {
-            base.VisitConditionalOperator(node);
-            if (node.IsRef)
-            {
-                ValidateRefConditionalOperator(node.Syntax, node.Consequence, node.Alternative, _diagnostics);
-            }
-            return null;
-        }
-
         private PlaceholderRegion GetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments)
         {
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
@@ -579,26 +1181,160 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new PlaceholderRegion(this, placeholders);
         }
 
-        public override BoundNode? VisitCall(BoundCall node)
+        private ref struct InvocationArguments
         {
-            using var _ = GetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
-            base.VisitCall(node);
+            private readonly RefSafetyAnalysis _analysis;
+            private readonly PooledDictionary<(BoundExpression Expression, bool IsRef), Result> _argumentResults;
 
-            if (!node.HasErrors)
+            public InvocationArguments(RefSafetyAnalysis analysis)
             {
-                var method = node.Method;
-                CheckInvocationArgMixing(
-                    node.Syntax,
-                    method,
-                    node.ReceiverOpt,
-                    method.Parameters,
-                    node.Arguments,
-                    node.ArgumentRefKindsOpt,
-                    node.ArgsToParamsOpt,
-                    _diagnostics);
+                _analysis = analysis;
+                _argumentResults = PooledDictionary<(BoundExpression Expression, bool IsRef), Result>.GetInstance();
             }
 
-            return null;
+            // PROTOTYPE: Remove overload.
+            internal Result VisitExpressionIfNecessary(BoundExpression expr, uint escapeTo, bool isRef, bool addIfMissing)
+            {
+                return VisitExpressionIfNecessary(expr, isRef, addIfMissing);
+            }
+
+            internal Result VisitExpressionIfNecessary(BoundExpression expr, bool isRef, bool addIfMissing)
+            {
+                Result? result;
+                if (!_argumentResults.TryGetValue((expr, isRef), out result))
+                {
+                    result = _analysis.VisitExpression(expr, checkingReceiver: false, isRef: isRef);
+                    if (addIfMissing)
+                    {
+                        _argumentResults.Add((expr, isRef), result);
+                    }
+                }
+                return result;
+            }
+
+            public void Dispose()
+            {
+                _argumentResults.Free();
+            }
+        }
+
+        private static ParameterSymbol? GetThisParameter(MethodSymbol? method)
+        {
+            return method?.TryGetThisParameter(out var thisParameter) == true
+                ? thisParameter
+                : null;
+        }
+
+        private Result VisitCall(BoundCall node, uint escapeTo, bool checkingReceiver, bool isRef)
+        {
+            var method = node.Method;
+            return VisitInvocation(
+                node,
+                method,
+                method.RefKind,
+                GetThisParameter(method),
+                node.ReceiverOpt,
+                method.Parameters,
+                node.Arguments,
+                node.ArgumentRefKindsOpt,
+                node.ArgsToParamsOpt,
+                checkingReceiver,
+                escapeTo,
+                isRef);
+        }
+
+        private Result VisitInvocation(
+            BoundExpression node,
+            Symbol symbol,
+            RefKind refKind, // PROTOTYPE: RefKind and ThisParameter is already handled in GetInvocationArgumentsForEscape(). Share code with that method.
+            ParameterSymbol? thisParameter,
+            BoundExpression? receiver,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<BoundExpression> argsOpt,
+            ImmutableArray<RefKind> argRefKindsOpt,
+            ImmutableArray<int> argsToParamsOpt,
+            bool checkingReceiver,
+            uint escapeTo,
+            bool isRef)
+        {
+            using var _ = GetArgumentPlaceholders(receiver, argsOpt);
+            using var args = new InvocationArguments(this);
+
+            Result result;
+
+            if (node.HasAnyErrors)
+            {
+                base.Visit(node);
+                uint escapeScope = isRef
+                    ? ReturnOnlyScope
+                    : CallingMethodScope;
+                return Result.Create(node.Syntax, node, checkingReceiver, isRef, escapeScope);
+            }
+            else if (isRef && refKind == RefKind.None)
+            {
+                base.Visit(node);
+                return Result.Create(node.Syntax, node, checkingReceiver, isRef, _localScopeDepth);
+            }
+            else
+            {
+                result = CheckInvocationEscape(
+                    node.Syntax,
+                    node,
+                    symbol,
+                    args,
+                    receiver,
+                    parameters,
+                    argsOpt,
+                    argRefKindsOpt,
+                    argsToParamsOpt,
+                    checkingReceiver,
+                    escapeTo,
+                    _diagnostics,
+                    isRef);
+
+                CheckInvocationArgMixing(
+                    node.Syntax,
+                    symbol,
+                    args,
+                    receiver,
+                    parameters,
+                    argsOpt,
+                    argRefKindsOpt,
+                    argsToParamsOpt,
+                    _diagnostics);
+
+                // PROTOTYPE: Check all callers to CheckInvocationEscape(). All callers should return
+                // CallingMethodScope when the return type is not IsRefLikeType. Or better yet,
+                // CheckInvocationEscape() should return CallingMethodScope in that case!
+                if (!isRef && symbol.GetTypeOrReturnType().Type?.IsRefLikeType != true)
+                {
+                    return Result.Create(node.Syntax, node, checkingReceiver, isRef, CallingMethodScope);
+                }
+            }
+
+            // Visit any arguments that weren't visited above.
+            // PROTOTYPE: These calls to VisitExpressionIfNecessary() are not correct. We should only visit
+            // the sub-expression if we haven't visited it already for any escapeTo value, not uint.MaxValue.
+            if (receiver is { } && symbol.RequiresInstanceReceiver())
+            {
+                // PROTOTYPE: What is the correct 'isRef'?
+                // PROTOTYPE: RefKind and ThisParameter is already handled in GetInvocationArgumentsForEscape(). Share code with that method.
+                bool receiverIsRef = thisParameter is { } && thisParameter.RefKind != RefKind.None;
+                args.VisitExpressionIfNecessary(receiver, escapeTo: uint.MaxValue, receiverIsRef, addIfMissing: false);
+            }
+
+            if (!argsOpt.IsDefault)
+            {
+                for (int i = 0; i < argsOpt.Length; i++)
+                {
+                    var arg = argsOpt[i];
+                    // PROTOTYPE: What is the correct 'isRef'? Need to include implicit 'in' from parameter.
+                    bool argIsRef = argRefKindsOpt.IsDefault ? false : argRefKindsOpt[i] != RefKind.None;
+                    args.VisitExpressionIfNecessary(arg, escapeTo: uint.MaxValue, argIsRef, addIfMissing: false);
+                }
+            }
+
+            return result;
         }
 
         private void GetInterpolatedStringPlaceholders(
@@ -617,13 +1353,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         Debug.Assert(receiver != null);
-                        valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver) : GetValEscape(receiver);
+                        valEscapeScope = (receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver) : GetValEscape(receiver)).EscapeScope;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
+                        // PROTOTYPE: What does this parameter represent, and what is the correct escape scope?
+                        valEscapeScope = CallingMethodScope;
+                        break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         continue;
                     case >= 0:
-                        valEscapeScope = GetValEscape(arguments[argIndex]);
+                        valEscapeScope = GetValEscape(arguments[argIndex]).EscapeScope;
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
@@ -632,29 +1371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
-        {
-            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
-            VisitList(node.Arguments);
-
-            VisitObjectCreationExpressionBase(node);
-
-            if (!node.HasErrors)
-            {
-                var constructor = node.Constructor;
-                CheckInvocationArgMixing(
-                    node.Syntax,
-                    constructor,
-                    receiverOpt: null,
-                    constructor.Parameters,
-                    node.Arguments,
-                    node.ArgumentRefKindsOpt,
-                    node.ArgsToParamsOpt,
-                    _diagnostics);
-            }
-
-            return null;
-        }
+        // PROTOTYPE: Remove or replace all the "public override BoundNode? Visit*()" methods for
+        // expressions since all BoundExpression cases should go through VisitExpression() instead.
 
         public override BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
@@ -686,49 +1404,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
+        private Result VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
         {
             if (node.InitializerExpressionOpt is { } initializer)
             {
-                VisitObjectCreationInitializer(initializer);
+                return VisitObjectCreationInitializer(initializer);
             }
+            return Result.Create(node.Syntax, node, checkingReceiver: false, isRef: false, CallingMethodScope);
         }
 
-        private void VisitObjectCreationInitializer(BoundObjectInitializerExpressionBase node)
+        private Result VisitObjectCreationInitializer(BoundObjectInitializerExpressionBase node)
         {
             switch (node)
             {
                 case BoundObjectInitializerExpression objectInitializer:
-                    foreach (var initializer in objectInitializer.Initializers)
-                    {
-                        switch (initializer)
-                        {
-                            case BoundAssignmentOperator assignment:
-                                switch (assignment.Left)
-                                {
-                                    case BoundObjectInitializerMember:
-                                        // PROTOTYPE: Check indexer args.
-                                        switch (assignment.Right)
-                                        {
-                                            case BoundObjectInitializerExpression memberInitializer:
-                                                VisitObjectCreationInitializer(memberInitializer);
-                                                break;
-                                            default:
-                                                Visit(assignment.Right);
-                                                break;
-                                        }
-                                        break;
-                                    default:
-                                        Visit(initializer);
-                                        break;
-                                }
-                                break;
-                            default:
-                                Visit(initializer);
-                                break;
-                        }
-                    }
-                    break;
+                    return CheckValEscapeOfObjectInitializer(objectInitializer, escapeTo: UndefinedScope, _diagnostics);
+
                 case BoundCollectionInitializerExpression collectionInitializer:
                     foreach (var initializer in collectionInitializer.Initializers)
                     {
@@ -738,62 +1429,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // PROTOTYPE: Check Add() method.
                                 goto default;
                             default:
+                                // PROTOTYPE: Include initializer escape scope in result.
                                 Visit(initializer);
                                 break;
                         }
                     }
                     break;
             }
+
+            // PROTOTYPE: Should include results above.
+            return Result.Create(node.Syntax, node, checkingReceiver: false, isRef: false, CallingMethodScope);
         }
 
-        public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
+        private Result VisitIndexerAccess(BoundIndexerAccess node, uint escapeTo, bool checkingReceiver, bool isRef)
         {
-            using var _ = GetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
-            base.VisitIndexerAccess(node);
-
-            if (!node.HasErrors)
-            {
-                var indexer = node.Indexer;
-                CheckInvocationArgMixing(
-                    node.Syntax,
-                    indexer,
-                    node.ReceiverOpt,
-                    indexer.Parameters,
-                    node.Arguments,
-                    node.ArgumentRefKindsOpt,
-                    node.ArgsToParamsOpt,
-                    _diagnostics);
-            }
-
-            return null;
+            var indexer = node.Indexer;
+            return VisitInvocation(
+                node,
+                indexer,
+                indexer.RefKind,
+                GetThisParameter(indexer.GetMethod),
+                node.ReceiverOpt,
+                indexer.Parameters,
+                node.Arguments,
+                node.ArgumentRefKindsOpt,
+                node.ArgsToParamsOpt,
+                checkingReceiver,
+                escapeTo,
+                isRef);
         }
 
-        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        private Result VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node, uint escapeTo, bool checkingReceiver, bool isRef)
         {
-            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
-            base.VisitFunctionPointerInvocation(node);
-
-            if (!node.HasErrors)
-            {
-                var method = node.FunctionPointer.Signature;
-                CheckInvocationArgMixing(
-                    node.Syntax,
-                    method,
-                    receiverOpt: null,
-                    method.Parameters,
-                    node.Arguments,
-                    node.ArgumentRefKindsOpt,
-                    argsToParamsOpt: default,
-                    _diagnostics);
-            }
-
-            return null;
+            var method = node.FunctionPointer.Signature;
+            return VisitInvocation(
+                node,
+                method,
+                method.RefKind,
+                thisParameter: null,
+                receiver: null,
+                method.Parameters,
+                node.Arguments,
+                node.ArgumentRefKindsOpt,
+                argsToParamsOpt: default,
+                checkingReceiver,
+                escapeTo,
+                isRef);
         }
 
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, GetValEscape(node.Expression));
+            GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, GetValEscape(node.Expression).EscapeScope);
             using var _ = new PlaceholderRegion(this, placeholders);
             base.VisitAwaitExpression(node);
             return null;
@@ -845,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right)));
+            placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right).EscapeScope));
 
             var parameters = deconstructMethod.Parameters;
             int n = variables.Count;
@@ -858,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var nestedVariables = variable.NestedVariables;
                 var arg = (BoundDeconstructValuePlaceholder)invocation.Arguments[i + offset];
                 uint valEscape = nestedVariables is null
-                    ? GetValEscape(variable.Expression)
+                    ? GetValEscape(variable.Expression).EscapeScope
                     : _localScopeDepth;
                 placeholders.Add((arg, valEscape));
             }
@@ -868,6 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckInvocationArgMixing(
                 syntax,
                 deconstructMethod,
+                new InvocationArguments(this), // PROTOTYPE: Replace with using statement.
                 invocation.ReceiverOpt,
                 parameters,
                 invocation.Arguments,
@@ -916,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return expr is BoundTupleExpression tuple
                     ? new DeconstructionVariable(expr, valEscape: uint.MaxValue, GetDeconstructionAssignmentVariables(tuple))
-                    : new DeconstructionVariable(expr, GetValEscape(expr), null);
+                    : new DeconstructionVariable(expr, GetValEscape(expr).EscapeScope, null);
             }
         }
 
@@ -941,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
-            uint collectionEscape = GetValEscape(node.Expression);
+            uint collectionEscape = GetValEscape(node.Expression).EscapeScope;
             using var _ = new LocalScope(this, ImmutableArray<LocalSymbol>.Empty);
 
             foreach (var local in node.IterationVariables)
@@ -968,6 +1656,151 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private bool ReportRefEscapeErrors(Result result, uint escapeTo)
+        {
+            uint escapeScope = result.EscapeScope;
+            if (escapeScope <= escapeTo)
+            {
+                return true;
+            }
+
+            var inUnsafeRegion = _inUnsafeRegion;
+
+            while (result is ParameterResult parameterResult)
+            {
+                if (!inUnsafeRegion)
+                {
+                    ReportInvocationEscapeError(result.Syntax!, parameterResult.ContainingSymbol, parameterResult.Parameter, parameterResult.CheckingReceiver, _diagnostics);
+                }
+                result = parameterResult.ArgumentResult;
+            }
+
+            var expressionResult = (ExpressionResult)result;
+            var expr = expressionResult.Expression;
+
+            if (expressionResult.IsOriginallyRef)
+            {
+                bool checkingReceiver = result.CheckingReceiver;
+                switch (expr.Kind)
+                {
+                    case BoundKind.Local:
+                        {
+                            var localSymbol = ((BoundLocal)expr).LocalSymbol;
+                            if (escapeTo is CallingMethodScope or ReturnOnlyScope)
+                            {
+                                if (localSymbol.RefKind == RefKind.None)
+                                {
+                                    if (checkingReceiver)
+                                    {
+                                        Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnLocal2 : ErrorCode.ERR_RefReturnLocal2, expr.Syntax, localSymbol);
+                                    }
+                                    else
+                                    {
+                                        Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnLocal : ErrorCode.ERR_RefReturnLocal, result.Syntax, localSymbol);
+                                    }
+                                }
+                                else if (checkingReceiver)
+                                {
+                                    Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnNonreturnableLocal2 : ErrorCode.ERR_RefReturnNonreturnableLocal2, expr.Syntax, localSymbol);
+                                }
+                                else
+                                {
+                                    Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnNonreturnableLocal : ErrorCode.ERR_RefReturnNonreturnableLocal, result.Syntax, localSymbol);
+                                }
+                            }
+                            else
+                            {
+                                Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, result.Syntax, localSymbol);
+                            }
+                        }
+                        break;
+
+                    case BoundKind.ThisReference:
+                        Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnStructThis : ErrorCode.ERR_RefReturnStructThis, result.Syntax);
+                        break;
+
+                    case BoundKind.Parameter:
+                        {
+                            var parameterSymbol = ((BoundParameter)expr).ParameterSymbol;
+                            bool isRefScoped = parameterSymbol.EffectiveScope == ScopedKind.ScopedRef;
+                            Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped || escapeScope == ReturnOnlyScope);
+#pragma warning disable format
+                            var (errorCode, syntax) = (checkingReceiver, isRefScoped, inUnsafeRegion, escapeScope) switch
+                            {
+                                (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter2, expr.Syntax),
+                                (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter2, expr.Syntax),
+                                (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter2,   expr.Syntax),
+                                (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter2,   expr.Syntax),
+                                (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter2,       expr.Syntax),
+                                (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter2,       expr.Syntax),
+                                (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter,  result.Syntax),
+                                (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter,  result.Syntax),
+                                (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter,    result.Syntax),
+                                (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter,    result.Syntax),
+                                (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter,        result.Syntax),
+                                (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter,        result.Syntax)
+                            };
+#pragma warning restore format
+                            Error(_diagnostics, errorCode, syntax, parameterSymbol.Name);
+                        }
+                        break;
+
+                    default:
+                        // PROTOTYPE: Re-enable assert if useful.
+                        //Debug.Assert(expr is BoundDiscardExpression
+                        //    or BoundLiteral { ConstantValueOpt: { } }
+                        //    or BoundConversion
+                        //    or BoundObjectCreationExpression
+                        //    or BoundStackAllocArrayCreation
+                        //    or BoundConvertedStackAllocExpression
+                        //    or BoundRefValueOperator
+                        //    or BoundDynamicMemberAccess
+                        //    or BoundDynamicIndexerAccess);
+                        // At this point we should have covered all the possible cases for anything that is not a strict RValue.
+                        if (escapeTo is CallingMethodScope or ReturnOnlyScope)
+                        {
+                            Error(_diagnostics, ErrorCode.ERR_RefReturnLvalueExpected, expr.Syntax);
+                        }
+                        else
+                        {
+                            Error(_diagnostics, ErrorCode.ERR_EscapeOther, expr.Syntax);
+                        }
+                        break;
+                }
+            }
+            else if (!result.HasErrors)
+            {
+                switch (expr)
+                {
+                    case BoundLocal local:
+                        Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, result.Syntax, local.LocalSymbol);
+                        break;
+
+                    case BoundParameter parameter:
+                        Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, result.Syntax, parameter.ParameterSymbol);
+                        break;
+
+                    case BoundThisReference:
+                        Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, result.Syntax, ((MethodSymbol)_symbol).ThisParameter);
+                        break;
+
+                    case BoundValuePlaceholderBase:
+                        Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, result.Syntax, expr.Syntax);
+                        break;
+
+                    case BoundStackAllocArrayCreationBase:
+                        Error(_diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeStackAlloc : ErrorCode.ERR_EscapeStackAlloc, result.Syntax, expr.Type!);
+                        break;
+
+                    default:
+                        Debug.Assert(false);
+                        break;
+                }
+            }
+
+            return inUnsafeRegion;
         }
 
         private static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)

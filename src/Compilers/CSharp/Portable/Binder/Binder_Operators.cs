@@ -4285,30 +4285,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class RefSafetyAnalysis
     {
-        private void ValidateRefConditionalOperator(SyntaxNode node, BoundExpression trueExpr, BoundExpression falseExpr, BindingDiagnosticBag diagnostics)
+        private void ValidateRefConditionalOperator(SyntaxNode node, Result whenTrueResult, Result whenFalseResult)
         {
-            // PROTOTYPE: Only add diagnostics from branches that aren't re-analyzed below.
-
             // val-escape must agree on both branches.
-            uint whenTrueEscape = GetValEscape(trueExpr);
-            uint whenFalseEscape = GetValEscape(falseExpr);
+            uint whenTrueEscape = whenTrueResult.ValEscapeScope;
+            uint whenFalseEscape = whenFalseResult.ValEscapeScope;
 
             if (whenTrueEscape != whenFalseEscape)
             {
-                // PROTOTYPE: Avoid exponential re-analysis in nested ref conditionals. (Perhaps by only
-                // re-analyzing if there weren't already diagnostics from the initial analysis above.)
-
-                // PROTOTYPE: If we re-analyze the same nodes (or otherwise call Get/Check on the same nodes
-                // multiple times), we'll potentially re-add locals and placeholders to the dictionaries. Need to ensure
-                // we're removing those when we leave the containing expression.
-
                 // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
                 if (whenTrueEscape < whenFalseEscape)
-                    CheckValEscape(falseExpr.Syntax, falseExpr, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
+                    ReportRefEscapeErrors(whenFalseResult.GetValResult(), whenTrueEscape);
                 else
-                    CheckValEscape(trueExpr.Syntax, trueExpr, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
+                    ReportRefEscapeErrors(whenTrueResult.GetValResult(), whenFalseEscape);
 
-                diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
+                _diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
             }
         }
     }

@@ -29616,34 +29616,30 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
         }
 
-        [Fact]
-        public void PROTOTYPE_Assignment_01()
+        [ConditionalFact(typeof(ClrOnly))]
+        public void SpanToString()
         {
             var source = """
-                ref struct R
-                {
-                    public R(ref int i) { }
-                }
+                using System;
                 class Program
                 {
-                    static void Main()
+                    static string F1()
                     {
-                        R r = default;
-                        int i = 0;
-                        r = new R(ref i);
+                        Span<char> s = stackalloc char[1];
+                        return s.ToString();
+                    }
+                    static string F2()
+                    {
+                        Span<byte> s = stackalloc byte[2];
+                        return Convert.ToBase64String(s);
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (11,13): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         r = new R(ref i);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i)").WithArguments("R.R(ref int)", "i").WithLocation(11, 13),
-                // (11,23): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         r = new R(ref i);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(11, 23));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
         }
 
+        // PROTOTYPE: Use deeply nested calls.
         [WorkItem(65596, "https://github.com/dotnet/roslyn/issues/65596")]
         [Fact]
         public void PROTOTYPE_NestedCalls()
@@ -29674,75 +29670,6 @@ Block[B2] - Exit
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PROTOTYPE_01()
-        {
-            var source =
-@"ref struct S<T>
-{
-    public ref T F;
-    public S(ref T t) { F = ref t; }
-}
-class Program
-{
-    static void Main()
-    {
-        int x = 1;
-        var sx = new S<int>(ref x);
-    }
-}";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PROTOTYPE_02()
-        {
-            var source = """
-                #pragma warning disable 8321
-                static S2 Inner1(ref S s)
-                {
-                    return new S2 { S = s };
-                }
-                ref struct S
-                {
-                }
-                ref struct S2
-                {
-                    public S S;
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PROTOTYPE_03()
-        {
-            var source = """
-                #pragma warning disable 8321
-                static S2 Inner1()
-                {
-                    int i = 0;
-                    var s = new S(ref i);
-                    return new S2 { S = s };
-                }
-                ref struct S
-                {
-                    public S(ref int i) { }
-                }
-                ref struct S2
-                {
-                    public S S;
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,21): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //     return new S2 { S = s };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "S = s").WithArguments("s").WithLocation(6, 21));
         }
     }
 }
