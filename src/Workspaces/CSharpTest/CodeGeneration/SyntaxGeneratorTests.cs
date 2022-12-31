@@ -4033,7 +4033,7 @@ class C
     [|public sealed override void M() { }|]
 }");
         }
-        
+
         [Fact]
         public void TestMethodModifiers2()
         {
