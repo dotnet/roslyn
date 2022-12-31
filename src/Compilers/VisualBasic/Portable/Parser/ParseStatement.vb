@@ -556,18 +556,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim loopKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
 
-            ' Moved ERRID.ERR_LoopDoubleCondition to TryParseOptionalWhileOrUntilClause
             Dim optionalWhileOrUntilClause As WhileOrUntilClauseSyntax = Nothing
+            Dim kind = SyntaxKind.SimpleLoopStatement
 
-            TryParseOptionalWhileOrUntilClause(loopKeyword, optionalWhileOrUntilClause)
-
-            Dim kind As SyntaxKind
-            If optionalWhileOrUntilClause Is Nothing Then
-                kind = SyntaxKind.SimpleLoopStatement
-            ElseIf optionalWhileOrUntilClause.Kind = SyntaxKind.WhileClause Then
-                kind = SyntaxKind.LoopWhileStatement
-            Else
-                kind = SyntaxKind.LoopUntilStatement
+            If TryParseOptionalWhileOrUntilClause(loopKeyword, optionalWhileOrUntilClause) Then
+                If optionalWhileOrUntilClause.Kind = SyntaxKind.WhileClause Then
+                    kind = SyntaxKind.LoopWhileStatement
+                Else
+                    Debug.Assert(optionalWhileOrUntilClause.Kind = SyntaxKind.UntilClause,
+                     "Assumption that 'WhileClause' and 'UntilClause' are the only valid kinds, after a `loop` keyword. ")
+                    kind = SyntaxKind.LoopUntilStatement
+                End If       
             End If
 
             Dim statement As LoopStatementSyntax = SyntaxFactory.LoopStatement(kind, loopKeyword, optionalWhileOrUntilClause)
