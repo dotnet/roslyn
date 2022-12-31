@@ -660,11 +660,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var type = variable.GetVariableType();
                 var typeNode = type.GenerateTypeSyntax();
 
+                var originalIdentifierToken = variable.GetOriginalIdentifierToken(cancellationToken);
+                var usingKeyword = originalIdentifierToken.GetAncestor<LocalDeclarationStatementSyntax>() is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
+                    ? SyntaxFactory.Token(SyntaxKind.UsingKeyword)
+                    : default;
+
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 
                 return SyntaxFactory.LocalDeclarationStatement(
                     SyntaxFactory.VariableDeclaration(typeNode)
-                          .AddVariables(SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(variable.Name)).WithInitializer(equalsValueClause)));
+                          .AddVariables(SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(variable.Name))
+                          .WithInitializer(equalsValueClause)))
+                    .WithUsingKeyword(usingKeyword);
             }
 
             protected override async Task<GeneratedCode> CreateGeneratedCodeAsync(OperationStatus status, SemanticDocument newDocument, CancellationToken cancellationToken)
