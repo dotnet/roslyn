@@ -4102,6 +4102,16 @@ class C
 }");
         }
 
+        [Fact]
+        public void TestStructModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
+                @"
+public readonly struct [|S|]
+{
+}");
+        }
+
         private static void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
         {
             MarkupTestFile.GetSpan(markup, out var code, out var span);
