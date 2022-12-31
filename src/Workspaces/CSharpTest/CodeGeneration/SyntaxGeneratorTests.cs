@@ -4033,6 +4033,17 @@ class C
     [|public sealed override void M() { }|]
 }");
         }
+        
+        [Fact]
+        public void TestMethodModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly,
+                @"
+struct S
+{
+    [|public readonly void M() { }|]
+}");
+        }
 
         [Fact]
         public void TestAsyncMethodModifier()
