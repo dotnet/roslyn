@@ -1704,6 +1704,7 @@
     matching Id that are integers unique for the containing method body.
     -->
     <Field Name="Id" Type="int"/>
+    <Field Name="ForceCopyOfNullableValueType" Type="bool"/>
   </Node>
   
   <!-- represents the receiver of a conditional access expression -->

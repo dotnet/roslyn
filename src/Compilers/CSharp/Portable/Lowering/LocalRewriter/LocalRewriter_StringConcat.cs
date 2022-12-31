@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectToStringMethod),
                     whenNullOpt: null,
                     id: currentConditionalAccessID,
+                    forceCopyOfNullableValueType: false,
                     type: _compilation.GetSpecialType(SpecialType.System_String));
             }
 
