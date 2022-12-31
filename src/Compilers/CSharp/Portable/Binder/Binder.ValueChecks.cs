@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return parameter switch
             {
-                { EffectiveScope: DeclarationScope.ValueScoped } => Binder.CurrentMethodScope,
+                { EffectiveScope: ScopedKind.ScopedValue } => Binder.CurrentMethodScope,
                 { RefKind: RefKind.Out, UseUpdatedEscapeRules: true } => Binder.ReturnOnlyScope,
                 _ => Binder.CallingMethodScope
             };
@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter switch
             {
                 { RefKind: RefKind.None } => Binder.CurrentMethodScope,
-                { EffectiveScope: DeclarationScope.RefScoped } => Binder.CurrentMethodScope,
+                { EffectiveScope: ScopedKind.ScopedRef } => Binder.CurrentMethodScope,
                 { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => Binder.ReturnOnlyScope,
                 { HasUnscopedRefAttribute: true, IsThis: false } => Binder.CallingMethodScope,
                 _ => Binder.ReturnOnlyScope
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refSafeToEscape = GetParameterRefEscape(parameterSymbol);
             if (refSafeToEscape > escapeTo)
             {
-                var isRefScoped = parameterSymbol.EffectiveScope == DeclarationScope.RefScoped;
+                var isRefScoped = parameterSymbol.EffectiveScope == ScopedKind.ScopedRef;
                 Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped || refSafeToEscape == Binder.ReturnOnlyScope);
                 var inUnsafeRegion = _inUnsafeRegion;
 
@@ -4445,7 +4445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC: 1. ...
                     // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
                     if (_useUpdatedEscapeRules &&
-                        call.Method.Parameters[0].EffectiveScope == DeclarationScope.ValueScoped)
+                        call.Method.Parameters[0].EffectiveScope == ScopedKind.ScopedValue)
                     {
                         continue;
                     }

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) => ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
             internal override SyntaxNode GetDeclaratorSyntax() => throw ExceptionUtilities.Unreachable();
             internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) => throw ExceptionUtilities.Unreachable();
-            internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+            internal override ScopedKind Scope => ScopedKind.None;
         }
     }
 }

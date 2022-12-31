@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            ScopedKind scope)
             : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
@@ -198,15 +198,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
-        internal sealed override DeclarationScope EffectiveScope
+        internal sealed override ScopedKind EffectiveScope
         {
             get
             {
                 var scope = CalculateEffectiveScopeIgnoringAttributes();
-                if (scope != DeclarationScope.Unscoped &&
+                if (scope != ScopedKind.None &&
                     HasUnscopedRefAttribute)
                 {
-                    return DeclarationScope.Unscoped;
+                    return ScopedKind.None;
                 }
                 return scope;
             }
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
                 }
-                else if (DeclaredScope != DeclarationScope.Unscoped)
+                else if (DeclaredScope != ScopedKind.None)
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedScoped, arguments.AttributeSyntaxOpt.Location);
                 }
@@ -1504,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            ScopedKind scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
         }
@@ -1527,7 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            ScopedKind scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);
