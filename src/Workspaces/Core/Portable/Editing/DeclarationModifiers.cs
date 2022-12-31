@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 return new DeclarationModifiers(
                     isStatic: symbol.IsStatic,
                     isAbstract: symbol.IsAbstract,
-                    isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true,
+                    isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true || type?.IsReadOnly == true,
                     isVirtual: symbol.IsVirtual,
                     isOverride: symbol.IsOverride,
                     isSealed: symbol.IsSealed,
