@@ -32,44 +32,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseIdentifier() As IdentifierTokenSyntax
 
+            If CurrentToken.Kind <> SyntaxKind.IdentifierToken Then
+                Return ContinueParsingWithAssumptionUserMeantIdentifer()
+            End If
+
+            Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
+
+            If (identifier.ContextualKind = SyntaxKind.AwaitKeyword AndAlso IsWithinAsyncMethodOrLambda) OrElse
+               (identifier.ContextualKind = SyntaxKind.YieldKeyword AndAlso IsWithinIteratorContext) Then
+
+                identifier = ReportSyntaxError(identifier, ERRID.ERR_InvalidUseOfKeyword)
+            End If
+
+            GetNextToken()
+            Return identifier
+        End Function
+
+        Private Function ContinueParsingWithAssumptionUserMeantIdentifer() As IdentifierTokenSyntax
             Dim identifier As IdentifierTokenSyntax
+            ' If the token is a keyword, assume that the user meant it to
+            ' be an identifier and consume it. Otherwise, leave current token
+            ' as is and let caller decide what to do.
 
-            If CurrentToken.Kind = SyntaxKind.IdentifierToken Then
+            If CurrentToken.IsKeyword Then
+                Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
-                identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
-
-                If (identifier.ContextualKind = SyntaxKind.AwaitKeyword AndAlso IsWithinAsyncMethodOrLambda) OrElse
-                   (identifier.ContextualKind = SyntaxKind.YieldKeyword AndAlso IsWithinIteratorContext) Then
-
-                    identifier = ReportSyntaxError(identifier, ERRID.ERR_InvalidUseOfKeyword)
-                End If
-
+                identifier = _scanner.MakeIdentifier(keyword)
+                identifier = ReportSyntaxError(identifier, ERRID.ERR_InvalidUseOfKeyword)
                 GetNextToken()
+
             Else
-                ' If the token is a keyword, assume that the user meant it to
-                ' be an identifier and consume it. Otherwise, leave current token
-                ' as is and let caller decide what to do.
+                identifier = InternalSyntaxFactory.MissingIdentifier()
 
-                If CurrentToken.IsKeyword Then
-                    Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
-
-                    identifier = _scanner.MakeIdentifier(keyword)
-                    identifier = ReportSyntaxError(identifier, ERRID.ERR_InvalidUseOfKeyword)
+                ' a preceding "_" will be a BadToken already and there was already a 
+                ' ERR_ExpectedIdentifier diagnose message for it
+                If (CurrentToken.Kind = SyntaxKind.BadToken AndAlso CurrentToken.Text = "_") Then
+                    identifier = identifier.AddLeadingSyntax(CurrentToken, ERRID.ERR_ExpectedIdentifier)
                     GetNextToken()
-
                 Else
-                    identifier = InternalSyntaxFactory.MissingIdentifier()
-
-                    ' a preceding "_" will be a BadToken already and there was already a 
-                    ' ERR_ExpectedIdentifier diagnose message for it
-                    If (CurrentToken.Kind = SyntaxKind.BadToken AndAlso CurrentToken.Text = "_") Then
-                        identifier = identifier.AddLeadingSyntax(CurrentToken, ERRID.ERR_ExpectedIdentifier)
-                        GetNextToken()
-                    Else
-                        identifier = ReportSyntaxError(identifier, ERRID.ERR_ExpectedIdentifier)
-                    End If
+                    identifier = ReportSyntaxError(identifier, ERRID.ERR_ExpectedIdentifier)
                 End If
-
             End If
 
             Return identifier
