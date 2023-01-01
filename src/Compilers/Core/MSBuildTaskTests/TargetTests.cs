@@ -755,6 +755,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var expectedImplicitlySkippedAnalyzers = analyzersEnabled &&
                 implicitBuild == true &&
                 sdkStyleProject == true &&
+                optimizeImplicitBuild == false &&
                 (treatWarningsAsErrors != true || optimizeImplicitBuild == true);
             var expectedImplicitlySkippedAnalyzersValue = expectedImplicitlySkippedAnalyzers ? "true" : "";
             var actualImplicitlySkippedAnalyzersValue = instance.GetPropertyValue("_ImplicitlySkipAnalyzers");
