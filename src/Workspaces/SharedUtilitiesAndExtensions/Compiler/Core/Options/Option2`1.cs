@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -47,12 +48,19 @@ namespace Microsoft.CodeAnalysis.Options
 
         public EditorConfigStorageLocation<T>? StorageLocation { get; }
 
-        public Option2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null)
+        public IOption2? PublicOption { get; }
+
+        internal Option2(OptionDefinition definition, EditorConfigStorageLocation<T>? storageLocation, string? languageName, IOption2? publicOption)
         {
-            OptionDefinition = new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), isEditorConfigOption: storageLocation != null);
+            OptionDefinition = definition;
             StorageLocation = storageLocation;
             LanguageName = languageName;
+            PublicOption = publicOption;
+        }
 
+        public Option2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null)
+            : this(new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), isEditorConfigOption: storageLocation != null), storageLocation, languageName, publicOption: null)
+        {
             VerifyNamingConvention();
         }
 

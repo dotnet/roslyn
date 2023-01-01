@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class CodeStyleOptions2
     {
+        private const string PublicFeatureName = "CodeStyleOptions";
+
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
         internal static ImmutableArray<IOption2> AllOptions { get; }
@@ -60,25 +62,29 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> QualifyFieldAccess = CreateQualifyAccessOption(
-            "dotnet_style_qualification_for_field");
+            "dotnet_style_qualification_for_field")
+            .WithPublicOption(PublicFeatureName, "QualifyFieldAccess");
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in property access expressions.
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> QualifyPropertyAccess = CreateQualifyAccessOption(
-            "dotnet_style_qualification_for_property");
+            "dotnet_style_qualification_for_property")
+            .WithPublicOption(PublicFeatureName, "QualifyPropertyAccess");
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in method access expressions.
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> QualifyMethodAccess = CreateQualifyAccessOption(
-            "dotnet_style_qualification_for_method");
+            "dotnet_style_qualification_for_method")
+            .WithPublicOption(PublicFeatureName, "QualifyMethodAccess");
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in event access expressions.
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> QualifyEventAccess = CreateQualifyAccessOption(
-            "dotnet_style_qualification_for_event");
+            "dotnet_style_qualification_for_event")
+            .WithPublicOption(PublicFeatureName, "QualifyEventAccess");
 
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Declarations
@@ -86,7 +92,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = CreateOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
             defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
-            editorconfigKeyName: "dotnet_style_predefined_type_for_locals_parameters_members");
+            editorconfigKeyName: "dotnet_style_predefined_type_for_locals_parameters_members")
+            .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInDeclaration");
 
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Member Access Expression
@@ -94,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = CreateOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
             defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
-            editorconfigKeyName: "dotnet_style_predefined_type_for_member_access");
+            editorconfigKeyName: "dotnet_style_predefined_type_for_member_access")
+            .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInMemberAccess");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferObjectInitializer = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,

@@ -11,30 +11,28 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// <inheritdoc cref="CodeStyleOptions2"/>
     public class CodeStyleOptions
     {
-        private const string FeatureName = "CodeStyleOptions";
-
         /// <inheritdoc cref="CodeStyleOptions2.QualifyFieldAccess"/>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyFieldAccess =
-            CodeStyleOptions2.QualifyFieldAccess.ToPublicOption(FeatureName, "QualifyFieldAccess");
+            CodeStyleOptions2.QualifyFieldAccess.ToPublicOption();
 
         /// <inheritdoc cref="CodeStyleOptions2.QualifyPropertyAccess"/>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyPropertyAccess =
-            CodeStyleOptions2.QualifyPropertyAccess.ToPublicOption(FeatureName, "QualifyPropertyAccess");
+            CodeStyleOptions2.QualifyPropertyAccess.ToPublicOption();
 
         /// <inheritdoc cref="CodeStyleOptions2.QualifyMethodAccess"/>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyMethodAccess =
-            CodeStyleOptions2.QualifyMethodAccess.ToPublicOption(FeatureName, "QualifyMethodAccess");
+            CodeStyleOptions2.QualifyMethodAccess.ToPublicOption();
 
         /// <inheritdoc cref="CodeStyleOptions2.QualifyEventAccess"/>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyEventAccess =
-            CodeStyleOptions2.QualifyEventAccess.ToPublicOption(FeatureName, "QualifyEventAccess");
+            CodeStyleOptions2.QualifyEventAccess.ToPublicOption();
 
         /// <inheritdoc cref="CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration"/>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration =
-            CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration.ToPublicOption(FeatureName, "PreferIntrinsicPredefinedTypeKeywordInDeclaration");
+            CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration.ToPublicOption();
 
         /// <inheritdoc cref="CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess"/>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess =
-            CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.ToPublicOption(FeatureName, "PreferIntrinsicPredefinedTypeKeywordInMemberAccess");
+            CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.ToPublicOption();
     }
 }

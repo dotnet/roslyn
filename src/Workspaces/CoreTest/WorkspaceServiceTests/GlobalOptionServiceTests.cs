@@ -294,8 +294,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void TestPerLanguageCodeStyleOptions()
         {
             using var workspace = new AdhocWorkspace();
-            var perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
-            var perLanguageOption = perLanguageOption2.ToPublicOption("test", "test");
+            var perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning)).WithPublicOption("test", "test");
+            var perLanguageOption = perLanguageOption2.ToPublicOption();
             var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!perLanguageOption2.DefaultValue.Value, perLanguageOption2.DefaultValue.Notification);
             var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 
@@ -321,8 +321,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void TestLanguageSpecificCodeStyleOptions()
         {
             using var workspace = new AdhocWorkspace();
-            var option2 = new Option2<CodeStyleOption2<bool>>("test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
-            var option = option2.ToPublicOption("test", "test");
+            var option2 = new Option2<CodeStyleOption2<bool>>("test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning)).WithPublicOption("test", "test");
+            var option = option2.ToPublicOption();
             var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!option2.DefaultValue.Value, option2.DefaultValue.Notification);
             var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 

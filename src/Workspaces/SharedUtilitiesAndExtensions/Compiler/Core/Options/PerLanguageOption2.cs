@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -41,12 +42,18 @@ namespace Microsoft.CodeAnalysis.Options
 
         public EditorConfigStorageLocation<T>? StorageLocation { get; }
 
-        public PerLanguageOption2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null)
-        {
-            var isEditorConfigOption = storageLocation != null || typeof(T) == typeof(NamingStylePreferences);
-            OptionDefinition = new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), isEditorConfigOption);
-            StorageLocation = storageLocation;
+        public IOption2? PublicOption { get; }
 
+        internal PerLanguageOption2(OptionDefinition optionDefinition, EditorConfigStorageLocation<T>? storageLocation, IOption2? publicOption)
+        {
+            OptionDefinition = optionDefinition;
+            StorageLocation = storageLocation;
+            PublicOption = publicOption;
+        }
+
+        public PerLanguageOption2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null)
+            : this(new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), isEditorConfigOption: storageLocation != null || typeof(T) == typeof(NamingStylePreferences)), storageLocation, publicOption: null)
+        {
             VerifyNamingConvention();
         }
 

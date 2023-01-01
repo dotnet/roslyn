@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.Options
             IsEditorConfigOption = isEditorConfigOption;
         }
 
+        public OptionDefinition WithDefaultValue<T>(T defaultValue)
+            => new(Group, ConfigName, defaultValue, typeof(T), IsEditorConfigOption);
+
         public override bool Equals(object? obj)
             => obj is OptionDefinition key && Equals(key);
 
