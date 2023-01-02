@@ -4386,5 +4386,193 @@ class Derived : Test { }
 }
 ");
         }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M(in S value)
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00");
+            // Note: we use a temp instead of directly doing a constrained call on `in` parameter
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter_ConstrainedGenericReceiver()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M<T>(in T value) where T : struct, IEnumerable<int>
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00");
+            verifier.VerifyIL("C.M<T>(in T)", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "T"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "T"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeStructToStringOverrideOnInParameter()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        S1 s = new S1();
+        Console.Write(M(in s));
+        Console.Write(M(in s));
+    }
+    static string M(in S1 s)
+    {
+        return s.ToString();
+    }
+}
+struct S1
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+}
+";
+
+            var comp = CompileAndVerify(text, expectedOutput: "00");
+
+            comp.VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S1"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S1"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+        }
+
     }
 }

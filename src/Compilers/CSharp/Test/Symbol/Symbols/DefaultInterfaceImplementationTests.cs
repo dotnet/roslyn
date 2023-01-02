@@ -68913,5 +68913,84 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_ComImportWithImpl, "int").WithArguments("I1.implicit operator int(I1)", "I1").WithLocation(28, 30)
                 );
         }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter_DefaultImplementation()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M(in S value)
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public interface MyEnumerable : IEnumerable<int>
+{
+    IEnumerator<int> GetEnumeratorCore();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumeratorCore();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumeratorCore();
+}
+
+public struct S : MyEnumerable
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    public IEnumerator<int> GetEnumeratorCore() => Enumerable.Range(0, ++a).GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                expectedOutput: Execute(isStatic: false) ? "00" : null,
+                verify: Verify(isStatic: false));
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
+        }
     }
 }

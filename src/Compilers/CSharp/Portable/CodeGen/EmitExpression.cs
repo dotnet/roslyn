@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    // calling a method defined in a base class.
+                    // calling a method defined in a base class or interface.
 
                     // When calling a method that is virtual in metadata on a struct receiver, 
                     // we use a constrained virtual call. If possible, it will skip boxing.
@@ -1634,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // NB: all methods that a struct could inherit from bases are non-mutating
                         //     treat receiver as ReadOnly
-                        tempOpt = EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                        tempOpt = EmitReceiverRef(receiver, methodContainingType.IsInterface ? AddressKind.Writeable : AddressKind.ReadOnly);
                         callKind = CallKind.ConstrainedCallVirt;
                     }
                     else
