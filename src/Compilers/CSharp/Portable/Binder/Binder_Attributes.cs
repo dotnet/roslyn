@@ -240,6 +240,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                     }
+
+                    Debug.Assert(boundConstructorArguments.Length == attributeConstructor.Parameters.Length);
+                    for (var i = 0; i < boundConstructorArguments.Length; i++)
+                    {
+                        // An enum constant as an object attribute argument triggers serialization of the enum's type.
+                        // This would fail for enums nested in a type referencing a function pointer, because
+                        // function pointer serialization is not supported, see https://github.com/dotnet/roslyn/issues/48765.
+                        if (attributeConstructor.Parameters[i].Type.IsObjectType() &&
+                            boundConstructorArguments[i] is BoundConversion conv &&
+                            conv.Operand.Type is { } type && type.IsEnumType() && type.ContainsFunctionPointer())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, boundConstructorArguments[i].Syntax.Location);
+                        }
+                    }
                 }
             }
 
@@ -539,6 +553,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // BindRValue just binds the expression without doing any validation (if its a valid expression for attribute argument).
             // Validation is done later by AttributeExpressionVisitor
             BoundExpression namedArgumentValue = this.BindValue(namedArgument.Expression, diagnostics, BindValueKind.RValue);
+
+            // An enum constant as a named attribute argument triggers serialization of the enum's type.
+            // This would fail for enums nested in a type referencing a function pointer, because
+            // function pointer serialization is not supported, see https://github.com/dotnet/roslyn/issues/48765.
+            var valueType = namedArgumentValue.Type ?? namedArgumentType;
+            if (valueType.IsEnumType() && valueType.ContainsFunctionPointer())
+            {
+                diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, namedArgument.Expression.Location);
+            }
+
             namedArgumentValue = GenerateConversionForAssignment(namedArgumentType, namedArgumentValue, diagnostics);
 
             // TODO: should we create an entry even if there are binding errors?

@@ -1453,15 +1453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations typeWithAnnotations = this.BindType(node.Type, diagnostics, out AliasSymbol alias);
             var typeExpression = new BoundTypeExpression(node.Type, aliasOpt: alias, typeWithAnnotations);
             TypeSymbol type = typeWithAnnotations.Type;
-
-            // Default of an enum as an attribute argument triggers serialization of the enum's type.
-            // This would fail for enums nested in a type referencing a function pointer, because
-            // function pointer serialization is not supported, see https://github.com/dotnet/roslyn/issues/48765.
-            if (this.InAttributeArgument && type.IsEnumType() && type.ContainsFunctionPointer())
-            {
-                diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, node.Location);
-            }
-
             return new BoundDefaultExpression(node, typeExpression, constantValueOpt: type.GetDefaultValue(), type);
         }
 
