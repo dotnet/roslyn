@@ -3155,7 +3155,10 @@ outerDefault:
                     continue;
                 }
                 var parameter = parameters[parm];
-                types.Add(parameter.TypeWithAnnotations);
+                types.Add((parameter.GetFlowAnalysisAnnotations() == FlowAnalysisAnnotations.MaybeNull)
+                    ? parameter.TypeWithAnnotations.AsAnnotated()
+                    : parameter.TypeWithAnnotations
+                    );
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);

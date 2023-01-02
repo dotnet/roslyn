@@ -513,6 +513,30 @@ class C
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("C.Goo<T>(ref T[])"));
         }
 
+        [Fact]
+        public void Bug50782()
+        {
+            string source = @"
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+interface IOperation<T> { }
+class StringOperation : IOperation<string?> { }
+class C {   
+    void M() {
+        TestA(new StringOperation(), out string? discard1);
+        
+        TestB(new StringOperation(), out string? discard2);
+    }
+    void TestA<T>(IOperation<T> operation, [MaybeNull] out T result) => result = default;
+    void TestB<T>(IOperation<T> operation, out T? result) => result = default;
+}
+";
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new StringOperation()").WithArguments("StringOperation", "IOperation<string>", "operation", "void C.TestA<string>(IOperation<string> operation, out string result)").WithLocation(8, 15),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new StringOperation()").WithArguments("StringOperation", "IOperation<string>", "operation", "void C.TestB<string>(IOperation<string> operation, out string? result)").WithLocation(10, 15)
+            );
+        }
+
         [WorkItem(541810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541810")]
         [Fact]
         public void TestMethodTypeInferenceWhenFixedParameterIsOpenGenericType()
