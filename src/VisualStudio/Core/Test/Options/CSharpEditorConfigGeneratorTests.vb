@@ -248,8 +248,8 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim options = New OptionStore(workspace.GlobalOptions, workspace.GetService(Of IEditorConfigOptionMapping))
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options.AsAnalyzerConfigOptions(LanguageNames.CSharp), LanguageNames.CSharp)
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
@@ -257,7 +257,7 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorToggleOptions()
             Using workspace = TestWorkspace.CreateCSharp("")
-                Dim options = New OptionStore(workspace.GlobalOptions, workspace.GetService(Of IEditorConfigOptionMapping))
+                Dim options = New OptionStore(workspace.GlobalOptions)
                 options.SetOption(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.CSharp, New CodeStyleOption2(Of Boolean)(False, NotificationOption2.[Error]))
 
                 Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
@@ -490,7 +490,7 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options.AsAnalyzerConfigOptions(LanguageNames.CSharp), LanguageNames.CSharp)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub

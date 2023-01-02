@@ -115,8 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
 
-            var configOptions = OptionStore.AsAnalyzerConfigOptions(_language);
-            var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, configOptions, _language);
+            var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, OptionStore, _language);
             using (var sfd = new System.Windows.Forms.SaveFileDialog
             {
                 Filter = "All files (*.*)|",

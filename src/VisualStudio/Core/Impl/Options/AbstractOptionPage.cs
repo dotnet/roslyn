@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (s_optionStore == null)
             {
                 var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
-                s_optionStore = new OptionStore(componentModel.GetService<IGlobalOptionService>(), componentModel.GetService<IEditorConfigOptionMapping>());
+                s_optionStore = new OptionStore(componentModel.GetService<IGlobalOptionService>());
             }
 
             // Use a single option store for all option pages so that changes are accumulated

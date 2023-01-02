@@ -25,19 +25,33 @@ namespace Microsoft.CodeAnalysis
         {
             Contract.ThrowIfFalse(option.OptionDefinition.IsEditorConfigOption);
 
-            if (typeof(T) == typeof(NamingStylePreferences) && StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions))
+            if (option.OptionDefinition.Type == typeof(NamingStylePreferences))
             {
-                var preferences = structuredOptions.GetNamingStylePreferences();
-                value = (T)(object)preferences;
-                return !preferences.IsEmpty;
+                if (StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions))
+                {
+                    var preferences = structuredOptions.GetNamingStylePreferences();
+                    value = (T)(object)preferences;
+                    return !preferences.IsEmpty;
+                }
             }
-
-            Contract.ThrowIfNull(option.StorageLocation);
-
-            if (analyzerConfigOptions.TryGetValue(option.OptionDefinition.ConfigName, out var stringValue) &&
-               ((EditorConfigStorageLocation<T>)option.StorageLocation).TryParseValue(stringValue, out value!))
+            else
             {
-                return true;
+                Contract.ThrowIfNull(option.StorageLocation);
+
+                if (analyzerConfigOptions.TryGetValue(option.OptionDefinition.ConfigName, out var stringValue))
+                {
+                    // Avoid boxing when reading typed value:
+                    if (typeof(T) != typeof(object))
+                    {
+                        return ((EditorConfigStorageLocation<T>)option.StorageLocation).TryParseValue(stringValue, out value!);
+                    }
+
+                    if (option.StorageLocation.TryParseValue(stringValue, out var objectValue))
+                    {
+                        value = (T)objectValue!;
+                        return true;
+                    }
+                }
             }
 
             value = default!;

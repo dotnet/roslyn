@@ -20,42 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// Stores values of options read from global options and values set to these options.
     /// Not thread safe.
     /// </summary>
-    internal sealed class OptionStore
+    internal sealed class OptionStore : IOptionsReader
     {
-        private sealed class ConfigOptions : StructuredAnalyzerConfigOptions
-        {
-            private readonly OptionStore _store;
-            private readonly string _language;
-
-            public ConfigOptions(OptionStore store, string language)
-            {
-                _store = store;
-                _language = language;
-            }
-
-            public override NamingStylePreferences GetNamingStylePreferences()
-                => _store.GetOption(NamingStyleOptions.NamingPreferences, _language);
-
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            {
-                if (!_store.EditorConfigOptionMapping.TryMapEditorConfigKeyToOption(key, out var option))
-                {
-                    value = null;
-                    return false;
-                }
-
-                var storageLocation = (IEditorConfigStorageLocation)option.StorageLocations.Single();
-                var optionKey = new OptionKey2(option, option.IsPerLanguage ? _language : null);
-                value = storageLocation.GetEditorConfigStringValue(_store.GetOption(optionKey));
-                return true;
-            }
-
-            public override IEnumerable<string> Keys
-                => throw new NotImplementedException();
-        }
-
         public readonly IGlobalOptionService GlobalOptions;
-        public readonly IEditorConfigOptionMapping EditorConfigOptionMapping;
 
         public event EventHandler<OptionKey2>? OptionChanged;
 
@@ -69,10 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// </summary>
         private ImmutableDictionary<OptionKey2, object?> _updatedValues;
 
-        public OptionStore(IGlobalOptionService globalOptions, IEditorConfigOptionMapping editorConfigOptionMapping)
+        public OptionStore(IGlobalOptionService globalOptions)
         {
             GlobalOptions = globalOptions;
-            EditorConfigOptionMapping = editorConfigOptionMapping;
 
             _globalValues = ImmutableDictionary<OptionKey2, object?>.Empty;
             _updatedValues = ImmutableDictionary<OptionKey2, object?>.Empty;
@@ -84,11 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _updatedValues = ImmutableDictionary<OptionKey2, object?>.Empty;
         }
 
-        public StructuredAnalyzerConfigOptions AsAnalyzerConfigOptions(string language)
-            => new ConfigOptions(this, language);
-
         public ImmutableArray<(OptionKey2 key, object? oldValue, object? newValue)> GetChangedOptions()
             => _updatedValues.SelectAsArray(entry => (entry.Key, _globalValues[entry.Key], entry.Value));
+
+        bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+        {
+            value = (T)GetOption(optionKey)!;
+            return true;
+        }
 
         public T GetOption<T>(Option2<T> option)
             => (T)GetOption(new OptionKey2(option))!;

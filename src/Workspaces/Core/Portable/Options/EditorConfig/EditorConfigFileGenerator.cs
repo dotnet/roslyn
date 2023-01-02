@@ -6,7 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -14,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Options
     {
         public static string Generate(
             ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedOptions,
-            StructuredAnalyzerConfigOptions configOptions,
+            IOptionsReader configOptions,
             string language)
         {
             var editorconfig = new StringBuilder();
@@ -38,16 +41,18 @@ namespace Microsoft.CodeAnalysis.Options
 
             foreach ((var feature, var options) in groupedOptions)
             {
-                AppendOptionsToEditorConfig(configOptions, feature, options, editorconfig);
+                AppendOptionsToEditorConfig(configOptions, feature, options, language, editorconfig);
             }
 
-            var namingStylePreferences = configOptions.GetNamingStylePreferences();
-            AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
+            if (configOptions.TryGetOption(new OptionKey2(NamingStyleOptions.NamingPreferences, language), out NamingStylePreferences namingStylePreferences))
+            {
+                AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
+            }
 
             return editorconfig.ToString();
         }
 
-        private static void AppendOptionsToEditorConfig(StructuredAnalyzerConfigOptions configOptions, string feature, ImmutableArray<IOption2> options, StringBuilder editorconfig)
+        private static void AppendOptionsToEditorConfig(IOptionsReader configOptions, string feature, ImmutableArray<IOption2> options, string language, StringBuilder editorconfig)
         {
             editorconfig.AppendLine($"#### {feature} ####");
             editorconfig.AppendLine();
@@ -59,10 +64,11 @@ namespace Microsoft.CodeAnalysis.Options
                 var uniqueEntries = new SortedSet<string>();
                 foreach (var option in optionGrouping)
                 {
-                    var configName = option.OptionDefinition.ConfigName;
-                    if (configOptions.TryGetValue(configName, out var configValue))
+                    var optionKey = new OptionKey2(option, option.IsPerLanguage ? language : null);
+                    if (configOptions.TryGetOption<object?>(optionKey, out var value))
                     {
-                        uniqueEntries.Add($"{configName} = {configValue}");
+                        Contract.ThrowIfNull(option.StorageLocation);
+                        uniqueEntries.Add($"{option.OptionDefinition.ConfigName} = {option.StorageLocation.GetEditorConfigStringValue(value)}");
                     }
                 }
 
