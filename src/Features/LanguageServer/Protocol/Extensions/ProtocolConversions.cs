@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (Uri.TryCreate(filePath, UriKind.Absolute, out var uri))
                 return uri;
 
-            context?.TraceWarning($"Could not convert '{filePath}' to uri");
+            context?.TraceInformation($"Could not convert '{filePath}' to uri");
             return null;
         }
 

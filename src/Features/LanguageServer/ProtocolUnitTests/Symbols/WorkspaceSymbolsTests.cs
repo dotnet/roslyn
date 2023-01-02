@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal, GetContainerName(testLspServer.GetCurrentSolution()))
             };
 
-            using var progress = BufferedProgress.Create<LSP.SymbolInformation>(null);
+            using var progress = BufferedProgress.Create<LSP.SymbolInformation[]>(null);
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A", progress).ConfigureAwait(false);
 
             Assert.Null(results);
 
-            results = progress.GetValues().ToArray();
+            results = progress.GetFlattenedValues();
             AssertSetEquals(expected, results);
         }
 
