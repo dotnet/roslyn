@@ -241,13 +241,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                     }
 
-                    Debug.Assert(boundConstructorArguments.Length == attributeConstructor.Parameters.Length);
                     for (var i = 0; i < boundConstructorArguments.Length; i++)
                     {
+                        TypeSymbol parameterType;
+                        if (i < attributeConstructor.Parameters.Length)
+                        {
+                            parameterType = attributeConstructor.Parameters[i].Type;
+                        }
+                        else
+                        {
+                            var parameter = attributeConstructor.Parameters[^1];
+                            Debug.Assert(parameter.IsParams);
+                            parameterType = parameter.Type is ArrayTypeSymbol arrayType && arrayType.IsSZArray ? arrayType.ElementType : parameter.Type;
+                        }
+
                         // An enum constant as an object attribute argument triggers serialization of the enum's type.
                         // This would fail for enums nested in a type referencing a function pointer, because
                         // function pointer serialization is not supported, see https://github.com/dotnet/roslyn/issues/48765.
-                        if (attributeConstructor.Parameters[i].Type.IsObjectType() &&
+                        if (parameterType.IsObjectType() &&
                             boundConstructorArguments[i] is BoundConversion conv &&
                             conv.Operand.Type is { } type && type.IsEnumType() && type.ContainsFunctionPointer())
                         {

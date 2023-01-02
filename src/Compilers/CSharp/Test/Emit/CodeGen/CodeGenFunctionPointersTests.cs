@@ -11474,6 +11474,31 @@ class C<T> {}
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectDefault_Enum_ConstructorArgument_ParamsArray([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(params object[] o) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(null, "abc", default(B<delegate*<void>[]>.E))]
+                class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,17): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(null, "abc", default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "default(B<delegate*<void>[]>.E)").WithLocation(11, 17));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_ObjectDefault_Enum_NamedArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
