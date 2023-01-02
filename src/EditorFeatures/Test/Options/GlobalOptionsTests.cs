@@ -57,6 +57,12 @@ public class GlobalOptionsTests
             AccessedOptionKeys.Add(key);
         }
 
+        bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+        {
+            value = GetOption<T>(optionKey);
+            return true;
+        }
+
         public T GetOption<T>(Option2<T> option)
             => GetOption<T>(new OptionKey2(option));
 

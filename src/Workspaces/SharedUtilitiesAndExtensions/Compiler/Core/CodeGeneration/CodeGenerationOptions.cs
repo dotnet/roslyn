@@ -122,13 +122,13 @@ internal static class CodeGenerationOptionsProviders
     }
 
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, CodeGenerationOptions? fallbackOptions, LanguageServices languageServices)
+    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(fallbackOptions, document.Project.Services);
+        return configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions);
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

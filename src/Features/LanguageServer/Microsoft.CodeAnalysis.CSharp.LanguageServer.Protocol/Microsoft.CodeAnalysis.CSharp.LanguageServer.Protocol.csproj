@@ -14,13 +14,6 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\CSharp\AddImports\CSharpAddImportPlacementOptionsStorage.cs" Link="CSharpAddImportPlacementOptionsStorage.cs" />
-    <Compile Include="..\..\..\EditorFeatures\CSharp\CodeGeneration\CSharpCodeGenerationOptionsStorage.cs" Link="CSharpCodeGenerationOptionsStorage.cs" />
-    <Compile Include="..\..\..\EditorFeatures\CSharp\CodeStyle\CSharpCodeStyleOptionsStorage.cs" Link="CSharpCodeStyleOptionsStorage.cs" />
-    <Compile Include="..\..\..\EditorFeatures\CSharp\Formatting\CSharpSyntaxFormattingOptionsStorage.cs" Link="CSharpSyntaxFormattingOptionsStorage.cs" />
-    <Compile Include="..\..\..\EditorFeatures\CSharp\Simplification\CSharpSimplifierOptionsStorage.cs" Link="CSharpSimplifierOptionsStorage.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
   </ItemGroup>

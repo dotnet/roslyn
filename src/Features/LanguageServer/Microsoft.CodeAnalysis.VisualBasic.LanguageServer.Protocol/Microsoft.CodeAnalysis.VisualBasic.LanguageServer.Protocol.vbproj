@@ -12,13 +12,6 @@
       .NET Compiler Platform ("Roslyn") support for Language Server Protocol in Visual Basic.
     </PackageDescription>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\VisualBasic\AddImports\VisualBasicAddImportPlacementOptionsStorage.vb" Link="VisualBasicAddImportPlacementOptionsStorage.vb" />
-    <Compile Include="..\..\..\EditorFeatures\VisualBasic\CodeGeneration\VisualBasicCodeGenerationOptionsStorage.vb" Link="VisualBasicCodeGenerationOptionsStorage.vb" />
-    <Compile Include="..\..\..\EditorFeatures\VisualBasic\CodeStyle\VisualBasicCodeStyleOptionsStorage.vb" Link="VisualBasicCodeStyleOptionsStorage.vb" />
-    <Compile Include="..\..\..\EditorFeatures\VisualBasic\Formatting\VisualBasicSyntaxFormattingOptionsStorage.vb" Link="VisualBasicSyntaxFormattingOptionsStorage.vb" />
-    <Compile Include="..\..\..\EditorFeatures\VisualBasic\Simplification\VisualBasicSimplifierOptionsStorage.vb" Link="VisualBasicSimplifierOptionsStorage.vb" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
