@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Wrapping
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
@@ -21,10 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
             MyBase.New(formattingOptions, wrappingColumn, operatorPlacement)
         End Sub
 
-        Public Shared Function Create(options As AnalyzerConfigOptions, fallbackOptions As CodeActionOptions) As VisualBasicSyntaxWrappingOptions
+        Public Shared Function Create(options As IOptionsReader, fallbackOptions As CodeActionOptions) As VisualBasicSyntaxWrappingOptions
             Return New VisualBasicSyntaxWrappingOptions(
                 formattingOptions:=VisualBasicSyntaxFormattingOptions.Create(options, DirectCast(fallbackOptions.CleanupOptions.FormattingOptions, VisualBasicSyntaxFormattingOptions)),
-                operatorPlacement:=options.GetEditorConfigOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.Common.OperatorPlacementWhenWrapping),
+                operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.Common.OperatorPlacementWhenWrapping),
                 wrappingColumn:=fallbackOptions.WrappingColumn)
         End Function
     End Class

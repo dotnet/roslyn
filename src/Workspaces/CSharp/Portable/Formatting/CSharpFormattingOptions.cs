@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RS0030 // Do not used banned APIs
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -9,6 +12,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     /// <inheritdoc cref="CSharpFormattingOptions2"/>
     public static class CSharpFormattingOptions
     {
+        private const string PublicFeatureName = "CSharpFormattingOptions";
+
+        private static Option<bool> CreateNewLineForBracesOption(string publicName, NewLineBeforeOpenBracePlacement flag)
+            => new(
+                feature: PublicFeatureName,
+                name: publicName,
+                group: CSharpFormattingOptionGroups.NewLine,
+                defaultValue: CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.HasFlag(flag),
+                storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                internalStorageMapping: new NewLineForBracesInternalStorageMapping(CSharpFormattingOptions2.NewLineBeforeOpenBrace, flag),
+                isEditorConfigOption: true);
+
+        private static Option<bool> CreateSpaceWithinOption(string publicName, SpacePlacementWithinParentheses flag)
+            => new(
+                feature: PublicFeatureName,
+                name: publicName,
+                group: CSharpFormattingOptionGroups.Spacing,
+                defaultValue: CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.HasFlag(flag),
+                storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                internalStorageMapping: new SpacePlacementInternalStorageMapping(CSharpFormattingOptions2.SpaceBetweenParentheses, flag),
+                isEditorConfigOption: true);
+
+        private sealed class NewLineForBracesInternalStorageMapping : InternalOptionStorageMapping
+        {
+            private readonly NewLineBeforeOpenBracePlacement _flag;
+
+            public NewLineForBracesInternalStorageMapping(IOption2 internalOption, NewLineBeforeOpenBracePlacement flag)
+                : base(internalOption)
+            {
+                _flag = flag;
+            }
+
+            public override object? ToPublicOptionValue(object? internalValue)
+                => ((NewLineBeforeOpenBracePlacement)internalValue!).HasFlag(_flag);
+
+            public override object? UpdateInternalOptionValue(object? currentInternalValue, object? newPublicValue)
+                => ((NewLineBeforeOpenBracePlacement)currentInternalValue!).WithFlagValue(_flag, (bool)newPublicValue!);
+        }
+
+        private sealed class SpacePlacementInternalStorageMapping : InternalOptionStorageMapping
+        {
+            private readonly SpacePlacementWithinParentheses _flag;
+
+            public SpacePlacementInternalStorageMapping(IOption2 internalOption, SpacePlacementWithinParentheses flag)
+                : base(internalOption)
+            {
+                _flag = flag;
+            }
+
+            public override object? ToPublicOptionValue(object? internalValue)
+                => ((SpacePlacementWithinParentheses)internalValue!).HasFlag(_flag);
+
+            public override object? UpdateInternalOptionValue(object? currentInternalValue, object? newPublicValue)
+                => ((SpacePlacementWithinParentheses)currentInternalValue!).WithFlagValue(_flag, (bool)newPublicValue!);
+        }
+
         /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAfterMethodDeclarationName"/>
         public static Option<bool> SpacingAfterMethodDeclarationName { get; } = CSharpFormattingOptions2.SpacingAfterMethodDeclarationName.ToPublicOption();
 
@@ -30,14 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword"/>
         public static Option<bool> SpaceAfterControlFlowStatementKeyword { get; } = CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword.ToPublicOption();
 
-        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinExpressionParentheses"/>
-        public static Option<bool> SpaceWithinExpressionParentheses { get; } = CSharpFormattingOptions2.SpaceWithinExpressionParentheses.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinCastParentheses"/>
-        public static Option<bool> SpaceWithinCastParentheses { get; } = CSharpFormattingOptions2.SpaceWithinCastParentheses.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinOtherParentheses"/>
-        public static Option<bool> SpaceWithinOtherParentheses { get; } = CSharpFormattingOptions2.SpaceWithinOtherParentheses.ToPublicOption();
+        public static Option<bool> SpaceWithinExpressionParentheses { get; } = CreateSpaceWithinOption("SpaceWithinExpressionParentheses", SpacePlacementWithinParentheses.Expressions);
+        public static Option<bool> SpaceWithinCastParentheses { get; } = CreateSpaceWithinOption("SpaceWithinCastParentheses", SpacePlacementWithinParentheses.TypeCasts);
+        public static Option<bool> SpaceWithinOtherParentheses { get; } = CreateSpaceWithinOption("SpaceWithinOtherParentheses", SpacePlacementWithinParentheses.ControlFlowStatements);
 
         /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterCast"/>
         public static Option<bool> SpaceAfterCast { get; } = CSharpFormattingOptions2.SpaceAfterCast.ToPublicOption();
@@ -105,32 +159,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// <inheritdoc cref="CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine"/>
         public static Option<bool> WrappingKeepStatementsOnSingleLine { get; } = CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine.ToPublicOption();
 
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInTypes"/>
-        public static Option<bool> NewLinesForBracesInTypes { get; } = CSharpFormattingOptions2.NewLinesForBracesInTypes.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInMethods"/>
-        public static Option<bool> NewLinesForBracesInMethods { get; } = CSharpFormattingOptions2.NewLinesForBracesInMethods.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInProperties"/>
-        public static Option<bool> NewLinesForBracesInProperties { get; } = CSharpFormattingOptions2.NewLinesForBracesInProperties.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInAccessors"/>
-        public static Option<bool> NewLinesForBracesInAccessors { get; } = CSharpFormattingOptions2.NewLinesForBracesInAccessors.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods"/>
-        public static Option<bool> NewLinesForBracesInAnonymousMethods { get; } = CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInControlBlocks"/>
-        public static Option<bool> NewLinesForBracesInControlBlocks { get; } = CSharpFormattingOptions2.NewLinesForBracesInControlBlocks.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes"/>
-        public static Option<bool> NewLinesForBracesInAnonymousTypes { get; } = CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers"/>
-        public static Option<bool> NewLinesForBracesInObjectCollectionArrayInitializers { get; } = CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers.ToPublicOption();
-
-        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody"/>
-        public static Option<bool> NewLinesForBracesInLambdaExpressionBody { get; } = CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody.ToPublicOption();
+        public static Option<bool> NewLinesForBracesInTypes { get; } = CreateNewLineForBracesOption("NewLinesForBracesInTypes", NewLineBeforeOpenBracePlacement.Types);
+        public static Option<bool> NewLinesForBracesInMethods { get; } = CreateNewLineForBracesOption("NewLinesForBracesInMethods", NewLineBeforeOpenBracePlacement.Methods);
+        public static Option<bool> NewLinesForBracesInProperties { get; } = CreateNewLineForBracesOption("NewLinesForBracesInProperties", NewLineBeforeOpenBracePlacement.Properties);
+        public static Option<bool> NewLinesForBracesInAccessors { get; } = CreateNewLineForBracesOption("NewLinesForBracesInAccessors", NewLineBeforeOpenBracePlacement.Accessors);
+        public static Option<bool> NewLinesForBracesInAnonymousMethods { get; } = CreateNewLineForBracesOption("NewLinesForBracesInAnonymousMethods", NewLineBeforeOpenBracePlacement.AnonymousMethods);
+        public static Option<bool> NewLinesForBracesInControlBlocks { get; } = CreateNewLineForBracesOption("NewLinesForBracesInControlBlocks", NewLineBeforeOpenBracePlacement.ControlBlocks);
+        public static Option<bool> NewLinesForBracesInAnonymousTypes { get; } = CreateNewLineForBracesOption("NewLinesForBracesInAnonymousTypes", NewLineBeforeOpenBracePlacement.AnonymousTypes);
+        public static Option<bool> NewLinesForBracesInObjectCollectionArrayInitializers { get; } = CreateNewLineForBracesOption("NewLinesForBracesInObjectCollectionArrayInitializers", NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers);
+        public static Option<bool> NewLinesForBracesInLambdaExpressionBody { get; } = CreateNewLineForBracesOption("NewLinesForBracesInLambdaExpressionBody", NewLineBeforeOpenBracePlacement.LambdaExpressionBody);
 
         /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForElse"/>
         public static Option<bool> NewLineForElse { get; } = CSharpFormattingOptions2.NewLineForElse.ToPublicOption();

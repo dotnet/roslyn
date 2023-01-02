@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
@@ -14,7 +15,8 @@ internal static partial class AddImportPlacementOptionsProviders
     {
 #if CODE_STYLE
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        return addImportsService.GetAddImportOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree), allowInHiddenRegions: false, fallbackOptions: null);
+        var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader();
+        return addImportsService.GetAddImportOptions(configOptions, allowInHiddenRegions: false, fallbackOptions: null);
 #else
         return await document.GetAddImportPlacementOptionsAsync(fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
 #endif

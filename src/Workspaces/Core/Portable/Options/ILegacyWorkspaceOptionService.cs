@@ -25,7 +25,7 @@ internal interface ILegacyGlobalOptionService
     void UnregisterWorkspace(Workspace workspace);
     void UpdateRegisteredWorkspaces();
 
-    object? GetOption(OptionKey key);
+    object? GetExternallyDefinedOption(OptionKey key);
 
     void SetOptions(
         ImmutableArray<KeyValuePair<OptionKey2, object?>> internallyDefinedOptions,

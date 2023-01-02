@@ -26,8 +26,12 @@ namespace Microsoft.CodeAnalysis.Options
     {
         private readonly OptionSet _underlyingOptions;
         private readonly StructuredAnalyzerConfigOptions? _configOptions;
-        private ImmutableDictionary<OptionKey, object?> _values;
         private readonly string _language;
+
+        /// <summary>
+        /// Cached internal values read from <see cref="_configOptions"/> or <see cref="_underlyingOptions"/>.
+        /// </summary>
+        private ImmutableDictionary<OptionKey, object?> _values;
 
         internal DocumentOptionSet(StructuredAnalyzerConfigOptions? configOptions, OptionSet underlyingOptions, string language)
             : this(configOptions, underlyingOptions, language, ImmutableDictionary<OptionKey, object?>.Empty)
@@ -45,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Options
         internal string Language => _language;
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-        private protected override object? GetOptionCore(OptionKey optionKey)
+        internal override object? GetInternalOptionValue(OptionKey optionKey)
         {
             // If we already know the document specific value, we're done
             if (_values.TryGetValue(optionKey, out var value))
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             // We don't have a document specific value, so forward
-            return _underlyingOptions.GetOption(optionKey);
+            return _underlyingOptions.GetInternalOptionValue(optionKey);
         }
 
         private bool TryGetAnalyzerConfigOption(OptionKey optionKey, out object? value)
@@ -88,35 +92,25 @@ namespace Microsoft.CodeAnalysis.Options
 
             // The option is in _configOptions so it must have editorconfig storage location:
             var storage = (IEditorConfigStorageLocation)internallyDefinedOption.StorageLocations.Single();
-            if (!storage.TryParseValue(stringValue, out var internalValue))
+            if (!storage.TryParseValue(stringValue, out value))
             {
                 value = null;
                 return false;
             }
 
-            value = internalValue is ICodeStyleOption codeStyleOption ? codeStyleOption.AsPublicCodeStyleOption() : internalValue;
             return true;
         }
 
         public T GetOption<T>(PerLanguageOption<T> option)
             => GetOption(option, _language);
 
-        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-            => new DocumentOptionSet(_configOptions, _underlyingOptions, _language, _values.SetItem(optionAndLanguage, value));
+        internal override OptionSet WithChangedOptionInternal(OptionKey optionKey, object? internalValue)
+            => new DocumentOptionSet(_configOptions, _underlyingOptions, _language, _values.SetItem(optionKey, internalValue));
 
         /// <summary>
         /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
         /// </summary>
         public DocumentOptionSet WithChangedOption<T>(PerLanguageOption<T> option, T value)
             => (DocumentOptionSet)WithChangedOption(option, _language, value);
-
-        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IEditorConfigOptionMapping mapping, string? language)
-        {
-            Debug.Assert((language ?? _language) == _language, $"Use of a {nameof(DocumentOptionSet)} is not expected to differ from the language it was constructed with.");
-            return base.CreateAnalyzerConfigOptions(mapping, language ?? _language);
-        }
-
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-            => GetChangedOptions(optionSet);
     }
 }

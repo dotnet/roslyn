@@ -73,12 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return option;
         }
 
-        private static Option2<bool> CreateNewLineForBracesLegacyOption(string publicName, bool defaultValue)
-            => new Option2<bool>(PublicFeatureName + "_" + publicName, defaultValue, CSharpFormattingOptionGroups.NewLine).WithPublicOption(PublicFeatureName, publicName);
-
-        private static Option2<bool> CreateSpaceWithinLegacyOption(string publicName, bool defaultValue)
-            => new Option2<bool>(PublicFeatureName + "_" + publicName, defaultValue, CSharpFormattingOptionGroups.Spacing).WithPublicOption(PublicFeatureName, publicName);
-
         public static Option2<bool> SpacingAfterMethodDeclarationName { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, "csharp_space_between_method_declaration_name_and_open_parenthesis",
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterMethodDeclarationName),
@@ -121,35 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             EditorConfigStorageLocation.ForBoolOption())
             .WithPublicOption(PublicFeatureName, "SpaceAfterControlFlowStatementKeyword");
 
-        // Legacy options, only to be used in OptionSets and global options.
-
-        public static Option2<bool> SpaceWithinExpressionParentheses { get; } = CreateSpaceWithinLegacyOption(
-            publicName: "SpaceWithinExpressionParentheses",
-            CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinExpressionParentheses));
-
-        public static Option2<bool> SpaceWithinCastParentheses { get; } = CreateSpaceWithinLegacyOption(
-            publicName: "SpaceWithinCastParentheses",
-            CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinCastParentheses));
-
-        public static Option2<bool> SpaceWithinOtherParentheses { get; } = CreateSpaceWithinLegacyOption(
-            publicName: "SpaceWithinOtherParentheses",
-            CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinOtherParentheses));
-
-        // editor config option:
         public static Option2<SpacePlacementWithinParentheses> SpaceBetweenParentheses { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing,
             name: "csharp_space_between_parentheses",
             CSharpSyntaxFormattingOptions.SpacingDefault.ToSpacingWithinParentheses(),
             new EditorConfigStorageLocation<SpacePlacementWithinParentheses>(
                 parseValue: list => ParseSpacingWithinParenthesesList(list),
-#if !CODE_STYLE
-#pragma warning disable RS0030 // Do not used banned APIs
-                getValueFromOptionSet: set =>
-                    (set.GetOption(CSharpFormattingOptions.SpaceWithinExpressionParentheses) ? SpacePlacementWithinParentheses.Expressions : 0) |
-                    (set.GetOption(CSharpFormattingOptions.SpaceWithinCastParentheses) ? SpacePlacementWithinParentheses.TypeCasts : 0) |
-                    (set.GetOption(CSharpFormattingOptions.SpaceWithinOtherParentheses) ? SpacePlacementWithinParentheses.ControlFlowStatements : 0),
-#pragma warning restore
-#endif
                 serializeValue: ToEditorConfigValue));
 
         public static Option2<bool> SpaceAfterCast { get; } = CreateOption(
@@ -290,65 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             EditorConfigStorageLocation.ForBoolOption())
             .WithPublicOption(PublicFeatureName, "WrappingKeepStatementsOnSingleLine");
 
-        // Legacy options, only to be used in OptionSets and global options.
-
-        public static Option2<bool> NewLinesForBracesInTypes { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInTypes",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes));
-
-        public static Option2<bool> NewLinesForBracesInMethods { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInMethods",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInMethods));
-
-        public static Option2<bool> NewLinesForBracesInProperties { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInProperties",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInProperties));
-
-        public static Option2<bool> NewLinesForBracesInAccessors { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInAccessors",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInAccessors));
-
-        public static Option2<bool> NewLinesForBracesInAnonymousMethods { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInAnonymousMethods",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousMethods));
-
-        public static Option2<bool> NewLinesForBracesInControlBlocks { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInControlBlocks",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInControlBlocks));
-
-        public static Option2<bool> NewLinesForBracesInAnonymousTypes { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInAnonymousTypes",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousTypes));
-
-        public static Option2<bool> NewLinesForBracesInObjectCollectionArrayInitializers { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInObjectCollectionArrayInitializers",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers));
-
-        public static Option2<bool> NewLinesForBracesInLambdaExpressionBody { get; } = CreateNewLineForBracesLegacyOption(
-            publicName: "NewLinesForBracesInLambdaExpressionBody",
-            CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody));
-
-        // editor config option:
         public static Option2<NewLineBeforeOpenBracePlacement> NewLineBeforeOpenBrace { get; } = CreateOption(
             CSharpFormattingOptionGroups.NewLine,
             name: "csharp_new_line_before_open_brace",
             CSharpSyntaxFormattingOptions.NewLinesDefault.ToNewLineBeforeOpenBracePlacement(),
             new EditorConfigStorageLocation<NewLineBeforeOpenBracePlacement>(
                 parseValue: list => ParseNewLineBeforeOpenBracePlacementList(list),
-#if !CODE_STYLE
-#pragma warning disable RS0030 // Do not used banned APIs
-                getValueFromOptionSet: set =>
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInTypes) ? NewLineBeforeOpenBracePlacement.Types : 0) |
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes) ? NewLineBeforeOpenBracePlacement.AnonymousTypes : 0) |
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers) ? NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers : 0) |
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInProperties) ? NewLineBeforeOpenBracePlacement.Properties : 0) |
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods) ? NewLineBeforeOpenBracePlacement.Methods : 0) |
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInAccessors) ? NewLineBeforeOpenBracePlacement.Accessors : 0) |
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods) ? NewLineBeforeOpenBracePlacement.AnonymousMethods : 0) |
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody) ? NewLineBeforeOpenBracePlacement.LambdaExpressionBody : 0) |
-                    (set.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks) ? NewLineBeforeOpenBracePlacement.ControlBlocks : 0),
-#pragma warning restore
-#endif
                 serializeValue: ToEditorConfigValue));
 
         public static Option2<bool> NewLineForElse { get; } = CreateOption(

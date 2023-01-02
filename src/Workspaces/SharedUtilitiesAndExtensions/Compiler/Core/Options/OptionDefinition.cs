@@ -40,17 +40,23 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public bool IsEditorConfigOption { get; }
 
-        public OptionDefinition(OptionGroup group, string configName, object? defaultValue, Type type, bool isEditorConfigOption)
+        /// <summary>
+        /// Specifies mapping for internal options whose value is an aggregate of values of multiple public options.
+        /// </summary>
+        public InternalOptionStorageMapping? InternalStorageMapping { get; }
+
+        public OptionDefinition(OptionGroup group, string configName, object? defaultValue, Type type, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
         {
             ConfigName = configName;
             Group = group;
             DefaultValue = defaultValue;
             Type = type;
+            InternalStorageMapping = internalStorageMapping;
             IsEditorConfigOption = isEditorConfigOption;
         }
 
         public OptionDefinition WithDefaultValue<T>(T defaultValue)
-            => new(Group, ConfigName, defaultValue, typeof(T), IsEditorConfigOption);
+            => new(Group, ConfigName, defaultValue, typeof(T), InternalStorageMapping, IsEditorConfigOption);
 
         public override bool Equals(object? obj)
             => obj is OptionDefinition key && Equals(key);

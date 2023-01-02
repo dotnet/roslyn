@@ -2,42 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
+using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    public abstract partial class OptionSet
+    public abstract partial class OptionSet : IOptionsReader
     {
         internal static readonly OptionSet Empty = new EmptyOptionSet();
-
-        private static readonly ImmutableDictionary<string, AnalyzerConfigOptions> s_emptyAnalyzerConfigOptions =
-            ImmutableDictionary.Create<string, AnalyzerConfigOptions>(StringComparer.Ordinal);
-
-        /// <summary>
-        /// Map from language name to the <see cref="AnalyzerConfigOptions"/> wrapper.
-        /// </summary>
-        private ImmutableDictionary<string, AnalyzerConfigOptions> _lazyAnalyzerConfigOptions = s_emptyAnalyzerConfigOptions;
 
         protected OptionSet()
         {
         }
 
-        private protected abstract object? GetOptionCore(OptionKey optionKey);
+        internal abstract object? GetInternalOptionValue(OptionKey optionKey);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         public object? GetOption(OptionKey optionKey)
-            => GetOptionCore(optionKey);
+        {
+            if (optionKey.Option is IOption2 { OptionDefinition.InternalStorageMapping: { } mapping })
+            {
+                return mapping.ToPublicOptionValue(GetInternalOptionValue(new OptionKey(mapping.InternalOption, optionKey.Language)));
+            }
+
+            return OptionHelpers.ToPublicOptionValue(GetInternalOptionValue(optionKey));
+        }
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         public T GetOption<T>(OptionKey optionKey)
-            => (T)GetOptionCore(optionKey)!;
+            => (T)GetOption(optionKey)!;
 
 #pragma warning disable RS0030 // Do not used banned APIs: PerLanguageOption<T>
         /// <summary>
@@ -68,26 +65,25 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
-        public abstract OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value);
-
-        /// <summary>
-        /// Creates a new <see cref="OptionSet" /> that contains the changed value.
-        /// </summary>
-        internal OptionSet WithChangedOption<T>(PerLanguageOption2<T> option, string? language, T value)
-            => WithChangedOption(new OptionKey(option, language), value);
-
-        internal AnalyzerConfigOptions AsAnalyzerConfigOptions(IEditorConfigOptionMapping mapping, string language)
+        public virtual OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
-            return ImmutableInterlocked.GetOrAdd(
-                ref _lazyAnalyzerConfigOptions,
-                language,
-                static (string language, (OptionSet self, IEditorConfigOptionMapping mapping) arg) => arg.self.CreateAnalyzerConfigOptions(arg.mapping, language),
-                (this, mapping));
+            if (optionAndLanguage.Option is IOption2 { OptionDefinition.InternalStorageMapping: { } mapping })
+            {
+                var mappedOptionKey = new OptionKey(mapping.InternalOption, optionAndLanguage.Language);
+                var currentValue = GetInternalOptionValue(mappedOptionKey);
+                return WithChangedOptionInternal(mappedOptionKey, mapping.UpdateInternalOptionValue(currentValue, value));
+            }
+
+            return WithChangedOptionInternal(optionAndLanguage, OptionHelpers.ToInternalOptionValue(value));
         }
 
-        internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
+        internal virtual OptionSet WithChangedOptionInternal(OptionKey optionKey, object? internalValue)
+            => throw ExceptionUtilities.Unreachable();
 
-        private protected virtual AnalyzerConfigOptions CreateAnalyzerConfigOptions(IEditorConfigOptionMapping mapping, string language)
-            => new AnalyzerConfigOptionsImpl(this, mapping, language);
+        bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+        {
+            value = (T)GetInternalOptionValue(new OptionKey(optionKey.Option, optionKey.Language))!;
+            return true;
+        }
     }
 }

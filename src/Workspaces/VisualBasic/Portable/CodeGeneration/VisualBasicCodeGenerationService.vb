@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Get
         End Property
 
-        Public Overrides Function GetCodeGenerationOptions(options As AnalyzerConfigOptions, fallbackOptions As CodeGenerationOptions) As CodeGenerationOptions
+        Public Overrides Function GetCodeGenerationOptions(options As IOptionsReader, fallbackOptions As CodeGenerationOptions) As CodeGenerationOptions
             Return VisualBasicCodeGenerationOptions.Default
         End Function
 

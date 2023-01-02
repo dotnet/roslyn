@@ -48,7 +48,7 @@ internal static class TextBufferOptionProviders
 
     private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, LanguageServices languageServices, bool explicitFormat)
     {
-        var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
+        var configOptions = editorOptions.ToAnalyzerConfigOptions();
         var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices);
         var options = configOptions.GetSyntaxFormattingOptions(fallbackOptions, languageServices);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, indentationManager, explicitFormat);
@@ -72,7 +72,7 @@ internal static class TextBufferOptionProviders
     public static AddImportPlacementOptions GetAddImportPlacementOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool allowInHiddenRegions)
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
-        var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
+        var configOptions = editorOptions.ToAnalyzerConfigOptions();
         var fallbackOptions = optionsProvider.GlobalOptions.GetAddImportPlacementOptions(languageServices);
         return configOptions.GetAddImportPlacementOptions(allowInHiddenRegions, fallbackOptions, languageServices);
     }
@@ -80,7 +80,7 @@ internal static class TextBufferOptionProviders
     public static CodeCleanupOptions GetCodeCleanupOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool explicitFormat, bool allowImportsInHiddenRegions)
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
-        var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
+        var configOptions = editorOptions.ToAnalyzerConfigOptions();
         var fallbackOptions = optionsProvider.GlobalOptions.GetCodeCleanupOptions(languageServices);
 
         var options = configOptions.GetCodeCleanupOptions(allowImportsInHiddenRegions, fallbackOptions, languageServices);

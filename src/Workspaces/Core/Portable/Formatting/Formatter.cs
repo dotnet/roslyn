@@ -319,16 +319,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static SyntaxFormattingOptions GetFormattingOptions(Workspace workspace, OptionSet? optionSet, string language)
         {
             var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-            var optionMapping = workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>().Mapping;
-            var configOptionSet = (optionSet ?? workspace.CurrentSolution.Options).AsAnalyzerConfigOptions(optionMapping, language);
-            return syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
+            return syntaxFormattingService.GetFormattingOptions(optionSet ?? workspace.CurrentSolution.Options, fallbackOptions: null);
         }
 
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async ValueTask<(SyntaxFormattingOptions? Syntax, LineFormattingOptions Line)> GetFormattingOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
-            var optionMapping = document.Project.Solution.Services.GetRequiredService<IEditorConfigOptionMappingService>().Mapping;
-            var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionMapping, document.Project.Language);
+            optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             LineFormattingOptions lineFormattingOptions;
             SyntaxFormattingOptions? syntaxFormattingOptions;
@@ -336,13 +333,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             var syntaxFormattingService = document.GetLanguageService<ISyntaxFormattingService>();
             if (syntaxFormattingService != null)
             {
-                syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
+                syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(optionSet, fallbackOptions: null);
                 lineFormattingOptions = syntaxFormattingOptions.LineFormatting;
             }
             else
             {
                 syntaxFormattingOptions = null;
-                lineFormattingOptions = configOptionSet.GetLineFormattingOptions(fallbackOptions: null);
+                lineFormattingOptions = optionSet.GetLineFormattingOptions(document.Project.Language, fallbackOptions: null);
             }
 
             return (syntaxFormattingOptions, lineFormattingOptions);
@@ -370,9 +367,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(Document document, CancellationToken cancellationToken)
         {
-            var optionMapping = document.Project.Solution.Services.GetRequiredService<IEditorConfigOptionMappingService>().Mapping;
-            var configOptionSet = (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionMapping, document.Project.Language);
-            return configOptionSet.GetOrganizeImportsOptions(fallbackOptions: null);
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return optionSet.GetOrganizeImportsOptions(document.Project.Language, fallbackOptions: null);
         }
 #pragma warning restore
     }

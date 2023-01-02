@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <see cref="AnalyzerConfigOptions"/> that memoize structured (parsed) form of certain complex options to avoid parsing them multiple times.
 /// Storages of these complex options may directly call the specialized getters to reuse the cached values.
 /// </summary>
-internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
+internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions, IOptionsReader
 {
     internal sealed class Implementation : StructuredAnalyzerConfigOptions
     {
@@ -67,6 +68,9 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
 
     public static StructuredAnalyzerConfigOptions Create(AnalyzerConfigOptions options)
         => new Implementation(options);
+
+    public bool TryGetOption<T>(OptionKey2 optionKey, out T value)
+        => this.TryGetEditorConfigOption(optionKey.Option, out value);
 
     public static bool TryGetStructuredOptions(AnalyzerConfigOptions configOptions, [NotNullWhen(true)] out StructuredAnalyzerConfigOptions? options)
     {

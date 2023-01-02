@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Options
             PublicOption = publicOption;
         }
 
-        public PerLanguageOption2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null)
-            : this(new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), isEditorConfigOption: storageLocation != null || typeof(T) == typeof(NamingStylePreferences)), storageLocation, publicOption: null)
+        public PerLanguageOption2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null, InternalOptionStorageMapping? internalStorageMapping = null)
+            : this(new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), internalStorageMapping, isEditorConfigOption: storageLocation != null || typeof(T) == typeof(NamingStylePreferences)), storageLocation, publicOption: null)
         {
             VerifyNamingConvention();
         }

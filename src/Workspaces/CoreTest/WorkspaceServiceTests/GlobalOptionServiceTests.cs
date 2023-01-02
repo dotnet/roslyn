@@ -35,19 +35,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var optionKey = new OptionKey(new TestOption() { DefaultValue = 1 });
 
-            Assert.Equal(1, optionService.GetOption(optionKey));
+            Assert.Equal(1, optionService.GetExternallyDefinedOption(optionKey));
 
             optionService.SetOptions(
                 ImmutableArray<KeyValuePair<OptionKey2, object?>>.Empty,
                 ImmutableArray.Create(KeyValuePairUtil.Create(optionKey, (object?)2)));
 
-            Assert.Equal(2, optionService.GetOption(optionKey));
+            Assert.Equal(2, optionService.GetExternallyDefinedOption(optionKey));
 
             optionService.SetOptions(
                 ImmutableArray<KeyValuePair<OptionKey2, object?>>.Empty,
                 ImmutableArray.Create(KeyValuePairUtil.Create(optionKey, (object?)3)));
 
-            Assert.Equal(3, optionService.GetOption(optionKey));
+            Assert.Equal(3, optionService.GetExternallyDefinedOption(optionKey));
         }
 
         [Theory]
@@ -221,8 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void GettingOptionWithoutChangedOption()
         {
             using var workspace = new AdhocWorkspace();
-            var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var optionSet = new SolutionOptionSet(optionService);
+            var optionSet = new SolutionOptionSet(GetLegacyGlobalOptionService(workspace.Services));
 
             var optionFalse = new Option<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(optionFalse));
@@ -235,33 +234,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var trueKey = new OptionKey(optionTrue);
             Assert.True((bool?)optionSet.GetOption(trueKey));
-        }
-
-        [Fact]
-        public void GetKnownOptions()
-        {
-            using var workspace = new AdhocWorkspace();
-            var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
-            optionService.GetOption(option);
-
-            var optionSet = new SolutionOptionSet(optionService);
-            var value = optionSet.GetOption((Option<bool>)option);
-            Assert.True(value);
-        }
-
-        [Fact]
-        public void GetKnownOptionsKey()
-        {
-            using var workspace = new AdhocWorkspace();
-            var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
-            optionService.GetOption(option);
-
-            var optionSet = new SolutionOptionSet(optionService);
-            var optionKey = new OptionKey(option);
-            var value = (bool?)optionSet.GetOption(optionKey);
-            Assert.True(value);
         }
 
         [Fact]
@@ -368,7 +340,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             //  2. IOptionService.GetOption(OptionKey)
             var changedOptions = ((SolutionOptionSet)newOptionSet).GetChangedOptions();
             optionService.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
-            Assert.Equal(newPublicValue, optionService.GetOption(optionKey));
+            Assert.Equal(newValue.AsInternalCodeStyleOption(), optionService.GlobalOptions.GetOption<CodeStyleOption2<bool>>(new OptionKey2(option, language)));
         }
     }
 }

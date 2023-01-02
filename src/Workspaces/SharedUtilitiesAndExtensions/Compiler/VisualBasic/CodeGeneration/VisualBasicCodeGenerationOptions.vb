@@ -42,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
     Friend Module VisualBasicCodeGenerationOptionsProviders
         <Extension>
-        Public Function GetVisualBasicCodeGenerationOptions(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerationOptions
+        Public Function GetVisualBasicCodeGenerationOptions(options As IOptionsReader, fallbackOptions As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerationOptions
             Return New VisualBasicCodeGenerationOptions() With
             {
-                .Common = options.GetCommonCodeGenerationOptions(fallbackOptions.Common)
+                .Common = options.GetCommonCodeGenerationOptions(LanguageNames.VisualBasic, fallbackOptions.Common)
             }
         End Function
     End Module

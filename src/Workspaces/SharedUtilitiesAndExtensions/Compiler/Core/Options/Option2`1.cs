@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Options
             PublicOption = publicOption;
         }
 
-        public Option2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null)
-            : this(new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), isEditorConfigOption: storageLocation != null), storageLocation, languageName, publicOption: null)
+        public Option2(string name, T defaultValue, OptionGroup? group = null, EditorConfigStorageLocation<T>? storageLocation = null, string? languageName = null, InternalOptionStorageMapping? internalStorageMapping = null)
+            : this(new OptionDefinition(group ?? OptionGroup.Default, name, defaultValue, typeof(T), internalStorageMapping, isEditorConfigOption: storageLocation != null), storageLocation, languageName, publicOption: null)
         {
             VerifyNamingConvention();
         }

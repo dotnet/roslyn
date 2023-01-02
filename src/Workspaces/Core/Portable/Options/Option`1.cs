@@ -37,28 +37,30 @@ namespace Microsoft.CodeAnalysis.Options
 
         public Option(string feature, string name, T defaultValue)
             : this(feature ?? throw new ArgumentNullException(nameof(feature)),
-                   OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
+                   OptionGroup.Default,
                    defaultValue,
                    storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                   internalStorageMapping: null,
                    isEditorConfigOption: false)
         {
         }
 
         public Option(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
             : this(feature ?? throw new ArgumentNullException(nameof(feature)),
-                   OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
+                   OptionGroup.Default,
                    defaultValue,
                    PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations)).ToImmutableArray(),
+                   internalStorageMapping: null,
                    isEditorConfigOption: false)
         {
             // should not be used internally to create options
             Debug.Assert(storageLocations.All(l => l is not IEditorConfigStorageLocation));
         }
 
-        private Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
-            : this(new OptionDefinition(group, feature + "_" + name, defaultValue, typeof(T), isEditorConfigOption), feature, name, storageLocations)
+        internal Option(string feature, string name, OptionGroup group, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
+            : this(new OptionDefinition(group, feature + "_" + name, defaultValue, typeof(T), internalStorageMapping, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 
@@ -76,6 +78,8 @@ namespace Microsoft.CodeAnalysis.Options
         object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => false;
+
+        IOption2? IOption2.PublicOption => null;
 
         OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 

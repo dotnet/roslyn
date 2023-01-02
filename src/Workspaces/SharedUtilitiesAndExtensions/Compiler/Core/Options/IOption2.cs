@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Options
     {
         OptionDefinition OptionDefinition { get; }
         IEditorConfigStorageLocation? StorageLocation { get; }
+        IOption2? PublicOption { get; }
 
 #if CODE_STYLE
         bool IsPerLanguage { get; }

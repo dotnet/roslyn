@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
@@ -27,15 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
 
     internal static class CSharpSyntaxWrappingOptionsProviders
     {
-        public static CSharpSyntaxWrappingOptions GetCSharpSyntaxWrappingOptions(this AnalyzerConfigOptions options, CodeActionOptions fallbackOptions)
+        public static CSharpSyntaxWrappingOptions GetCSharpSyntaxWrappingOptions(this IOptionsReader options, CodeActionOptions fallbackOptions)
         {
             var newLineBeforeOpenBraceDefault = ((CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions).NewLines.ToNewLineBeforeOpenBracePlacement();
 
             return new(
                 options.GetCSharpSyntaxFormattingOptions((CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions),
-                operatorPlacement: options.GetEditorConfigOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.Common.OperatorPlacementWhenWrapping),
+                operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.Common.OperatorPlacementWhenWrapping),
                 wrappingColumn: fallbackOptions.WrappingColumn,
-                newLinesForBracesInObjectCollectionArrayInitializers: options.GetEditorConfigOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace, newLineBeforeOpenBraceDefault).HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers));
+                newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace, newLineBeforeOpenBraceDefault).HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers));
         }
     }
 }

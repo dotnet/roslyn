@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
@@ -110,18 +111,18 @@ internal interface CodeAndImportGenerationOptionsProvider :
 
 internal static class CodeGenerationOptionsProviders
 {
-    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions.CommonOptions? fallbackOptions)
+    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this IOptionsReader options, string language, CodeGenerationOptions.CommonOptions? fallbackOptions)
     {
         fallbackOptions ??= CodeGenerationOptions.CommonOptions.Default;
 
         return new()
         {
-            NamingStyle = options.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions.NamingStyle)
+            NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle)
         };
     }
 
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions, LanguageServices languageServices)
+    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, CodeGenerationOptions? fallbackOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)

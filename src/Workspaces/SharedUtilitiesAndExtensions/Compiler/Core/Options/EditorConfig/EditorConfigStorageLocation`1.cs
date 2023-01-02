@@ -17,18 +17,6 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly Func<string, Optional<T>> _parseValue;
         private readonly Func<T, string> _serializeValue;
 
-#if !CODE_STYLE
-        private readonly Func<OptionSet, T>? _getValueFromOptionSet;
-
-        public EditorConfigStorageLocation(
-            Func<string, Optional<T>> parseValue,
-            Func<T, string> serializeValue,
-            Func<OptionSet, T>? getValueFromOptionSet)
-            : this(parseValue, serializeValue)
-        {
-            _getValueFromOptionSet = getValueFromOptionSet;
-        }
-#endif
         public EditorConfigStorageLocation(
             Func<string, Optional<T>> parseValue,
             Func<T, string> serializeValue)
@@ -73,22 +61,5 @@ namespace Microsoft.CodeAnalysis.Options
 
         string IEditorConfigStorageLocation.GetEditorConfigStringValue(object? value)
             => GetEditorConfigStringValue((T)value!);
-
-#if !CODE_STYLE
-        public string GetEditorConfigStringValue(OptionKey optionKey, OptionSet optionSet)
-        {
-            if (_getValueFromOptionSet != null)
-            {
-                var editorConfigStringForValue = _serializeValue(_getValueFromOptionSet(optionSet));
-                Contract.ThrowIfTrue(RoslynString.IsNullOrEmpty(editorConfigStringForValue));
-                return editorConfigStringForValue;
-            }
-
-            var publicValue = optionSet.GetOption<object?>(optionKey);
-            var internalValue = (publicValue is ICodeStyleOption codeStyleOption) ? codeStyleOption.AsCodeStyleOption<T>() : publicValue;
-
-            return GetEditorConfigStringValue((T)internalValue!);
-        }
-#endif
     }
 }
