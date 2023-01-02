@@ -1358,7 +1358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // pointers in attribute types. Until then, we don't know how serialize them, so error instead of crashing
                 // during emit.
                 diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, node.Location);
-                hasError = true;
             }
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
@@ -1455,18 +1454,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeExpression = new BoundTypeExpression(node.Type, aliasOpt: alias, typeWithAnnotations);
             TypeSymbol type = typeWithAnnotations.Type;
 
-            bool hasErrors = false;
-
             // Default of an enum as an attribute argument triggers serialization of the enum's type.
             // This would fail for enums nested in a type referencing a function pointer, because
             // function pointer serialization is not supported, see https://github.com/dotnet/roslyn/issues/48765.
             if (this.InAttributeArgument && type.IsEnumType() && type.ContainsFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, node.Location);
-                hasErrors = true;
             }
 
-            return new BoundDefaultExpression(node, typeExpression, constantValueOpt: type.GetDefaultValue(), type, hasErrors: hasErrors);
+            return new BoundDefaultExpression(node, typeExpression, constantValueOpt: type.GetDefaultValue(), type);
         }
 
         /// <summary>
