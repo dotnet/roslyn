@@ -11,9 +11,6 @@ using Microsoft.CodeAnalysis.Indentation;
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 #else
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options.Providers;
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 #endif
 
@@ -24,19 +21,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal sealed partial class FormattingOptions2
     {
-#if !CODE_STYLE
-        [ExportEditorConfigOptionProvider, Shared]
-        internal sealed class Provider : IOptionProvider
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Provider()
-            {
-            }
-
-            public ImmutableArray<IOption2> Options { get; } = FormattingOptions2.Options;
-        }
-#endif
         private const string PublicFeatureName = "FormattingOptions";
 
         public static PerLanguageOption2<bool> UseTabs = new PerLanguageOption2<bool>(
