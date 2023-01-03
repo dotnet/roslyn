@@ -14,7 +14,7 @@ public class CalculatorTests
     public void AddOrSubtract()
     {
         // This tests aggregation of code coverage across test runs.
-#if NETCOREAPP3_1
+#if NET6_0_OR_GREATER
         Assert.Equal(3, Calculator.Add(1, 2));
 #else
         Assert.Equal(-1, Calculator.Subtract(1, 2));
