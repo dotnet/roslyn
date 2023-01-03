@@ -11066,5 +11066,25 @@ public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
                 Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
             End Using
         End Function
+
+        <WpfFact, WorkItem(64862, "https://github.com/dotnet/roslyn/issues/64862")>
+        Public Async Function TestAsyncMethodReturningValueTask() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System.Threading.Tasks;
+
+class Program
+{
+    async ValueTask&lt;string&gt; M2Async()
+    {
+        return new $$;
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("string", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace

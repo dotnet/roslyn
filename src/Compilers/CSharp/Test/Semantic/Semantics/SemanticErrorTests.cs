@@ -7619,6 +7619,26 @@ String
             CompileAndVerify(text, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
+        [Theory, WorkItem(65428, "https://github.com/dotnet/roslyn/issues/65428")]
+        [CombinatorialData]
+        public void WriteOfReadonlyStaticMemberOfAnotherInstantiation03(NullableContextOptions nullableContextOptions)
+        {
+            var text =
+@"
+class C<T>
+{
+    public static readonly int X;
+
+    static C()
+    {
+        C<T>.X = 100;
+    }
+}
+";
+
+            CreateCompilation(text, options: TestOptions.ReleaseDll.WithNullableContextOptions(nullableContextOptions), parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics();
+        }
+
         [Fact]
         public void CS0199ERR_RefReadonlyStatic()
         {

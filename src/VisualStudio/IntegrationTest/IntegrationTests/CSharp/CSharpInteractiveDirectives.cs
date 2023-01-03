@@ -130,7 +130,7 @@ Process.GetCurrentProcess().ProcessName");
                 VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
                 VisualStudio.InteractiveWindow.WaitForLastReplOutput("2");
                 VisualStudio.InteractiveWindow.SubmitText("#load text");
-                VisualStudio.InteractiveWindow.WaitForLastReplOutput("CS7010: Quoted file name expected");
+                VisualStudio.InteractiveWindow.WaitForLastReplOutput("(1,7): error CS7010: Quoted file name expected");
             }
         }
 
@@ -193,7 +193,7 @@ Script directives:
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("2");
             VisualStudio.InteractiveWindow.SubmitText("#reset");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput(@"Resetting execution engine.
-Loading context from");
+Loading context from 'CSharpInteractive.rsp'.");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
         }

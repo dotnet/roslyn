@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, statements) { WasCompilerGenerated = true };
         }
 
         public BoundExtractedFinallyBlock ExtractedFinallyBlock(BoundBlock finallyBlock)
@@ -551,7 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LocalSymbol InterpolatedStringHandlerLocal(
             TypeSymbol type,
-            uint valEscapeScope,
             SyntaxNode syntax
 #if DEBUG
             ,
@@ -560,11 +559,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return new SynthesizedLocalWithValEscape(
+            return new SynthesizedLocal(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
                 SynthesizedLocalKind.LoweringTemp,
-                valEscapeScope,
                 syntax
 #if DEBUG
                 , createdAtLineNumber: createdAtLineNumber, createdAtFilePath: createdAtFilePath
