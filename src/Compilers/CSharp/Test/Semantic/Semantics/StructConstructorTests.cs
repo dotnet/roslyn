@@ -4091,6 +4091,48 @@ public struct S
 ");
         }
 
+        [Fact]
+        public void ImplicitlyInitializedField_ConstructorInitializer_01()
+        {
+            var source = """
+public struct S1
+{
+    public int F;
+
+    S1(int x) {}
+
+    public S1() : this(F) {}
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0120: An object reference is required for the non-static field, method, or property 'S1.F'
+                //     public S1() : this(F) {}
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(7, 24));
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedField_ConstructorInitializer_02()
+        {
+            var source = """
+public struct S1
+{
+    public int F;
+
+    S1(int x) {}
+
+    public static int M(int y) => y;
+
+    public S1() : this(M(F)) {}
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,26): error CS0120: An object reference is required for the non-static field, method, or property 'S1.F'
+                //     public S1() : this(M(F)) {}
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(9, 26));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]

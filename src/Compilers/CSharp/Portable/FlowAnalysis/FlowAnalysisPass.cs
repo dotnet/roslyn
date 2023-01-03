@@ -53,7 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!implicitlyInitializedFields.IsDefault)
                     {
                         Debug.Assert(!implicitlyInitializedFields.IsEmpty);
-                        Debug.Assert(!originalBodyNested);
+
+                        // It's not expected to have implicitly initialized fields when a constructor initializer is present, except in error scenarios.
+                        Debug.Assert(!originalBodyNested || block.HasErrors);
+
                         block = PrependImplicitInitializations(block, method, implicitlyInitializedFields, compilationState, diagnostics);
                     }
                     if (needsImplicitReturn)
