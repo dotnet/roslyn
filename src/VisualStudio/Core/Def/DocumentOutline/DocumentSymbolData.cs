@@ -16,15 +16,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         SymbolKind SymbolKind,
         SnapshotSpan RangeSpan,
         SnapshotSpan SelectionRangeSpan,
-        ImmutableArray<DocumentSymbolData> Children)
-    {
-        public DocumentSymbolData(
-            DocumentSymbol documentSymbol,
-            SnapshotSpan rangeSpan,
-            SnapshotSpan selectionRangeSpan,
-            ImmutableArray<DocumentSymbolData> children)
-            : this(documentSymbol.Name, documentSymbol.Kind, rangeSpan, selectionRangeSpan, children)
-        {
-        }
-    }
+        ImmutableArray<DocumentSymbolData> Children);
 }
