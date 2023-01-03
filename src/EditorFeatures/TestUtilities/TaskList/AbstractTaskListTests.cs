@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TaskList
             using var workspace = CreateWorkspace(codeWithMarker, host);
 
             var descriptors = TaskListOptions.Default.Descriptors;
-            workspace.GlobalOptions.SetGlobalOption(TaskListOptionsStorage.Descriptors, descriptors);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TaskListOptionsStorage.Descriptors), descriptors);
 
             var hostDocument = workspace.Documents.First();
             var initialTextSnapshot = hostDocument.GetTextBuffer().CurrentSnapshot;

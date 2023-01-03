@@ -26,15 +26,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public bool BlockForCompletionItems
         {
             get => _globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, InternalLanguageNames.TypeScript);
-            set => _globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, InternalLanguageNames.TypeScript, value);
+            set => _globalOptions.SetGlobalOption(new OptionKey(CompletionViewOptions.BlockForCompletionItems, InternalLanguageNames.TypeScript), value);
         }
 
         public void SetBackgroundAnalysisScope(bool openFilesOnly)
         {
-            _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript,
+            _globalOptions.SetGlobalOption(
+                new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript),
                 openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
 
-            _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript,
+            _globalOptions.SetGlobalOption(
+                new OptionKey(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript),
                 openFilesOnly);
         }
 

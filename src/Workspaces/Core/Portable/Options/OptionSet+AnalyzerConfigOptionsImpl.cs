@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Options
         {
             private readonly OptionSet _optionSet;
             private readonly IEditorConfigOptionMappingService _optionMappingService;
-            private readonly string _language;
+            private readonly string? _language;
 
-            public AnalyzerConfigOptionsImpl(OptionSet optionSet, IEditorConfigOptionMappingService optionMappingService, string language)
+            public AnalyzerConfigOptionsImpl(OptionSet optionSet, IEditorConfigOptionMappingService optionMappingService, string? language)
             {
                 _optionSet = optionSet;
                 _optionMappingService = optionMappingService;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             public override NamingStylePreferences GetNamingStylePreferences()
-                => _optionSet.GetOption((PerLanguageOption<NamingStylePreferences>)NamingStyleOptions.NamingPreferences, _language);
+                => _optionSet.GetOption<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, _language);
 
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {

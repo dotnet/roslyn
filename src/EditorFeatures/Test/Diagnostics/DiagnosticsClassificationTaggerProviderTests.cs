@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Set fading option
             var fadingOption = GetFadingOptionForDiagnostic(diagnosticId);
-            workspace.GlobalOptions.SetGlobalOption(fadingOption, LanguageNames.CSharp, fadingOptionValue);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(fadingOption, LanguageNames.CSharp), fadingOptionValue);
 
             // Add mapping from diagnostic ID to fading option
             IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(diagnosticId, fadingOption);

@@ -56,13 +56,13 @@ End Class", HangMitigatingCancellationToken);
 @"Class C
     Dim i As Integer$$
 End Class", HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic, true);
+            globalOptions.SetGlobalOption(new OptionKey(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic), true);
 
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal("Object Browser", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            globalOptions.SetGlobalOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic, false);
-            globalOptions.SetGlobalOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, false);
+            globalOptions.SetGlobalOption(new OptionKey(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic), false);
+            globalOptions.SetGlobalOption(new OptionKey(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, language: null), false);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb", HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);

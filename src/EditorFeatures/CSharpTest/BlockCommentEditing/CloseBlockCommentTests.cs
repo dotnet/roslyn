@@ -285,7 +285,7 @@ a    * /$$
             Verify(code, expected, workspace =>
             {
                 var globalOptions = workspace.GetService<IGlobalOptionService>();
-                globalOptions.SetGlobalOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp, false);
+                globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp), false);
             });
         }
 

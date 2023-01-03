@@ -67,7 +67,7 @@ End Interface")
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
 
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
-                globalOptions.SetGlobalOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic, False)
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic), False)
 
                 Dim nextHandlerCalled = False
                 Dim view = workspace.Documents.Single().GetTextView()

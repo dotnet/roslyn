@@ -664,6 +664,7 @@ dotnet_diagnostic.JSON002.severity = %value%
         private static void VerifyConfigureCodeStyleOptionsCore(string expected, string languageName)
         {
             using var workspace = new TestWorkspace();
+            var optionSet = workspace.Options;
 
             var diagnosticIdAndOptions = GetIDEDiagnosticIdsAndOptions(languageName);
             var expectedMap = GetExpectedMap(expected, out var expectedLines);
@@ -680,7 +681,8 @@ dotnet_diagnostic.JSON002.severity = %value%
                         continue;
                     }
 
-                    var editorConfigString = editorConfigLocation.GetEditorConfigString(option.DefaultValue);
+                    var optionKey = new OptionKey(option, option.IsPerLanguage ? languageName : null);
+                    var editorConfigString = editorConfigLocation.GetEditorConfigString(optionKey, optionSet);
 
                     ProcessDiagnosticIdAndOption(diagnosticId, option, editorConfigString);
                     hasEditorConfigCodeStyleOptions = true;

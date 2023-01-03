@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Options
         public bool GenerateOverrides
         {
             get => _globalOptions.GetOption(s_generateOverridesOption);
-            set => _globalOptions.SetGlobalOption(s_generateOverridesOption, value);
+            set => _globalOptions.SetGlobalOption(new OptionKey(s_generateOverridesOption), value);
         }
 
         public bool RazorUseTabs
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Options
         public bool InlineHintsOptionsDisplayAllOverride
         {
             get => _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
-            set => _globalOptions.SetGlobalOption(InlineHintsGlobalStateOption.DisplayAllOverride, value);
+            set => _globalOptions.SetGlobalOption(new OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), value);
         }
 
         public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider
@@ -83,18 +83,18 @@ namespace Microsoft.CodeAnalysis.Options
             => _globalOptions.GetOption(s_implementIEquatable, language);
 
         public void SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language, bool value)
-            => _globalOptions.SetGlobalOption(s_generateOperators, language, value);
+            => _globalOptions.SetGlobalOption(new OptionKey(s_generateOperators, language), value);
 
         public bool GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language)
             => _globalOptions.GetOption(s_implementIEquatable, language);
 
         public void SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language, bool value)
-            => _globalOptions.SetGlobalOption(s_implementIEquatable, language, value);
+            => _globalOptions.SetGlobalOption(new OptionKey(s_implementIEquatable, language), value);
 
         public bool GetGenerateConstructorFromMembersOptionsAddNullChecks(string language)
             => _globalOptions.GetOption(s_addNullChecks, language);
 
         public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value)
-            => _globalOptions.SetGlobalOption(s_addNullChecks, language, value);
+            => _globalOptions.SetGlobalOption(new OptionKey(s_addNullChecks, language), value);
     }
 }

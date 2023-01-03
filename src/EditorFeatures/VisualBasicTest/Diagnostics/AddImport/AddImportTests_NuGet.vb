@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             ImmutableArray.Create(New PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org"))
 
         Protected Overrides Sub InitializeWorkspace(workspace As TestWorkspace, parameters As TestParameters)
-            workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.VisualBasic, True)
-            workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.VisualBasic, True)
+            workspace.GlobalOptions.SetGlobalOption(New OptionKey(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.VisualBasic), True)
+            workspace.GlobalOptions.SetGlobalOption(New OptionKey(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.VisualBasic), True)
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)

@@ -11,17 +11,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     internal class TestOptionSet : OptionSet
     {
-        public static new readonly TestOptionSet Empty = new(ImmutableDictionary<OptionKey, object?>.Empty);
-
         private readonly ImmutableDictionary<OptionKey, object?> _values;
 
-        public TestOptionSet(ImmutableDictionary<OptionKey, object?> values)
+        public TestOptionSet()
+        {
+            _values = ImmutableDictionary<OptionKey, object?>.Empty;
+        }
+
+        private TestOptionSet(ImmutableDictionary<OptionKey, object?> values)
         {
             _values = values;
         }
 
         private protected override object? GetOptionCore(OptionKey optionKey)
-            => _values.TryGetValue(optionKey, out var value) ? value : optionKey.Option.DefaultValue;
+        {
+            Contract.ThrowIfFalse(_values.TryGetValue(optionKey, out var value));
+
+            return value;
+        }
 
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {

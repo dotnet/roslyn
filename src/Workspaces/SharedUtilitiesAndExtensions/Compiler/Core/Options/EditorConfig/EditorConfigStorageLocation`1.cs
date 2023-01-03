@@ -79,7 +79,19 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         string IEditorConfigStorageLocation2.GetEditorConfigStringValue(object? value)
-            => GetEditorConfigStringValue((T)value!);
+        {
+            T typedValue;
+            if (value is ICodeStyleOption codeStyleOption)
+            {
+                typedValue = (T)codeStyleOption.AsCodeStyleOption<T>();
+            }
+            else
+            {
+                typedValue = (T)value!;
+            }
+
+            return GetEditorConfigStringValue(typedValue);
+        }
 
 #if !CODE_STYLE
         public string GetEditorConfigStringValue(OptionKey optionKey, OptionSet optionSet)
@@ -91,10 +103,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return editorConfigStringForValue;
             }
 
-            var publicValue = optionSet.GetOption<object?>(optionKey);
-            var internalValue = (publicValue is ICodeStyleOption codeStyleOption) ? codeStyleOption.AsCodeStyleOption<T>() : publicValue;
-
-            return GetEditorConfigStringValue((T)internalValue!);
+            return GetEditorConfigStringValue(optionSet.GetOption<T>(optionKey));
         }
 #endif
     }

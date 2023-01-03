@@ -146,7 +146,7 @@ End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationTo
         public async Task CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, false);
+            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), false);
 
             await TestServices.Editor.SetTextAsync(@"Module M
     Sub M()

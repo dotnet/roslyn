@@ -1391,7 +1391,7 @@ class D { }
             using var workspace1 = CreateWorkspace();
             var solution = workspace1.CurrentSolution;
 
-            var optionKey = new OptionKey(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
+            var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
             var defaultValue = solution.Options.GetOption(optionKey);
             var changedValue = FormattingOptions.IndentStyle.Block;
             Assert.NotEqual(defaultValue, changedValue);
@@ -1429,7 +1429,7 @@ class D { }
             var beforeSolutionForPrimaryWorkspace = primaryWorkspace.CurrentSolution;
             var beforeSolutionForSecondaryWorkspace = secondaryWorkspace.CurrentSolution;
 
-            var optionKey = new OptionKey(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
+            var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, primaryWorkspace.Options.GetOption(optionKey));
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
@@ -1440,24 +1440,29 @@ class D { }
             primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
 
             // Verify current solution and option change for both workspaces.
-            Assert.NotEqual(beforeSolutionForPrimaryWorkspace, primaryWorkspace.CurrentSolution);
-            Assert.NotEqual(beforeSolutionForSecondaryWorkspace, secondaryWorkspace.CurrentSolution);
-
-            Assert.Equal(FormattingOptions2.IndentStyle.Block, primaryWorkspace.Options.GetOption(optionKey));
-            Assert.Equal(FormattingOptions2.IndentStyle.Block, secondaryWorkspace.Options.GetOption(optionKey));
+            VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
+            VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
 
             primaryWorkspace.GlobalOptions.OptionChanged -= OptionService_OptionChanged;
             return;
 
             void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
             {
-                // CurrentSolution has been updated when the event fires.
+                // Verify current solution and option change for both workspaces.
+                VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
+                VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
+            }
 
-                Assert.NotSame(beforeSolutionForPrimaryWorkspace, primaryWorkspace.CurrentSolution);
-                Assert.NotSame(beforeSolutionForSecondaryWorkspace, secondaryWorkspace.CurrentSolution);
+            static void VerifyCurrentSolutionAndOptionChange(Workspace workspace, Solution beforeOptionChangedSolution)
+            {
+                // Verify that workspace.CurrentSolution has been updated with a new solution instance with changed option.
+                var currentSolution = workspace.CurrentSolution;
+                Assert.NotEqual(beforeOptionChangedSolution, currentSolution);
 
-                Assert.Equal(FormattingOptions2.IndentStyle.Block, primaryWorkspace.Options.GetOption(optionKey));
-                Assert.Equal(FormattingOptions2.IndentStyle.Block, secondaryWorkspace.Options.GetOption(optionKey));
+                // Verify workspace.CurrentSolution has changed option.
+                var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
+                Assert.Equal(FormattingOptions2.IndentStyle.Smart, beforeOptionChangedSolution.Options.GetOption(optionKey));
+                Assert.Equal(FormattingOptions2.IndentStyle.Block, currentSolution.Options.GetOption(optionKey));
             }
         }
     }

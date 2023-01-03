@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal sealed class VisualStudioSettingsOptionPersisterProvider : IOptionPersisterProvider
     {
         private readonly IAsyncServiceProvider _serviceProvider;
-        private readonly ILegacyGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _optionService;
         private VisualStudioSettingsOptionPersister? _lazyPersister;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSettingsOptionPersisterProvider(
             [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
-            ILegacyGlobalOptionService optionService)
+            IGlobalOptionService optionService)
         {
             _serviceProvider = serviceProvider;
             _optionService = optionService;

@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     [System.ComponentModel.DesignerCategory("code")] // this must be fully qualified
     internal abstract class AbstractOptionPage : UIElementDialogPage
     {
-        private static ILegacyGlobalOptionService s_optionService;
+        private static ILegacyWorkspaceOptionService s_optionService;
         private static OptionStore s_optionStore;
         private static bool s_needsToUpdateOptionStore = true;
 
@@ -30,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (s_optionStore == null)
             {
                 var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
-                s_optionService = componentModel.GetService<ILegacyGlobalOptionService>();
+                var workspace = componentModel.GetService<VisualStudioWorkspace>();
+                s_optionService = workspace.Services.GetService<ILegacyWorkspaceOptionService>();
                 s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService));
             }
 
@@ -113,8 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // Must log the option change before setting the new option values via s_optionService,
             // otherwise oldOptions and newOptions would be identical and nothing will be logged.
             OptionLogger.Log(oldOptions, newOptions);
-            var changedOptions = newOptions.GetChangedOptions();
-            s_optionService.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
+            s_optionService.SetOptions(newOptions, newOptions.GetChangedOptions());
 
             // Make sure we load the next time a page is activated, in case that options changed
             // programmatically between now and the next time the page is activated

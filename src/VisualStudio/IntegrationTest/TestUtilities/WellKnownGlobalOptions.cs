@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// <summary>
     /// Options settable by integration tests.
     /// 
-    /// TODO: Options are currently explicitly listed since <see cref="OptionKey2"/> is not serializable.
+    /// TODO: Options are currently explicitly listed since <see cref="OptionKey"/> is not serializable.
     /// https://github.com/dotnet/roslyn/issues/59267
     /// </summary>
     public enum WellKnownGlobalOption
@@ -38,9 +38,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         InlineRenameSessionOptions_UseNewUI,
     }
 
-    internal static class WellKnownGlobalOptions
+    public static class WellKnownGlobalOptions
     {
-        public static IOption2 GetOption(this WellKnownGlobalOption option)
+        public static IOption GetOption(this WellKnownGlobalOption option)
             => option switch
             {
                 WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces => CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 _ => throw ExceptionUtilities.Unreachable()
             };
 
-        public static OptionKey2 GetKey(this WellKnownGlobalOption option, string? language)
-            => new OptionKey2(GetOption(option), language);
+        public static OptionKey GetKey(this WellKnownGlobalOption option, string? language)
+            => new OptionKey(GetOption(option), language);
     }
 }

@@ -56,10 +56,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            var language = args.SubjectBuffer.GetLanguageName();
-
             // If the feature is not explicitly enabled we can exit early
-            if (language is null || !_globalOptions.GetOption(FeatureOnOffOptions.AddImportsOnPaste, language))
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.AddImportsOnPaste, args.SubjectBuffer.GetLanguageName()))
             {
                 nextCommandHandler();
                 return;

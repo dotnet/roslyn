@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _featureFlags = featureFlags;
         }
 
-        public bool TryFetch(OptionKey2 optionKey, [NotNullWhen(true)] out object? value)
+        public bool TryFetch(OptionKey optionKey, [NotNullWhen(true)] out object? value)
         {
             if (_featureFlags == null)
             {
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
-        public bool TryPersist(OptionKey2 optionKey, object? value)
+        public bool TryPersist(OptionKey optionKey, object? value)
         {
             if (_featureFlags == null)
             {

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal interface IOptionPersister
     {
-        bool TryFetch(OptionKey2 optionKey, out object? value);
-        bool TryPersist(OptionKey2 optionKey, object? value);
+        bool TryFetch(OptionKey optionKey, out object? value);
+        bool TryPersist(OptionKey optionKey, object? value);
     }
 }

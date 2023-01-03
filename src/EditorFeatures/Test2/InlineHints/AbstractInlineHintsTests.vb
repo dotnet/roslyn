@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(InlineHintsGlobalStateOption.DisplayAllOverride, ephemeral)
+                globalOptions.SetGlobalOption(New OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), ephemeral)
 
                 Dim options = New InlineTypeHintsOptions() With
                 {

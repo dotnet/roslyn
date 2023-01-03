@@ -18,14 +18,6 @@ namespace Microsoft.CodeAnalysis.Options
         public IOption2 Option { get; }
         public string? Language { get; }
 
-        public OptionKey2(IOption2 option, string? language)
-        {
-            Debug.Assert(option.IsPerLanguage == language is not null);
-
-            Option = option;
-            Language = language;
-        }
-
         public OptionKey2(IPerLanguageValuedOption option, string language)
         {
             Debug.Assert(option.IsPerLanguage);

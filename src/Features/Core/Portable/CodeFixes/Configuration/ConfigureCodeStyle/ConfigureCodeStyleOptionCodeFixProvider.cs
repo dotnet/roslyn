@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 
             // Local functions
             TopLevelConfigureCodeStyleOptionCodeAction GetCodeActionForCodeStyleOption(
-                OptionKey2 optionKey,
+                OptionKey optionKey,
                 IEditorConfigStorageLocation2 editorConfigLocation,
                 Diagnostic diagnostic,
                 bool hasMultipleOptions)

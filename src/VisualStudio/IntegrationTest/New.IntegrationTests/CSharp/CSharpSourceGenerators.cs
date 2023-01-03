@@ -86,7 +86,7 @@ internal static class Program
                 configurationService.Clear();
 
                 var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-                globalOptions.SetGlobalOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, true);
+                globalOptions.SetGlobalOption(new OptionKey(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, language: null), true);
 
                 await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
                 Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

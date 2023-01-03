@@ -64,14 +64,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, languageName, value);
+            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.PrettyListing, languageName), value);
         }
 
         public async Task SetFileScopedNamespaceAsync(bool value, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            globalOptions.SetGlobalOption(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations,
+            globalOptions.SetGlobalOption(
+                new OptionKey(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations),
                 new CodeStyleOption2<NamespaceDeclarationPreference>(value ? NamespaceDeclarationPreference.FileScoped : NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion));
         }
 
@@ -81,12 +82,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
 
             var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), scope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), scope);
 
             var compilerScope = value ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.OpenFiles;
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerScope);
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic, compilerScope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp), compilerScope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic), compilerScope);
         }
 
         public Task WaitForAsyncOperationsAsync(string featuresToWaitFor, CancellationToken cancellationToken)

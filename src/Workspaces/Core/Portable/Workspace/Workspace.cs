@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
 
-        private readonly ILegacyGlobalOptionService _legacyOptions;
+        private readonly ILegacyWorkspaceOptionService _legacyOptions;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 
             _services = host.CreateWorkspaceServices(this);
 
-            _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>().LegacyGlobalOptions;
+            _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>();
             _legacyOptions.RegisterWorkspace(this);
 
             // queue used for sending events
@@ -397,14 +397,14 @@ namespace Microsoft.CodeAnalysis
             [Obsolete(@"Workspace options should be set by invoking 'workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptionSet))'")]
             set
             {
-                var changedOptions = value switch
+                var changedOptionKeys = value switch
                 {
                     null => throw new ArgumentNullException(nameof(value)),
-                    SolutionOptionSet solutionOptionSet => solutionOptionSet.GetChangedOptions(),
+                    SolutionOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
                     _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(value))
                 };
 
-                _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
+                _legacyOptions.SetOptions(value, changedOptionKeys);
             }
         }
 
@@ -1341,8 +1341,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.CurrentSolution.Options != newSolution.Options)
                 {
-                    var changedOptions = newSolution.State.Options.GetChangedOptions();
-                    _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
+                    _legacyOptions.SetOptions(newSolution.State.Options, newSolution.State.Options.GetChangedOptions());
                 }
 
                 if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))

@@ -30,25 +30,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private class SVsSettingsPersistenceManager { };
 
         private readonly ISettingsManager? _settingManager;
-        private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
+        private readonly IGlobalOptionService _globalOptionService;
 
         /// <summary>
         /// The list of options that have been been fetched from <see cref="_settingManager"/>, by key. We track this so
         /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
         /// <see cref="_optionsToMonitorForChangesGate" />.
         /// </summary>
-        private readonly Dictionary<string, List<OptionKey2>> _optionsToMonitorForChanges = new();
+        private readonly Dictionary<string, List<OptionKey>> _optionsToMonitorForChanges = new();
         private readonly object _optionsToMonitorForChangesGate = new();
 
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        public VisualStudioSettingsOptionPersister(ILegacyGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
+        public VisualStudioSettingsOptionPersister(IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
         {
             Contract.ThrowIfNull(globalOptionService);
 
             _settingManager = settingsManager;
-            _legacyGlobalOptions = globalOptionService;
+            _globalOptionService = globalOptionService;
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
             // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
-            List<OptionKey2>? optionsToRefresh = null;
+            List<OptionKey>? optionsToRefresh = null;
 
             lock (_optionsToMonitorForChangesGate)
             {
@@ -80,27 +80,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 // while the setting was changed we might not refresh it. Why? We call RecordObservedValueToWatchForChanges before we fetch the value
                 // and since this event is raised after the setting is modified, any new setting would have already been observed in GetFirstOrDefaultValue.
                 // And if it wasn't, this event will then refresh it.
-                var anyOptionChanged = false;
                 foreach (var optionToRefresh in optionsToRefresh)
                 {
                     if (TryFetch(optionToRefresh, out var optionValue))
                     {
-                        anyOptionChanged |= _legacyGlobalOptions.GlobalOptions.RefreshOption(optionToRefresh, optionValue);
+                        _globalOptionService.RefreshOption(optionToRefresh, optionValue);
                     }
-                }
-
-                // We may be updating the values of internally defined public options.
-                // Update solution snapshots of all workspaces to reflect the new values.
-                if (anyOptionChanged)
-                {
-                    _legacyGlobalOptions.UpdateRegisteredWorkspaces();
                 }
             }
 
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        private object? GetFirstOrDefaultValue(OptionKey2 optionKey, IEnumerable<ClientSettingsStorageLocation> storageLocations)
+        private object? GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<ClientSettingsStorageLocation> storageLocations)
         {
             Contract.ThrowIfNull(_settingManager);
 
@@ -139,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return optionKey.Option.DefaultValue;
         }
 
-        public bool TryFetch(OptionKey2 optionKey, out object? value)
+        public bool TryFetch(OptionKey optionKey, out object? value)
         {
             if (_settingManager == null)
             {
@@ -246,12 +238,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return false;
         }
 
-        private void RecordObservedValueToWatchForChanges(OptionKey2 optionKey, string storageKey)
+        private void RecordObservedValueToWatchForChanges(OptionKey optionKey, string storageKey)
         {
             // We're about to fetch the value, so make sure that if it changes we'll know about it
             lock (_optionsToMonitorForChangesGate)
             {
-                var optionKeysToMonitor = _optionsToMonitorForChanges.GetOrAdd(storageKey, _ => new List<OptionKey2>());
+                var optionKeysToMonitor = _optionsToMonitorForChanges.GetOrAdd(storageKey, _ => new List<OptionKey>());
 
                 if (!optionKeysToMonitor.Contains(optionKey))
                 {
@@ -260,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public bool TryPersist(OptionKey2 optionKey, object? value)
+        public bool TryPersist(OptionKey optionKey, object? value)
         {
             if (_settingManager == null)
             {

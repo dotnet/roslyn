@@ -96,16 +96,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         public static string? GetEditorConfigText(this OptionsCollection options)
         {
-            var text = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
+            var (text, _) = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
             return text?.ToString();
         }
 
-        public static SourceText? ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
+        public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey2, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
         {
             if (options.Count == 0)
             {
-                return explicitEditorConfig is object ? SourceText.From(explicitEditorConfig, Encoding.UTF8) : null;
+                var result = explicitEditorConfig is object ? SourceText.From(explicitEditorConfig, Encoding.UTF8) : null;
+                return (result, options);
             }
+
+            var remainingOptions = new List<KeyValuePair<OptionKey2, object?>>();
 
             var analyzerConfig = new StringBuilder();
             if (explicitEditorConfig is object)
@@ -128,13 +131,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     continue;
                 }
 
-                var editorConfigStorageLocation = optionKey.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().Single();
+                var editorConfigStorageLocation = optionKey.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
+                if (editorConfigStorageLocation is null)
+                {
+                    remainingOptions.Add(KeyValuePairUtil.Create(optionKey, value));
+                    continue;
+                }
 
                 var line = editorConfigStorageLocation.GetEditorConfigString(value);
                 analyzerConfig.AppendLine(line);
             }
 
-            return SourceText.From(analyzerConfig.ToString(), Encoding.UTF8);
+            return (SourceText.From(analyzerConfig.ToString(), Encoding.UTF8), remainingOptions);
         }
     }
 }

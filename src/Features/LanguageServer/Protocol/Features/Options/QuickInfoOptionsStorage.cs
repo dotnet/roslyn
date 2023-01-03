@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal static class QuickInfoOptionsStorage
     {
-        public static QuickInfoOptions GetQuickInfoOptions(this IGlobalOptionService globalOptions, string language)
+        public static QuickInfoOptions GetQuickInfoOptions(this IGlobalOptionService globalOptions, string? language)
           => new()
           {
               ShowRemarksInQuickInfo = globalOptions.GetOption(ShowRemarksInQuickInfo, language),

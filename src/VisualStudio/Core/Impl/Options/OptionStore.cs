@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public object GetOption(OptionKey optionKey) => _optionSet.GetOption(optionKey);
         public T GetOption<T>(OptionKey optionKey) => _optionSet.GetOption<T>(optionKey);
-        internal T GetOption<T>(Option2<T> option) => _optionSet.GetOption((Option<T>)option);
-        internal T GetOption<T>(PerLanguageOption2<T> option, string language) => _optionSet.GetOption((PerLanguageOption<T>)option, language);
+        internal T GetOption<T>(Option2<T> option) => _optionSet.GetOption(option);
+        internal T GetOption<T>(PerLanguageOption2<T> option, string language) => _optionSet.GetOption(option, language);
         public OptionSet GetOptions() => _optionSet;
 
         public void SetOption(OptionKey optionKey, object value)

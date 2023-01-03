@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  excludedTypes, extraExportedTypes,
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
 
-            testState.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists)
-            testState.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
             Return testState
         End Function
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  excludedTypes:=Nothing, extraExportedTypes,
                                  includeFormatCommandHandler:=False, workspaceKind:=Nothing)
 
-            testState.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, False)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic), False)
 
             Return testState
         End Function
@@ -57,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim testState = New TestState(
                 workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
 
-            testState.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists)
-            testState.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, False)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+            testState.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic), False)
 
             Return testState
         End Function

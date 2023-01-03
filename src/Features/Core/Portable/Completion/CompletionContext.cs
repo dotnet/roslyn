@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
                    cancellationToken)
         {
 #pragma warning disable RS0030 // Do not used banned APIs
-            Options = options ?? OptionSet.Empty;
+            Options = options ?? OptionValueSet.Empty;
 #pragma warning restore
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Completion
             SharedSyntaxContextsWithSpeculativeModel = sharedSyntaxContextsWithSpeculativeModel;
 
 #pragma warning disable RS0030 // Do not used banned APIs
-            Options = OptionSet.Empty;
+            Options = OptionValueSet.Empty;
 #pragma warning restore
         }
 

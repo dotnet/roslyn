@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
             var spans = (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -117,10 +118,11 @@ class Program
             using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             var language = workspace.Projects.Single().Language;
 
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
             workspace.GlobalOptions.SetGlobalOption(
-                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language,
+                new OptionKey(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language),
                 new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Error));
 
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
@@ -212,7 +214,8 @@ class Program
         {
             using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
 
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace);
 
@@ -237,7 +240,8 @@ class Program
         public async Task TestNoErrorsAfterDocumentRemoved(bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
@@ -267,7 +271,8 @@ class Program
         public async Task TestNoErrorsAfterProjectRemoved(bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
@@ -313,7 +318,8 @@ class Program
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
             var document = workspace.Documents.First();
 
@@ -357,7 +363,8 @@ class Program
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
             var document = workspace.Documents.First();
 
@@ -401,7 +408,8 @@ class Program
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(TestWorkspace workspace, bool pull)
         {
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
 
             return (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }

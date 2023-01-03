@@ -43,8 +43,8 @@ namespace AnalyzerRunner
             var exportProvider = _workspace.Services.SolutionServices.ExportProvider;
 
             var globalOptions = exportProvider.GetExports<IGlobalOptionService>().Single().Value;
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope);
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), _options.AnalysisScope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), _options.AnalysisScope);
 
             var workspaceConfigurationService = (AnalyzerRunnerWorkspaceConfigurationService)_workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
             workspaceConfigurationService.Options = new(CacheStorage: usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None);

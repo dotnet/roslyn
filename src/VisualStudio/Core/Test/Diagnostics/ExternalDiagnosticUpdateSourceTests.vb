@@ -362,7 +362,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Async Function TestExternalDiagnostics_CompilationAnalyzerWithFSAOn() As Task
             Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 ' turn on FSA
-                workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
+                workspace.GlobalOptions.SetGlobalOption(New OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution)
 
                 Dim analyzer = New CompilationAnalyzer()
                 Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)

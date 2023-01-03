@@ -12,6 +12,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\TestUtilities\DirectoryExtensions.cs" Link="DirectoryExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\CoreTestUtilities\ObjectExtensions.cs" Link="ObjectExtensions.cs" />
     <Compile Include="..\TestUtilities\IntegrationHelper.cs" Link="IntegrationHelper.cs" />
     <Compile Include="..\TestUtilities\Interop\NativeMethods.cs" Link="NativeMethods.cs" />
     <Compile Include="..\TestUtilities\TestUtilities.cs" Link="TestUtilities.cs" />
@@ -43,7 +44,6 @@
     <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
-    <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
