@@ -127,7 +127,7 @@ class My
             End Using
         End Function
 
-        <WpfFact, CombinatorialData>
+        <WpfFact>
         Public Async Function DoNotChangeIfPreselection() As Task
             Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
