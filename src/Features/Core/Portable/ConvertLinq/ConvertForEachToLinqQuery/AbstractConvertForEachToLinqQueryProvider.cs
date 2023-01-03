@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             SemanticModel semanticModel,
             TStatement statementCannotBeConverted,
             CancellationToken cancellationToken,
-            out IConverter<TForEachStatement, TStatement> converter);
+            [NotNullWhen(true)] out IConverter<TForEachStatement, TStatement>? converter);
 
         /// <summary>
         /// Creates a default converter where foreach is joined with some children statements but other children statements are kept unmodified.
