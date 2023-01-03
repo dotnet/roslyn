@@ -351,6 +351,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         }
 
         internal static bool TypeSymbolIsList(ITypeSymbol typeSymbol, SemanticModel semanticModel)
-            => Equals(typeSymbol?.OriginalDefinition, semanticModel.Compilation.GetTypeByMetadataName(typeof(List<>).FullName));
+            => Equals(typeSymbol?.OriginalDefinition, semanticModel.Compilation.ListOfTType());
     }
 }
