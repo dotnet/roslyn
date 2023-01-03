@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 AssignmentExpressionSyntax or
                 QueryClauseSyntax or
                 SelectOrGroupClauseSyntax or
-                CheckedExpressionSyntax or 
+                CheckedExpressionSyntax or
                 WhenClauseSyntax)
             {
                 return true;
