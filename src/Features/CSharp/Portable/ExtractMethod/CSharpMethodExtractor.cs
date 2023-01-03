@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
                 var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, typeParameter))
+                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
                 {
                     return new OperationStatus(OperationStatusFlag.BestEffort,
                         string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
