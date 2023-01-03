@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -141,14 +141,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             };
         }
 
-        public override bool Equals(object obj)
-            => Equals(obj as DocumentSymbolDataViewModel);
-
         public static bool operator ==(DocumentSymbolDataViewModel left, DocumentSymbolDataViewModel right)
-            => (object)left == right || (left is not null && left.Equals(right));
+            => left.Equals(right);
 
         public static bool operator !=(DocumentSymbolDataViewModel left, DocumentSymbolDataViewModel right)
             => !(left == right);
+
+        public override bool Equals(object obj)
+            => Equals(obj as DocumentSymbolDataViewModel);
 
         public bool Equals(DocumentSymbolDataViewModel? other)
             => (object)this == other ||
