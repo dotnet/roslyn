@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
@@ -19,13 +21,14 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
     [Trait(Traits.Feature, Traits.Features.DocumentOutline)]
     public class DocumentOutlineTests : DocumentOutlineTestsBase
     {
-        private const string TestCode = @"
+        private const string TestCode =
+        """
         private class MyClass
         {
             int _x;
 
             static void Method1(string[] args) {}
-                    
+                                
             private class MyClass2 {}
 
             static void Method2(string[] args) {}
@@ -45,8 +48,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             private static int apple = 9, b = 4, c = 6;
 
             void r() {}
-        }"
-;
+        }
+        """;
 
         public DocumentOutlineTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
@@ -69,53 +72,52 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             return (mocks, model, uiItems);
         }
 
-        [WpfFact]
-        public async Task TestSortDocumentSymbolDataByName()
-        {
-            await CheckSorting(SortOption.Name);
-        }
-
-        [WpfFact]
-        public async Task TestSortDocumentSymbolDataByType()
-        {
-            await CheckSorting(SortOption.Type);
-        }
-
-        [WpfFact]
-        public async Task TestSortDocumentSymbolDataByLocation()
-        {
-            await CheckSorting(SortOption.Location);
-        }
-
-        private async Task CheckSorting(SortOption sortOption)
+        [WpfTheory]
+        [InlineData(SortOption.Name)]
+        [InlineData(SortOption.Location)]
+        [InlineData(SortOption.Type)]
+        internal async Task TestSortDocumentSymbolData(SortOption sortOption)
         {
             var (_, _, items) = await InitializeMocksAndDataModelAndUIItems(TestCode);
-            var sortedSymbols = DocumentOutlineHelper.SortDocumentSymbolData(items, sortOption, CancellationToken.None);
-            CheckSortedSymbols(sortedSymbols);
+            var sortedSymbols = SortDocumentSymbols(items, sortOption);
+            CheckSortedSymbols(sortedSymbols, sortOption);
 
-            void CheckSortedSymbols(ImmutableArray<DocumentSymbolDataViewModel> sortedSymbols)
+            static ImmutableArray<DocumentSymbolDataViewModel> SortDocumentSymbols(
+                ImmutableArray<DocumentSymbolDataViewModel> documentSymbolData,
+                SortOption sortOption)
             {
-                for (var i = 0; i < sortedSymbols.Length - 1; i++)
+                using var _ = ArrayBuilder<DocumentSymbolDataViewModel>.GetInstance(out var sortedDocumentSymbols);
+                documentSymbolData = Sort(documentSymbolData, sortOption);
+                foreach (var documentSymbol in documentSymbolData)
                 {
-                    switch (sortOption)
-                    {
-                        case SortOption.Name:
-                            Assert.True(StringComparer.OrdinalIgnoreCase.Compare(sortedSymbols[i].Name, sortedSymbols[i + 1].Name) <= 0);
-                            break;
-                        case SortOption.Location:
-                            Assert.True(sortedSymbols[i].RangeSpan.Start < sortedSymbols[i + 1].RangeSpan.Start);
-                            break;
-                        case SortOption.Type:
-                            if (sortedSymbols[i].SymbolKind != sortedSymbols[i + 1].SymbolKind)
-                                Assert.True(sortedSymbols[i].SymbolKind < sortedSymbols[i + 1].SymbolKind);
-                            else
-                                Assert.True(StringComparer.OrdinalIgnoreCase.Compare(sortedSymbols[i].Name, sortedSymbols[i + 1].Name) <= 0);
-                            break;
-                    }
+                    var sortedChildren = SortDocumentSymbols(documentSymbol.Children, sortOption);
+                    sortedDocumentSymbols.Add(ReplaceChildren(documentSymbol, sortedChildren));
                 }
 
+                return sortedDocumentSymbols.ToImmutable();
+            }
+
+            static ImmutableArray<DocumentSymbolDataViewModel> Sort(ImmutableArray<DocumentSymbolDataViewModel> items, SortOption sortOption)
+                => (ImmutableArray<DocumentSymbolDataViewModel>)DocumentSymbolDataViewModelSorter.Instance.Convert(new object[] { items, sortOption }, typeof(ImmutableArray<DocumentSymbolDataViewModel>), parameter: null, CultureInfo.CurrentCulture);
+
+            static DocumentSymbolDataViewModel ReplaceChildren(DocumentSymbolDataViewModel symbolToUpdate, ImmutableArray<DocumentSymbolDataViewModel> newChildren)
+                => new(symbolToUpdate.Name, newChildren, symbolToUpdate.RangeSpan, symbolToUpdate.SelectionRangeSpan, symbolToUpdate.SymbolKind, symbolToUpdate.ImageMoniker, symbolToUpdate.IsExpanded, symbolToUpdate.IsSelected);
+
+            static void CheckSortedSymbols(ImmutableArray<DocumentSymbolDataViewModel> sortedSymbols, SortOption sortOption)
+            {
+                var actual = sortedSymbols;
+                var expected = sortOption switch
+                {
+                    SortOption.Name => sortedSymbols.OrderBy(static x => x.Name, StringComparer.OrdinalIgnoreCase),
+                    SortOption.Location => sortedSymbols.OrderBy(static x => x.RangeSpan.Start),
+                    SortOption.Type => sortedSymbols.OrderBy(static x => x.SymbolKind).ThenBy(static x => x.Name),
+                    _ => throw new InvalidOperationException($"The value for {nameof(sortOption)} is invalid: {sortOption}")
+                };
+
+                Assert.True(expected.SequenceEqual(actual));
+
                 foreach (var symbol in sortedSymbols)
-                    CheckSortedSymbols(symbol.Children);
+                    CheckSortedSymbols(symbol.Children, sortOption);
             }
         }
 
@@ -139,7 +141,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             Assert.Equal(2, searchedSymbols.Single(symbol => symbol.Name.Equals("MyClass")).Children.Length);
             Assert.Equal(1, searchedSymbols.Single(symbol => symbol.Name.Equals("App")).Children.Length);
 
-            // Search for a parent and a child (of aanother parent)
+            // Search for a parent and a child (of another parent)
             searchedSymbols = DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, "app", CancellationToken.None);
             Assert.Equal(2, searchedSymbols.Length);
             Assert.Equal(0, searchedSymbols.Single(symbol => symbol.Name.Equals("App")).Children.Length);
@@ -158,7 +160,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             AssertEx.NotNull(model.OriginalSnapshot);
 
             // Click between 2 parent nodes (no symbol is selected)
-            var caretPosition = currentTextSnapshotLines.ElementAt(11).End;
+            var caretPosition = currentTextSnapshotLines.ElementAt(10).End;
             var nodeToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
             Assert.Null(nodeToSelect);
 
@@ -168,12 +170,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             Assert.Equal("MyClass", nodeToSelect?.Name);
 
             // Click within range of a child symbol
-            caretPosition = currentTextSnapshotLines.ElementAt(5).End - 1;
+            caretPosition = currentTextSnapshotLines.ElementAt(4).End - 1;
             nodeToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
             Assert.Equal("Method1", nodeToSelect?.Name);
 
             // Click between 2 child symbols (caret is in range of parent)
-            caretPosition = currentTextSnapshotLines.ElementAt(15).End;
+            caretPosition = currentTextSnapshotLines.ElementAt(14).End;
             nodeToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
             Assert.Equal("App", nodeToSelect?.Name);
         }

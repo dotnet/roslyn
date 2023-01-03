@@ -19,9 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         public static DocumentSymbolDataViewModelSorter Instance { get; } = new();
 
-        public ImmutableArray<DocumentSymbolDataViewModel> Sort(ImmutableArray<DocumentSymbolDataViewModel> items, SortOption sortOption)
-            => (ImmutableArray<DocumentSymbolDataViewModel>)Convert(new object[] { items, sortOption }, typeof(ImmutableArray<DocumentSymbolDataViewModel>), parameter: null, CultureInfo.CurrentCulture);
-
         public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
         {
             if (values[0] is ImmutableArray<DocumentSymbolDataViewModel> children &&

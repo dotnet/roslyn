@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text;
 
@@ -53,20 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             set => SetProperty(ref _isSelected, value);
         }
 
-        public DocumentSymbolDataViewModel(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolDataViewModel> children)
-            : this(
-                  documentSymbolData.Name,
-                  children,
-                  documentSymbolData.RangeSpan,
-                  documentSymbolData.SelectionRangeSpan,
-                  documentSymbolData.SymbolKind,
-                  GetImageMoniker(documentSymbolData.SymbolKind),
-                  isExpanded: true,
-                  isSelected: false)
-        {
-        }
-
-        private DocumentSymbolDataViewModel(
+        public DocumentSymbolDataViewModel(
             string name,
             ImmutableArray<DocumentSymbolDataViewModel> children,
             SnapshotSpan rangeSpan,
@@ -102,43 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             field = value;
             NotifyPropertyChanged(propertyName);
-        }
-
-        internal DocumentSymbolDataViewModel WithChildren(ImmutableArray<DocumentSymbolDataViewModel> newChildren)
-            => new(Name, newChildren, RangeSpan, SelectionRangeSpan, SymbolKind, ImageMoniker, IsExpanded, IsSelected);
-
-        private static ImageMoniker GetImageMoniker(SymbolKind symbolKind)
-        {
-            return symbolKind switch
-            {
-                SymbolKind.File => KnownMonikers.IconFile,
-                SymbolKind.Module => KnownMonikers.Module,
-                SymbolKind.Namespace => KnownMonikers.Namespace,
-                SymbolKind.Class => KnownMonikers.Class,
-                SymbolKind.Package => KnownMonikers.Package,
-                SymbolKind.Method => KnownMonikers.Method,
-                SymbolKind.Property => KnownMonikers.Property,
-                SymbolKind.Field => KnownMonikers.Field,
-                SymbolKind.Constructor => KnownMonikers.Method,
-                SymbolKind.Enum => KnownMonikers.Enumeration,
-                SymbolKind.Interface => KnownMonikers.Interface,
-                SymbolKind.Function => KnownMonikers.Method,
-                SymbolKind.Variable => KnownMonikers.LocalVariable,
-                SymbolKind.Constant => KnownMonikers.Constant,
-                SymbolKind.String => KnownMonikers.String,
-                SymbolKind.Number => KnownMonikers.Numeric,
-                SymbolKind.Boolean => KnownMonikers.BooleanData,
-                SymbolKind.Array => KnownMonikers.Field,
-                SymbolKind.Object => KnownMonikers.SelectObject,
-                SymbolKind.Key => KnownMonikers.Key,
-                SymbolKind.Null => KnownMonikers.SelectObject,
-                SymbolKind.EnumMember => KnownMonikers.EnumerationItemPublic,
-                SymbolKind.Struct => KnownMonikers.Structure,
-                SymbolKind.Event => KnownMonikers.Event,
-                SymbolKind.Operator => KnownMonikers.Operator,
-                SymbolKind.TypeParameter => KnownMonikers.Type,
-                _ => KnownMonikers.SelectObject,
-            };
         }
 
         public static bool operator ==(DocumentSymbolDataViewModel left, DocumentSymbolDataViewModel right)

@@ -163,37 +163,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Sorts and returns an immutable array of DocumentSymbolData based on a SortOption.
-        /// </summary>
-        public static ImmutableArray<DocumentSymbolDataViewModel> SortDocumentSymbolData(
-            ImmutableArray<DocumentSymbolDataViewModel> documentSymbolData,
-            SortOption sortOption,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            return SortDocumentSymbols(documentSymbolData, sortOption, cancellationToken);
-
-            static ImmutableArray<DocumentSymbolDataViewModel> SortDocumentSymbols(
-                ImmutableArray<DocumentSymbolDataViewModel> documentSymbolData,
-                SortOption sortOption,
-                CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                using var _ = ArrayBuilder<DocumentSymbolDataViewModel>.GetInstance(out var sortedDocumentSymbols);
-                documentSymbolData = DocumentSymbolDataViewModelSorter.Instance.Sort(documentSymbolData, sortOption);
-                foreach (var documentSymbol in documentSymbolData)
-                {
-                    var sortedChildren = SortDocumentSymbols(documentSymbol.Children, sortOption, cancellationToken);
-                    sortedDocumentSymbols.Add(documentSymbol.WithChildren(sortedChildren));
-                }
-
-                return sortedDocumentSymbols.ToImmutable();
-            }
-        }
-
-        /// <summary>
         /// Returns an immutable array of DocumentSymbolData such that each node matches the given pattern.
         /// </summary>
         public static ImmutableArray<DocumentSymbolData> SearchDocumentSymbolData(
@@ -232,7 +201,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             foreach (var documentSymbol in documentSymbolData)
             {
                 var children = GetDocumentSymbolItemViewModels(documentSymbol.Children);
-                var documentSymbolItem = new DocumentSymbolDataViewModel(documentSymbol, children);
+                var documentSymbolItem = new DocumentSymbolDataViewModel(
+                    documentSymbol.Name,
+                    children,
+                    documentSymbol.RangeSpan,
+                    documentSymbol.SelectionRangeSpan,
+                    documentSymbol.SymbolKind,
+                    documentSymbol.SymbolKind.GetImageMoniker(),
+                    isExpanded: true,
+                    isSelected: false);
                 documentSymbolItems.Add(documentSymbolItem);
             }
 
