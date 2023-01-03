@@ -842,20 +842,8 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "partial void m()\r\n{\r\n    y;\r\n}");
 
             VerifySyntax<MethodDeclarationSyntax>(
-                   SyntaxFactory.MethodDeclaration(
-                       SyntaxFactory.PredefinedType(
-                           SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                       SyntaxFactory.Identifier("DoSomethingAsync"))
-                   .WithModifiers(
-                       SyntaxFactory.TokenList(
-                           new[]{
-                               SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                               SyntaxFactory.Token(SyntaxKind.OverrideKeyword),
-                               SyntaxFactory.Token(SyntaxKind.AsyncKeyword)}))
-                   .WithBody(
-                       SyntaxFactory.Block())
-                   .NormalizeWhitespace(),
-                   "public override async void DoSomething() {}");
+                   Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial | DeclarationModifiers.Async, statements: null),
+                "partial void m();");
         }
 
         [Fact]
@@ -4040,24 +4028,13 @@ public class C : IDisposable
         }
 
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
-        public void TestMethodModifiers1()
+        public void TestMethodModifiers()
         {
             TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
                 @"
 class C
 {
     [|public sealed override void M() { }|]
-}");
-        }
-
-        [Fact]
-        public void TestRemoveAsyncFromMethodWithoutBodyModifiers()
-        {
-            TestModifiersAsync(DeclarationModifiers.Override,
-                @"
-class C : D
-{
-    [|public override async void M() { }|]
 }");
         }
 
