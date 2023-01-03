@@ -226,10 +226,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode>? statements)
         {
             var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
+            var modifiersList = AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration);
+
+            if (modifiersList.Any(m => m.IsKind(SyntaxKind.AsyncKeyword)))
+            {
+                if (!hasBody)
+                {
+                    modifiersList = SyntaxFactory.TokenList(modifiersList.Where(m => !m.IsKind(SyntaxKind.AsyncKeyword)));
+                }
+            }
 
             return SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
-                modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
+                modifiers: modifiersList,
                 returnType: returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
                 explicitInterfaceSpecifier: null,
                 identifier: name.ToIdentifierToken(),

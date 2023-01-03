@@ -840,6 +840,22 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial, statements: new[] { Generator.IdentifierName("y") }),
                 "partial void m()\r\n{\r\n    y;\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                   SyntaxFactory.MethodDeclaration(
+                       SyntaxFactory.PredefinedType(
+                           SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
+                       SyntaxFactory.Identifier("DoSomethingAsync"))
+                   .WithModifiers(
+                       SyntaxFactory.TokenList(
+                           new[]{
+                               SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                               SyntaxFactory.Token(SyntaxKind.OverrideKeyword),
+                               SyntaxFactory.Token(SyntaxKind.AsyncKeyword)}))
+                   .WithBody(
+                       SyntaxFactory.Block())
+                   .NormalizeWhitespace(),
+                   "public override async void DoSomething() {}");
         }
 
         [Fact]
@@ -4031,6 +4047,17 @@ public class C : IDisposable
 class C
 {
     [|public sealed override void M() { }|]
+}");
+        }
+
+        [Fact]
+        public void TestRemoveAsyncFromMethodWithoutBodyModifiers()
+        {
+            TestModifiersAsync(DeclarationModifiers.Override,
+                @"
+class C : D
+{
+    [|public override async void M() { }|]
 }");
         }
 
