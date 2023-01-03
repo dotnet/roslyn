@@ -4034,7 +4034,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem()]
         public void TestMethodModifiers2()
         {
             TestModifiersAsync(DeclarationModifiers.ReadOnly,
