@@ -88,15 +88,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 return;
             }
 
-            INamedTypeSymbol? type = null;
-            if (invocation.Instance is not null)
-            {
-                type = invocation.Instance.Type as INamedTypeSymbol;
-            }
-            else if (invocation.TargetMethod.IsExtensionMethod && invocation.TargetMethod.Parameters is [{ Type: var parameterType }, ..])
-            {
-                type = parameterType as INamedTypeSymbol;
-            }
+            INamedTypeSymbol? type = invocation.GetReceiverType(context.Compilation, beforeConversion: false, context.CancellationToken);
 
             // If we're not in one of the known immutable types, quit
             if (type is not null && type.GetBaseTypesAndThis().Any(immutableTypeSymbols.Contains))
