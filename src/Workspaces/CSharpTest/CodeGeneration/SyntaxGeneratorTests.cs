@@ -4034,7 +4034,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem()]
+        [Fact, WorkItem(66170, " https://github.com/dotnet/roslyn/issues/66170")]
         public void TestMethodModifiers2()
         {
             TestModifiersAsync(DeclarationModifiers.ReadOnly,
@@ -4113,7 +4113,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(65834, " https://github.com/dotnet/roslyn/issues/65834")]
         public void TestStructModifiers1()
         {
             TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
