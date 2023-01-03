@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -339,6 +338,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             CancellationToken cancellationToken = default)
         {
             return this.SyntaxTree.IsTypeDeclarationContext(this.Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
+        }
+
+        public bool IsRecordDeclarationContext(ISet<SyntaxKind> validModifiers, CancellationToken cancellationToken)
+        {
+            var previousToken = LeftToken.GetPreviousTokenIfTouchingWord(Position);
+
+            if (!previousToken.IsKind(SyntaxKind.RecordKeyword))
+                return false;
+
+            var positionBeforeRecordKeyword = previousToken.SpanStart;
+            var modifiers = SyntaxTree.GetPrecedingModifiers(positionBeforeRecordKeyword, cancellationToken);
+
+            return modifiers.IsProperSubsetOf(validModifiers);
         }
 
         public bool IsMemberAttributeContext(ISet<SyntaxKind> validTypeDeclarations, CancellationToken cancellationToken)

@@ -511,49 +511,35 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         }
 
         /// <returns>
-        /// If <paramref name="waitForBuildToFinish"/> is <see langword="true"/>, returns the build status line, which generally looks something like this:
-        ///
-        /// <code>
-        /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
-        /// </code>
-        ///
-        /// Otherwise, this method does not wait for the build to complete and returns <see langword="null"/>.
-        /// </returns>
-        public async Task<string?> BuildSolutionAsync(bool waitForBuildToFinish, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
-            buildOutputWindowPane.Clear();
-
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
-            if (waitForBuildToFinish)
-            {
-                return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
-            }
-
-            return null;
-        }
-
-        /// <inheritdoc cref="WaitForBuildToFinishAsync(IVsOutputWindowPane, CancellationToken)"/>
-        public async Task<string> WaitForBuildToFinishAsync(CancellationToken cancellationToken)
-        {
-            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
-            return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
-        }
-
-        /// <returns>
         /// The summary line for the build, which generally looks something like this:
         ///
         /// <code>
         /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
         /// </code>
         /// </returns>
-        private async Task<string> WaitForBuildToFinishAsync(IVsOutputWindowPane buildOutputWindowPane, CancellationToken cancellationToken)
+        public async Task<string> BuildSolutionAndWaitAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext;
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+            buildOutputWindowPane.Clear();
+
+            var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken);
+            using var solutionEvents = new UpdateSolutionEvents(buildManager);
+            var buildCompleteTaskCompletionSource = new TaskCompletionSource<bool>();
+
+            void HandleUpdateSolutionDone() => buildCompleteTaskCompletionSource.SetResult(true);
+            solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
+            try
+            {
+                await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
+
+                await buildCompleteTaskCompletionSource.Task;
+            }
+            finally
+            {
+                solutionEvents.OnUpdateSolutionDone -= HandleUpdateSolutionDone;
+            }
 
             // Force the error list to update
             ErrorHandler.ThrowOnFailure(buildOutputWindowPane.FlushToTaskList());
@@ -566,8 +552,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return string.Empty;
             }
 
-            // The build summary line should be second to last in the output window
-            return lines[^2].Extent.GetText();
+            // Find the build summary line
+            for (var index = lines.Count - 1; index >= 0; index--)
+            {
+                var lineText = lines[index].Extent.GetText();
+                if (lineText.StartsWith("========== Build:"))
+                {
+                    return lineText;
+                }
+            }
+
+            return string.Empty;
         }
 
         public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
@@ -680,6 +675,47 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     return string.Equals(project.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(project.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase);
                 });
+        }
+    }
+
+    internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IDisposable
+    {
+        private uint _cookie;
+        private readonly IVsSolutionBuildManager2 _solutionBuildManager;
+
+        public event Action? OnUpdateSolutionDone;
+
+        internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            _solutionBuildManager = solutionBuildManager;
+            ErrorHandler.ThrowOnFailure(solutionBuildManager.AdviseUpdateSolutionEvents(this, out _cookie));
+        }
+
+        int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate) => VSConstants.E_NOTIMPL;
+        int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate) => VSConstants.E_NOTIMPL;
+        int IVsUpdateSolutionEvents.UpdateSolution_Cancel() => VSConstants.E_NOTIMPL;
+        int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy) => VSConstants.E_NOTIMPL;
+
+        int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+        {
+            OnUpdateSolutionDone?.Invoke();
+            return 0;
+        }
+
+        void IDisposable.Dispose()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            OnUpdateSolutionDone = null;
+
+            if (_cookie != 0)
+            {
+                var tempCookie = _cookie;
+                _cookie = 0;
+                ErrorHandler.ThrowOnFailure(_solutionBuildManager.UnadviseUpdateSolutionEvents(tempCookie));
+            }
         }
     }
 }

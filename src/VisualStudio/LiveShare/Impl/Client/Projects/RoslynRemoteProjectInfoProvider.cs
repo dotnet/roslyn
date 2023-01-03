@@ -12,7 +12,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
@@ -75,35 +77,35 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     .Where(f => !_secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
-                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray());
+                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray(), _remoteLanguageServiceWorkspace.Services.SolutionServices);
                 projectInfos.Add(projectInfo);
             }
 
             return projectInfos.ToImmutableArray();
         }
 
-        private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files)
+        private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files, SolutionServices services)
         {
             var projectId = ProjectId.CreateNewId();
-            var docInfos = ImmutableArray.CreateBuilder<DocumentInfo>();
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
 
-            foreach (var file in files)
-            {
-                var fileName = Path.GetFileNameWithoutExtension(file);
-                var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),
-                    fileName,
-                    filePath: file,
-                    loader: new FileTextLoaderNoException(file, null));
-                docInfos.Add(docInfo);
-            }
+            var docInfos = files.SelectAsArray(path =>
+                DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId),
+                    name: Path.GetFileNameWithoutExtension(path),
+                    loader: new WorkspaceFileTextLoaderNoException(services, path, defaultEncoding: null),
+                    filePath: path));
 
             return ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                projectName,
-                projectName,
-                language,
-                documents: docInfos.ToImmutable());
+                new ProjectInfo.ProjectAttributes(
+                    projectId,
+                    VersionStamp.Create(),
+                    name: projectName,
+                    assemblyName: projectName,
+                    language,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm),
+                documents: docInfos);
         }
     }
 }

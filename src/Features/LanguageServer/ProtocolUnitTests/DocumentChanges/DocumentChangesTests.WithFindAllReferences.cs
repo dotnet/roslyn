@@ -30,7 +30,7 @@ class B
 
             var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 Assert.Empty(testLspServer.GetTrackedTexts());
 

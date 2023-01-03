@@ -34,6 +34,14 @@ internal static class SolutionCrawlerOptionsStorage
         "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
 
+    public static readonly Option2<bool?> EnableDiagnosticsInSourceGeneratedFiles = new(
+        "WorkspaceConfigurationOptions", "EnableDiagnosticsInSourceGeneratedFiles", defaultValue: null,
+        new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment"));
+
+    public static readonly Option2<bool> EnableDiagnosticsInSourceGeneratedFilesFeatureFlag = new(
+        "WorkspaceConfigurationOptions", "EnableDiagnosticsInSourceGeneratedFilesFeatureFlag", defaultValue: false,
+        new FeatureFlagStorageLocation("Roslyn.EnableDiagnosticsInSourceGeneratedFiles"));
+
     /// <summary>
     /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.
     /// </summary>

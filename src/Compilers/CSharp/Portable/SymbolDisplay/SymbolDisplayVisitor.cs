@@ -187,31 +187,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocal(ILocalSymbol symbol)
         {
-            if (symbol.IsRef &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeModifiers))
             {
-                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                if (symbol.IsRef)
+                {
+                    if (symbol.ScopedKind == ScopedKind.ScopedRef)
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
+
+                    AddKeyword(SyntaxKind.RefKeyword);
+                    AddSpace();
+
+                    if (symbol.RefKind == RefKind.RefReadOnly)
+                    {
+                        AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                        AddSpace();
+                    }
+                }
+                else if (symbol.ScopedKind == ScopedKind.ScopedValue)
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();
                 }
-
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
-
-                if (symbol.RefKind == RefKind.RefReadOnly)
-                {
-                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
-                    AddSpace();
-                }
-            }
-
-            if (symbol.ScopedKind == ScopedKind.ScopedValue &&
-                format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
-            {
-                AddKeyword(SyntaxKind.ScopedKeyword);
-                AddSpace();
             }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))

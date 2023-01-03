@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

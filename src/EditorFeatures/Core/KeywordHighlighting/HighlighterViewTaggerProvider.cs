@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<KeywordHighlightTag>
+    internal sealed class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<KeywordHighlightTag>
     {
         private readonly IHighlightingService _highlightingService;
         private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => new List<TextSpan>());
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
+
+        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(FeatureOnOffOptions.KeywordHighlighting);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -121,6 +123,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                     context.AddTag(new TagSpan<KeywordHighlightTag>(span.ToSnapshotSpan(snapshot), KeywordHighlightTag.Instance));
                 }
             }
+        }
+
+        protected override bool TagEquals(KeywordHighlightTag tag1, KeywordHighlightTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 == tag2, "KeywordHighlightTag is supposed to be a singleton");
+            return true;
         }
     }
 }

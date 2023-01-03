@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     body.Kind == OperationKind.ConstructorBody ||
                     body.Kind == OperationKind.FieldInitializer ||
                     body.Kind == OperationKind.PropertyInitializer ||
-                    body.Kind == OperationKind.ParameterInitializer,
+                    body.Kind == OperationKind.ParameterInitializer ||
+                    body.Kind == OperationKind.Attribute,
                     $"Unexpected root operation kind: {body.Kind}");
                 Debug.Assert(parent == null);
             }
@@ -444,7 +445,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             continue;
                         }
 
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     fromRegion = enclosing;
@@ -1308,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             if (block.Ordinal != -1)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             block.Ordinal = _blocks.Count;
@@ -2168,7 +2169,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                              ITypeSymbolHelpers.IsObjectType(operation.LeftOperand.Type) &&
                              ITypeSymbolHelpers.IsObjectType(operation.RightOperand.Type))
                     {
-                        return VisitObjectBinaryConditionalOperator(operation, captureIdForResult);
+                        return VisitObjectBinaryConditionalOperator(operation);
                     }
                     else if (ITypeSymbolHelpers.IsDynamicType(operation.Type) &&
                              (ITypeSymbolHelpers.IsDynamicType(operation.LeftOperand.Type) ||
@@ -2386,7 +2387,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private IOperation VisitObjectBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
+        private IOperation VisitObjectBinaryConditionalOperator(IBinaryOperation binOp)
         {
             SpillEvalStack();
 
@@ -3803,7 +3804,7 @@ oneMoreTime:
 
         public override IOperation VisitCatchClause(ICatchClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation? VisitReturn(IReturnOperation operation, int? captureIdForResult)
@@ -5133,7 +5134,7 @@ oneMoreTime:
                     return;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             // Produce "(operand Xor (step >> 31))"
@@ -5571,32 +5572,32 @@ oneMoreTime:
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitRangeCaseClause(IRangeCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation? VisitEnd(IEndOperation operation, int? captureIdForResult)
@@ -5791,39 +5792,39 @@ oneMoreTime:
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
         {
             // All variable declarators should be handled by VisitVariableDeclarationGroup.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, int? captureIdForResult)
         {
             // All variable declarators should be handled by VisitVariableDeclaration.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, int? captureIdForResult)
         {
             // All variable initializers should be removed from the tree by VisitVariableDeclaration.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
@@ -6264,7 +6265,7 @@ oneMoreTime:
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
@@ -6714,12 +6715,12 @@ oneMoreTime:
 
         public override IOperation? VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation? VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, int? captureIdForResult)
@@ -6846,12 +6847,12 @@ oneMoreTime:
 
         public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitInterpolation(IInterpolationOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitNameOf(INameOfOperation operation, int? captureIdForResult)
@@ -7298,7 +7299,7 @@ oneMoreTime:
 
         public override IOperation VisitReDimClause(IReDimClauseOperation operation, int? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
@@ -7632,17 +7633,17 @@ oneMoreTime:
         public override IOperation DefaultVisit(IOperation operation, int? captureIdForResult)
         {
             // this should never reach, otherwise, there is missing override for IOperation type
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitArgument(IArgumentOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
@@ -7823,6 +7824,11 @@ oneMoreTime:
 
                 return set.Count == properties.Count();
             }
+        }
+
+        public override IOperation VisitAttribute(IAttributeOperation operation, int? captureIdForResult)
+        {
+            return new AttributeOperation(Visit(operation.Operation, captureIdForResult)!, semanticModel: null, operation.Syntax, IsImplicit(operation));
         }
     }
 }

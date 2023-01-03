@@ -120,8 +120,8 @@
   <data name="Add_file_header" xml:space="preserve">
     <value>Add file header</value>
   </data>
-  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
-    <value>Fix Name Violation: {0}</value>
+  <data name="Fix_name_violation_colon_0" xml:space="preserve">
+    <value>Fix name violation: {0}</value>
   </data>
   <data name="Add_both" xml:space="preserve">
     <value>Add both</value>
@@ -141,8 +141,8 @@
   <data name="Update_suppression_format" xml:space="preserve">
     <value>Update suppression format</value>
   </data>
-  <data name="Suppress_or_Configure_issues" xml:space="preserve">
-    <value>Suppress or Configure issues</value>
+  <data name="Suppress_or_configure_issues" xml:space="preserve">
+    <value>Suppress or configure issues</value>
   </data>
   <data name="Fix_all_occurrences_in" xml:space="preserve">
     <value>Fix all occurrences in</value>

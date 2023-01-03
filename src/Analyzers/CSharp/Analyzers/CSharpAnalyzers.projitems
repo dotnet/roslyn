@@ -29,6 +29,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\CSharpForEachCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\CSharpMakeFieldReadonlyDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ArrowExpressionClausePlacement\ArrowExpressionClausePlacementDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConditionalExpressionPlacement\ConditionalExpressionPlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\CSharpConsecutiveStatementPlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConstructorInitializerPlacement\ConstructorInitializerPlacementDiagnosticAnalyzer.cs" />
@@ -72,8 +75,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\SimplifyPropertyPatternHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertToProgramMainDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\CSharpUseAutoPropertyAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\Utilities.cs" />
@@ -117,6 +121,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\UsePatternMatchingHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\CSharpUseLocalFunctionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />

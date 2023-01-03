@@ -72,8 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Declaration and Initializers are mutually exclusive.
             if (_syntax.Declaration != null)
             {
-                ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out unused);
+                var type = _syntax.Declaration.Type.SkipScoped(out _);
+
+                if (type is RefTypeSyntax)
+                    MessageID.IDS_FeatureRefFor.CheckFeatureAvailability(diagnostics, type);
+
+                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out _);
             }
             else
             {
@@ -136,12 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Locals;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override SyntaxNode ScopeDesignator

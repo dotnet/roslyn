@@ -271,7 +271,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field)
             {
-                return hasDefaultScope(useUpdatedEscapeRules, field) &&
+                return !field.IsParams &&
+                    hasDefaultScope(useUpdatedEscapeRules, field) &&
+                    field.DefaultValue is null &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
                     !type.IsRestrictedType();
@@ -733,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((MethodSymbol)member).AsMember(translatedType);
                 }
             }
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary> 

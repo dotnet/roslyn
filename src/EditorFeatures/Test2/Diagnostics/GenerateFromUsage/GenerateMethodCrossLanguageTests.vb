@@ -12,10 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
     Partial Public Class GenerateMethodCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Private ReadOnly _outputHelper As ITestOutputHelper
-
         Public Sub New(outputHelper As ITestOutputHelper)
-            _outputHelper = outputHelper
+            MyBase.New(outputHelper)
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -61,7 +59,7 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -98,7 +96,7 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -140,7 +138,7 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -174,7 +172,7 @@ end class
                     end interface
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -216,7 +214,7 @@ end class
                     end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -291,7 +289,7 @@ end class
                     }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -332,7 +330,7 @@ end class
                     end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -373,7 +371,7 @@ end class
     end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -418,7 +416,7 @@ end class
                     }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact>
@@ -463,7 +461,7 @@ end class
                     }]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -517,7 +515,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -587,7 +585,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -657,7 +655,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -737,7 +735,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <WpfFact>
@@ -826,7 +824,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -911,7 +909,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -1003,7 +1001,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -1076,7 +1074,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
+            Await TestAsync(input, expected)
         End Function
 
 #Region "Normal tests"

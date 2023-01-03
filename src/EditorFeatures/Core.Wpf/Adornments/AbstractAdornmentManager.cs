@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -251,12 +252,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
         }
 
-        protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<T> mappingTagSpan, out SnapshotPoint mappedPoint)
+        protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<T> mappingTagSpan, out IWpfTextViewLine viewLine)
         {
-            mappedPoint = default;
+            viewLine = null;
             var point = GetMappedPoint(snapshotSpan, mappingTagSpan);
 
             if (point is null)
+            {
+                return false;
+            }
+
+            var mappedPoint = point.Value;
+            viewLine = TextView.TextViewLines.GetTextViewLineContainingBufferPosition(mappedPoint);
+
+            // Unsure what the scenario is - but sometimes the SnapshotPoint is not located
+            // within any of the lines in the TextViewLineCollection. In that case, we do not want to draw a tag.
+            if (viewLine is null)
             {
                 return false;
             }
@@ -271,7 +282,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return false;
             }
 
-            mappedPoint = point.Value;
             return true;
         }
 

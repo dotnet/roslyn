@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -104,14 +104,14 @@ namespace Microsoft.CodeAnalysis
 
             public override bool IsMatchingAssembly(TAssemblySymbol? assembly)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override bool ContainsNoPiaLocalTypes
             {
                 get
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

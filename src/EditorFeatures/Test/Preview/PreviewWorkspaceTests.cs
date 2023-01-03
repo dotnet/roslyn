@@ -30,7 +30,7 @@ using Microsoft.CodeAnalysis.Storage;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
     [UseExportProvider]
-    [Trait(Traits.Editor, Traits.Editors.Preview)]
+    [Trait(Traits.Editor, Traits.Editors.Preview), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class PreviewWorkspaceTests
     {
         [Fact]
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.

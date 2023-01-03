@@ -1064,7 +1064,6 @@ public class X {}
 ";
             var xRef = CreateCompilation(xSource, assemblyName: "Test").EmitToImageReference();
 
-
             var libSource = @"
 public interface I
 {
@@ -1084,9 +1083,9 @@ class B : C, I { }
             var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
-                // (2,7): error CS7068: Reference to type 'X' claims it is defined in this assembly, but it is not defined in source or any added modules
+                // (2,7): error CS7069: Reference to type 'X' claims it is defined in 'Test', but it could not be found
                 // class B : C, I { }
-                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "B").WithArguments("X"));
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "B").WithArguments("X", "Test").WithLocation(2, 7));
         }
 
         [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
@@ -2451,7 +2450,6 @@ public struct S1
 {
     public int i;
 }", assemblyName: "libS1").ToMetadataReference();
-
 
         private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
 public struct S2

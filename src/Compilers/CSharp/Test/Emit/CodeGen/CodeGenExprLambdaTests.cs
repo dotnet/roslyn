@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// </summary>
         protected static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
-
         #region A string containing expression-tree dumping utilities
         private const string ExpressionTestLibrary = @"
 using System;
@@ -1663,6 +1662,31 @@ partial class Program
                 expectedOutput: "k");
         }
 
+        [Fact]
+        public void LambdaDefaultParameter()
+        {
+            var source = """
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression e1 = (int x = 1) => x;
+        Expression e2 = (int x) => (int y = 1) => y;
+        Console.WriteLine(ExpressionPrinter.Print(e1));
+        Console.WriteLine(ExpressionPrinter.Print(e2));
+    }
+}
+""";
+            CompileAndVerifyUtil(
+                new[] { source, ExpressionTestLibrary },
+                expectedOutput: """
+Lambda((Parameter(x Type:System.Int32)) => Parameter(x Type:System.Int32) ReturnType:System.Int32 Type:<>f__AnonymousDelegate0)
+Lambda((Parameter(x Type:System.Int32)) => Lambda((Parameter(y Type:System.Int32)) => Parameter(y Type:System.Int32) ReturnType:System.Int32 Type:<>f__AnonymousDelegate0) ReturnType:<>f__AnonymousDelegate0 Type:System.Func`2[System.Int32,<>f__AnonymousDelegate0])
+""");
+        }
+
         [WorkItem(544218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544218")]
         [Fact]
         public void Linq()
@@ -2359,7 +2383,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "x"));
         }
 
-
         [WorkItem(544276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544276")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void UnsafeParamTypeInDelegate()
@@ -2578,7 +2601,6 @@ Lambda:
                 new[] { text, TreeWalkerLib },
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
-
 
         [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
         [Fact]
@@ -4833,7 +4855,6 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-
         [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
         public void GenericPropertyReceiverCastStruct()
         {
@@ -5942,7 +5963,6 @@ class C
                 result.Diagnostics.Verify();
             }
         }
-
 
         [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
         [Fact]

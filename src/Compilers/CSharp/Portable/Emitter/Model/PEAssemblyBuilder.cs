@@ -509,17 +509,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+#nullable enable
+
         private void AddDiagnosticsForExistingAttribute(AttributeDescription description, BindingDiagnosticBag diagnostics)
         {
             var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
             var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+            Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+            Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
 
-            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+            if (userDefinedAttribute is not null)
             {
                 diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
             }
         }
+
+#nullable disable
 
         private NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
         {

@@ -79,7 +79,6 @@ $$";
 
             var expectedCodeAfterCommit =
 @"System.Console.WriteLine();
-
 class MyClass
 {
     $$

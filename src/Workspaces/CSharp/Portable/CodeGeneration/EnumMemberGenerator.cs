@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             {
                                 // Hex
                                 return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(numericText.Substring(0, 2) + value.ToString("X"), value));
+                                    SyntaxFactory.Literal(numericText[..2] + value.ToString("X"), value));
                             }
                             else if (numericText.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
                             {
                                 return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(numericText.Substring(0, 2) + Convert.ToString(value, 2), value));
+                                    SyntaxFactory.Literal(numericText[..2] + Convert.ToString(value, 2), value));
                             }
                         }
                     }

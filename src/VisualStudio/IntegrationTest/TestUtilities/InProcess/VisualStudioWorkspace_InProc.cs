@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
@@ -115,7 +116,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InvokeOnUIThread(cancellationToken =>
             {
                 LoadRoslynPackage();
-                _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
+
+                var hook = _visualStudioWorkspace.Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
+                hook.IsPartialSolutionDisabled = true;
             });
 
         /// <summary>

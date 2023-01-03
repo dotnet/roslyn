@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     internal class DiagnosticTaggerWrapper<TProvider, TTag> : IDisposable
-        where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
+        where TProvider : AbstractAggregateDiagnosticsTaggerProvider<TTag>
         where TTag : ITag
     {
         private readonly TestWorkspace _workspace;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
                 _workspace,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.ErrorSquiggles,
                 FeatureAttribute.Classification);

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (commentText.StartsWith("//", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(2);
+                    commentText = commentText[2..];
                 }
 
                 return commentText.TrimStart(null);
@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (commentText.EndsWith("*/", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(0, commentText.Length - 2);
+                    commentText = commentText[..^2];
                 }
 
                 if (commentText.StartsWith("/*", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(2);
+                    commentText = commentText[2..];
                 }
 
                 commentText = commentText.Trim();

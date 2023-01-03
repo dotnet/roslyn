@@ -519,6 +519,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        public static bool ContainsYield(this SyntaxNode node)
+            => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(IsYield);
+
+        private static bool IsYield(SyntaxNode node)
+            => node.Kind() is SyntaxKind.YieldBreakStatement or SyntaxKind.YieldReturnStatement;
+
         public static bool IsReturnableConstructOrTopLevelCompilationUnit(this SyntaxNode node)
             => node.IsReturnableConstruct() || (node is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement));
 

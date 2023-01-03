@@ -615,7 +615,7 @@ class D
     }
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: GetComposition());
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
@@ -1187,7 +1187,7 @@ class Program
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: GetComposition());
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);

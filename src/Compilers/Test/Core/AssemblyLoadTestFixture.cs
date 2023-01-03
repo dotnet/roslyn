@@ -8,6 +8,7 @@ using System.Linq;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -390,7 +391,6 @@ public class Class1
 
 ");
 
-
             var analyzerWithFakeCompilerDependencyDirectory = _directory.CreateDirectory("AnalyzerWithFakeCompilerDependency");
             var fakeCompilerAssembly = GenerateDll("Microsoft.CodeAnalysis", analyzerWithFakeCompilerDependencyDirectory, publicKeyOpt: typeof(SyntaxNode).Assembly.GetName().GetPublicKey()?.ToImmutableArray() ?? default, csSource: @"
 using System;
@@ -418,7 +418,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 public class Analyzer : DiagnosticAnalyzer
 {
 }", fakeCompilerReference);
-
 
             var analyzerWithLaterFakeCompileDirectory = _directory.CreateDirectory("AnalyzerWithLaterFakeCompilerDependency");
             var laterFakeCompilerAssembly = GenerateDll("Microsoft.CodeAnalysis", analyzerWithLaterFakeCompileDirectory, publicKeyOpt: typeof(SyntaxNode).Assembly.GetName().GetPublicKey()?.ToImmutableArray() ?? default, csSource: @"
@@ -465,7 +464,7 @@ public class Analyzer : DiagnosticAnalyzer
 
             var analyzerDependencyCompilation = CSharpCompilation.Create(
                 assemblyName: assemblyName,
-                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(csSource) },
+                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(csSource, encoding: null, SourceHashAlgorithms.Default)) },
                 references: (new MetadataReference[]
                 {
                     NetStandard20.mscorlib,

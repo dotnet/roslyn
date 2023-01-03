@@ -90,7 +90,6 @@ class Program
             }
         }
 
-
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
         public void AttributeWithTypeReferenceToCurrentCompilation_WithMissingType_WithIrrelevantType()
@@ -714,17 +713,21 @@ class C
             Assert.Equal("M0", attrs.Single().ConstructorArguments.Single().Value);
 
             var operation = semanticModel.GetOperation(attrSyntax);
-            // note: this operation tree should contain a constant string "M0" instead of null.
-            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
             VerifyOperationTree(comp, operation, @"
-IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
-  Children(1):
-      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ");
         }
 
         [Fact]
-        public void TestAttributeCallerInfoSemanticModel_Speculative()
+        public void TestAttributeCallerInfoSemanticModel_Method_Speculative()
         {
             var source = @"
 using System;
@@ -752,12 +755,182 @@ class C
             Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
 
             var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
-            // note: this operation tree should contain a constant string "M0" instead of null.
-            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
             VerifyOperationTree(comp, speculativeOperation, @"
-IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
-  Children(1):
-      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Method_Speculative2()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    private const string World = ""World"";
+
+    [Attr($""Hello {World}"")]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+            var interpolationSyntax = root.DescendantNodes().OfType<InterpolationSyntax>().Single();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(interpolationSyntax.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Parameter_Speculative()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    void M0([Attr(""a"")] int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Class_Speculative()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+[Attr(""a"")]
+class C
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Speculative_AssemblyTarget()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[assembly: Attr(""a"")]
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = ""default_value"") { } }
+
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().First();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().First();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+    IObjectCreationOperation (Constructor: Attr..ctor([System.String s = ""default_value""])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""default_value"", IsImplicit) (Syntax: 'Attr()')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        null
 ");
         }
 
@@ -1142,7 +1315,6 @@ public unsafe partial class A : C, I
             // the following should not crash
             source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
         }
-
 
         [Fact, WorkItem(545326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545326")]
         public void TestAssemblyAttributes_Bug13670()
@@ -2445,7 +2617,6 @@ public class Test
                 Assert.Equal("FF", GetSingleAttributeName(event6));
                 AssertNoAttributes(event6.AddMethod);
                 AssertNoAttributes(event6.RemoveMethod);
-
 
                 AssertNoAttributes(event7);
                 Assert.Equal("GG", GetSingleAttributeName(event7.AddMethod));
@@ -3789,7 +3960,6 @@ namespace AttributeTest
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForReturn", attr.AttributeClass.ToDisplayString());
 
-
                 property = (PropertySymbol)type.GetMember("P2");
                 var getter = property.GetMethod;
 
@@ -4344,7 +4514,6 @@ public class Program
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, cClass.AsUnboundGenericType());
             };
 
-
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
@@ -4384,7 +4553,6 @@ class Program
                 Assert.Equal(1, attrs.Count());
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, bClass.AsUnboundGenericType());
             };
-
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
@@ -4832,7 +5000,6 @@ class C
                 attr = attrs.ElementAt(1);
                 Assert.Equal(1, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<object>(0, TypedConstantKind.Primitive, null);
-
 
                 // Verify B attributes
                 attrs = cClass.GetAttributes(attributeTypeB);
@@ -5348,7 +5515,6 @@ class C<T>
                 Assert.Equal("XAttribute", attribute.AttributeClass.Name);
             });
         }
-
 
         #endregion
 
@@ -7979,7 +8145,6 @@ public class X
 {
 }
 ";
-
 
             var source3 = @"
 namespace X

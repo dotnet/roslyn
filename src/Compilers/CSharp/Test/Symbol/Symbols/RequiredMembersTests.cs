@@ -1376,6 +1376,35 @@ class C
         );
     }
 
+    [Fact]
+    public void RefFields()
+    {
+        var source = """
+            #pragma warning disable 649
+            internal ref struct R1<T>
+            {
+                internal required ref T F1;
+                public R1() { }
+            }
+            public ref struct R2<U>
+            {
+                public required ref readonly U F2;
+                public R2() { }
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var expectedRequiredMembers = new[] { "R1.F1", "R2.F2" };
+        var expectedAttributeLayout = """
+            [RequiredMember] R1<T>
+                    [RequiredMember] ref T R1<T>.F1
+                [RequiredMember] R2<U>
+                    [RequiredMember] ref readonly U R2<U>.F2
+            """;
+        var symbolValidator = ValidateRequiredMembersInModule(expectedRequiredMembers, expectedAttributeLayout);
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+    }
+
     [Theory]
     [InlineData("internal")]
     [InlineData("internal protected")]
@@ -2646,7 +2675,6 @@ class Derived3 : Derived { }";
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
         );
     }
-
 
     /// <summary>
     /// This IL is the equivalent of:

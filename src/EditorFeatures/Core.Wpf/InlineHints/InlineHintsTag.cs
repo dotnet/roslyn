@@ -50,7 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             InlineHintsTaggerProvider taggerProvider)
             : base(adornment,
                    removalCallback: null,
-                   PositionAffinity.Predecessor)
+                   topSpace: null,
+                   baseline: null,
+                   textHeight: null,
+                   bottomSpace: null,
+                   PositionAffinity.Predecessor,
+                   hint.Ranking)
         {
             _textView = textView;
             _span = span;
@@ -119,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             ClassificationTypeMap typeMap,
             bool classify)
         {
-            // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
+            // Constructs the hint block which gets assigned parameter name and FontStyles according to the options
             // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
             // well with VS at any zoom level or font size.
             var block = new TextBlock
@@ -151,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            // Encapsulates the textblock within a border. Gets foreground/background colors from the options menu.
+            // Encapsulates the TextBlock within a border. Gets foreground/background colors from the options menu.
             // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
             // left or right side.
             var left = leftPadding * 5;
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 Height = dockPanelHeight,
                 LastChildFill = false,
-                // VerticalAlignment is set to Top because it will rest to the top relative to the stackpanel
+                // VerticalAlignment is set to Top because it will rest to the top relative to the StackPanel
                 VerticalAlignment = VerticalAlignment.Top
             };
 
@@ -187,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             };
 
             stackPanel.Children.Add(dockPanel);
-            // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
+            // Need to set these properties to avoid unnecessary reformatting because some dependency properties
             // affect layout
             TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
             TextOptions.SetTextHintingMode(stackPanel, TextOptions.GetTextHintingMode(textView.VisualElement));

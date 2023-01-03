@@ -37,14 +37,14 @@
         <target state="translated">將類型轉換為 '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">修正名稱違規: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">修正所有出現之處於</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="new">Fix name violation: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -67,9 +67,9 @@
         <target state="translated">移除多餘的指派</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">隱藏或設定問題</target>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
+        <target state="new">Suppress or configure issues</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

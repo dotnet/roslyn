@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 IPerLanguageValuedOption perLanguageValuedOption => new OptionKey2(perLanguageValuedOption, language!),
                 ISingleValuedOption singleValued => new OptionKey2(singleValued),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             // Value return from "object GetOption(OptionKey)" should always be public CodeStyleOption type.

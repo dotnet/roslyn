@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Console.WriteLine("RateOfCacheable: " + (cacheHits * 100 / (cacheableNodes)) + "%");
         }
 #else
-        internal static void NoteGreen(GreenNode node)
+        internal static void NoteGreen(GreenNode _)
         {
         }
 

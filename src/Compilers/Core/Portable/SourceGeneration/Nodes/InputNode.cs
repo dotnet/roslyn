@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             _getInput = getInput;
             _comparer = comparer ?? EqualityComparer<T>.Default;
             _inputComparer = inputComparer ?? EqualityComparer<T>.Default;
-            _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable);
+            _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable());
             _name = name;
         }
 

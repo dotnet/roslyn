@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
         {
-            throw ExceptionUtilities.Unreachable; //Should be handled by VisitFixedStatement
+            throw ExceptionUtilities.Unreachable(); //Should be handled by VisitFixedStatement
         }
 
         private BoundStatement InitializeFixedStatementLocal(

@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.Workspaces
@@ -18,10 +19,12 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
             string filePath,
             TextLoader textLoader,
             LanguageInformation languageInformation,
+            SourceHashAlgorithm checksumAlgorithm,
             SolutionServices services,
             ImmutableArray<MetadataReference> metadataReferences)
         {
             var fileExtension = PathUtilities.GetExtension(filePath);
+            var fileName = PathUtilities.GetFileName(filePath);
 
             var languageServices = services.GetLanguageServices(languageInformation.LanguageName);
             var compilationOptions = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
@@ -43,30 +46,34 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
 
             var sourceCodeKind = parseOptions?.Kind ?? SourceCodeKind.Regular;
             var documentInfo = DocumentInfo.Create(
-                documentId,
-                filePath,
-                sourceCodeKind: sourceCodeKind,
+                id: documentId,
+                name: fileName,
                 loader: textLoader,
-                filePath: filePath);
+                filePath: filePath,
+                sourceCodeKind: sourceCodeKind);
 
             // The assembly name must be unique for each collection of loose files. Since the name doesn't matter
             // a random GUID can be used.
             var assemblyName = Guid.NewGuid().ToString("N");
 
             var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                name: FeaturesResources.Miscellaneous_Files,
-                assemblyName,
-                languageInformation.LanguageName,
+                new ProjectInfo.ProjectAttributes(
+                    id: projectId,
+                    version: VersionStamp.Create(),
+                    name: FeaturesResources.Miscellaneous_Files,
+                    assemblyName: assemblyName,
+                    language: languageInformation.LanguageName,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm: checksumAlgorithm,
+                    // Miscellaneous files projects are never fully loaded since, by definition, it won't know
+                    // what the full set of information is except when the file is script code.
+                    hasAllInformation: sourceCodeKind == SourceCodeKind.Script),
                 compilationOptions: compilationOptions,
                 parseOptions: parseOptions,
                 documents: SpecializedCollections.SingletonEnumerable(documentInfo),
                 metadataReferences: metadataReferences);
 
-            // Miscellaneous files projects are never fully loaded since, by definition, it won't know
-            // what the full set of information is except when the file is script code.
-            return projectInfo.WithHasAllInformation(hasAllInformation: sourceCodeKind == SourceCodeKind.Script);
+            return projectInfo;
         }
 
         // Do not inline this to avoid loading Microsoft.CodeAnalysis.Scripting unless a script file is opened in the workspace.

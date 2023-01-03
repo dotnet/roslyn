@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             // This method is currently not needed for our IServiceBroker usage patterns.
             public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor descriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
             {
@@ -213,7 +213,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
+                RegisterRemoteBrokeredService(new RemoteLegacySolutionEventsAggregationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
+                RegisterRemoteBrokeredService(new RemoteUnitTestingSearchService.Factory());
             }
 
             public void Dispose()

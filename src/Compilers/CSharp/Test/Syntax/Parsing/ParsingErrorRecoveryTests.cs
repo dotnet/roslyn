@@ -6807,8 +6807,20 @@ _ _::this
             var source = "a b:: /**/\r\n";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var diags = tree.GetDiagnostics();
-            diags.ToArray();
-            Assert.Equal(1, diags.Count(d => d.Code == (int)ErrorCode.ERR_AliasQualAsExpression));
+            diags.Verify(
+                // (1,4): error CS1002: ; expected
+                // a b:: /**/
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "::").WithLocation(1, 4),
+                // (1,4): error CS1001: Identifier expected
+                // a b:: /**/
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "::").WithLocation(1, 4),
+                // (1,6): error CS1001: Identifier expected
+                // a b:: /**/
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 6),
+                // (1,6): error CS1002: ; expected
+                // a b:: /**/
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 6)
+                );
         }
 
         [WorkItem(674564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674564")]
@@ -7073,7 +7085,6 @@ static
             Assert.Equal(numTokens, eofToken.LeadingTrivia.Count); // Confirm that we built a list.
         }
 
-
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [Fact]
         public void MissingOpenBraceForClass()
@@ -7095,7 +7106,6 @@ static
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
         }
-
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [Fact]

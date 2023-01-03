@@ -1739,5 +1739,181 @@ class C
                 }
                 """, "required");
         }
+
+        [Fact]
+        public async Task TestDefaultConstraint()
+        {
+            await Test_KeywordAsync("""
+                public class Base
+                {
+                    virtual void M<T>(T? t) { }
+                }
+                public class C
+                {
+                    override void M<T>() where T : def[||]ault { }
+                }
+                """, expectedText: "defaultconstraint");
+        }
+
+        [Fact]
+        public async Task TestDefaultCase()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case 1:
+                                goto def[||]ault;
+                            default:
+                                return;
+                        }
+                    }
+                }
+                """, expectedText: "defaultcase");
+        }
+
+        [Fact]
+        public async Task TestGotoDefault()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case 1:
+                                goto default;
+                            def[||]ault:
+                                return;
+                        }
+                    }
+                }
+                """, expectedText: "defaultcase");
+        }
+
+        [Fact]
+        public async Task TestLineDefault()
+        {
+            await Test_KeywordAsync("""
+                #line def[||]ault
+                """, expectedText: "defaultline");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestNotnull_OnType()
+        {
+            await Test_KeywordAsync("""
+                public class C<T> where T : not[||]null
+                {
+                }
+                """, expectedText: "notnull");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestNotnull_OnMethod()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    void M<T>() where T : not[||]null
+                    {
+                    }
+                }
+                """, expectedText: "notnull");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestNotnull_FieldName()
+        {
+            await TestAsync("""
+                public class C
+                {
+                    int not[||]null = 0;
+                }
+                """, expectedText: "C.notnull");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestUnmanaged_OnType()
+        {
+            await Test_KeywordAsync("""
+                public class C<T> where T : un[||]managed
+                {
+                }
+                """, expectedText: "unmanaged");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestUnmanaged_OnMethod()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    void M<T>() where T : un[||]managed
+                    {
+                    }
+                }
+                """, expectedText: "unmanaged");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestUnmanaged_LocalName()
+        {
+            await TestAsync("""
+                int un[||]managed = 0;
+                """, expectedText: "System.Int32");
+        }
+
+        [Fact, WorkItem(65312, "https://github.com/dotnet/roslyn/issues/65312")]
+        public async Task TestSwitchStatement()
+        {
+            await Test_KeywordAsync("""
+                swit[||]ch (1) { default: break; }
+                """, expectedText: "switch");
+        }
+
+        [Fact, WorkItem(65312, "https://github.com/dotnet/roslyn/issues/65312")]
+        public async Task TestSwitchExpression()
+        {
+            await Test_KeywordAsync("""
+                _ = 1 swit[||]ch { _ => 0 };
+                """, expectedText: "switch-expression");
+        }
+
+        [Fact]
+        public async Task TestFile()
+        {
+            await Test_KeywordAsync("""
+                fi[||]le class C { }
+                """, expectedText: "file");
+        }
+
+        [Fact]
+        public async Task TestRightShift()
+        {
+            await Test_KeywordAsync("""
+                _ = 1 >[||]> 2;
+                """, expectedText: ">>");
+        }
+
+        [Fact]
+        public async Task TestUnsignedRightShift()
+        {
+            await Test_KeywordAsync("""
+                _ = 1 >>[||]> 2;
+                """, expectedText: ">>>");
+        }
+
+        [Fact]
+        public async Task TestUnsignedRightShiftAssignment()
+        {
+            await Test_KeywordAsync("""
+                1 >>[||]>= 2;
+                """, expectedText: ">>>=");
+        }
     }
 }

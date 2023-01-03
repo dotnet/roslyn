@@ -123,11 +123,13 @@ namespace Roslyn.Utilities
         /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
+        [return: NotNullIfNotNull(nameof(path))]
         public static string? GetDirectoryName(string? path)
         {
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
+        [return: NotNullIfNotNull(nameof(path))]
         internal static string? GetDirectoryName(string? path, bool isUnixLike)
         {
             if (path != null)

@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal sealed class DummySyntaxTree : CSharpSyntaxTree
         {
+            private const SourceHashAlgorithm ChecksumAlgorithm = SourceHashAlgorithm.Sha1;
+
             private readonly CompilationUnitSyntax _node;
 
             public DummySyntaxTree()
@@ -30,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override SourceText GetText(CancellationToken cancellationToken)
             {
-                return SourceText.From(string.Empty, Encoding.UTF8);
+                return SourceText.From(string.Empty, Encoding, ChecksumAlgorithm);
             }
 
             public override bool TryGetText(out SourceText text)
             {
-                text = SourceText.From(string.Empty, Encoding.UTF8);
+                text = SourceText.From(string.Empty, Encoding, ChecksumAlgorithm);
                 return true;
             }
 
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override string FilePath
             {
@@ -90,14 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
-            {
-                return SyntaxFactory.SyntaxTree(root, options: options, path: FilePath, encoding: null);
-            }
+                => Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, FilePath, Encoding, ChecksumAlgorithm);
 
             public override SyntaxTree WithFilePath(string path)
-            {
-                return SyntaxFactory.SyntaxTree(_node, options: this.Options, path: path, encoding: null);
-            }
+                => Create(_node, Options, path, Encoding, ChecksumAlgorithm);
         }
     }
 }

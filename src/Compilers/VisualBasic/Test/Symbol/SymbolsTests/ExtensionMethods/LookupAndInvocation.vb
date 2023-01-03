@@ -1045,7 +1045,6 @@ BC30521: Overload resolution failed because no accessible 'Test1' is most specif
 </expected>)
         End Sub
 
-
         <Fact>
         Public Sub InstanceVsExtension1()
             Dim compilationDef =
@@ -1381,7 +1380,6 @@ BC36908: Late-bound extension methods are not supported.
 
         End Sub
 
-
         <Fact>
         Public Sub InstanceVsExtension5()
             Dim compilationDef =
@@ -1677,7 +1675,6 @@ BC30574: Option Strict On disallows late binding.
              ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub AccessingThroughTypeOrNamespace()
@@ -2088,7 +2085,6 @@ BC36590: Too few type arguments to extension method 'Public Sub Test5(Of S, Q)(y
                ~~~~~~~~~~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub NestedClasses1()
@@ -3039,7 +3035,6 @@ End Namespace
 Goo
 ]]>)
 
-
             Dim compilationDef2 =
 <compilation name="Bug9301_1">
     <file name="a.vb">
@@ -3198,7 +3193,6 @@ End Module
 ]]>
     </file>
 </compilation>
-
 
             CompileAndVerify(compilationDef, expectedOutput:="After").VerifyIL(
                 "Program.Main", <![CDATA[

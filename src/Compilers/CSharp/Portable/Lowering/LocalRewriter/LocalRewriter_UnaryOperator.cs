@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     underlyingType :
                     _compilation.GetSpecialType(upconvertSpecialType);
 
-
                 var newOperand = MakeConversionNode(loweredOperand, upconvertType, false);
                 UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
 

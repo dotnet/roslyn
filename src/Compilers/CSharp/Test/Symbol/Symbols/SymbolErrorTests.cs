@@ -7781,7 +7781,7 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -13407,7 +13407,7 @@ class C
         }
 
         [WorkItem(61831, "https://github.com/dotnet/roslyn/issues/61831")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61831#issuecomment-1249148459")]
+        [Fact]
         public void CS0721ERR_ParameterIsStaticClass_Lambdas()
         {
             var source =
@@ -15263,7 +15263,6 @@ class AAttribute : Attribute { }
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ab[10]");
         }
 
-
         [Fact]
         public void CS1642ERR_FixedNotInStruct()
         {
@@ -15498,7 +15497,6 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("goo.ABC", "0"));
         }
 
-
         [Fact]
         public void C1666ERR_InvalidFixedBufferInUnfixedContext()
         {
@@ -15556,8 +15554,6 @@ unsafe struct @s
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]"));
         }
-
-
 
         [Fact()]
         public void CS1667ERR_AttributeNotOnAccessor()
@@ -17463,7 +17459,6 @@ namespace SA
                 //         Class1 cls;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "cls").WithArguments("SA.Test.cls"));
 
-
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("SA").Single() as NamespaceSymbol;
             // TODO...
         }
@@ -18590,7 +18585,7 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -19229,7 +19224,6 @@ namespace NS
                 //         public int MyMeth;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "MyMeth").WithArguments("NS.MyType.MyMeth", "0")
                 );
-
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("MyType").Single() as NamedTypeSymbol;

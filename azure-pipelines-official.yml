@@ -40,6 +40,8 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - name: Codeql.Enabled
+    value: true​
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access

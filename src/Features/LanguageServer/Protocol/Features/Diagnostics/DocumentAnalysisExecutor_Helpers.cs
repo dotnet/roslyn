@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 

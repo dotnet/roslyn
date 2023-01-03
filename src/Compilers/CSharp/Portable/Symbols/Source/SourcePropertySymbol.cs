@@ -131,6 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.GetExpressionBodySyntax(),
                 syntax,
                 diagnostics);
+
+            if (syntax is PropertyDeclarationSyntax { Initializer: { } initializer })
+                MessageID.IDS_FeatureAutoPropertyInitializer.CheckFeatureAvailability(diagnostics, syntax, initializer.EqualsToken.GetLocation());
         }
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static AccessorDeclarationSyntax GetSetAccessorDeclaration(BasePropertyDeclarationSyntax syntax)
@@ -258,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static DeclarationModifiers MakeModifiers(

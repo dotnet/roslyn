@@ -83,8 +83,10 @@ namespace Roslyn.Utilities
                 }
 
 #pragma warning disable IDE0051 // Remove unused private members - Reflection (s_stubInfo)
+#pragma warning disable IDE0060 // Remove unused parameter
                 private Assembly Stub(object sender, object resolveEventArgs)
 #pragma warning restore IDE0051 // Remove unused private members
+#pragma warning restore IDE0060 // Remove unused parameter
                 {
                     var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, Array.Empty<object>());
                     var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, Array.Empty<object>());
