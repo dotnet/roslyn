@@ -248,7 +248,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     var declarationStatement = CreateDeclarationStatement(
                         variable, CreateCallSignature(), cancellationToken);
-
                     declarationStatement = declarationStatement.WithAdditionalAnnotations(CallSiteAnnotation);
 
                     return statements.Concat(declarationStatement);
