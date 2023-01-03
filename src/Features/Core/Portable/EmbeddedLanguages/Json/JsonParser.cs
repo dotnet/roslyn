@@ -371,13 +371,25 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             };
 
         private JsonValueNode ParseValue()
-            => _currentToken.Kind switch
+        {
+            try
             {
-                JsonKind.OpenBraceToken => ParseObject(),
-                JsonKind.OpenBracketToken => ParseArray(),
-                JsonKind.CommaToken => ParseCommaValue(),
-                _ => ParseLiteralOrPropertyOrConstructor(),
-            };
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+                return _currentToken.Kind switch
+                {
+                    JsonKind.OpenBraceToken => ParseObject(),
+                    JsonKind.OpenBracketToken => ParseArray(),
+                    JsonKind.CommaToken => ParseCommaValue(),
+                    _ => ParseLiteralOrPropertyOrConstructor(),
+                };
+            }
+            finally
+            {
+                _recursionDepth--;
+            }
+        }
 
         private static void SplitLiteral(JsonToken literalToken, out JsonToken minusToken, out JsonToken newLiteralToken)
         {
