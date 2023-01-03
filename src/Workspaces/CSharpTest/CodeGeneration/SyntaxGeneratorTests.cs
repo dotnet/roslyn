@@ -4034,6 +4034,17 @@ class C
 }");
         }
 
+        [Fact, WorkItem(66170, "https://github.com/dotnet/roslyn/issues/66170")]
+        public void TestMethodModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly,
+                @"
+struct S
+{
+    [|public readonly void M() { }|]
+}");
+        }
+
         [Fact]
         public void TestAsyncMethodModifier()
         {
@@ -4099,6 +4110,16 @@ class C
 class C
 {
     public virtual event System.Action [|X|];
+}");
+        }
+
+        [Fact, WorkItem(65834, "https://github.com/dotnet/roslyn/issues/65834")]
+        public void TestStructModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
+                @"
+public readonly struct [|S|]
+{
 }");
         }
 
