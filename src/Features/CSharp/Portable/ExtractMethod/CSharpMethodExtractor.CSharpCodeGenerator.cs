@@ -661,7 +661,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var typeNode = type.GenerateTypeSyntax();
 
                 var originalIdentifierToken = variable.GetOriginalIdentifierToken(cancellationToken);
-                var usingKeyword = originalIdentifierToken.GetAncestor<LocalDeclarationStatementSyntax>() is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
+
+                // Hierarchy being checked for to see if a using keyword is needed is
+                // Token -> VariableDeclarator -> VariableDeclaration -> LocalDeclaration
+                var usingKeyword = originalIdentifierToken.Parent?.Parent?.Parent is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
                     ? SyntaxFactory.Token(SyntaxKind.UsingKeyword)
                     : default;
 
