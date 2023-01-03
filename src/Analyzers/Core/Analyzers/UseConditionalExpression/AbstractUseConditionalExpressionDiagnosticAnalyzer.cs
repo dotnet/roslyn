@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal abstract class AbstractUseConditionalExpressionDiagnosticAnalyzer<
-        TIfStatementSyntax>
+    internal abstract class AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfStatementSyntax>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TIfStatementSyntax : SyntaxNode
     {
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
-        protected abstract bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol);
+        protected abstract (bool matched, bool canSimplify) TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol);
         protected abstract CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
@@ -43,28 +42,22 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         {
             var ifOperation = (IConditionalOperation)context.Operation;
             if (ifOperation.Syntax is not TIfStatementSyntax ifStatement)
-            {
                 return;
-            }
 
             var option = GetStylePreference(context);
             if (!option.Value)
-            {
                 return;
-            }
 
-            if (!TryMatchPattern(ifOperation, context.ContainingSymbol))
-            {
+            var (matched, canSimplify) = TryMatchPattern(ifOperation, context.ContainingSymbol);
+            if (!matched)
                 return;
-            }
 
-            var additionalLocations = ImmutableArray.Create(ifStatement.GetLocation());
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
-                additionalLocations,
-                properties: null));
+                additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
+                properties: canSimplify ? UseConditionalExpressionHelpers.CanSimplifyProperties : null));
         }
     }
 }

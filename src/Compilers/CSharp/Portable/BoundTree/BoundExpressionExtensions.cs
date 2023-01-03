@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
 
+                case BoundKind.IndexerAccess:
+                    return ((BoundIndexerAccess)node).Indexer.RefKind;
+
+                case BoundKind.ImplicitIndexerAccess:
+                    return ((BoundImplicitIndexerAccess)node).IndexerOrSliceAccess.GetRefKind();
+
                 case BoundKind.ObjectInitializerMember:
                     var member = (BoundObjectInitializerMember)node;
                     if (member.HasErrors)
@@ -261,6 +267,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol? receiverType = expressionOpt.Type;
             return receiverType is NamedTypeSymbol { Kind: SymbolKind.NamedType, IsComImport: true };
+        }
+
+        internal static bool IsDiscardExpression(this BoundExpression expr)
+        {
+            return expr switch
+            {
+                BoundDiscardExpression => true,
+                OutDeconstructVarPendingInference { IsDiscardExpression: true } => true,
+                BoundDeconstructValuePlaceholder { IsDiscardExpression: true } => true,
+                _ => false
+            };
         }
     }
 }

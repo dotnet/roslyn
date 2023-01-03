@@ -477,5 +477,46 @@ public class Derived
 end class
 ")
         End Function
+
+        <Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")>
+        Public Async Function TestTitle1() As Task
+            Dim test As New VerifyVB.Test With {
+                .TestCode = "
+public mustinherit class TestClass
+    mustoverride sub [|Test|]()
+end class
+",
+                .FixedCode = "
+public mustinherit class TestClass
+    Protected mustoverride sub Test()
+end class
+",
+                .CodeActionEquivalenceKey = NameOf(AnalyzersResources.Add_accessibility_modifiers)
+            }
+
+            Await test.RunAsync()
+        End Function
+
+        <Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")>
+        Public Async Function TestTitle2() As Task
+            Dim test As New VerifyVB.Test With {
+                .TestCode = "
+public class TestClass
+    public sub [|Test|]()
+    end sub
+end class
+",
+                .FixedCode = "
+public class TestClass
+    sub Test()
+    end sub
+end class
+",
+                .CodeActionEquivalenceKey = NameOf(AnalyzersResources.Remove_accessibility_modifiers)
+            }
+            test.Options.Add(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault)
+
+            Await test.RunAsync()
+        End Function
     End Class
 End Namespace

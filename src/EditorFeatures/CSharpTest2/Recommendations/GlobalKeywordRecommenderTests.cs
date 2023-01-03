@@ -349,5 +349,12 @@ Call();");
 @"$$
 [assembly: Call()]");
         }
+
+        [Fact]
+        public async Task TestAfterScoped()
+        {
+            await VerifyKeywordAsync("scoped $$");
+            await VerifyKeywordAsync(AddInsideMethod("scoped $$"));
+        }
     }
 }

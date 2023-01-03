@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         {
             var kw = simpleDirective.DirectiveNameToken;
             var prefixLength = kw.Span.End - simpleDirective.Span.Start;
-            var text = simpleDirective.ToString().Substring(prefixLength).Trim();
+            var text = simpleDirective.ToString()[prefixLength..].Trim();
 
             if (text.Length == 0)
             {

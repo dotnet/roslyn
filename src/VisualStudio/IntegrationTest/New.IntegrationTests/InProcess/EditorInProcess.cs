@@ -59,15 +59,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {
-        public async Task<string> GetDirtyIndicatorAsync(CancellationToken cancellationToken)
-        {
-            var version = await TestServices.Shell.GetVersionAsync(cancellationToken);
-            if (version < Version.Parse("17.2.32224.407"))
-                return "*";
-
-            return " ⬤";
-        }
-
         public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -187,11 +178,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var subjectBuffer = view.GetBufferContainingCaret();
-            Assumes.Present(subjectBuffer);
-
-            var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+            var point = new SnapshotPoint(view.TextSnapshot, position);
 
             view.Caret.MoveTo(point);
         }
@@ -212,6 +199,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
             await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false, cancellationToken);
+        }
+
+        public async Task DeleteTextAsync(string text, CancellationToken cancellationToken)
+        {
+            await SelectTextInCurrentDocumentAsync(text, cancellationToken);
+            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE, cancellationToken);
         }
 
         public async Task<ClassificationSpan[]> GetLightBulbPreviewClassificationsAsync(string menuText, CancellationToken cancellationToken)
@@ -407,28 +400,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public async Task<string[]> GetErrorTagsAsync(CancellationToken cancellationToken)
-            => await GetTagsAsync<IErrorTag>(filter: null, cancellationToken);
-
-        private static string PrintSpan(SnapshotSpan span)
-            => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
-
-        private async Task<string[]> GetTagsAsync<TTag>(Predicate<TTag>? filter, CancellationToken cancellationToken)
-            where TTag : ITag
+        public async Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
         {
-            filter ??= _ => true;
-
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var view = await GetActiveTextViewAsync(cancellationToken);
-
             var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
-            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
+
+            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<IErrorTag>(view);
             var tags = aggregator
                 .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                .Where(t => filter(t.Tag))
                 .Cast<IMappingTagSpan<ITag>>();
-            return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
+
+            return tags.SelectAsArray(tag => (new TagSpan<IErrorTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (IErrorTag)tag.Tag)));
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
@@ -516,7 +499,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             if (itemIndex < 0)
             {
                 Assert.Contains(item, await GetNavigationBarItemsAsync(index, cancellationToken));
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             await ExpandNavigationBarAsync(index, cancellationToken);
@@ -804,7 +787,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(cancellationToken);
-                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value, cancellationToken);
+                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction!, fixAllScope.Value, cancellationToken);
                     if (fixAllAction == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope} code fix for suggested action '{action.DisplayText}'.");
@@ -890,9 +873,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         foreach (var action in actionSet.Actions)
                         {
                             actions.Add(action);
-                            var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
-                            var nestedActions = await SelectActionsAsync(nestedActionSets, cancellationToken);
-                            actions.AddRange(nestedActions);
+                            if (action.HasActionSets)
+                            {
+                                var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
+                                var nestedActions = await SelectActionsAsync(nestedActionSets!, cancellationToken);
+                                actions.AddRange(nestedActions);
+                            }
                         }
                     }
                 }
@@ -921,7 +907,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     if (action.HasActionSets)
                     {
                         var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
-                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope, cancellationToken);
+                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets!, fixAllScope, cancellationToken);
                         if (fixAllCodeAction != null)
                         {
                             return fixAllCodeAction;

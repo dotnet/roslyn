@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -15,12 +16,10 @@ internal sealed record class ProjectDiagnosticSource(Project Project) : IDiagnos
 {
     public ProjectOrDocumentId GetId() => new(Project.Id);
     public Project GetProject() => Project;
-
-    public Uri GetUri()
-    {
-        Contract.ThrowIfNull(Project.FilePath);
-        return ProtocolConversions.GetUriFromFilePath(Project.FilePath);
-    }
+    public TextDocumentIdentifier? GetDocumentIdentifier()
+        => !string.IsNullOrEmpty(Project.FilePath)
+            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), Uri = ProtocolConversions.GetUriFromFilePath(Project.FilePath) }
+            : null;
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
@@ -34,4 +33,6 @@ internal sealed record class ProjectDiagnosticSource(Project Project) : IDiagnos
         var projectDiagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(Project.Solution, Project.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
         return projectDiagnostics;
     }
+
+    public string ToDisplayString() => Project.Name;
 }

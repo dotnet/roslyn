@@ -3577,7 +3577,6 @@ class C
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
         }
 
-
         [Fact]
         [WorkItem(30016, "https://github.com/dotnet/roslyn/issues/30016")]
         public void ForEachIteratorWithCurrentRefKind_DontPassFieldByValue()
@@ -3688,6 +3687,77 @@ class C
                 // (43,29): error CS1579: foreach statement cannot operate on variables of type '(Nonsense, int)' because '(Nonsense, int)' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach(var item in nonsenseTuple) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "nonsenseTuple").WithArguments("(Nonsense, int)", "GetEnumerator").WithLocation(43, 29));
+        }
+
+        [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
+        public void ForEachIterator_RefAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+Span<C2> items = new Span<C2>(new C2[1]);
+foreach (ref C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 21)
+            );
+        }
+
+        [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
+        public void ForEachIterator_RefReadonlyAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+Span<C2> items = new Span<C2>(new C2[1]);
+foreach (ref readonly C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 30)
+            );
+        }
+
+        [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
+        public void ForEachIterator_ReadonlySpan_RefReadonlyAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+ReadOnlySpan<C2> items = new ReadOnlySpan<C2>(new C2[1]);
+foreach (ref readonly C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,30): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref readonly C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 30)
+            );
+        }
+
+        [Fact]
+        public void ForEachIterator_ReadonlySpan_RefAssignmentWithoutReadonly()
+        {
+            string source = @"
+using System;
+ReadOnlySpan<C2> items = new ReadOnlySpan<C2>(new C2[1]);
+foreach (ref C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8331: Cannot assign to method 'Current.get' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "items").WithArguments("method", "Current.get").WithLocation(4, 21)
+            );
         }
     }
 }

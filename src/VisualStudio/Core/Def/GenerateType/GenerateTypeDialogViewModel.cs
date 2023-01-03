@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 }
 
                 // Remove the '\' at the beginning if present
-                trimmedFileName = trimmedFileName.StartsWith(@"\", StringComparison.Ordinal) ? trimmedFileName.Substring(1) : trimmedFileName;
+                trimmedFileName = trimmedFileName.StartsWith(@"\", StringComparison.Ordinal) ? trimmedFileName[1..] : trimmedFileName;
 
                 // Construct the full path of the file to be created
                 this.FullFilePath = implicitFilePath + @"\" + trimmedFileName;
@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 if (this.FullFilePath.StartsWith(projectRootPath, StringComparison.Ordinal))
                 {
                     // The new file will be within the root of the project
-                    var folderPath = this.FullFilePath.Substring(projectRootPath.Length);
+                    var folderPath = this.FullFilePath[projectRootPath.Length..];
                     var containers = folderPath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
 
                     // Folder name was mentioned
@@ -362,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                         return false;
                     }
 
-                    _fileName = this.FullFilePath.Substring(lastIndexOfSeparator + 1);
+                    _fileName = this.FullFilePath[(lastIndexOfSeparator + 1)..];
                 }
 
                 // Check for reserved words in the folder or filename
@@ -397,7 +397,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 return false;
             }
 
-            implicitPath = implicitPathContainer.Substring(0, indexOfLastSeparator);
+            implicitPath = implicitPathContainer[..indexOfLastSeparator];
             return true;
         }
 
@@ -703,7 +703,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             // Remove the undesired extension
             if (currentFileName.EndsWith(undesiredFileExtension, StringComparison.OrdinalIgnoreCase))
             {
-                currentFileName = currentFileName.Substring(0, currentFileName.Length - undesiredFileExtension.Length);
+                currentFileName = currentFileName[..^undesiredFileExtension.Length];
             }
 
             // Append the desired extension

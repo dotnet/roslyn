@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             // single line multiline comments
             if (startLine.LineNumber == endLine.LineNumber)
             {
-                var message = postfixLength == 0 ? fullString : fullString.Substring(0, fullSpan.Length - postfixLength);
+                var message = postfixLength == 0 ? fullString : fullString[..(fullSpan.Length - postfixLength)];
                 AppendTaskListItemsOnSingleLine(commentDescriptors, document, message, fullSpan.Start, items);
                 return;
             }

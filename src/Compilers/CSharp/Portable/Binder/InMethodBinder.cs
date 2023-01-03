@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -24,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MultiDictionary<string, ParameterSymbol> _lazyParameterMap;
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
-        private TypeWithAnnotations.Boxed _iteratorElementType;
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
@@ -54,8 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-
-        internal override uint LocalScopeDepth => Binder.CurrentMethodScope;
 
         protected override bool InExecutableBinder => true;
 
@@ -130,18 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
-            if (_iteratorElementType is null)
-            {
-                TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
-                if (elementType.IsDefault)
-                {
-                    elementType = TypeWithAnnotations.Create(CreateErrorType());
-                }
-
-                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), null);
-            }
-
-            return _iteratorElementType.Value;
+            return _methodSymbol.IteratorElementTypeWithAnnotations;
         }
 
         internal static TypeWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
@@ -314,7 +299,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(ErrorCode.ERR_InternalError, newLocation);
             return true;
         }
-
 
         internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
         {

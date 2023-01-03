@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         private (ImmutableArray<TInput>, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>) GetValuesAndInputs(
             NodeStateTable<TInput> sourceTable,
-            NodeStateTable<ImmutableArray<TInput>> previousTable,
+            NodeStateTable<ImmutableArray<TInput>>? previousTable,
             NodeStateTable<ImmutableArray<TInput>>.Builder newTable)
         {
             // Do an initial pass to both get the steps, and determine how many entries we'll have.
@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis
 
             ImmutableArray<TInput>? tryReusePreviousTableValues(int entryCount)
             {
+                if (previousTable is null)
+                    return null;
+
                 if (previousTable.Count != 1)
                     return null;
 
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public NodeStateTable<ImmutableArray<TInput>> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<ImmutableArray<TInput>> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<ImmutableArray<TInput>> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<ImmutableArray<TInput>>? previousTable, CancellationToken cancellationToken)
         {
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
@@ -125,7 +128,7 @@ namespace Microsoft.CodeAnalysis
 
             var (sourceValues, sourceInputs) = GetValuesAndInputs(sourceTable, previousTable, newTable);
 
-            if (previousTable.IsEmpty)
+            if (previousTable is null || previousTable.IsEmpty)
             {
                 newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
             }

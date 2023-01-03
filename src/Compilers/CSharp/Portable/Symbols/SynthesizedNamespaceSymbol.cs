@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => Hash.Combine(_containingSymbol.GetHashCode(), _name.GetHashCode());
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
-            => obj is SynthesizedNamespaceSymbol other && Equals(other, compareKind);
+            => obj is SynthesizedNamespaceSymbol other && Equals(other);
 
-        public bool Equals(SynthesizedNamespaceSymbol other, TypeCompareKind compareKind)
+        public bool Equals(SynthesizedNamespaceSymbol other)
         {
             if (ReferenceEquals(this, other))
             {

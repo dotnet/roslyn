@@ -268,9 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private static SyntaxKind GetParameterRefSyntaxKind(ParameterBehavior parameterBehavior)
             {
-                return parameterBehavior == ParameterBehavior.Ref ?
-                        SyntaxKind.RefKeyword :
-                            parameterBehavior == ParameterBehavior.Out ?
+                return parameterBehavior == ParameterBehavior.Ref
+                        ? SyntaxKind.RefKeyword
+                            : parameterBehavior == ParameterBehavior.Out ?
                                 SyntaxKind.OutKeyword : SyntaxKind.None;
             }
 
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 ExpressionSyntax initialValue,
                 CancellationToken cancellationToken)
             {
-                var type = variable.GetVariableType(SemanticDocument);
+                var type = variable.GetVariableType();
                 var typeNode = type.GenerateTypeSyntax();
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);

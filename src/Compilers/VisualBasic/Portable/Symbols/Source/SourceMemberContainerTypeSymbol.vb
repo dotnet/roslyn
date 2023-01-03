@@ -2335,7 +2335,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-
         ''' <summary>
         ''' Returns true if at least one of the elements of this list needs to be injected into a 
         ''' constructor because it's not a const or it is a const and it's type is either decimal 
@@ -2781,7 +2780,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-
             ' Add a new instance|shared constructor.
             Dim syntaxRef = SyntaxReferences.First() ' use arbitrary part
             ' TODO: does it need to be deterministic?
@@ -2914,7 +2912,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 AddMember(eventSymbol.AssociatedField, binder, members, omitDiagnostics:=False)
             End If
         End Sub
-
 
         Private Sub CheckMemberDiagnostics(
                              members As MembersAndInitializersBuilder,

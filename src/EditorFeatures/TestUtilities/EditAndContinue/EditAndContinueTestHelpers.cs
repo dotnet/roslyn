@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var allEdits = new List<SemanticEditInfo>();
 
             // include Baseline by default, unless no capabilities are explicitly specified:
-            var requiredCapabilities = capabilities.HasValue ?
-                (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline) :
-                expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
+            var requiredCapabilities = capabilities.HasValue
+                ? (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline)
+                : expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
 
             var lazyCapabilities = AsyncLazy.Create(requiredCapabilities);
             var actualRequiredCapabilities = EditAndContinueCapabilities.None;
@@ -382,7 +382,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private void CreateProjects(EditScript<SyntaxNode>[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
         {
-            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), name: "project", assemblyName: "project", LanguageName, filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension));
+            var projectInfo = ProjectInfo.Create(
+                new ProjectInfo.ProjectAttributes(
+                    id: ProjectId.CreateNewId(),
+                    version: VersionStamp.Create(),
+                    name: "project",
+                    assemblyName: "project",
+                    language: LanguageName,
+                    compilationOutputFilePaths: default,
+                    filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
+                    checksumAlgorithm: SourceHashAlgorithms.Default));
 
             oldProject = workspace.AddProject(projectInfo).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
             foreach (var editScript in editScripts)

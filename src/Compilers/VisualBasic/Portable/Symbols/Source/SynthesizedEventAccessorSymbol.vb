@@ -270,7 +270,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                    compilation As VisualBasicCompilation,
                                                                    diagnostics As BindingDiagnosticBag) As BoundBlock
 
-
             If Not eventSymbol.Type.IsDelegateType() Then
                 Return Nothing
             End If

@@ -5,20 +5,15 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FullyQualify), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
-    internal class CSharpFullyQualifyCodeFixProvider : AbstractFullyQualifyCodeFixProvider
+    internal sealed class CSharpFullyQualifyCodeFixProvider : AbstractFullyQualifyCodeFixProvider
     {
         /// <summary>
         /// name does not exist in context
@@ -51,64 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId); }
-        }
-
-        protected override bool IgnoreCase => false;
-
-        protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
-        {
-            if (node is not SimpleNameSyntax simpleName)
-            {
-                return false;
-            }
-
-            if (!simpleName.LooksLikeStandaloneTypeName())
-            {
-                return false;
-            }
-
-            if (!simpleName.CanBeReplacedWithAnyName())
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken)
-        {
-            var simpleName = (SimpleNameSyntax)node;
-
-            var leadingTrivia = simpleName.GetLeadingTrivia();
-            var newName = simpleName.WithLeadingTrivia(SyntaxTriviaList.Empty);
-
-            var qualifiedName = SyntaxFactory.QualifiedName(
-                SyntaxFactory.ParseName(containerName), newName);
-
-            qualifiedName = qualifiedName.WithLeadingTrivia(leadingTrivia);
-            qualifiedName = qualifiedName.WithAdditionalAnnotations(Formatter.Annotation);
-
-            var syntaxTree = simpleName.SyntaxTree;
-            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // If the name is a type that is part of a using directive, eg. "using Math" then we can go further and
-            // instead of just changing to "using System.Math", we can make it "using static System.Math" and avoid the
-            // CS0138 that would result from the former.  Don't do this for using aliases though as `static` and using
-            // aliases cannot be combined.
-            if (resultingSymbolIsType &&
-                node.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword.RawKind: 0 } usingDirective)
-            {
-                var newUsingDirective = usingDirective
-                    .WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
-                    .WithName(qualifiedName);
-
-                return root.ReplaceNode(usingDirective, newUsingDirective);
-            }
-
-            return root.ReplaceNode(simpleName, qualifiedName);
-        }
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId);
     }
 }

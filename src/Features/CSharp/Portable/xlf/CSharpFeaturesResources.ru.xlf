@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Apply_readonly_struct_preferences">
         <source>Apply 'readonly struct' preferences</source>
-        <target state="new">Apply 'readonly struct' preferences</target>
+        <target state="translated">Применить параметры "структура только для чтения"</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Convert_0_to_record">
         <source>Convert '{0}' to record</source>
-        <target state="new">Convert '{0}' to record</target>
+        <target state="translated">Преобразовать "{0}" в record</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_positional_record">
         <source>Convert to positional record</source>
-        <target state="new">Convert to positional record</target>
+        <target state="translated">Преобразовать в positional record</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
@@ -197,14 +197,14 @@
         <target state="translated">Включить типы ссылок, допускающие значение NULL, в проекте</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="new">Enable nullable reference types in solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Глобальные директивы using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Встроить временную переменную</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -236,6 +236,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">Обратить оператор "for"</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="new">Selection cannot be in constructor initializer</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>

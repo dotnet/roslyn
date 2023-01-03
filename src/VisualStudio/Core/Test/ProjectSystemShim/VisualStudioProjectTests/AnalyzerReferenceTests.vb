@@ -112,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         End Function
 
         <WpfFact>
-        Public Async Function RazorSourceGenerator() As Task
+        Public Async Function RazorSourceGenerator_FromVsix() As Task
             Using environment = New TestEnvironment()
                 Dim providerFactory = DirectCast(environment.ExportProvider.GetExportedValue(Of IVisualStudioDiagnosticAnalyzerProviderFactory), MockVisualStudioDiagnosticAnalyzerProviderFactory)
                 providerFactory.Extensions =
@@ -142,7 +142,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences)
 
-                ' add Razor source generator and a couple more other analyzer filess:
+                ' add Razor source generator and a couple more other analyzer files:
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "SdkDependency1.dll"))
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "Microsoft.NET.Sdk.Razor.SourceGenerators.dll"))
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Some other directory", "Microsoft.NET.Sdk.Razor.SourceGenerators.dll"))
@@ -193,19 +193,44 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function RazorSourceGenerator_FromSdk() As Task
+            Using environment = New TestEnvironment()
+                Dim providerFactory = DirectCast(environment.ExportProvider.GetExportedValue(Of IVisualStudioDiagnosticAnalyzerProviderFactory), MockVisualStudioDiagnosticAnalyzerProviderFactory)
+                providerFactory.Extensions =
+                {
+                     ({
+                        Path.Combine(TempRoot.Root, "File.dll")
+                     },
+                     "AnotherExtension")
+                }
+
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
+
+                ' add Razor source generator and a couple more other analyzer filess:
+                Dim path1 = Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "Microsoft.NET.Sdk.Razor.SourceGenerators.dll")
+                Dim path2 = Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "SdkDependency1.dll")
+                project.AddAnalyzerReference(path1)
+                project.AddAnalyzerReference(path2)
+
+                AssertEx.Equal({path1, path2}, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
+
+            End Using
+        End Function
+
         Private Shared Async Function GetDiagnostics(environment As TestEnvironment) As Task(Of ImmutableArray(Of DiagnosticData))
             ' Wait for diagnostics to be updated asynchronously
             Dim waiter = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider).GetWaiter(FeatureAttribute.DiagnosticService)
             Await waiter.ExpeditedWaitAsync()
 
             Dim diagnosticService = environment.ExportProvider.GetExportedValue(Of IDiagnosticService)
-            Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
+            Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
                 environment.Workspace,
                 projectId:=Nothing,
                 documentId:=Nothing,
                 id:=Nothing,
                 includeSuppressedDiagnostics:=True,
-                DiagnosticMode.Default,
                 CancellationToken.None)
             Return diagnostics
         End Function

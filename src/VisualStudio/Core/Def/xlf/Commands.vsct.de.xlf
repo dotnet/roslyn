@@ -9,42 +9,42 @@
       </trans-unit>
       <trans-unit id="StackTraceExplorerContextMenu|ButtonText">
         <source>StackTrace Explorer</source>
-        <target state="new">StackTrace Explorer</target>
+        <target state="translated">StackTrace Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="StackTraceExplorerContextMenu|MenuText">
         <source>StackTrace Explorer</source>
-        <target state="new">StackTrace Explorer</target>
+        <target state="translated">StackTrace Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|ButtonText">
         <source>Clear</source>
-        <target state="new">Clear</target>
+        <target state="translated">Löschen</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
         <source>CleearStackTraceExplorerCommandName</source>
-        <target state="new">CleearStackTraceExplorerCommandName</target>
+        <target state="translated">CleearStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
         <source>ClearStackTraceExplorer</source>
-        <target state="new">ClearStackTraceExplorer</target>
+        <target state="translated">ClearStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdPasteStackTraceExplorer|ButtonText">
         <source>Paste</source>
-        <target state="new">Paste</target>
+        <target state="translated">Einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdPasteStackTraceExplorer|CommandName">
         <source>PasteStackTraceExplorerCommandName</source>
-        <target state="new">PasteStackTraceExplorerCommandName</target>
+        <target state="translated">PasteStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdPasteStackTraceExplorer|LocCanonicalName">
         <source>PasteStackTraceExplorer</source>
-        <target state="new">PasteStackTraceExplorer</target>
+        <target state="translated">PasteStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">

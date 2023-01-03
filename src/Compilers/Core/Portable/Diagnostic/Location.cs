@@ -177,5 +177,23 @@ namespace Microsoft.CodeAnalysis
 
             return new ExternalFileLocation(filePath, textSpan, lineSpan);
         }
+
+        /// <summary>
+        /// Creates an instance of a <see cref="Location"/> for a span in a file with a mapped file and span.
+        /// </summary>
+        public static Location Create(string filePath, TextSpan textSpan, LinePositionSpan lineSpan, string mappedFilePath, LinePositionSpan mappedLineSpan)
+        {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            if (mappedFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(mappedFilePath));
+            }
+
+            return new ExternalFileLocation(filePath, textSpan, lineSpan, mappedFilePath, mappedLineSpan);
+        }
     }
 }

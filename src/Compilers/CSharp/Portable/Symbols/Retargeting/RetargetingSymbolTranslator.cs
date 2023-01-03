@@ -396,19 +396,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return cached;
             }
 
+#nullable enable
+
             private static NamedTypeSymbol RetargetNamedTypeDefinition(PENamedTypeSymbol type, PEModuleSymbol addedModule)
             {
                 Debug.Assert(!type.ContainingModule.Equals(addedModule) &&
                              ReferenceEquals(((PEModuleSymbol)type.ContainingModule).Module, addedModule.Module));
 
-                TypeSymbol cached;
+                TypeSymbol? cached;
 
                 if (addedModule.TypeHandleToTypeMap.TryGetValue(type.Handle, out cached))
                 {
                     return (NamedTypeSymbol)cached;
                 }
 
-                NamedTypeSymbol result;
+                NamedTypeSymbol? result;
 
                 NamedTypeSymbol containingType = type.ContainingType;
                 MetadataTypeName mdName;
@@ -422,16 +424,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity: type.Arity);
                     result = scope.LookupMetadataType(ref mdName);
-                    Debug.Assert((object)result != null && result.Arity == type.Arity);
                 }
                 else
                 {
                     string namespaceName = type.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
                     mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, type.MetadataName, forcedArity: type.Arity);
                     result = addedModule.LookupTopLevelMetadataType(ref mdName);
-
-                    Debug.Assert(result.Arity == type.Arity);
                 }
+
+                Debug.Assert(result is PENamedTypeSymbol peResult && peResult.Handle == type.Handle);
 
                 return result;
             }
@@ -440,13 +441,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 ref DestinationData destination,
                 NamedTypeSymbol type)
             {
-                NamedTypeSymbol result;
+                NamedTypeSymbol? result;
 
                 if (!destination.SymbolMap.TryGetValue(type, out result))
                 {
                     // Lookup by name as a TypeRef.
                     NamedTypeSymbol containingType = type.ContainingType;
-                    NamedTypeSymbol result1;
+                    NamedTypeSymbol? result1;
                     MetadataTypeName mdName;
 
                     if ((object)containingType != null)
@@ -457,16 +458,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         NamedTypeSymbol scope = PerformTypeRetargeting(ref destination, containingType);
                         mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity: type.Arity);
                         result1 = scope.LookupMetadataType(ref mdName);
-                        Debug.Assert((object)result1 != null && result1.Arity == type.Arity);
+                        Debug.Assert(result1?.IsErrorType() != true);
+
+                        result1 ??= new MissingMetadataTypeSymbol.Nested(scope, ref mdName);
                     }
                     else
                     {
                         string namespaceName = type.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
                         mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, type.MetadataName, forcedArity: type.Arity);
-                        result1 = destination.To.LookupTopLevelMetadataType(ref mdName, digThroughForwardedTypes: true);
-
-                        Debug.Assert(result1.Arity == type.Arity);
+                        result1 = destination.To.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     }
+
+                    Debug.Assert(result1.Arity == type.Arity);
 
                     result = destination.SymbolMap.GetOrAdd(type, result1);
                     Debug.Assert(TypeSymbol.Equals(result1, result, TypeCompareKind.ConsiderEverything2));
@@ -474,6 +477,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 return result;
             }
+
+#nullable disable
 
             public NamedTypeSymbol Retarget(NamedTypeSymbol type, RetargetOptions options)
             {
@@ -1085,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     }
                     while (containingType is object);
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -1220,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     newAttributeCtorArguments,
                     oldAttribute.ConstructorArgumentsSourceIndices,
                     newAttributeNamedArguments,
-                    oldAttribute.HasErrors,
+                    hasErrors: oldAttribute.HasErrors || newAttributeCtor is null,
                     oldAttribute.IsConditionallyOmitted);
             }
 
@@ -1385,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public override Symbol VisitParameter(ParameterSymbol symbol, RetargetOptions options)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol VisitField(FieldSymbol symbol, RetargetOptions options)

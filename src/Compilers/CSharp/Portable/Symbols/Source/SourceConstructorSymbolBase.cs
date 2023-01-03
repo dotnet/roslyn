@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // we haven't found the constructor part that declares the variable:
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal abstract override bool IsNullableAnalysisEnabled();

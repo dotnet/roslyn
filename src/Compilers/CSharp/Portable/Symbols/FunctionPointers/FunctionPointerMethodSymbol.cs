@@ -207,13 +207,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     string typeName = "CallConv" + specifierText;
                     var metadataName = MetadataTypeName.FromNamespaceAndTypeName("System.Runtime.CompilerServices", typeName, useCLSCompliantNameArityEncoding: true, forcedArity: 0);
-                    NamedTypeSymbol specifierType;
-                    specifierType = compilation.Assembly.CorLibrary.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
+                    NamedTypeSymbol? specifierType;
+                    specifierType = compilation.Assembly.CorLibrary.LookupDeclaredTopLevelMetadataType(ref metadataName);
+                    Debug.Assert(specifierType?.IsErrorType() != true);
+                    Debug.Assert(specifierType is null || ReferenceEquals(specifierType.ContainingAssembly, compilation.Assembly.CorLibrary));
 
-                    if (specifierType is MissingMetadataTypeSymbol)
+                    if (specifierType is null)
                     {
-                        // Replace the existing missing type symbol with one that has a better error message
-                        specifierType = new MissingMetadataTypeSymbol.TopLevel(specifierType.ContainingModule, ref metadataName, new CSDiagnosticInfo(ErrorCode.ERR_TypeNotFound, typeName));
+                        specifierType = new MissingMetadataTypeSymbol.TopLevel(compilation.Assembly.CorLibrary.Modules[0], ref metadataName, new CSDiagnosticInfo(ErrorCode.ERR_TypeNotFound, typeName));
                     }
                     else if (specifierType.DeclaredAccessibility != Accessibility.Public)
                     {
@@ -754,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal int GetHashCodeNoParameters()
-            => Hash.Combine(ReturnType, Hash.Combine(CallingConvention.GetHashCode(), FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind).GetHashCode()));
+            => Hash.Combine(ReturnType, Hash.Combine(((int)CallingConvention).GetHashCode(), ((int)FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind)).GetHashCode()));
 
         internal override CallingConvention CallingConvention { get; }
         internal override bool UseUpdatedEscapeRules { get; }
@@ -832,15 +833,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
         internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
-        internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable;
-        internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable;
+        internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable();
+        internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable();
 
-        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
-        public override DllImportData GetDllImportData() => throw ExceptionUtilities.Unreachable;
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable;
-        internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable;
-        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable();
+        public override DllImportData GetDllImportData() => throw ExceptionUtilities.Unreachable();
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable();
+        internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable();
+        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
         internal sealed override bool HasUnscopedRefAttribute => false;
     }
 }

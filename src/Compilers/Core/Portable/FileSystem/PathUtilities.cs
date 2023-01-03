@@ -110,7 +110,7 @@ namespace Roslyn.Utilities
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         public static string? GetFileName(string? path, bool includeExtension = true)
         {
             return FileNameUtilities.GetFileName(path, includeExtension);
@@ -123,11 +123,13 @@ namespace Roslyn.Utilities
         /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
+        [return: NotNullIfNotNull(nameof(path))]
         public static string? GetDirectoryName(string? path)
         {
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
+        [return: NotNullIfNotNull(nameof(path))]
         internal static string? GetDirectoryName(string? path, bool isUnixLike)
         {
             if (path != null)
@@ -179,13 +181,13 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Gets the root part of the path.
         /// </summary>
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         public static string? GetPathRoot(string? path)
         {
             return GetPathRoot(path, IsUnixLikePlatform);
         }
 
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         private static string? GetPathRoot(string? path, bool isUnixLike)
         {
             if (path == null)
@@ -455,7 +457,7 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// Relative and absolute paths treated the same as <see cref="Path.Combine(string, string)"/>.
         /// </remarks>
-        [return: NotNullIfNotNull("path")]
+        [return: NotNullIfNotNull(nameof(path))]
         public static string? CombinePaths(string? root, string? path)
         {
             if (RoslynString.IsNullOrEmpty(root))

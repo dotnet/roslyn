@@ -262,6 +262,11 @@
         <target state="translated">Удалить ненужное приведение</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="new">Remove accessibility modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Удалите лишнее равенство.</target>
@@ -320,6 +325,11 @@
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Упрощение имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="new">Simplify check</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

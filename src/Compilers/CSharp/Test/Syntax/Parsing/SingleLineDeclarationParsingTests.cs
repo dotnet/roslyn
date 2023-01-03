@@ -188,11 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void NamespaceWithSemicolon_CSharp9()
         {
-            UsingNode(
-@"namespace A;", TestOptions.Regular9,
+            var test = @"namespace A;";
+
+            CreateCompilation(test, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (1,1): error CS8773: Feature 'file-scoped namespace' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // namespace A;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "namespace").WithArguments("file-scoped namespace", "10.0").WithLocation(1, 1));
+
+            UsingNode(test, TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {

@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
         public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 
-        protected override string GetTitle(Operation operation) =>
-            operation == Operation.Comment
+        protected override string GetTitle(Operation operation)
+            => operation == Operation.Comment
                 ? EditorFeaturesResources.Comment_Selection
                 : EditorFeaturesResources.Uncomment_Selection;
 
-        protected override string GetMessage(Operation operation) =>
-            operation == Operation.Comment
+        protected override string GetMessage(Operation operation)
+            => operation == Operation.Comment
                 ? EditorFeaturesResources.Commenting_currently_selected_text
                 : EditorFeaturesResources.Uncommenting_currently_selected_text;
 

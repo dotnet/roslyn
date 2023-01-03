@@ -308,10 +308,10 @@ class C
     ref int M5(ref int rrw) => ref (rrw = ref _ro);
 }");
             comp.VerifyDiagnostics(
-                // (13,36): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (13,36): error CS8333: Cannot return variable 'rro' by writable reference because it is a readonly variable
                 //     ref int M4(in int rro) => ref (rro = ref _rw);
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "rro = ref _rw").WithArguments("variable", "in int").WithLocation(13, 36),
-                // (15,47): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "rro = ref _rw").WithArguments("variable", "rro").WithLocation(13, 36),
+                // (15,47): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //     ref int M5(ref int rrw) => ref (rrw = ref _ro);
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
         }
@@ -330,12 +330,12 @@ class C {
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,37): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (5,37): error CS8333: Cannot return variable 'i' by writable reference because it is a readonly variable
                 //         ref int M1(in int i) => ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(5, 37),
-                // (6,43): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "i").WithLocation(5, 37),
+                // (6,43): error CS8333: Cannot return variable 'i' by writable reference because it is a readonly variable
                 //         ref int M2(in int i) { return ref i; }
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(6, 43)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "i").WithLocation(6, 43)
             );
         }
 
@@ -424,9 +424,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,30): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (6,30): error CS8329: Cannot use variable 'x' as a ref or out value because it is a readonly variable
                 //         for (ref int i = ref x; i < 0; i++) {}
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "x").WithArguments("variable", "in int").WithLocation(6, 30));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "x").WithArguments("variable", "x").WithLocation(6, 30));
         }
 
         [Fact]
@@ -501,9 +501,9 @@ class RefEnumerable
                 // (10,40): error CS1510: A ref or out value must be an assignable variable
                 //         foreach (ref readonly var v in new int[0])
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new int[0]").WithLocation(10, 40),
-                // (13,31): error CS8331: Cannot assign to method 'RefEnumerable.StructEnum.Current.get' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (13,31): error CS8331: Cannot assign to method 'Current.get' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         foreach (ref var v in new RefEnumerable())
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "new RefEnumerable()").WithArguments("method", "RefEnumerable.StructEnum.Current.get").WithLocation(13, 31));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "new RefEnumerable()").WithArguments("method", "Current.get").WithLocation(13, 31));
         }
 
         [Fact]
@@ -553,13 +553,13 @@ class C
             CreateCompilation(tree).VerifyDiagnostics(
                 // (7,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         x = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(7, 13),
                 // (10,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         z = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(10, 13),
                 // (12,13): error CS8320: Feature 'ref reassignment' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         o = ref _f;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(12, 13));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref").WithArguments("ref reassignment", "7.3").WithLocation(12, 13));
         }
 
         [Theory]
@@ -1444,9 +1444,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (9,19): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (9,19): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //             L(ref y, x);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(9, 19),
                 // (10,26): error CS1615: Argument 2 may not be passed with the 'ref' keyword
                 //             L(ref x, ref x);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("2", "ref").WithLocation(10, 26),
@@ -1493,9 +1493,9 @@ class C
                 // (16,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         L(L2());
                 Diagnostic(ErrorCode.ERR_BadArgRef, "L2()").WithArguments("1", "ref").WithLocation(16, 11),
-                // (17,15): error CS8406: Cannot use method 'L2()' as a ref or out value because it is a readonly variable
+                // (17,15): error CS8329: Cannot use method 'L2' as a ref or out value because it is a readonly variable
                 //         L(ref L2());
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L2()").WithArguments("method", "L2()").WithLocation(17, 15));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L2()").WithArguments("method", "L2").WithLocation(17, 15));
         }
 
         [Fact]
@@ -1515,9 +1515,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,25): error CS8406: Cannot use method 'L()' as a ref or out value because it is a readonly variable
+                // (8,25): error CS8329: Cannot use method 'L' as a ref or out value because it is a readonly variable
                 //         ref int w = ref L();
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L()").WithArguments("method", "L()").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L()").WithArguments("method", "L").WithLocation(8, 25),
                 // (10,17): error CS8172: Cannot initialize a by-reference variable with a value
                 //         ref int y = x;
                 Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "y = x").WithLocation(10, 17),
@@ -3178,7 +3178,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (8,26): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         ref int rl = ref P;
                 Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(8, 26));
         }
@@ -3199,7 +3199,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (8,26): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         ref int rl = ref this[0];
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(8, 26));
         }
@@ -3337,7 +3337,6 @@ class Program
     }
 }
 ";
-
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,20): error CS8157: Cannot return 'rl' by reference because it was initialized to a value that cannot be returned by reference
@@ -4538,9 +4537,11 @@ public unsafe class C
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
-        public void RefReturnInvocationOfRefLikeTypeRefResult()
+        public void RefReturnInvocationOfRefLikeTypeRefResult(LanguageVersion langVersion)
         {
             string source = @"
 class C
@@ -4566,7 +4567,7 @@ ref struct S
     public ref long M(ref long x) => ref x;
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.RegularDefault.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
                 // (8,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref y;
@@ -4574,26 +4575,13 @@ ref struct S
                 // (16,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
                 //             return ref y;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(16, 24));
-
-            comp = CreateCompilationWithMscorlibAndSpan(source);
-            comp.VerifyDiagnostics(
-                // (7,26): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         ref long y = ref receiver.M(ref x);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref x)").WithArguments("S.M(ref long)", "x").WithLocation(7, 26),
-                // (7,41): error CS8168: Cannot return local 'x' by reference because it is not a ref local
-                //         ref long y = ref receiver.M(ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(7, 41),
-                // (15,30): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //             ref long y = ref receiver.M(ref x);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref x)").WithArguments("S.M(ref long)", "x").WithLocation(15, 30),
-                // (15,45): error CS8168: Cannot return local 'x' by reference because it is not a ref local
-                //             ref long y = ref receiver.M(ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(15, 45));
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
-        public void RefReturnInvocationOfRefLikeTypeRefResult_Repro()
+        public void RefReturnInvocationOfRefLikeTypeRefResult_Repro(LanguageVersion langVersion)
         {
             string source = @"
 using System;
@@ -4632,21 +4620,11 @@ ref struct S
   public ref long M(ref long x) => ref x;
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.RegularDefault.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
                 // (19,18): error CS8157: Cannot return 'z' by reference because it was initialized to a value that cannot be returned by reference
                 //       return ref z;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
-
-            // Breaking change in C#11: Instance method on ref struct instance may capture unscoped ref or in arguments.
-            comp = CreateCompilationWithMscorlibAndSpan(source);
-            comp.VerifyDiagnostics(
-                // (18,23): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //       ref var z = ref receiver.M(ref y);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref y)").WithArguments("S.M(ref long)", "x").WithLocation(18, 23),
-                // (18,38): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
-                //       ref var z = ref receiver.M(ref y);
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(18, 38));
         }
 
         [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
@@ -4774,6 +4752,160 @@ struct R : System.IDisposable
                 // using ref R r1 = ref r;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 7)
                 );
+        }
+
+        [Fact]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
+        public void RefLocalInDeconstruct_01()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        int x = 0, y = 0;
+        (ref int a, ref readonly int b) = (x, y);
+    }
+}
+";
+
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (7,10): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         (ref int a, ref readonly int b) = (x, y);
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 10),
+                // (7,21): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         (ref int a, ref readonly int b) = (x, y);
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
+        public void RefLocalInDeconstruct_02()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        int x = 0, y = 0, z = 0;
+        (ref var a, ref var (b, c)) = (x, (y, z));
+        (ref int d, var e) = (x, y);
+    }
+}
+";
+
+            var comp = CreateCompilation(code).VerifyEmitDiagnostics(
+                // (7,10): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         (ref var a, ref var (b, c)) = (x, (y, z));
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 10),
+                // (7,21): error CS1525: Invalid expression term 'ref'
+                //         (ref var a, ref var (b, c)) = (x, (y, z));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref var (b, c)").WithArguments("ref").WithLocation(7, 21),
+                // (7,21): error CS1073: Unexpected token 'ref'
+                //         (ref var a, ref var (b, c)) = (x, (y, z));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 21),
+                // (8,10): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         (ref int d, var e) = (x, y);
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(8, 10)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+
+            foreach (var decl in decls)
+            {
+                var type = decl.Type;
+
+                if (type is RefTypeSyntax refType)
+                {
+                    Assert.Null(model.GetSymbolInfo(type).Symbol);
+                    Assert.Null(model.GetTypeInfo(type).Type);
+
+                    type = refType.Type;
+                }
+
+                Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
+        public void RefLocalInDeconstruct_03()
+        {
+            var code = @"
+int x = 0, y = 0, z = 0;
+(ref var d, var e) = (x, y);
+(ref int f, ref var _) = (x, y);
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            comp.VerifyEmitDiagnostics(
+                // (3,2): error CS1073: Unexpected token 'ref'
+                // (ref var d, var e) = (x, y);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 2),
+                // (4,2): error CS1073: Unexpected token 'ref'
+                // (ref int f, ref var _) = (x, y);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 2),
+                // (4,13): error CS9072: A deconstruction variable cannot be declared as a ref local
+                // (ref int f, ref var _) = (x, y);
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(4, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+
+            Assert.Equal(3, decls.Length);
+
+            foreach (var decl in decls)
+            {
+                var f = model.GetDeclaredSymbol(decl).GetSymbol<FieldSymbol>();
+
+                Assert.Equal(RefKind.None, f.RefKind);
+                Assert.Equal("System.Int32", f.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void RefLocalInOutVar_01()
+        {
+            var code = @"
+M(out ref var a);
+M(out ref int b);
+M(out ref var _);
+
+void M(out int x) => throw null;
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS1073: Unexpected token 'ref'
+                // M(out ref var a);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 7),
+                // (3,7): error CS1073: Unexpected token 'ref'
+                // M(out ref int b);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 7),
+                // (4,7): error CS8388: An out variable cannot be declared as a ref local
+                // M(out ref var _);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref var").WithLocation(4, 7)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+
+            Assert.Equal(2, decls.Length);
+
+            foreach (var decl in decls)
+            {
+                var f = model.GetDeclaredSymbol(decl).GetSymbol<FieldSymbol>();
+
+                Assert.Equal(RefKind.None, f.RefKind);
+                Assert.Equal("System.Int32", f.Type.ToTestDisplayString());
+            }
         }
     }
 }

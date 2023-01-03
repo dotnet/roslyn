@@ -82,6 +82,11 @@
         <target state="translated">Toujours utiliser les serveurs de symboles par défaut pour la navigation</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="new">Analyze source generated files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Valeurs par défaut de l’analyseur</target>
@@ -1094,7 +1099,7 @@
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
-        <target state="needs-review-translation">Collez une trace de pile pour afficher et parcourir ses valeurs.</target>
+        <target state="translated">Collez une trace de pile pour afficher et parcourir ses valeurs.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1144,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
-        <target state="new">Prefer read-only struct</target>
+        <target state="translated">Préférer le struct en lecture seule</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">

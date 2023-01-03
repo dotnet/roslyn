@@ -67,10 +67,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             return new List<NotificationOptionViewModel>
             {
-                new NotificationOptionViewModel(NotificationOption.Silent, KnownMonikers.None),
-                new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
-                new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
-                new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
+                new NotificationOptionViewModel(NotificationOption2.Silent, KnownMonikers.None),
+                new NotificationOptionViewModel(NotificationOption2.Suggestion, KnownMonikers.StatusInformation),
+                new NotificationOptionViewModel(NotificationOption2.Warning, KnownMonikers.StatusWarning),
+                new NotificationOptionViewModel(NotificationOption2.Error, KnownMonikers.StatusError)
             };
         }
 

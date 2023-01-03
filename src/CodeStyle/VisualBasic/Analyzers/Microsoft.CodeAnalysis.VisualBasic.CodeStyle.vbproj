@@ -6,7 +6,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
-    <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
+
+    <!-- Package used for symbol publishing. The assembly ships in analyzer packages Microsoft.CodeAnalysis.(CSharp|VisualBasic).CodeStyle -->
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />

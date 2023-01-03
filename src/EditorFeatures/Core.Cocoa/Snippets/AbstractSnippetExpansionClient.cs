@@ -376,7 +376,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            snippetFunctionName = xmlFunctionNode.Value.Substring(0, xmlFunctionNode.Value.IndexOf('('));
+            snippetFunctionName = xmlFunctionNode.Value[..xmlFunctionNode.Value.IndexOf('(')];
 
             var paramStart = xmlFunctionNode.Value.IndexOf('(') + 1;
             var paramLength = xmlFunctionNode.Value.LastIndexOf(')') - xmlFunctionNode.Value.IndexOf('(') - 1;

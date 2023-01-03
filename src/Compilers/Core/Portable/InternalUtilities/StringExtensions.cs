@@ -55,7 +55,7 @@ namespace Roslyn.Utilities
         private static readonly Func<char, char> s_toLower = char.ToLower;
         private static readonly Func<char, char> s_toUpper = char.ToUpper;
 
-        [return: NotNullIfNotNull(parameterName: "shortName")]
+        [return: NotNullIfNotNull(parameterName: nameof(shortName))]
         public static string? ToPascalCase(
             this string? shortName,
             bool trimLeadingTypePrefix = true)
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
             return ConvertCase(shortName, trimLeadingTypePrefix, s_toUpper);
         }
 
-        [return: NotNullIfNotNull(parameterName: "shortName")]
+        [return: NotNullIfNotNull(parameterName: nameof(shortName))]
         public static string? ToCamelCase(
             this string? shortName,
             bool trimLeadingTypePrefix = true)
@@ -71,7 +71,7 @@ namespace Roslyn.Utilities
             return ConvertCase(shortName, trimLeadingTypePrefix, s_toLower);
         }
 
-        [return: NotNullIfNotNull(parameterName: "shortName")]
+        [return: NotNullIfNotNull(parameterName: nameof(shortName))]
         private static string? ConvertCase(
             this string? shortName,
             bool trimLeadingTypePrefix,
