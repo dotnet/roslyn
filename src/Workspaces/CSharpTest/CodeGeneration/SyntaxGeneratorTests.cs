@@ -4034,7 +4034,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(66170, " https://github.com/dotnet/roslyn/issues/66170")]
+        [Fact, WorkItem(66170, "https://github.com/dotnet/roslyn/issues/66170")]
         public void TestMethodModifiers2()
         {
             TestModifiersAsync(DeclarationModifiers.ReadOnly,
