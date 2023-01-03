@@ -448,6 +448,18 @@ A project containing analyzers or source generators should specify the property 
 |CodeFix|False|
 ---
 
+## RS1037: Add "CompilationEnd" custom tag to compilation end diagnostic descriptor
+
+'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.
+
+|Item|Value|
+|-|-|
+|Category|MicrosoftCodeAnalysisDesign|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
+
 ## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release
 
 All supported analyzer diagnostic IDs should be part of an analyzer release.

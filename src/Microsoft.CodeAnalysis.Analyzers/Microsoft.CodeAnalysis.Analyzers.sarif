@@ -442,6 +442,24 @@
             ]
           }
         },
+        "RS1037": {
+          "id": "RS1037",
+          "shortDescription": "Add \"CompilationEnd\" custom tag to compilation end diagnostic descriptor",
+          "fullDescription": "'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag \"CompilationEnd\". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS2000": {
           "id": "RS2000",
           "shortDescription": "Add analyzer diagnostic IDs to analyzer release",

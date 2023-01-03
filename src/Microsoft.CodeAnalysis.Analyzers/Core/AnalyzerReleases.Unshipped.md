@@ -6,3 +6,4 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1035 | MicrosoftCodeAnalysisCorrectness | Error | SymbolIsBannedInAnalyzersAnalyzer
 RS1036 | MicrosoftCodeAnalysisCorrectness | Warning | SymbolIsBannedInAnalyzersAnalyzer
+RS1037 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer

@@ -12,6 +12,7 @@ using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Helpers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.ReleaseTracking;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     using PooledLocalizabeStringsConcurrentDictionary = PooledConcurrentDictionary<INamedTypeSymbol, PooledConcurrentSet<(IFieldSymbol field, IArgumentOperation argument)>>;
     using PooledResourcesDataValueConcurrentDictionary = PooledConcurrentDictionary<string, ImmutableDictionary<string, (string value, Location location)>>;
     using PooledFieldToResourceNameAndFileNameConcurrentDictionary = PooledConcurrentDictionary<IFieldSymbol, (string nameOfResource, string resourceFileName)>;
+    using PooledFieldToCustomTagsConcurrentDictionary = PooledConcurrentDictionary<IFieldSymbol, ImmutableArray<string>>;
 
     /// <summary>
     /// RS1007 <inheritdoc cref="UseLocalizableStringsInDescriptorTitle"/>
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string IsEnabledByDefaultParameterName = "isEnabledByDefault";
         private const string DefaultSeverityParameterName = "defaultSeverity";
         private const string RuleLevelParameterName = "ruleLevel";
+        private const string CompilationEndWellKnownDiagnosticTag = "CompilationEnd" /*WellKnownDiagnosticTags.CompilationEnd*/;
 
         internal const string DefineDescriptorArgumentCorrectlyFixValue = nameof(DefineDescriptorArgumentCorrectlyFixValue);
         private const string DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo = nameof(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo);
@@ -156,6 +159,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
+        public static readonly DiagnosticDescriptor AddCompilationEndCustomTagRule = new(
+            DiagnosticIds.AddCompilationEndCustomTagRuleId,
+            CreateLocalizableResourceString(nameof(AddCompilationEndCustomTagTitle)),
+            CreateLocalizableResourceString(nameof(AddCompilationEndCustomTagMessage)),
+            DiagnosticCategory.MicrosoftCodeAnalysisDesign,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: CreateLocalizableResourceString(nameof(AddCompilationEndCustomTagDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             UseLocalizableStringsInDescriptorRule,
             ProvideHelpUriInDescriptorRule,
@@ -180,7 +193,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             EnableAnalyzerReleaseTrackingRule,
             DefineDiagnosticTitleCorrectlyRule,
             DefineDiagnosticMessageCorrectlyRule,
-            DefineDiagnosticDescriptionCorrectlyRule);
+            DefineDiagnosticDescriptionCorrectlyRule,
+            AddCompilationEndCustomTagRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -191,7 +205,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 if (!compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticDescriptor, out var diagnosticDescriptorType) ||
                     !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString, out var localizableResourceType) ||
-                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableResourceString, out var localizableResourceStringType))
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableResourceString, out var localizableResourceStringType) ||
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsCompilationEndAnalysisContext, out var compilationEndContextType) ||
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnostic, out var diagnosticType))
                 {
                     return;
                 }
@@ -228,6 +244,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 var idToAnalyzerMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>>();
                 var seenRuleIds = PooledConcurrentSet<string>.GetInstance();
+                var customTagsMap = PooledFieldToCustomTagsConcurrentDictionary.GetInstance(SymbolEqualityComparer.Default);
                 compilationContext.RegisterOperationAction(operationAnalysisContext =>
                 {
                     var fieldInitializer = (IFieldInitializerOperation)operationAnalysisContext.Operation;
@@ -244,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     AnalyzeDescription(operationAnalysisContext, creationArguments, containingType,
                         localizableDescriptions, resourcesDataValueMap, localizableResourceType, localizableResourceStringType);
                     AnalyzeHelpLinkUri(operationAnalysisContext, creationArguments, out var helpLink);
-                    AnalyzeCustomTags(operationAnalysisContext, creationArguments);
+                    AnalyzeCustomTags(operationAnalysisContext, creationArguments, fieldInitializer, customTagsMap);
                     var (isEnabledByDefault, defaultSeverity) = GetDefaultSeverityAndEnabledByDefault(operationAnalysisContext.Compilation, creationArguments);
 
                     if (!TryAnalyzeCategory(operationAnalysisContext, creationArguments, checkCategoryAndAllowedIds,
@@ -295,6 +312,132 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 resourcesDataValueMap, context.Options, context.ReportDiagnostic, context.CancellationToken);
 
                             symbolToResourceMap.Free(context.CancellationToken);
+                        });
+                    }, SymbolKind.NamedType);
+                }
+
+                // Flag descriptor fields that are used to report compilation end diagnostics,
+                // but do not have the required 'WellKnownDiagnosticTags.CompilationEnd' custom tag.
+                // See https://github.com/dotnet/roslyn-analyzers/issues/6282 for details.
+                if (compilationEndContextType.GetMembers(DiagnosticWellKnownNames.ReportDiagnosticName).FirstOrDefault() is IMethodSymbol compilationEndReportDiagnosticMethod)
+                {
+                    var diagnosticCreateMethods = diagnosticType.GetMembers("Create").OfType<IMethodSymbol>()
+                        .Where(m => m.IsPublic() && m.Parameters.Length > 0 && SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, diagnosticDescriptorType))
+                        .ToImmutableHashSet(SymbolEqualityComparer.Default);
+                    compilationContext.RegisterSymbolStartAction(context =>
+                    {
+                        var localsToDescriptorsMap = PooledConcurrentDictionary<ILocalSymbol, PooledConcurrentSet<IFieldSymbol>>.GetInstance(SymbolEqualityComparer.Default);
+                        var localsUsedForCompilationEndReportDiagnostic = PooledConcurrentSet<ILocalSymbol>.GetInstance(SymbolEqualityComparer.Default);
+                        var fieldsUsedForCompilationEndReportDiagnostic = PooledConcurrentSet<IFieldSymbol>.GetInstance(SymbolEqualityComparer.Default);
+
+                        context.RegisterOperationAction(context =>
+                        {
+                            var invocation = (IInvocationOperation)context.Operation;
+                            if (invocation.Arguments.IsEmpty)
+                                return;
+
+                            if (SymbolEqualityComparer.Default.Equals(invocation.TargetMethod, compilationEndReportDiagnosticMethod) &&
+                                    invocation.Arguments[0].Value.WalkDownConversion() is ILocalReferenceOperation localReference)
+                            {
+                                // Code pattern such as:
+                                //      var diagnostic = Diagnostic.Create(field, ...);
+                                //      context.ReportDiagnostic(diagnostic);
+                                localsUsedForCompilationEndReportDiagnostic.Add(localReference.Local);
+                            }
+                            else if (diagnosticCreateMethods.Contains(invocation.TargetMethod))
+                            {
+                                if (invocation.Arguments[0].Value.WalkDownConversion() is IFieldReferenceOperation fieldReference)
+                                {
+                                    // Code pattern such as:
+                                    //      'Diagnostic.Create(field, ...)'
+                                    if (invocation.GetAncestor<IInvocationOperation>(OperationKind.Invocation,
+                                                inv => SymbolEqualityComparer.Default.Equals(inv.TargetMethod, compilationEndReportDiagnosticMethod)) is not null)
+                                    {
+                                        // Code pattern such as:
+                                        //      'context.ReportDiagnostic(Diagnostic.Create(field, ...));'
+                                        fieldsUsedForCompilationEndReportDiagnostic.Add(fieldReference.Field);
+                                    }
+                                    else
+                                    {
+                                        switch (invocation.Parent)
+                                        {
+                                            case IVariableInitializerOperation variableInitializer:
+                                                // Code pattern such as:
+                                                //      'var diagnostic = Diagnostic.Create(field, ...);'
+                                                if (variableInitializer.GetAncestor<IVariableDeclarationOperation>(OperationKind.VariableDeclaration) is { } variableDeclaration)
+                                                {
+                                                    foreach (var local in variableDeclaration.GetDeclaredVariables())
+                                                    {
+                                                        AddToLocalsToDescriptorsMap(local, fieldReference.Field, localsToDescriptorsMap);
+                                                    }
+                                                }
+
+                                                break;
+
+                                            case ISimpleAssignmentOperation simpleAssignment:
+                                                // Code pattern such as:
+                                                //      'diagnostic = Diagnostic.Create(field, ...);'
+                                                if (simpleAssignment.Target is ILocalReferenceOperation localReferenceTarget)
+                                                {
+                                                    AddToLocalsToDescriptorsMap(localReferenceTarget.Local, fieldReference.Field, localsToDescriptorsMap);
+                                                }
+
+                                                break;
+                                        }
+                                    }
+                                }
+
+                                static void AddToLocalsToDescriptorsMap(ILocalSymbol local, IFieldSymbol field, PooledConcurrentDictionary<ILocalSymbol, PooledConcurrentSet<IFieldSymbol>> localsToDescriptorsMap)
+                                {
+                                    localsToDescriptorsMap.AddOrUpdate(local,
+                                        addValueFactory: _ =>
+                                        {
+                                            var set = PooledConcurrentSet<IFieldSymbol>.GetInstance(SymbolEqualityComparer.Default);
+                                            set.Add(field);
+                                            return set;
+                                        },
+                                        updateValueFactory: (_, fields) =>
+                                        {
+                                            fields.Add(field);
+                                            return fields;
+                                        });
+                                }
+                            }
+                        }, OperationKind.Invocation);
+
+                        context.RegisterSymbolEndAction(context =>
+                        {
+                            foreach (var local in localsUsedForCompilationEndReportDiagnostic)
+                            {
+                                if (localsToDescriptorsMap.TryGetValue(local, out var fields))
+                                {
+                                    foreach (var field in fields)
+                                        AnalyzeField(field);
+                                }
+                            }
+
+                            foreach (var field in fieldsUsedForCompilationEndReportDiagnostic)
+                            {
+                                AnalyzeField(field);
+                            }
+
+                            foreach (var value in localsToDescriptorsMap.Values)
+                                value.Free(context.CancellationToken);
+                            localsToDescriptorsMap.Free(context.CancellationToken);
+                            localsUsedForCompilationEndReportDiagnostic.Free(context.CancellationToken);
+                            fieldsUsedForCompilationEndReportDiagnostic.Free(context.CancellationToken);
+
+                            void AnalyzeField(IFieldSymbol field)
+                            {
+                                if (customTagsMap.TryGetValue(field, out var customTags) &&
+                                    !customTags.IsDefault &&
+                                    !customTags.Contains(CompilationEndWellKnownDiagnosticTag) &&
+                                    !field.Locations.IsEmpty &&
+                                    field.Locations[0].IsInSource)
+                                {
+                                    context.ReportDiagnostic(Diagnostic.Create(AddCompilationEndCustomTagRule, field.Locations[0], field.Name));
+                                }
+                            }
                         });
                     }, SymbolKind.NamedType);
                 }
@@ -357,6 +500,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         FreeLocalizableStringsMap(localizableDescriptions, compilationEndContext.CancellationToken);
                         resourcesDataValueMap.Free(compilationEndContext.CancellationToken);
                     }
+
+                    customTagsMap.Free(compilationEndContext.CancellationToken);
                 });
             });
 
@@ -901,24 +1046,55 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        private static void AnalyzeCustomTags(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments)
+        private static void AnalyzeCustomTags(
+            OperationAnalysisContext operationAnalysisContext,
+            ImmutableArray<IArgumentOperation> creationArguments,
+            IFieldInitializerOperation fieldInitializerOperation,
+            PooledFieldToCustomTagsConcurrentDictionary customTagsMap)
         {
-            // Find the matching argument for customTags
-            foreach (var argument in creationArguments)
-            {
-                if (argument.Parameter.Name.Equals(CustomTagsParameterName, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (argument.Value is IArrayCreationOperation arrayCreation &&
-                        arrayCreation.DimensionSizes.Length == 1 &&
-                        arrayCreation.DimensionSizes[0].ConstantValue.HasValue &&
-                        arrayCreation.DimensionSizes[0].ConstantValue.Value is int size &&
-                        size == 0)
-                    {
-                        Diagnostic diagnostic = argument.CreateDiagnostic(ProvideCustomTagsInDescriptorRule);
-                        operationAnalysisContext.ReportDiagnostic(diagnostic);
-                    }
+            // Default to indicate unknown set of custom tags.
+            ImmutableArray<string> customTags = default;
 
+            try
+            {
+                // Find the matching argument for customTags
+                var argument = creationArguments.FirstOrDefault(
+                    a => a.Parameter.Name.Equals(CustomTagsParameterName, StringComparison.OrdinalIgnoreCase));
+                if (argument is null ||
+                    argument.Value is not IArrayCreationOperation arrayCreation ||
+                    arrayCreation.DimensionSizes.Length != 1)
+                {
                     return;
+                }
+
+                if (arrayCreation.DimensionSizes[0].ConstantValue.HasValue &&
+                    arrayCreation.DimensionSizes[0].ConstantValue.Value is int size &&
+                    size == 0)
+                {
+                    Diagnostic diagnostic = argument.CreateDiagnostic(ProvideCustomTagsInDescriptorRule);
+                    operationAnalysisContext.ReportDiagnostic(diagnostic);
+
+                    customTags = ImmutableArray<string>.Empty;
+                }
+                else if (arrayCreation.Initializer is IArrayInitializerOperation arrayInitializer &&
+                    arrayInitializer.ElementValues.All(element => element.ConstantValue.HasValue && element.ConstantValue.Value is string))
+                {
+                    customTags = arrayInitializer.ElementValues.Select(element => (string)element.ConstantValue.Value).ToImmutableArray();
+                }
+            }
+            finally
+            {
+                AddCustomTags(customTags, fieldInitializerOperation, customTagsMap);
+            }
+
+            static void AddCustomTags(
+                ImmutableArray<string> customTags,
+                IFieldInitializerOperation fieldInitializerOperation,
+                PooledFieldToCustomTagsConcurrentDictionary customTagsMap)
+            {
+                foreach (var field in fieldInitializerOperation.InitializedFields)
+                {
+                    customTagsMap[field] = customTags;
                 }
             }
         }
