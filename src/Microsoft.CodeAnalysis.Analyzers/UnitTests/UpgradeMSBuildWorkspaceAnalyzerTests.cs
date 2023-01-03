@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Analyzers;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.VisualBasic.Analyzers;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpUpgradeMSBuildWorkspaceAnalyzer,
