@@ -437,10 +437,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ImmutableHashSet<AnalysisEntity>.Empty;
             }
 
-            if (predicate == null)
-            {
-                predicate = entity => IsChildAnalysisEntity(entity, instanceLocation);
-            }
+            predicate ??= entity => IsChildAnalysisEntity(entity, instanceLocation);
 
             return GetChildAnalysisEntities(predicate);
         }

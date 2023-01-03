@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        internal class Test : VisualBasicCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
+        internal sealed class Test : VisualBasicCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
         }
     }

@@ -30,7 +30,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Just a container for parameters necessary for PropertySetAnalysis for unit tests below.
         /// </summary>
-        private class PropertySetAnalysisParameters
+        private sealed class PropertySetAnalysisParameters
         {
             public PropertySetAnalysisParameters(string typeToTrack, ConstructorMapper constructorMapper, PropertyMapperCollection propertyMapperCollection, HazardousUsageEvaluatorCollection hazardousUsageEvaluatorCollection)
             {
@@ -57,10 +57,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PropertySetAnalysisParameters propertySetAnalysisParameters,
             params (int Line, int Column, string Method, HazardousUsageEvaluationResult Result)[] expectedResults)
         {
-            if (expectedResults == null)
-            {
-                expectedResults = Array.Empty<(int Line, int Column, string MethodName, HazardousUsageEvaluationResult Result)>();
-            }
+            expectedResults ??= Array.Empty<(int Line, int Column, string MethodName, HazardousUsageEvaluationResult Result)>();
 
             Project project = CreateProject(new string[] { source, TestTypeToTrackSource });
             Compilation compilation = project.GetCompilationAsync().Result;
@@ -142,6 +139,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     TestOutput.WriteLine(
                         $"Line {lineNumber}, Column {columnNumber}, {MethodSymbolOrReturnString(kvp.Key.Method)}: {kvp.Value}");
                 }
+
                 TestOutput.WriteLine("============================");
 
                 throw;
@@ -1349,6 +1347,7 @@ class TestClass
             {
                 Assert.Same(model, operation.SemanticModel);
             }
+
             return (operation, model, syntaxNode);
         }
 
@@ -1359,10 +1358,7 @@ class TestClass
 
         protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
         {
-            if (synList == null)
-            {
-                synList = new List<SyntaxNode>();
-            }
+            synList ??= new List<SyntaxNode>();
 
             synList.Add(node);
 

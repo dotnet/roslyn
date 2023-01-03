@@ -200,12 +200,15 @@ namespace Analyzer.Utilities.Extensions
             }
 
             using var enumerator = source.GetEnumerator();
-            while (count > 0 && enumerator.MoveNext()) { count--; }
+            while (count > 0 && enumerator.MoveNext())
+            {
+                count--;
+            }
 
             return count > 0;
         }
 
-        private class ComparisonComparer<T> : Comparer<T>
+        private sealed class ComparisonComparer<T> : Comparer<T>
         {
             private readonly Comparison<T> _compare;
 

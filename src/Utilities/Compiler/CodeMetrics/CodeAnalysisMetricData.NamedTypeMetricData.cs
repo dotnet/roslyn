@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             depth++;
                             parent = parent.BaseType;
                         }
+
                         return depth;
 
                     case TypeKind.Struct:

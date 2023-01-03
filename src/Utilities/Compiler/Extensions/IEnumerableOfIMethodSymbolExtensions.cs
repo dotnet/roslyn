@@ -216,7 +216,7 @@ namespace Analyzer.Utilities.Extensions
     }
 
     // Contains the expected properties of a parameter
-    internal class ParameterInfo
+    internal sealed class ParameterInfo
     {
         public int ArrayRank { get; private set; }
         public bool IsArray { get; private set; }

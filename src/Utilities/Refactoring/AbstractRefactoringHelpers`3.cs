@@ -508,6 +508,7 @@ namespace Analyzer.Utilities
                         return;
                     }
                 }
+
                 ancestor = ancestor.Parent;
             }
         }

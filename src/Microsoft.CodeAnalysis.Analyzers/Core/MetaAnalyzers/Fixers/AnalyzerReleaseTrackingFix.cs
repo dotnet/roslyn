@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                                 cancellationToken => UpdateEntryInUnshippedFileAsync(context.Document.Project, ruleId, entryToUpdate, cancellationToken),
                                 equivalenceKey: CodeAnalysisDiagnosticsResources.UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle);
                         }
+
                         break;
 
                     case DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId:

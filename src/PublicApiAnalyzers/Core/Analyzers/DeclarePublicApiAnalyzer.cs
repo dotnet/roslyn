@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private const string BailOnMissingPublicApiFilesEditorConfigOptionName = $"{BaseEditorConfigPath}.require_api_files";
         private const string NamespaceToIgnoreInTrackingEditorConfigOptionName = $"{BaseEditorConfigPath}.skip_namespaces";
 
-
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
             new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
@@ -332,19 +331,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     if (file.IsShipping)
                     {
-                        if (shippedText is null)
-                        {
-                            shippedText = new();
-                        }
+                        shippedText ??= new();
 
                         shippedText.Add(data);
                     }
                     else
                     {
-                        if (unshippedText is null)
-                        {
-                            unshippedText = new();
-                        }
+                        unshippedText ??= new();
 
                         unshippedText.Add(data);
                     }

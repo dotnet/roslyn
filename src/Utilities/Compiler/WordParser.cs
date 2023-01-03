@@ -10,7 +10,7 @@ namespace Analyzer.Utilities
     /// <summary>
     ///     Provides <see langword="static"/> methods for parsing words from text.
     /// </summary>
-    internal class WordParser
+    internal sealed class WordParser
     {
         // WordParser has two distinct modes; one where it breaks up only words in
         // a given piece of text, and the other where it breaks up both words
@@ -281,10 +281,7 @@ namespace Analyzer.Utilities
         /// </returns>
         public string? PeekWord()
         {
-            if (_peekedWord == null)
-            {
-                _peekedWord = NextWordCore();
-            }
+            _peekedWord ??= NextWordCore();
 
             return _peekedWord;
         }

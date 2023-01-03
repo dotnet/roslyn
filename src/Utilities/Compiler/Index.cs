@@ -114,6 +114,7 @@ namespace System
 
                 offset += length + 1;
             }
+
             return offset;
         }
 

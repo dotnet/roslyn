@@ -562,10 +562,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         (type, true),
                         out containingTypeName))
                     {
-                        if (hazardousUsageTypeNames == null)
-                        {
-                            hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
-                        }
+                        hazardousUsageTypeNames ??= PooledHashSet<string>.GetInstance();
 
                         hazardousUsageTypeNames.Add(containingTypeName);
                     }
@@ -589,10 +586,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 Func<PropertySetAbstractValue, HazardousUsageEvaluationResult> evaluationFunction,
                 Func<AbstractLocation, PropertySetAbstractValue>? locationToAbstractValueMapping = null)
             {
-                if (locationToAbstractValueMapping == null)
-                {
-                    locationToAbstractValueMapping = this.GetAbstractValue;
-                }
+                locationToAbstractValueMapping ??= this.GetAbstractValue;
 
                 PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
                 HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
