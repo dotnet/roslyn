@@ -2312,6 +2312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_QueryRangeVariableSameAsTypeParam:
                 case ErrorCode.ERR_DeprecatedCollectionInitAddStr:
                 case ErrorCode.ERR_DeprecatedSymbolStr:
+                case ErrorCode.ERR_MissingPredefinedMember:
                     return false;
                 default:
                     return true;

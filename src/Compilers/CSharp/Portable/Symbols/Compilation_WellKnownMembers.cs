@@ -472,6 +472,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ));
         }
 
+        internal SynthesizedAttributeData? SynthesizeDateTimeConstantAttribute(DateTime value)
+        {
+            var ticks = new TypedConstant(GetSpecialType(SpecialType.System_Int64), TypedConstantKind.Primitive, value.Ticks);
+
+            return TrySynthesizeAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                ImmutableArray.Create(ticks));
+        }
+
         internal SynthesizedAttributeData? SynthesizeDebuggerBrowsableNeverAttribute()
         {
             if (Options.OptimizationLevel != OptimizationLevel.Debug)
