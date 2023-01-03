@@ -1574,7 +1574,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var receiver = call.ReceiverOpt;
             var arguments = call.Arguments;
             LocalDefinition tempOpt = null;
-            LocalDefinition cloneTemp = null;
 
             Debug.Assert(!method.IsStatic && method.RequiresInstanceReceiver);
 
@@ -1648,59 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                // receiver is generic and method must come from the base or an interface or a generic constraint
-                // if the receiver is actually a value type it would need to be boxed.
-                // let .constrained sort this out. 
-                callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
-                            CallKind.CallVirt :
-                            CallKind.ConstrainedCallVirt;
-
-                tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
-
-                if (callKind == CallKind.ConstrainedCallVirt && tempOpt is null && !receiverType.IsValueType &&
-                    !ReceiverIsKnownToReferToTempIfReferenceType(call.ReceiverOpt) &&
-                    !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
-                {
-                    // A case where T is actually a class must be handled specially.
-                    // Taking a reference to a class instance is fragile because the value behind the 
-                    // reference might change while arguments are evaluated. However, the call should be
-                    // performed on the instance that is behind reference at the time we push the
-                    // reference to the stack. So, for a class we need to emit a reference to a temporary
-                    // location, rather than to the original location
-
-                    // Struct values are never nulls.
-                    // We will emit a check for such case, but the check is really a JIT-time 
-                    // constant since JIT will know if T is a struct or not.
-
-                    // if ((object)default(T) == null) 
-                    // {
-                    //     temp = receiverRef
-                    //     receiverRef = ref temp
-                    // }
-
-                    object whenNotNullLabel = null;
-
-                    if (!receiverType.IsReferenceType)
-                    {
-                        // if ((object)default(T) == null) 
-                        EmitDefaultValue(receiverType, true, receiver.Syntax);
-                        EmitBox(receiverType, receiver.Syntax);
-                        whenNotNullLabel = new object();
-                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
-                    }
-
-                    //     temp = receiverRef
-                    //     receiverRef = ref temp
-                    EmitLoadIndirect(receiverType, receiver.Syntax);
-                    cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
-                    _builder.EmitLocalStore(cloneTemp);
-                    _builder.EmitLocalAddress(cloneTemp);
-
-                    if (whenNotNullLabel is not null)
-                    {
-                        _builder.MarkLabel(whenNotNullLabel);
-                    }
-                }
+                tempOpt = emitGenericReceiver(call, out callKind);
             }
 
             // When emitting a callvirt to a virtual method we always emit the method info of the
@@ -1776,7 +1723,69 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCallCleanup(call.Syntax, useKind, method);
 
             FreeOptTemp(tempOpt);
-            FreeOptTemp(cloneTemp);
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            LocalDefinition emitGenericReceiver(BoundCall call, out CallKind callKind)
+            {
+                var receiver = call.ReceiverOpt;
+                var receiverType = receiver.Type;
+
+                // receiver is generic and method must come from the base or an interface or a generic constraint
+                // if the receiver is actually a value type it would need to be boxed.
+                // let .constrained sort this out. 
+                callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
+                            CallKind.CallVirt :
+                            CallKind.ConstrainedCallVirt;
+
+                LocalDefinition tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
+
+                if (callKind == CallKind.ConstrainedCallVirt && tempOpt is null && !receiverType.IsValueType &&
+                    !ReceiverIsKnownToReferToTempIfReferenceType(receiver) &&
+                    !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
+                {
+                    // A case where T is actually a class must be handled specially.
+                    // Taking a reference to a class instance is fragile because the value behind the 
+                    // reference might change while arguments are evaluated. However, the call should be
+                    // performed on the instance that is behind reference at the time we push the
+                    // reference to the stack. So, for a class we need to emit a reference to a temporary
+                    // location, rather than to the original location
+
+                    // Struct values are never nulls.
+                    // We will emit a check for such case, but the check is really a JIT-time 
+                    // constant since JIT will know if T is a struct or not.
+
+                    // if ((object)default(T) == null) 
+                    // {
+                    //     temp = receiverRef
+                    //     receiverRef = ref temp
+                    // }
+
+                    object whenNotNullLabel = null;
+
+                    if (!receiverType.IsReferenceType)
+                    {
+                        // if ((object)default(T) == null) 
+                        EmitDefaultValue(receiverType, true, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                        whenNotNullLabel = new object();
+                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
+                    }
+
+                    //     temp = receiverRef
+                    //     receiverRef = ref temp
+                    EmitLoadIndirect(receiverType, receiver.Syntax);
+                    tempOpt = AllocateTemp(receiverType, receiver.Syntax);
+                    _builder.EmitLocalStore(tempOpt);
+                    _builder.EmitLocalAddress(tempOpt);
+
+                    if (whenNotNullLabel is not null)
+                    {
+                        _builder.MarkLabel(whenNotNullLabel);
+                    }
+                }
+
+                return tempOpt;
+            }
         }
 
         internal static bool IsPossibleReferenceTypeReceiverOfConstrainedCall(BoundExpression receiver)
