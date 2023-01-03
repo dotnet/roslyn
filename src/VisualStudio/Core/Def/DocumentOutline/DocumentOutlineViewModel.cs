@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -44,10 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _textBuffer = textBuffer;
             _cancellationTokenSource = new CancellationTokenSource();
 
-            // initialize public properties
-            _sortOption = SortOption.Location;
-            _documentSymbolViewModelItems = new ObservableCollection<DocumentSymbolDataViewModel>();
-
             // work queue for refreshing LSP data
             _documentSymbolQueue = new AsyncBatchingResultQueue<DocumentSymbolDataModel>(
                 DelayTimeSpan.Short,
@@ -69,15 +66,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _documentSymbolQueue.AddWork(cancelExistingWork: true);
         }
 
-        private SortOption _sortOption;
+        private SortOption _sortOption = SortOption.Location;
         public SortOption SortOption
         {
             get => _sortOption;
             set => SetProperty(ref _sortOption, value);
         }
 
-        private ObservableCollection<DocumentSymbolDataViewModel> _documentSymbolViewModelItems;
-        public ObservableCollection<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
+        private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
+        public ImmutableArray<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
         {
             get => _documentSymbolViewModelItems;
             set

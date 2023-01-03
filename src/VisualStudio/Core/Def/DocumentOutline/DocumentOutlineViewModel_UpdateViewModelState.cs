@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 {
                     var documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
                     ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
-                    DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolDataViewModel>(documentSymbolViewModelItems);
+                    DocumentSymbolViewModelItems = documentSymbolViewModelItems;
                 }
 
                 if (_currentSearchText is { } currentQuery)
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                              DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
                     }
 
-                    DocumentSymbolViewModelItems = new ObservableCollection<DocumentSymbolDataViewModel>(documentSymbolViewModelItems);
+                    DocumentSymbolViewModelItems = documentSymbolViewModelItems;
                 }
 
                 if (_currentCaretPosition is { } currentPosition)
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 DocumentOutlineHelper.SetExpansionOption(DocumentSymbolViewModelItems, ExpansionOption.Collapse);
             }
 
-            static void ApplyExpansionStateToNewItems(IEnumerable<DocumentSymbolDataViewModel> oldItems, IEnumerable<DocumentSymbolDataViewModel> newItems)
+            static void ApplyExpansionStateToNewItems(ImmutableArray<DocumentSymbolDataViewModel> oldItems, ImmutableArray<DocumentSymbolDataViewModel> newItems)
             {
                 if (DocumentOutlineHelper.AreAllTopLevelItemsCollapsed(oldItems))
                 {
