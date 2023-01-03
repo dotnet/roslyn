@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -290,6 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     continue;
                 }
 
+                // Setting a boolean property on this View Model can happen on any thread.
                 newItem.IsExpanded = item.IsExpanded;
                 SetIsExpandedOnNewItems(newItem.Children, item.Children);
             }
@@ -322,6 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var symbol = GetSymbolInRange(documentSymbolItems, documentSymbolRangeSpan);
             if (symbol is not null)
             {
+                // Setting a boolean property on this View Model can happen on any thread.
                 symbol.IsExpanded = true;
                 ExpandAncestors(symbol.Children, documentSymbolRangeSpan);
             }
@@ -351,6 +353,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             if (!documentSymbolViewModelItems.Any())
             {
+                // We are operating on an empty array this can happen if the LSP service hasn't populated us with any data yet.
                 return false;
             }
 

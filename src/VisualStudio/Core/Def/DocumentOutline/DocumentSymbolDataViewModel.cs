@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,13 +16,25 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
     /// <summary>
     /// A ViewModel over <see cref="DocumentSymbolData"/>
+    /// The only items that are mutable on this type are <see cref="IsExpanded"/> and <see cref="IsSelected"/>.
+    /// It is expected that these can be modified from any thread with INotifyPropertyChanged notifications
+    /// being marshalled to the correct thread by WPF if there needs to be a change to the visual presentation.
     /// </summary>
     internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolDataViewModel>
     {
         public string Name { get; }
         public ImmutableArray<DocumentSymbolDataViewModel> Children { get; }
         public int StartPosition => RangeSpan.Start;
+
+        /// <summary>
+        /// The total range of the symbol including leading/trailing trivia
+        /// </summary>
         public SnapshotSpan RangeSpan { get; }
+
+        /// <summary>
+        /// The range that represents what should be selected in the editor for this item.
+        /// Typically, this is the identifier name for the symbol
+        /// </summary>
         public SnapshotSpan SelectionRangeSpan { get; }
         public SymbolKind SymbolKind { get; }
         public ImageMoniker ImageMoniker { get; }

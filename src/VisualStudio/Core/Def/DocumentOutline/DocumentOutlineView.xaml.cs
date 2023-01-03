@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -30,6 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
         private readonly ComEventSink _codeWindowEventsSink;
+        // Used to suspend all event handlers for caret movement while we navigate the cursor
+        // Should only be written to withing the SymbolTree_MouseDown method which always
+        // is called by WPF on the UI thread.
         private bool _isNavigating;
 
         public DocumentOutlineView(
@@ -141,6 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
+            // Do not respond to caret changing events if we are the ones moving the caret
             if (!e.NewPosition.Equals(e.OldPosition) && !_isNavigating)
             {
                 _viewModel.EnqueueSelectTreeNode(e.NewPosition);

@@ -9,7 +9,11 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    internal sealed record DocumentSymbolDataModel(ImmutableArray<DocumentSymbolData> DocumentSymbolData, ITextSnapshot? OriginalSnapshot)
+    /// <param name="DocumentSymbolData">The symbol data that we recieved from an LSP request.</param>
+    /// <param name="OriginalSnapshot">The snapshot this data was generated from. Used to translate positions across edits.</param>
+    internal sealed record DocumentSymbolDataModel(
+        ImmutableArray<DocumentSymbolData> DocumentSymbolData,
+        ITextSnapshot? OriginalSnapshot)
     {
         public static DocumentSymbolDataModel Empty { get; } = new(ImmutableArray<DocumentSymbolData>.Empty, null);
 

@@ -18,7 +18,7 @@
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <UserControl.Resources>
         <!-- This CollectionViewSource allows us to sort items in the tree with the minimal number of draw calls.
-             With IsLiveSortingRequested set to "True" sorting happens on notify-property-change for out data, 
+             With IsLiveSortingRequested set to "True" sorting happens on notify-property-change for our data, 
              most of which is boolean property changes.
         -->
         <CollectionViewSource

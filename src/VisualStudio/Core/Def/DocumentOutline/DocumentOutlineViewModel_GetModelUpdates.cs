@@ -42,6 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // If there is no matching LSP server registered the client will return null here - e.g. wrong content type on the buffer, the
             // server totally failed to start, server doesn't support the right capabilities. For C# we might know it's a bug if we get a null
             // response here, but we don't know that in general for all languages.
+            // see "Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient.AlwaysActivateInProcLanguageClient" for the list of content types we register for.
+            // At this time the expected list is C#, Visual Basic, and F#
             if (response is null)
             {
                 return DocumentSymbolDataModel.Empty;
