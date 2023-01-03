@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Forms.VisualStyles;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Editor;
@@ -23,13 +24,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// Interaction logic for DocumentOutlineView.xaml
     /// All operations happen on the UI thread for visual studio
     /// </summary>
-    internal partial class DocumentOutlineView : UserControl, IVsCodeWindowEvents, IDisposable
+    internal sealed partial class DocumentOutlineView : UserControl, IVsCodeWindowEvents, IDisposable
     {
         private readonly IVsCodeWindow _codeWindow;
         private readonly DocumentOutlineViewModel _viewModel;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
         private readonly ComEventSink _codeWindowEventsSink;
+        private readonly ICollectionView _collectionView;
+
         // Used to suspend all event handlers for caret movement while we navigate the cursor
         // Should only be written to withing the SymbolTree_MouseDown method which always
         // is called by WPF on the UI thread.
@@ -45,6 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             DataContext = _viewModel;
             InitializeComponent();
+
+            // "DocumentSymbolItems" is the key name we specified for our CollectionViewSource in the XAML file
+            _collectionView = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
 
             // We don't think the shell is initialized lazily, so we'll Debug.Fail(), but if it was we'd still
             // see the view created later so this will still function.
@@ -91,15 +97,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void SortByName(object sender, EventArgs e)
-            => UpdateSort(SortOption.Name, nameof(DocumentSymbolDataViewModel.Name));
+            => UpdateSort(SortOption.Name);
 
         private void SortByOrder(object sender, EventArgs e)
-            => UpdateSort(SortOption.Location, nameof(DocumentSymbolDataViewModel.StartPosition));
+            => UpdateSort(SortOption.Location);
 
         private void SortByType(object sender, EventArgs e)
-            => UpdateSort(SortOption.Type, nameof(DocumentSymbolDataViewModel.SymbolKind), nameof(DocumentSymbolDataViewModel.Name));
+            => UpdateSort(SortOption.Type);
 
-        private void UpdateSort(SortOption sortOption, params string[] sortProperties)
+        private void UpdateSort(SortOption sortOption)
         {
             // Log which sort option was used
             Logger.Log(sortOption switch
@@ -110,15 +116,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _ => throw new NotImplementedException(),
             }, logLevel: LogLevel.Information);
 
-            var view = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
-            view.SortDescriptions.Clear();
-            foreach (var sortProperty in sortProperties)
+            // Defer changes until all the properties have been set
+            using (var _1 = _collectionView.DeferRefresh())
             {
-                view.SortDescriptions.Add(new SortDescription(sortProperty, ListSortDirection.Ascending));
+                // Update top-level sorting options for our tree view
+                _collectionView.SortDescriptions.UpdateSortDescription(sortOption);
+
+                // Set the sort option property to begin live-sorting
+                _viewModel.SortOption = sortOption;
             }
 
-            _viewModel.SortOption = sortOption;
-            view.Refresh();
+            // Queue a refresh now that everything is set.
+            _collectionView.Refresh();
         }
 
         /// <summary>
