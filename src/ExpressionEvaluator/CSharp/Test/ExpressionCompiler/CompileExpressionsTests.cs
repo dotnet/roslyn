@@ -967,7 +967,6 @@ class Program
     {
         F();
         int z = x + y;
-#line 999
     }
 }";
             var comp = CreateCompilation(
@@ -982,7 +981,7 @@ class Program
                 <symbols>
                   <files>
                     <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="09-65-32-19-5F-F8-8A-58-BF-BC-0C-D3-68-2C-2C-7B-15-33-18-E4" />
-                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="A6-5E-D4-C0-57-0C-1A-FD-F5-27-16-E2-AF-A0-41-0C-94-2D-1B-4C" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="62-4B-E2-91-A3-E9-43-48-4F-A0-E6-E8-22-74-EB-90-24-C3-05-A5" />
                   </files>
                   <methods>
                     <method containingType="Program" name="F">
@@ -1010,7 +1009,7 @@ class Program
                         <entry offset="0x15" startLine="5" startColumn="5" endLine="5" endColumn="6" document="2" />
                         <entry offset="0x16" startLine="6" startColumn="9" endLine="6" endColumn="13" document="2" />
                         <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="23" document="2" />
-                        <entry offset="0x2b" startLine="999" startColumn="5" endLine="999" endColumn="6" document="2" />
+                        <entry offset="0x2b" startLine="8" startColumn="5" endLine="8" endColumn="6" document="2" />
                       </sequencePoints>
                       <scope startOffset="0x0" endOffset="0x2c">
                         <scope startOffset="0x15" endOffset="0x2c">
@@ -1026,7 +1025,7 @@ class Program
                 <symbols>
                   <files>
                     <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="09-65-32-19-5F-F8-8A-58-BF-BC-0C-D3-68-2C-2C-7B-15-33-18-E4" />
-                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="A6-5E-D4-C0-57-0C-1A-FD-F5-27-16-E2-AF-A0-41-0C-94-2D-1B-4C" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="62-4B-E2-91-A3-E9-43-48-4F-A0-E6-E8-22-74-EB-90-24-C3-05-A5" />
                   </files>
                   <methods>
                     <method containingType="Program" name="F">
@@ -1048,7 +1047,7 @@ class Program
                         <entry offset="0x15" startLine="5" startColumn="5" endLine="5" endColumn="6" document="2" />
                         <entry offset="0x16" startLine="6" startColumn="9" endLine="6" endColumn="13" document="2" />
                         <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="23" document="2" />
-                        <entry offset="0x2b" startLine="999" startColumn="5" endLine="999" endColumn="6" document="2" />
+                        <entry offset="0x2b" startLine="8" startColumn="5" endLine="8" endColumn="6" document="2" />
                       </sequencePoints>
                       <scope startOffset="0x0" endOffset="0x2c">
                         <scope startOffset="0x15" endOffset="0x2c">
@@ -1068,8 +1067,20 @@ class Program
                 includeIntrinsicAssembly: false,
                 validator: runtime =>
                 {
-                    var context = CreateMethodContext(runtime, "Program..ctor", atLineNumber: 999);
+                    GetContextState(runtime, "Program..ctor", out var blocks, out var moduleVersionId, out var symReader, out var methodToken, out var localSignatureToken);
 
+                    var appDomain = new AppDomain();
+                    uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+                    var context = CreateMethodContext(
+                        appDomain,
+                        blocks,
+                        symReader,
+                        moduleVersionId,
+                        methodToken: methodToken,
+                        methodVersion: 1,
+                        ilOffset: 0x15, // offset matches startOffset of "z" scope
+                        localSignatureToken: localSignatureToken,
+                        kind: MakeAssemblyReferencesKind.AllAssemblies);
                     var testData = new CompilationTestData();
                     var result = context.CompileExpression(
                         "z",
