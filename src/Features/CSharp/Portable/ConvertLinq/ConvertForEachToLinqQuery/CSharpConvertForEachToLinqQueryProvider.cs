@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             // Check that there is 'list.Add(item)'.
                             if (invocationExpression.Expression is MemberAccessExpressionSyntax memberAccessExpression &&
                                 semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol methodSymbol &&
-                                TypeSymbolOptIsList(methodSymbol.ContainingType, semanticModel) &&
+                                TypeSymbolIsList(methodSymbol.ContainingType, semanticModel) &&
                                 methodSymbol.Name == nameof(IList.Add) &&
                                 methodSymbol.Parameters.Length == 1 &&
                                 invocationExpression.ArgumentList.Arguments.Count == 1)
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             return root;
         }
 
-        internal static bool TypeSymbolOptIsList(ITypeSymbol typeSymbol, SemanticModel semanticModel)
+        internal static bool TypeSymbolIsList(ITypeSymbol typeSymbol, SemanticModel semanticModel)
             => Equals(typeSymbol?.OriginalDefinition, semanticModel.Compilation.GetTypeByMetadataName(typeof(List<>).FullName));
     }
 }
