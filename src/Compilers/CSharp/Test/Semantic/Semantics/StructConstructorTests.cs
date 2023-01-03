@@ -4091,7 +4091,7 @@ public struct S
 ");
         }
 
-        [Fact]
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
         public void ImplicitlyInitializedField_ConstructorInitializer_01()
         {
             var source = """
@@ -4111,7 +4111,7 @@ public struct S1
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(7, 24));
         }
 
-        [Fact]
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
         public void ImplicitlyInitializedField_ConstructorInitializer_02()
         {
             var source = """
