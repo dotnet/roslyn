@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             threadingContext.ThrowIfNotOnUIThread();
             var (textViewEventSource, textBuffer) = CreateEventSource(asyncListener, editorAdaptersFactoryService, codeWindow);
-            var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, textViewEventSource, textBuffer);
+            var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, textViewEventSource, textBuffer, threadingContext);
             return new DocumentOutlineView(viewModel, editorAdaptersFactoryService, codeWindow);
         }
 

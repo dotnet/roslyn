@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -38,12 +39,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             ILanguageServiceBroker2 languageServiceBroker,
             IAsynchronousOperationListener asyncListener,
             CompilationAvailableTaggerEventSource textViewEventSource,
-            ITextBuffer textBuffer)
+            ITextBuffer textBuffer,
+            IThreadingContext threadingContext)
         {
             _languageServiceBroker = languageServiceBroker;
             _textViewEventSource = textViewEventSource;
             _textBuffer = textBuffer;
-            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(threadingContext.DisposalToken);
 
             // work queue for refreshing LSP data
             _documentSymbolQueue = new AsyncBatchingResultQueue<DocumentSymbolDataModel>(
