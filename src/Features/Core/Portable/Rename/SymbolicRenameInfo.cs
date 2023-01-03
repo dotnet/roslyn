@@ -250,6 +250,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
+            // No valid spans available in source we can edit
+            if (documentSpans.Count == 0)
+            {
+                return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
+            }
+
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var triggerText = sourceText.ToString(triggerToken.Span);
 
