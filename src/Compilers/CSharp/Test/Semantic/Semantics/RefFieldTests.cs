@@ -24893,6 +24893,35 @@ public class A
         public void UnscopedRefAttribute_InterfaceImplementation_06()
         {
             string source = """
+                using System.Diagnostics.CodeAnalysis;
+                interface I<T>
+                {
+                    ref T F();
+                    ref T P { get; }
+                }
+                class A
+                {
+                    [UnscopedRef] public ref int F() => throw null; // 1
+                    [UnscopedRef] public ref int P => throw null; // 2
+                }
+                class B : A, I<int>
+                {
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (9,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] public ref int F() => throw null; // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(9, 6),
+                // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] public ref int P => throw null; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(10, 6));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_InterfaceImplementation_07()
+        {
+            string source = """
                 #pragma warning disable 67
                 using System.Diagnostics.CodeAnalysis;
                 delegate void D<T>();
@@ -24927,7 +24956,7 @@ public class A
         }
 
         [Fact]
-        public void UnscopedRefAttribute_InterfaceImplementation_07()
+        public void UnscopedRefAttribute_InterfaceImplementation_08()
         {
             string source = """
                 #pragma warning disable 67
