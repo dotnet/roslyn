@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         private PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
-            : this(new OptionDefinition(group, feature + "_" + name, defaultValue, typeof(T), internalStorageMapping: null, isEditorConfigOption), feature, name, storageLocations)
+            : this(new OptionDefinition<T>(group, feature + "_" + name, defaultValue, internalStorageMapping: null, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 

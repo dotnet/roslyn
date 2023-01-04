@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal Option(string feature, string name, OptionGroup group, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
-            : this(new OptionDefinition(group, feature + "_" + name, defaultValue, typeof(T), internalStorageMapping, isEditorConfigOption), feature, name, storageLocations)
+            : this(new OptionDefinition<T>(group, feature + "_" + name, defaultValue, internalStorageMapping, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 

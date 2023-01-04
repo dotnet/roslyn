@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    [NonDefaultable]
-    internal readonly struct OptionDefinition : IEquatable<OptionDefinition>
+    internal abstract class OptionDefinition : IEquatable<OptionDefinition?>
     {
         // Editorconfig name prefixes used for C#/VB specific options:
         public const string CSharpConfigNamePrefix = "csharp_";
@@ -26,16 +26,6 @@ namespace Microsoft.CodeAnalysis.Options
         public string ConfigName { get; }
 
         /// <summary>
-        /// The default value of the option.
-        /// </summary>
-        public object? DefaultValue { get; }
-
-        /// <summary>
-        /// The type of the option value.
-        /// </summary>
-        public Type Type { get; }
-
-        /// <summary>
         /// True if the value of the option may be stored in an editorconfig file.
         /// </summary>
         public bool IsEditorConfigOption { get; }
@@ -45,24 +35,33 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public InternalOptionStorageMapping? InternalStorageMapping { get; }
 
-        public OptionDefinition(OptionGroup group, string configName, object? defaultValue, Type type, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
+        /// <summary>
+        /// The type of the option value.
+        /// </summary>
+        public abstract Type Type { get; }
+
+        /// <summary>
+        /// The untyped/boxed default value of the option.
+        /// </summary>
+        public object? DefaultValue { get; }
+
+        public OptionDefinition(OptionGroup group, string configName, object? defaultValue, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
         {
             ConfigName = configName;
             Group = group;
-            DefaultValue = defaultValue;
-            Type = type;
             InternalStorageMapping = internalStorageMapping;
             IsEditorConfigOption = isEditorConfigOption;
+            DefaultValue = defaultValue;
         }
 
-        public OptionDefinition WithDefaultValue<T>(T defaultValue)
-            => new(Group, ConfigName, defaultValue, typeof(T), InternalStorageMapping, IsEditorConfigOption);
+        public OptionDefinition<T> WithDefaultValue<T>(T defaultValue)
+            => new(Group, ConfigName, defaultValue, InternalStorageMapping, IsEditorConfigOption);
 
-        public override bool Equals(object? obj)
-            => obj is OptionDefinition key && Equals(key);
+        public override bool Equals(object? other)
+            => Equals(other as OptionDefinition);
 
-        public bool Equals(OptionDefinition other)
-            => ConfigName == other.ConfigName;
+        public bool Equals(OptionDefinition? other)
+            => ConfigName == other?.ConfigName;
 
         public override int GetHashCode()
             => ConfigName.GetHashCode();
@@ -70,10 +69,23 @@ namespace Microsoft.CodeAnalysis.Options
         public override string ToString()
             => ConfigName;
 
-        public static bool operator ==(OptionDefinition left, OptionDefinition right)
-            => left.Equals(right);
+        public static bool operator ==(OptionDefinition? left, OptionDefinition? right)
+            => ReferenceEquals(left, right) || left?.Equals(right) == true;
 
-        public static bool operator !=(OptionDefinition left, OptionDefinition right)
-            => !left.Equals(right);
+        public static bool operator !=(OptionDefinition? left, OptionDefinition? right)
+            => !(left == right);
+    }
+
+    internal sealed class OptionDefinition<T> : OptionDefinition
+    {
+        public new T DefaultValue { get; }
+
+        public OptionDefinition(OptionGroup group, string configName, T defaultValue, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
+            : base(group, configName, defaultValue, internalStorageMapping, isEditorConfigOption)
+        {
+            DefaultValue = defaultValue;
+        }
+
+        public override Type Type => typeof(T);
     }
 }
