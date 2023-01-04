@@ -2279,6 +2279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return RefKind.None; }
         }
 
-        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal override ScopedKind Scope => ScopedKind.None;
     }
 }

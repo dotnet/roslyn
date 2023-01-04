@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (declTypeWithAnnotations.HasType &&
-                        localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeWithAnnotations.Type.IsErrorTypeOrRefLikeType())
+                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorTypeOrRefLikeType())
                     {
                         diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                     }

@@ -311,8 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return (field.Scope, ParameterHelpers.IsRefScopedByDefault(useUpdatedEscapeRules, field.RefKind)) switch
                 {
-                    (DeclarationScope.Unscoped, false) => true,
-                    (DeclarationScope.RefScoped, true) => true,
+                    (ScopedKind.None, false) => true,
+                    (ScopedKind.ScopedRef, true) => true,
                     _ => false
                 };
             }
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private AnonymousTypeTemplateSymbol CreatePlaceholderTemplate(Microsoft.CodeAnalysis.Emit.AnonymousTypeKey key)
         {
-            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, typeWithAnnotations: default, refKind: RefKind.None, DeclarationScope.Unscoped));
+            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, typeWithAnnotations: default, refKind: RefKind.None, ScopedKind.None));
             var typeDescr = new AnonymousTypeDescriptor(fields, Location.None);
             return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }

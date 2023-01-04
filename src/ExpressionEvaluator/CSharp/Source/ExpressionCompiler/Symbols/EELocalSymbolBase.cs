@@ -84,6 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return result;
         }
 
-        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal override ScopedKind Scope => ScopedKind.None;
     }
 }
