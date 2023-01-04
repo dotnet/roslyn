@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -70,7 +71,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     result,
                     patternMatch,
                     _displayFactory);
-                _callback.AddItem(navigateToItem);
+
+                try
+                {
+                    _callback.AddItem(navigateToItem);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Mitigation for race condition in platform:
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1534364.
+                }
             }
 
             private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
