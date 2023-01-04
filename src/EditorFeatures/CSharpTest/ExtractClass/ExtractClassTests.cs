@@ -2609,6 +2609,45 @@ class C
             }.RunAsync();
         }
 
+        [Fact]
+        [WorkItem(55402, "https://github.com/dotnet/roslyn/issues/55402")]
+        public async Task TestMemberKeyword()
+        {
+            var code = """
+                class C
+                {
+                    $$public void M() { }
+                }
+                """;
+
+            var expected1 = """
+                class C : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal class MyBase
+                {
+                    public void M() { }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = code,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
         private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
             => memberNames.Select(m => (m, true));
 

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public static unsafe MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3? symReader,
-            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namesapace
+            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namespace
             int methodToken,
             int methodVersion,
             int ilOffset,
@@ -175,13 +175,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     // We need a receiver of type `ISymUnmanagedMethod` to call the extension `GetDocumentsForMethod()` here.
                     // We also need to ensure that the receiver implements `ISymEncUnmanagedMethod` to prevent the extension from throwing.
-                    var doc = methodInfo.GetDocumentsForMethod() switch
+                    if (methodInfo.GetDocumentsForMethod() is [var singleDocument])
                     {
-                        [var singleDocument] => singleDocument,
-                        var documents => throw ExceptionUtilities.UnexpectedValue(documents)
-                    };
-
-                    name = doc.GetName();
+                        name = singleDocument.GetName();
+                    }
                 }
 
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(

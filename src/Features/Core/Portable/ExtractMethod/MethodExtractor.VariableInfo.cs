@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
                 => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
 
+            public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
+
             public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
             {
                 var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
