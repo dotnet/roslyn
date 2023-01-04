@@ -4010,19 +4010,40 @@ public record A(int X, int Y);";
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
         }
 
-        [Fact, WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
-        public void TestDisabledByDefaultAnalyzerEnabledForSingleFile()
+        [Theory, CombinatorialData]
+        [WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
+        [WorkItem(66085, "https://github.com/dotnet/roslyn/issues/66085")]
+        public void TestDisabledByDefaultAnalyzerEnabledForSingleFile(bool treeBasedOptions)
         {
             var source1 = "class C1 { }";
             var source2 = "class C2 { }";
             var source3 = "class C3 { }";
             var analyzer = new AnalyzerWithDisabledRules();
 
-            // Enable disabled by default analyzer for first source file with analyzer config options.
             var compilation = CreateCompilation(new[] { source1, source2, source3 });
-            var tree1 = compilation.SyntaxTrees[0];
-            var options = compilation.Options.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(tree1, (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn)));
+
+            CSharpCompilationOptions options;
+            if (treeBasedOptions)
+            {
+                // Enable disabled by default analyzer for first source file with analyzer config options.
+                var tree1 = compilation.SyntaxTrees[0];
+                options = compilation.Options.WithSyntaxTreeOptionsProvider(
+                    new TestSyntaxTreeOptionsProvider(tree1, (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn)));
+            }
+            else
+            {
+                // Enable disabled by default analyzer for entire compilation with SpecificDiagnosticOptions
+                // and disable the analyzer for second and third source file with analyzer config options.
+                // So, effectively the analyzer is enabled only for first source file.
+                var tree2 = compilation.SyntaxTrees[1];
+                var tree3 = compilation.SyntaxTrees[2];
+                options = compilation.Options
+                    .WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn))
+                    .WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(
+                        (tree2, new[] { (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Suppress) }),
+                        (tree3, new[] { (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Suppress) })));
+            }
+
             compilation = compilation.WithOptions(options);
 
             // Verify single analyzer diagnostic reported in the compilation.
