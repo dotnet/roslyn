@@ -497,7 +497,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
         <source>Code snippet for '{0}'</source>
-        <target state="new">Code snippet for '{0}'</target>
+        <target state="translated">Extrait de code pour '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Comments_not_allowed">
@@ -982,7 +982,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="new">Inline temporary variable</target>
+        <target state="translated">Variable temporaire inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1302,7 +1302,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
-        <target state="new">Please resolve errors in your code before renaming this element.</target>
+        <target state="translated">Corrigez les erreurs dans votre code avant de renommer cet élément.</target>
         <note />
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
@@ -2557,7 +2557,7 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="new">Renaming anonymous type members is not yet supported.</target>
+        <target state="translated">Le changement de nom des membres de type anonyme n'est pas encore pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -3022,27 +3022,27 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
         <source>You cannot rename elements from previous submissions.</source>
-        <target state="new">You cannot rename elements from previous submissions.</target>
+        <target state="translated">Vous ne pouvez pas renommer des éléments de soumissions précédentes.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
         <source>You cannot rename elements that are defined in metadata.</source>
-        <target state="new">You cannot rename elements that are defined in metadata.</target>
+        <target state="translated">Vous ne pouvez pas renommer des éléments définis dans les métadonnées.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_operators">
         <source>You cannot rename operators.</source>
-        <target state="new">You cannot rename operators.</target>
+        <target state="translated">Vous ne pouvez pas renommer des opérateurs.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element">
         <source>You cannot rename this element.</source>
-        <target state="new">You cannot rename this element.</target>
+        <target state="translated">Vous ne pouvez pas renommer cet élément.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_rename_an_identifier">
         <source>You must rename an identifier.</source>
-        <target state="new">You must rename an identifier.</target>
+        <target state="translated">Vous devez renommer un identificateur.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -4994,7 +4994,7 @@ Le décalage est toujours affiché avec un signe de début. Le signe plus (+) in
       </trans-unit>
       <trans-unit id="while_loop">
         <source>while loop</source>
-        <target state="new">while loop</target>
+        <target state="translated">pendant la boucle</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
