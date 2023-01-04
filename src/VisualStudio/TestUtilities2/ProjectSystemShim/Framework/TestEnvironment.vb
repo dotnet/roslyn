@@ -57,7 +57,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             .AddParts(
                 GetType(FileChangeWatcherProvider),
                 GetType(MockVisualStudioWorkspace),
-                GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
                 GetType(VisualStudioProjectFactory),
                 GetType(MockVisualStudioDiagnosticAnalyzerProviderFactory),
                 GetType(MockServiceProvider),

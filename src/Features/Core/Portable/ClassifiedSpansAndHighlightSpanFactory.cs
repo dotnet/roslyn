@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.Classification
         private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document, TextSpan narrowSpan, TextSpan widenedSpan, ClassificationOptions options, CancellationToken cancellationToken)
         {
+            // We don't present things like static/assigned variables differently.  So pass `includeAdditiveSpans:
+            // false` as we don't need that data.
             var result = await ClassifierHelper.GetClassifiedSpansAsync(
-                document, widenedSpan, options, cancellationToken).ConfigureAwait(false);
+                document, widenedSpan, options, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefault)
-            {
                 return result;
-            }
 
             // For languages that don't expose a classification service, we show the entire
             // item as plain text. Break the text into three spans so that we can properly

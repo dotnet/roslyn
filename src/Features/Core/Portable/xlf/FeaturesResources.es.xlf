@@ -3463,6 +3463,11 @@ Si el especificador de formato "d" se usa sin otros especificadores de formato p
         <target state="translated">descartar</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="new">else statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">Incrustado</target>

@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 return null;
             }
 
-            [return: NotNullIfNotNull("defaultValue")]
+            [return: NotNullIfNotNull(nameof(defaultValue))]
             private string? GetStringOption(CompilerOptions optionID, string? defaultValue)
             {
                 var value = (string)_options[(int)optionID];

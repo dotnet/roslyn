@@ -8,37 +8,39 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [ExportWorkspaceService(typeof(ILspHoverResultCreationService), ServiceLayer.Editor), Shared]
     internal sealed class EditorLspHoverResultCreationService : ILspHoverResultCreationService
     {
-        private readonly IGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorLspHoverResultCreationService(IGlobalOptionService optionService)
+        public EditorLspHoverResultCreationService(IGlobalOptionService globalOptions)
         {
-            _optionService = optionService;
+            _globalOptions = globalOptions;
         }
 
         public async Task<Hover> CreateHoverAsync(
-            SourceText text, string language, QuickInfoItem info, Document? document, ClientCapabilities? clientCapabilities, CancellationToken cancellationToken)
+            Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
 
             if (!supportsVSExtensions)
-                return DefaultLspHoverResultCreationService.CreateDefaultHover(text, language, info, clientCapabilities);
+                return await DefaultLspHoverResultCreationService.CreateDefaultHoverAsync(document, info, clientCapabilities, cancellationToken).ConfigureAwait(false);
 
-            var classificationOptions = _optionService.GetClassificationOptions(language);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var language = document.Project.Language;
+
+            var classificationOptions = _globalOptions.GetClassificationOptions(language);
 
             // We can pass null for all these parameter values as they're only needed for quick-info content navigation
             // and we explicitly calling BuildContentWithoutNavigationActionsAsync.
@@ -47,10 +49,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 : new IntellisenseQuickInfoBuilderContext(
                     document,
                     classificationOptions,
+                    await document.GetLineFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false),
                     threadingContext: null,
                     operationExecutor: null,
                     asynchronousOperationListener: null,
                     streamingPresenter: null);
+
             return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),

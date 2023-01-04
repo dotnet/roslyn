@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     [Order(After = nameof(BlockCommentEditingCommandHandler))]
     internal sealed class CloseBlockCommentCommandHandler : ICommandHandler<TypeCharCommandArgs>
     {
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CloseBlockCommentCommandHandler(IGlobalOptionService globalOptions)
+        public CloseBlockCommentCommandHandler(EditorOptionsService editorOptionsService)
         {
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                         if (line.End == position &&
                             line.IsEmptyOrWhitespace(0, line.Length - 2))
                         {
-                            if (_globalOptions.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp) &&
-                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, out _, out _))
+                            if (_editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp) &&
+                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, args.SubjectBuffer, _editorOptionsService, out _, out _, executionContext.OperationContext.UserCancellationToken))
                             {
                                 args.SubjectBuffer.Replace(new VisualStudio.Text.Span(position - 1, 1), "/");
                                 return true;

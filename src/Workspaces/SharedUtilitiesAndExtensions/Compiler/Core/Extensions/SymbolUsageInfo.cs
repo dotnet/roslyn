@@ -68,6 +68,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override int GetHashCode()
-            => Hash.Combine(ValueUsageInfoOpt?.GetHashCode() ?? 0, TypeOrNamespaceUsageInfoOpt?.GetHashCode() ?? 0);
+            => Hash.Combine(((int?)ValueUsageInfoOpt)?.GetHashCode() ?? 0, ((int?)TypeOrNamespaceUsageInfoOpt)?.GetHashCode() ?? 0);
     }
 }

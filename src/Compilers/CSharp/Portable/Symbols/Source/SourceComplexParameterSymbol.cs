@@ -259,6 +259,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!_lazyDefaultSyntaxValue.IsBad)
                         {
                             VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
+
+                            // Ensure availability of `DecimalConstantAttribute`.
+                            if (_lazyDefaultSyntaxValue.IsDecimal &&
+                                DefaultValueFromAttributes == ConstantValue.NotAvailable)
+                            {
+                                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                                    diagnostics,
+                                    parameterEqualsValue.Value.Syntax.Location);
+                            }
                         }
                     }
 

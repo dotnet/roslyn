@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -21,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable)]
     [Shared]
-    internal class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
+    internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly Func<DirectiveTriviaSyntax, bool> s_isNullableDirectiveTriviaPredicate =
             directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia);
 
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public EnableNullableCodeRefactoringProvider()
         {
         }
@@ -38,11 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             if (!textSpan.IsEmpty)
                 return;
 
-            if (document.Project is not
-                {
-                    ParseOptions: CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 },
-                    CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
-                })
+            if (!ShouldOfferRefactoring(document.Project))
             {
                 return;
             }
@@ -61,6 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             context.RegisterRefactoring(
                 new CustomCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, context.Options, cancellationToken)));
         }
+
+        private static bool ShouldOfferRefactoring(Project project)
+            => project is
+            {
+                ParseOptions: CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 },
+                CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
+            };
 
         private static async Task<Solution> EnableNullableReferenceTypesAsync(Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {

@@ -526,6 +526,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeOrAliasSymbolWithAnnotations bindNullable()
             {
                 var nullableSyntax = (NullableTypeSyntax)syntax;
+                MessageID.IDS_FeatureNullable.CheckFeatureAvailability(diagnostics, nullableSyntax, nullableSyntax.QuestionToken.GetLocation());
+
                 TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
                 TypeWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
                 TypeWithAnnotations constructedType = typeArgument.SetIsAnnotated(Compilation);
@@ -561,9 +563,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeOrAliasSymbolWithAnnotations bindAlias()
             {
                 var node = (AliasQualifiedNameSyntax)syntax;
+                MessageID.IDS_FeatureGlobalNamespace.CheckFeatureAvailability(diagnostics, node.Alias);
+
                 var bindingResult = BindNamespaceAliasSymbol(node.Alias, diagnostics);
-                var alias = bindingResult as AliasSymbol;
-                NamespaceOrTypeSymbol left = (alias is object) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
+                NamespaceOrTypeSymbol left = bindingResult is AliasSymbol alias ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
 
                 if (left.Kind == SymbolKind.NamedType)
                 {
@@ -661,6 +664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol BindTupleType(TupleTypeSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
+            MessageID.IDS_FeatureTuples.CheckFeatureAvailability(diagnostics, syntax);
+
             int numElements = syntax.Elements.Count;
             var types = ArrayBuilder<TypeWithAnnotations>.GetInstance(numElements);
             var locations = ArrayBuilder<Location>.GetInstance(numElements);

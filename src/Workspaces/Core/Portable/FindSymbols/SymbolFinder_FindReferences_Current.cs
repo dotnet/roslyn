@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -70,6 +69,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var engine = new FindReferencesSearchEngine(
                 solution, documents, finders, progress, options);
             return engine.FindReferencesAsync(symbol, cancellationToken);
+        }
+
+        internal static Task FindReferencesInDocumentsInCurrentProcessAsync(
+            ISymbol symbol,
+            Solution solution,
+            IStreamingFindReferencesProgress progress,
+            IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
+        {
+            // For finding in a document, we only support unidirectional cascading.  This allows us to not have to look
+            // beyond these documents (and the symbols we find in it) to know if those symbols have an appropriate
+            // inheritance relationship with the starting symbol.
+            options = options with { UnidirectionalHierarchyCascade = true };
+
+            var finders = ReferenceFinders.DefaultReferenceFinders;
+            var engine = new FindReferencesSearchEngine(
+                solution, documents, finders, progress, options);
+            return engine.FindReferencesInDocumentsAsync(symbol, documents, cancellationToken);
         }
     }
 }

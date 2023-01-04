@@ -103,8 +103,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 Assert.Equal(2, diagnostics.Length)
             End Using
@@ -141,8 +141,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 ' error CS0246: The type or namespace name 'M' could not be found
                 AssertEx.Equal({"CS0246"}, diagnostics.Select(Function(d) d.Id))
@@ -180,8 +180,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 ' error CS1002: ; expected
                 ' error CS0246: The type or namespace name 'M' could not be found
@@ -222,8 +222,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 AssertEx.Empty(diagnostics)
             End Using
@@ -325,8 +325,8 @@ End Class
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 Assert.Single(diagnostics)
             End Using

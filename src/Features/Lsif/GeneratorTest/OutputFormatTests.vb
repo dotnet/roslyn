@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition), jsonWriter)
 
             AssertEx.EqualOrDiff(
-"{""hoverProvider"":true,""declarationProvider"":false,""definitionProvider"":true,""referencesProvider"":true,""typeDefinitionProvider"":false,""documentSymbolProvider"":false,""foldingRangeProvider"":true,""diagnosticProvider"":false,""id"":1,""type"":""vertex"",""label"":""capabilities""}
+"{""hoverProvider"":true,""declarationProvider"":false,""definitionProvider"":true,""referencesProvider"":true,""typeDefinitionProvider"":false,""documentSymbolProvider"":false,""foldingRangeProvider"":true,""diagnosticProvider"":false,""semanticTokensProvider"":{""tokenTypes"":[""namespace"",""type"",""class"",""enum"",""interface"",""struct"",""typeParameter"",""parameter"",""variable"",""property"",""enumMember"",""event"",""function"",""method"",""macro"",""keyword"",""modifier"",""comment"",""string"",""number"",""regexp"",""operator"",""class name"",""constant name"",""delegate name"",""enum member name"",""enum name"",""event name"",""excluded code"",""extension method name"",""field name"",""interface name"",""json - array"",""json - comment"",""json - constructor name"",""json - keyword"",""json - number"",""json - object"",""json - operator"",""json - property name"",""json - punctuation"",""json - string"",""json - text"",""keyword - control"",""label name"",""local name"",""method name"",""module name"",""namespace name"",""operator - overloaded"",""parameter name"",""preprocessor keyword"",""preprocessor text"",""property name"",""punctuation"",""record class name"",""record struct name"",""regex - alternation"",""regex - anchor"",""regex - character class"",""regex - comment"",""regex - grouping"",""regex - other escape"",""regex - quantifier"",""regex - self escaped character"",""regex - text"",""string - escape character"",""string - verbatim"",""struct name"",""text"",""type parameter name"",""whitespace"",""xml doc comment - attribute name"",""xml doc comment - attribute quotes"",""xml doc comment - attribute value"",""xml doc comment - cdata section"",""xml doc comment - comment"",""xml doc comment - delimiter"",""xml doc comment - entity reference"",""xml doc comment - name"",""xml doc comment - processing instruction"",""xml doc comment - text"",""xml literal - attribute name"",""xml literal - attribute quotes"",""xml literal - attribute value"",""xml literal - cdata section"",""xml literal - comment"",""xml literal - delimiter"",""xml literal - embedded expression"",""xml literal - entity reference"",""xml literal - name"",""xml literal - processing instruction"",""xml literal - text""],""tokenModifiers"":[""static""]},""id"":1,""type"":""vertex"",""label"":""capabilities""}
 {""kind"":""csharp"",""resource"":""file:///Z:/TestProject.csproj"",""name"":""TestProject"",""id"":2,""type"":""vertex"",""label"":""project""}
 {""kind"":""begin"",""scope"":""project"",""data"":2,""id"":3,""type"":""vertex"",""label"":""$event""}
 {""uri"":""file:///Z:/A.cs"",""languageId"":""csharp"",""id"":4,""type"":""vertex"",""label"":""document""}
@@ -33,9 +33,11 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 {""outV"":4,""inVs"":[],""id"":6,""type"":""edge"",""label"":""contains""}
 {""result"":[],""id"":7,""type"":""vertex"",""label"":""foldingRangeResult""}
 {""outV"":4,""inV"":7,""id"":8,""type"":""edge"",""label"":""textDocument/foldingRange""}
-{""kind"":""end"",""scope"":""document"",""data"":4,""id"":9,""type"":""vertex"",""label"":""$event""}
-{""outV"":2,""inVs"":[4],""id"":10,""type"":""edge"",""label"":""contains""}
-{""kind"":""end"",""scope"":""project"",""data"":2,""id"":11,""type"":""vertex"",""label"":""$event""}
+{""result"":{""data"":[]},""id"":9,""type"":""vertex"",""label"":""semanticTokensResult""}
+{""outV"":4,""inV"":9,""id"":10,""type"":""edge"",""label"":""textDocument/semanticTokens/full""}
+{""kind"":""end"",""scope"":""document"",""data"":4,""id"":11,""type"":""vertex"",""label"":""$event""}
+{""outV"":2,""inVs"":[4],""id"":12,""type"":""edge"",""label"":""contains""}
+{""kind"":""end"",""scope"":""project"",""data"":2,""id"":13,""type"":""vertex"",""label"":""$event""}
 ", stringWriter.ToString())
         End Function
 
@@ -64,6 +66,106 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""documentSymbolProvider"": false,
     ""foldingRangeProvider"": true,
     ""diagnosticProvider"": false,
+    ""semanticTokensProvider"": {
+      ""tokenTypes"": [
+        ""namespace"",
+        ""type"",
+        ""class"",
+        ""enum"",
+        ""interface"",
+        ""struct"",
+        ""typeParameter"",
+        ""parameter"",
+        ""variable"",
+        ""property"",
+        ""enumMember"",
+        ""event"",
+        ""function"",
+        ""method"",
+        ""macro"",
+        ""keyword"",
+        ""modifier"",
+        ""comment"",
+        ""string"",
+        ""number"",
+        ""regexp"",
+        ""operator"",
+        ""class name"",
+        ""constant name"",
+        ""delegate name"",
+        ""enum member name"",
+        ""enum name"",
+        ""event name"",
+        ""excluded code"",
+        ""extension method name"",
+        ""field name"",
+        ""interface name"",
+        ""json - array"",
+        ""json - comment"",
+        ""json - constructor name"",
+        ""json - keyword"",
+        ""json - number"",
+        ""json - object"",
+        ""json - operator"",
+        ""json - property name"",
+        ""json - punctuation"",
+        ""json - string"",
+        ""json - text"",
+        ""keyword - control"",
+        ""label name"",
+        ""local name"",
+        ""method name"",
+        ""module name"",
+        ""namespace name"",
+        ""operator - overloaded"",
+        ""parameter name"",
+        ""preprocessor keyword"",
+        ""preprocessor text"",
+        ""property name"",
+        ""punctuation"",
+        ""record class name"",
+        ""record struct name"",
+        ""regex - alternation"",
+        ""regex - anchor"",
+        ""regex - character class"",
+        ""regex - comment"",
+        ""regex - grouping"",
+        ""regex - other escape"",
+        ""regex - quantifier"",
+        ""regex - self escaped character"",
+        ""regex - text"",
+        ""string - escape character"",
+        ""string - verbatim"",
+        ""struct name"",
+        ""text"",
+        ""type parameter name"",
+        ""whitespace"",
+        ""xml doc comment - attribute name"",
+        ""xml doc comment - attribute quotes"",
+        ""xml doc comment - attribute value"",
+        ""xml doc comment - cdata section"",
+        ""xml doc comment - comment"",
+        ""xml doc comment - delimiter"",
+        ""xml doc comment - entity reference"",
+        ""xml doc comment - name"",
+        ""xml doc comment - processing instruction"",
+        ""xml doc comment - text"",
+        ""xml literal - attribute name"",
+        ""xml literal - attribute quotes"",
+        ""xml literal - attribute value"",
+        ""xml literal - cdata section"",
+        ""xml literal - comment"",
+        ""xml literal - delimiter"",
+        ""xml literal - embedded expression"",
+        ""xml literal - entity reference"",
+        ""xml literal - name"",
+        ""xml literal - processing instruction"",
+        ""xml literal - text""
+      ],
+      ""tokenModifiers"": [
+        ""static""
+      ]
+    },
     ""id"": 1,
     ""type"": ""vertex"",
     ""label"": ""capabilities""
@@ -120,10 +222,25 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""label"": ""textDocument/foldingRange""
   },
   {
+    ""result"": {
+      ""data"": []
+    },
+    ""id"": 9,
+    ""type"": ""vertex"",
+    ""label"": ""semanticTokensResult""
+  },
+  {
+    ""outV"": 4,
+    ""inV"": 9,
+    ""id"": 10,
+    ""type"": ""edge"",
+    ""label"": ""textDocument/semanticTokens/full""
+  },
+  {
     ""kind"": ""end"",
     ""scope"": ""document"",
     ""data"": 4,
-    ""id"": 9,
+    ""id"": 11,
     ""type"": ""vertex"",
     ""label"": ""$event""
   },
@@ -132,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""inVs"": [
       4
     ],
-    ""id"": 10,
+    ""id"": 12,
     ""type"": ""edge"",
     ""label"": ""contains""
   },
@@ -140,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""kind"": ""end"",
     ""scope"": ""project"",
     ""data"": 2,
-    ""id"": 11,
+    ""id"": 13,
     ""type"": ""vertex"",
     ""label"": ""$event""
   }
