@@ -239,5 +239,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? ListOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
+
+        public static INamedTypeSymbol? RequiredMemberAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(RequiredMemberAttribute).FullName!);
     }
 }

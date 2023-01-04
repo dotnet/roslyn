@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MakeLocalFunctionStatic = nameof(MakeLocalFunctionStatic);
         public const string MakeMemberStatic = nameof(MakeMemberStatic);
         public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
+        public const string MakePropertyRequired = nameof(MakePropertyRequired);
         public const string MakeRefStruct = nameof(MakeRefStruct);
         public const string MakeStatementAsynchronous = nameof(MakeStatementAsynchronous);
         public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);

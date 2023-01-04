@@ -187,4 +187,7 @@
   <data name="Place_token_on_following_line" xml:space="preserve">
     <value>Place token on following line</value>
   </data>
+  <data name="Make_property_required" xml:space="preserve">
+    <value>Make property required</value>
+  </data>
 </root>

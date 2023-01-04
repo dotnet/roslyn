@@ -67,6 +67,11 @@
         <target state="translated">Masquer le membre de base</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_property_required">
+        <source>Make property required</source>
+        <target state="new">Make property required</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">Passer les variables capturées en tant qu'arguments</target>
