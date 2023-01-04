@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        var parameterType = expanded && parameter.IsParams && parameter.Type is ArrayTypeSymbol arrayType && arrayType.IsSZArray ? arrayType.ElementType : parameter.Type;
+                        var parameterType = (expanded && parameter is { IsParams: true, Type: ArrayTypeSymbol { IsSZArray: true } arrayType }) ? arrayType.ElementType : parameter.Type;
 
                         // An enum constant as an object attribute argument triggers serialization of the enum's type.
                         // This would fail for enums nested in a type referencing a function pointer, because
