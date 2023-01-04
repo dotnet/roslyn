@@ -15,10 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             BoundDecisionDag decisionDag = node.GetDecisionDagForLowering(_factory.Compilation);
+            bool negated = node.IsNegated;
             BoundExpression result;
-            if (decisionDag.RootNode is BoundLeafDecisionDagNode l && l.Label == node.WhenFalseLabel)
+            if (IsFailureNode(decisionDag.RootNode, node.WhenFalseLabel))
             {
-                result = _factory.Literal(false);
+                // If the given pattern always fails due to a constant input (see comments on BoundDecisionDag.SimplifyDecisionDagIfConstantInput),
+                // we build a linear test sequence with the whenTrue and whenFalse labels swapped and then negate the result, to keep the result a constant.
+                // Note that the positive case will be handled by canProduceLinearSequence below, however, we avoid to produce a full inverted linear sequence here
+                // because we may be able to generate better code for a sequence of `or` patterns, using a switch dispatch, for example, which is done in the general rewriter.
+                negated = !negated;
+                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
+                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
+                isPatternRewriter.Free();
             }
             else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
             {
@@ -35,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isPatternRewriter.Free();
             }
 
-            if (node.IsNegated)
+            if (negated)
             {
                 result = this._factory.Not(result);
             }
