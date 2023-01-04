@@ -116,12 +116,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             private async Task UnregisterAsync(Workspace workspace)
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
-                Contract.ThrowIfNull(_analyzeTask);
+
+                var analyzeTask = _analyzeTask;
+                if (analyzeTask != null)
+                {
+                    // wait for analyzer work to be finished
+                    await analyzeTask.ConfigureAwait(false);
+                }
 
                 _source.Cancel();
-
-                // wait for analyzer work to be finished
-                await _analyzeTask.ConfigureAwait(false);
+                _source.Dispose();
 
                 // ask it to reset its stages for the given workspace
                 _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
