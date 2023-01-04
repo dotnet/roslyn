@@ -464,6 +464,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\Utf16Utility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IExpeditableDelaySource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\TaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
@@ -542,7 +543,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TaskFactoryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TopologicalSorter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\ValueSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedRecoverableValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEventHandler.cs" />
   </ItemGroup>
   <ItemGroup>

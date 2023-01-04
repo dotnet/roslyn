@@ -1370,6 +1370,23 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
         }
 
+        public SolutionState WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        {
+            var oldDocument = GetRequiredDocumentState(documentId);
+            if (oldDocument == documentState)
+                return this;
+
+            if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
+                oldDocument.TreeSource == documentState.TreeSource)
+            {
+                return this;
+            }
+
+            return UpdateDocumentState(
+                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource),
+                contentChanged: true);
+        }
+
         private static async Task<Compilation> UpdateDocumentInCompilationAsync(
             Compilation compilation,
             DocumentState oldDocument,

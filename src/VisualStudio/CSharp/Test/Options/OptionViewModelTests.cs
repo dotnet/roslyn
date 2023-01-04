@@ -75,7 +75,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         public void TestOptionLoading()
         {
             using var workspace = TestWorkspace.CreateCSharp("");
-            var optionSet = workspace.Options.WithChangedOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, true);
+            var optionSet = workspace.Options.WithChangedOption(new OptionKey(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName), true);
             var optionStore = new OptionStore(optionSet);
 
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);

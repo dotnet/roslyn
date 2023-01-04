@@ -17,9 +17,13 @@ namespace Microsoft.CodeAnalysis.Options;
 internal abstract class ClientSettingsStorageLocation : OptionStorageLocation2
 {
     private readonly Func<string?, string> _keyNameFromLanguageName;
+    public string? KeyName { get; }
 
     public ClientSettingsStorageLocation(string keyName)
-        => _keyNameFromLanguageName = _ => keyName;
+    {
+        _keyNameFromLanguageName = _ => keyName;
+        KeyName = keyName;
+    }
 
     /// <summary>
     /// Creates a <see cref="ClientSettingsStorageLocation"/> that has different key names for different languages.

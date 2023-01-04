@@ -45,12 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // Some projects like web projects give us just a filename; those aren't really useful (they're just filler) so we'll ignore them for purposes of tracking the path
             if (PathUtilities.IsAbsolute(filename))
             {
-                VisualStudioProject.CompilationOutputAssemblyFilePath = filename;
+                ProjectSystemProject.CompilationOutputAssemblyFilePath = filename;
             }
 
             if (filename != null)
             {
-                VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(filename);
+                ProjectSystemProject.AssemblyName = Path.GetFileNameWithoutExtension(filename);
             }
 
             RefreshBinOutputPath();
