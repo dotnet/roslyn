@@ -37,7 +37,7 @@ public class LspOptionsTests : AbstractLanguageServerProtocolTests
         var markup = "";
         await using var testLspServer = await CreateTestLspServerAsync(markup);
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-        var project = testLspServer.GetCurrentSolution().Projects.Single().LanguageServices.LanguageServices;
+        var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
         Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project));
         Assert.NotNull(globalOptions.GetCodeGenerationOptions(project));
         Assert.NotNull(globalOptions.GetCodeStyleOptions(project));
