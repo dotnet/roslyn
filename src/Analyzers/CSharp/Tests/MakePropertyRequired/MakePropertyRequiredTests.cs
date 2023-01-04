@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakePropertyRequired
         }
 
         [Fact]
-        public async Task NotWhenNoRequiredAttributeInMetadata()
+        public async Task NotIfNoRequiredAttributeInMetadata()
         {
             var code = """
                 #nullable enable
