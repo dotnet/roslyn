@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakePropertyRequired
         EmptyDiagnosticAnalyzer,
         CSharpMakePropertyRequiredCodeFixProvider>;
 
-    [Trait(Traits.Feature, Traits.Features.CodeActiosMakePropertyRequired)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakePropertyRequired)]
     public sealed class MakePropertyRequiredTests
     {
         [Fact]
