@@ -514,6 +514,15 @@
   <data name="DefineDiagnosticDescriptionCorrectlyTitle" xml:space="preserve">
     <value>Define diagnostic description correctly</value>
   </data>
+  <data name="AddCompilationEndCustomTagDescription" xml:space="preserve">
+    <value>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</value>
+  </data>
+  <data name="AddCompilationEndCustomTagMessage" xml:space="preserve">
+    <value>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</value>
+  </data>
+  <data name="AddCompilationEndCustomTagTitle" xml:space="preserve">
+    <value>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</value>
+  </data>
   <data name="CompareSymbolsCorrectlyDescriptionGetHashCode" xml:space="preserve">
     <value>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</value>
   </data>
