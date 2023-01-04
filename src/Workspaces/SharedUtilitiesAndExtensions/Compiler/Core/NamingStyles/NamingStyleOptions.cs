@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption2<NamingStylePreferences>(
             "SimplificationOptions_NamingPreferences",
-            defaultValue: NamingStylePreferences.Default)
-            .WithPublicOption("SimplificationOptions", "NamingPreferences");
+            defaultValue: NamingStylePreferences.Default);
     }
 
     internal interface NamingStylePreferencesProvider
