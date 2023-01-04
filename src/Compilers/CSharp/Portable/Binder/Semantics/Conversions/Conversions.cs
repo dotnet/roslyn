@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -33,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         protected override CSharpCompilation Compilation { get { return _binder.Compilation; } }
-#nullable disable
 
         protected override ConversionsBase WithNullabilityCore(bool includeNullability)
         {
@@ -57,6 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
 
+            // If synthesizing a delegate, check that necessary attributes are available.
+            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod { Parameters: var synthesizedParameters })
+            {
+                if (synthesizedParameters is [.., { IsParams: true }])
+                {
+                    checkWellKnownMemberAvailable(WellKnownMember.System_ParamArrayAttribute__ctor, ref useSiteInfo);
+                }
+                if (synthesizedParameters.Any(p => p.HasUnscopedRefAttribute))
+                {
+                    checkWellKnownMemberAvailable(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor, ref useSiteInfo);
+                }
+            }
+
             // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
             if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod { Parameters: [.., { IsParams: true }] })
             {
@@ -72,7 +85,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol.ParameterCount);
             resolution.Free();
             return conversion;
+
+            void checkWellKnownMemberAvailable(WellKnownMember member, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Binder.GetWellKnownTypeMember(Compilation,
+                    member,
+                    out var memberUseSiteInfo);
+                useSiteInfo.Add(memberUseSiteInfo);
+            }
         }
+#nullable disable
 
         public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
