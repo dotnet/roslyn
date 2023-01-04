@@ -433,6 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 // public int Prop { get; }; <-- this produces a syntax error, but the semicolon is still attached to the property
                 // In such cases we need to have 2 line breaks in order to have proper separation between members of a class, struct etc.
                 // Note: case, when the property is the last member and needs only 1 line break after it is handled above (the next token is a closing brace then)
+                Debug.Assert(((PropertyDeclarationSyntax)currentToken.Parent).SemicolonToken == currentToken);
                 return 2;
             }
             else
