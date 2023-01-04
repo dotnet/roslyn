@@ -117,18 +117,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
 
-                var analyzeTask = _analyzeTask;
-                if (analyzeTask != null)
-                {
-                    // wait for analyzer work to be finished
-                    await analyzeTask.ConfigureAwait(false);
-                }
-
                 _source.Cancel();
-                _source.Dispose();
 
-                // ask it to reset its stages for the given workspace
-                _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
+                try
+                {
+                    var analyzeTask = _analyzeTask;
+                    if (analyzeTask != null)
+                    {
+                        // wait for analyzer work to be finished
+                        await analyzeTask.ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    _source.Dispose();
+
+                    // ask it to reset its stages for the given workspace
+                    _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
+                }
             }
 
             public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
