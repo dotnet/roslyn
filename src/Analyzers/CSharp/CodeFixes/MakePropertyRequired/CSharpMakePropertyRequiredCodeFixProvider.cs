@@ -37,8 +37,12 @@ internal sealed class CSharpMakePropertyRequiredCodeFixProvider : SyntaxEditorBa
         var span = context.Span;
         var cancellationToken = context.CancellationToken;
 
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        // Required members are available in C# 11 or higher
+        if (root.GetLanguageVersion() < LanguageVersion.CSharp11)
+            return;
+
         var node = root.FindNode(span);
 
         if (node is not PropertyDeclarationSyntax propertyDeclaration)
@@ -47,13 +51,9 @@ internal sealed class CSharpMakePropertyRequiredCodeFixProvider : SyntaxEditorBa
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var compilation = semanticModel.Compilation;
 
-        // 1. Required members are available in C# 11 or higher
-        // 2. `RequiredMember` attribute must be present in the metadata in order to emit required members
-        if (compilation.LanguageVersion() < LanguageVersion.CSharp11 ||
-            compilation.RequiredMemberAttributeType() is null)
-        {
+        // `RequiredMember` attribute must be present in the metadata in order to emit required members
+        if (compilation.RequiredMemberAttributeType() is null)
             return;
-        }
 
         var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
 
