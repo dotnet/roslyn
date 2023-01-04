@@ -1702,6 +1702,124 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   } = 1;
                 }
                 """);
+
+            // line breaks between property and other member
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;}public int f;}", """
+                class A
+                {
+                  public string Prop { get; }
+
+                  public int f;
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;}="xyz";public int f;}""", """
+                class A
+                {
+                  public string Prop { get; } = "xyz";
+
+                  public int f;
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;set;}public int f;}", """
+                class A
+                {
+                  public string Prop { get; set; }
+
+                  public int f;
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;set;}="xyz";public int f;}""", """
+                class A
+                {
+                  public string Prop { get; set; } = "xyz";
+
+                  public int f;
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;}public int Prop2{get;set;}}", """
+                class A
+                {
+                  public string Prop { get; }
+
+                  public int Prop2 { get; set; }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;}="xyz";public int Prop2{get;set;}}""", """
+                class A
+                {
+                  public string Prop { get; } = "xyz";
+
+                  public int Prop2 { get; set; }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;set;}public int Prop2{get;set;}}", """
+                class A
+                {
+                  public string Prop { get; set; }
+
+                  public int Prop2 { get; set; }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;set;}="xyz";public int Prop2{get;set;}}""", """
+                class A
+                {
+                  public string Prop { get; set; } = "xyz";
+
+                  public int Prop2 { get; set; }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;}public A(){}}", """
+                class A
+                {
+                  public string Prop { get; }
+
+                  public A()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;}="xyz";public A(){}}""", """
+                class A
+                {
+                  public string Prop { get; } = "xyz";
+
+                  public A()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;set;}public A(){}}", """
+                class A
+                {
+                  public string Prop { get; set; }
+
+                  public A()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;set;}="xyz";public A(){}}""", """
+                class A
+                {
+                  public string Prop { get; set; } = "xyz";
+
+                  public A()
+                  {
+                  }
+                }
+                """);
             TestNormalizeDeclaration(
                 "class A{public string Prop{get;}public void M(){}}", """
                 class A
@@ -1722,6 +1840,144 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   public void M()
                   {
                   }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;set;}public void M(){}}", """
+                class A
+                {
+                  public string Prop { get; set; }
+
+                  public void M()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;set;}="xyz";public void M(){}}""", """
+                class A
+                {
+                  public string Prop { get; set; } = "xyz";
+
+                  public void M()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;}public event EventHandler E;}", """
+                class A
+                {
+                  public string Prop { get; }
+
+                  public event EventHandler E;
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;}="xyz";public event EventHandler E;}""", """
+                class A
+                {
+                  public string Prop { get; } = "xyz";
+
+                  public event EventHandler E;
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;set;}public event EventHandler E;}", """
+                class A
+                {
+                  public string Prop { get; set; }
+
+                  public event EventHandler E;
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;set;}="xyz";public event EventHandler E;}""", """
+                class A
+                {
+                  public string Prop { get; set; } = "xyz";
+
+                  public event EventHandler E;
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;}public class Nested{}}", """
+                class A
+                {
+                  public string Prop { get; }
+
+                  public class Nested
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;}="xyz";public class Nested{}}""", """
+                class A
+                {
+                  public string Prop { get; } = "xyz";
+
+                  public class Nested
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;set;}public class Nested{}}", """
+                class A
+                {
+                  public string Prop { get; set; }
+
+                  public class Nested
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;set;}="xyz";public class Nested{}}""", """
+                class A
+                {
+                  public string Prop { get; set; } = "xyz";
+
+                  public class Nested
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;}public delegate int D();}", """
+                class A
+                {
+                  public string Prop { get; }
+
+                  public delegate int D();
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;}="xyz";public delegate int D();}""", """
+                class A
+                {
+                  public string Prop { get; } = "xyz";
+
+                  public delegate int D();
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get;set;}public delegate int D();}", """
+                class A
+                {
+                  public string Prop { get; set; }
+
+                  public delegate int D();
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;set;}="xyz";public delegate int D();}""", """
+                class A
+                {
+                  public string Prop { get; set; } = "xyz";
+
+                  public delegate int D();
                 }
                 """);
 
