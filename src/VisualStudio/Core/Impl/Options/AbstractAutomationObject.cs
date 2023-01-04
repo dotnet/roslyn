@@ -18,18 +18,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             => (_workspace, _languageName) = (workspace, languageName);
 
         private protected T GetOption<T>(PerLanguageOption2<T> key)
-            => _workspace.Options.GetOption(key, _languageName);
+            => (T)_workspace.Options.GetOption(new OptionKey(key, _languageName))!;
 
         private protected void SetOption<T>(PerLanguageOption2<T> key, T value)
             => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(key, _languageName, value)));
 
         private protected T GetOption<T>(Option2<T> key)
-            => _workspace.Options.GetOption(key);
+            => (T)_workspace.Options.GetOption(new OptionKey(key))!;
 
         private protected void SetOption<T>(Option2<T> key, T value)
             => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(key, value)));
+                .WithChangedOption(new OptionKey(key), value)));
 
         private protected int GetBooleanOption(PerLanguageOption2<bool?> key)
             => NullableBooleanToInteger(GetOption(key));

@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        bool IOptionPersister.TryFetch(OptionKey optionKey, out object? value)
+        bool IOptionPersister.TryFetch(OptionKey2 optionKey, out object? value)
         {
             if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
             {
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return false;
         }
 
-        bool IOptionPersister.TryPersist(OptionKey optionKey, object? value)
+        bool IOptionPersister.TryPersist(OptionKey2 optionKey, object? value)
         {
             if (_registryKey == null)
             {

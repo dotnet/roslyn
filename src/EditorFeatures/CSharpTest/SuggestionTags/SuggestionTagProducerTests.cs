@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
             string content, bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp(content);
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptions.PullDiagnosticTagging, pull);
 
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>()
             {
