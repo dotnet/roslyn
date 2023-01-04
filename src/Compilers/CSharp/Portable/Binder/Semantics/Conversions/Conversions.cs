@@ -70,15 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
-            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod { Parameters: [.., { IsParams: true }] })
-            {
-                Binder.GetWellKnownTypeMember(Compilation,
-                    WellKnownMember.System_ParamArrayAttribute__ctor,
-                    out var memberUseSiteInfo);
-                useSiteInfo.Add(memberUseSiteInfo);
-            }
-
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
