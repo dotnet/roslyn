@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
@@ -11352,9 +11351,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 static BitVector createBitVectorWithNotNulls(int capacity, bool reachable)
                 {
-                    if (capacity < 1)
-                        capacity = 1;
-
                     BitVector state = BitVector.Create(capacity * 2);
                     state[0] = reachable;
 
@@ -11424,7 +11420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasValue(ref this, slot))
                     Normalize(walker, variables, useNotNullsAsDefault);
 
-                bool hasValue(ref LocalState state, int slot)
+                static bool hasValue(ref LocalState state, int slot)
                 {
                     if (slot <= 0)
                     {
@@ -11434,7 +11430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return hasValueCore(ref state, id, index);
                 }
 
-                bool hasValueCore(ref LocalState state, int id, int index)
+                static bool hasValueCore(ref LocalState state, int id, int index)
                 {
                     if (state.Id != id)
                     {
