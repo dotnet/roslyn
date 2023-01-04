@@ -5,6 +5,8 @@
 // Copied from:
 // https://github.com/dotnet/runtime/blob/218ef0f7776c2c20f6c594e3475b80f1fe2d7d08/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/IsExternalInit.cs
 
+#if !NET6_0_OR_GREATER
+
 using System.ComponentModel;
 
 namespace System.Runtime.CompilerServices
@@ -18,3 +20,5 @@ namespace System.Runtime.CompilerServices
     {
     }
 }
+
+#endif

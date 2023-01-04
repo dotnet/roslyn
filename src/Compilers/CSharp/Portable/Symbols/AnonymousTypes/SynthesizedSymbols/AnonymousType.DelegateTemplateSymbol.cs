@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly ImmutableArray<Symbol> _members;
 
             /// <summary>
-            /// True if any of the delegate parameter types or return type are
-            /// fixed types rather than type parameters.
+            /// True if name of the delegate is indexed by source order (&lt;&gt;f__AnonymousDelegate0, 1, ...)
+            /// instead of being fully determined by signature of the delegate (&lt;&gt;A, &lt;&gt;F).
             /// </summary>
-            internal readonly bool HasFixedTypes;
+            internal readonly bool HasIndexedName;
 
             /// <summary>
             /// A delegate type where the parameter types and return type
@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(refKinds.IsNull || parameterCount == refKinds.Capacity - (voidReturnTypeOpt is { } ? 0 : 1));
 
-                HasFixedTypes = false;
-                TypeParameters = createTypeParameters(this, parameterCount, returnsVoid: voidReturnTypeOpt is { });
+                HasIndexedName = false;
+                TypeParameters = CreateTypeParameters(this, parameterCount, returnsVoid: voidReturnTypeOpt is { });
                 NameAndIndex = new NameAndIndex(name, index: 0);
 
                 var constructor = new SynthesizedDelegateConstructor(this, objectType, intPtrType);
@@ -67,21 +67,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameters.Free();
                     return method;
                 }
+            }
 
-                static ImmutableArray<TypeParameterSymbol> createTypeParameters(AnonymousDelegateTemplateSymbol containingType, int parameterCount, bool returnsVoid)
+            private static ImmutableArray<TypeParameterSymbol> CreateTypeParameters(AnonymousDelegateTemplateSymbol containingType, int parameterCount, bool returnsVoid)
+            {
+                var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(parameterCount + (returnsVoid ? 0 : 1));
+                for (int i = 0; i < parameterCount; i++)
                 {
-                    var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(parameterCount + (returnsVoid ? 0 : 1));
+                    typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(containingType, i, "T" + (i + 1)));
+                }
+
+                if (!returnsVoid)
+                {
+                    typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(containingType, parameterCount, "TResult"));
+                }
+
+                return typeParameters.ToImmutableAndFree();
+            }
+
+            /// <summary>
+            /// A delegate type where the parameter types and return type
+            /// of the delegate signature are type parameters
+            /// but some information cannot be serialized into its name
+            /// (like default parameter values).
+            /// </summary>
+            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr)
+                : base(manager, typeDescr.Location)
+            {
+                // AnonymousTypeOrDelegateComparer requires an actual location.
+                Debug.Assert(SmallestLocation != null);
+                Debug.Assert(SmallestLocation != Location.None);
+
+                HasIndexedName = true;
+                TypeParameters = CreateTypeParameters(
+                    this,
+                    parameterCount: typeDescr.Fields.Length - 1,
+                    returnsVoid: typeDescr.Fields[^1].Type.IsVoidType());
+
+                var constructor = new SynthesizedDelegateConstructor(this, manager.System_Object, manager.System_IntPtr);
+                // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
+                var invokeMethod = createInvokeMethod(this, typeDescr.Fields);
+                _members = ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+
+                static SynthesizedDelegateInvokeMethod createInvokeMethod(
+                    AnonymousDelegateTemplateSymbol containingType,
+                    ImmutableArray<AnonymousTypeField> fields)
+                {
+                    var typeParams = containingType.TypeParameters;
+                    var returnParameter = fields[^1];
+                    var returnsVoid = returnParameter.Type.IsVoidType();
+
+                    var parameterCount = fields.Length - 1;
+                    var parameters = ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, DeclarationScope Scope, ConstantValue? DefaultValue, bool IsParams)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
-                        typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(containingType, i, "T" + (i + 1)));
+                        var field = fields[i];
+                        var type = TypeWithAnnotations.Create(typeParams[i]);
+
+                        // Replace `T` with `T[]` for params array.
+                        if (field.IsParams)
+                        {
+                            type = TypeWithAnnotations.Create(ArrayTypeSymbol.CreateSZArray(containingType.ContainingAssembly, type));
+                        }
+
+                        parameters.Add((type, field.RefKind, field.Scope, field.DefaultValue, field.IsParams));
                     }
 
-                    if (!returnsVoid)
-                    {
-                        typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(containingType, parameterCount, "TResult"));
-                    }
+                    // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate
+                    var returnType = TypeWithAnnotations.Create(returnsVoid ? returnParameter.Type : typeParams[parameterCount]);
+                    var returnRefKind = returnParameter.RefKind;
 
-                    return typeParameters.ToImmutableAndFree();
+                    var method = new SynthesizedDelegateInvokeMethod(containingType, parameters, returnType, returnRefKind);
+                    parameters.Free();
+                    return method;
                 }
             }
 
@@ -96,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(SmallestLocation != null);
                 Debug.Assert(SmallestLocation != Location.None);
 
-                HasFixedTypes = true;
+                HasIndexedName = true;
 
                 TypeMap typeMap;
                 int typeParameterCount = typeParametersToSubstitute.Length;

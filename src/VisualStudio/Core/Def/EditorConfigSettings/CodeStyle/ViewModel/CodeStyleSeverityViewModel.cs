@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 
         public CodeStyleSeverityViewModel(CodeStyleSetting setting)
         {
-            _selectedSeverityIndex = setting.Severity switch
+            _selectedSeverityIndex = setting.GetSeverity() switch
             {
                 DiagnosticSeverity.Hidden => 0,
                 DiagnosticSeverity.Info => 1,
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
                 _ => throw new InvalidOperationException(),
             };
 
-            if (_setting.Severity != severity)
+            if (_setting.GetSeverity() != severity)
             {
                 _setting.ChangeSeverity(severity);
             }

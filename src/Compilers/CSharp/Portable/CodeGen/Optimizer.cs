@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // assume we will need an address (that will prevent scheduling of receiver).
             if (method.RequiresInstanceReceiver)
             {
-                receiver = VisitCallReceiver(receiver);
+                receiver = VisitCallOrConditionalAccessReceiver(receiver, node);
             }
             else
             {
@@ -1132,9 +1132,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(receiver, method, rewrittenArguments);
         }
 
-        private BoundExpression VisitCallReceiver(BoundExpression receiver)
+        private BoundExpression VisitCallOrConditionalAccessReceiver(BoundExpression receiver, BoundCall callOpt)
         {
             var receiverType = receiver.Type;
+
+            if (callOpt is { } call &&
+                CodeGenerator.IsRef(receiver) &&
+                CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiver) &&
+                !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
+            {
+                var unwrappedSequence = receiver;
+
+                while (unwrappedSequence is BoundSequence sequence)
+                {
+                    unwrappedSequence = sequence.Value;
+                }
+
+                if (unwrappedSequence is BoundLocal { LocalSymbol: { RefKind: not RefKind.None } localSymbol })
+                {
+                    ShouldNotSchedule(localSymbol); // Otherwise CodeGenerator is unable to apply proper fixups 
+                }
+            }
+
             ExprContext context;
 
             if (receiverType.IsReferenceType)
@@ -1494,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
             var origStack = StackDepth();
-            BoundExpression receiver = VisitCallReceiver(node.Receiver);
+            BoundExpression receiver = VisitCallOrConditionalAccessReceiver(node.Receiver, callOpt: null);
 
             var cookie = GetStackStateCookie();     // implicit branch here
 
@@ -2210,6 +2229,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return false; }
         }
 
+        internal override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return false; }
+        }
+
         public override Symbol ContainingSymbol
         {
             get { throw new NotImplementedException(); }
@@ -2254,18 +2278,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             get { return RefKind.None; }
         }
-
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable();
-
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable();
 
         internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }

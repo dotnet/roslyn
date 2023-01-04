@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 var backgroundAnalysisScope = GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language);
-                var compilerDiagnosticsScope = GlobalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, document.Project.Language);
+                var compilerDiagnosticsScope = GlobalOptions.GetBackgroundCompilerAnalysisScope(document.Project.Language);
 
                 // TODO: Switch to a more reliable service to determine visible documents.
                 //       DocumentTrackingService is known be unreliable at times.
@@ -73,13 +73,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var data = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
                         backgroundAnalysisScope, compilerDiagnosticsScope, isActiveDocument, isVisibleDocument,
-                        isOpenDocument, isGeneratedRazorDocument, cancellationToken);
+                        isOpenDocument, isGeneratedRazorDocument, cancellationToken, out var isAnalyzerSuppressed);
                     if (data.HasValue)
                     {
-                        // We need to persist and raise diagnostics for suppressed analyzer.
                         PersistAndRaiseDiagnosticsIfNeeded(data.Value, stateSet);
                     }
-                    else
+                    else if (!isAnalyzerSuppressed)
                     {
                         nonCachedStateSets.Add(stateSet);
                     }
@@ -156,23 +155,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
-                if (result.OldResult == null)
-                {
-                    RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.Result);
-                    return;
-                }
 
                 // no cancellation after this point.
-                // any analyzer that doesn't have result will be treated as returned empty set
-                // which means we will remove those from error list
+                using var _ = ArrayBuilder<StateSet>.GetInstance(out var analyzedStateSetsBuilder);
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
-                    await state.SaveToInMemoryStorageAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    if (result.TryGetResult(stateSet.Analyzer, out var analyzerResult))
+                    {
+                        await state.SaveToInMemoryStorageAsync(project, analyzerResult).ConfigureAwait(false);
+                        analyzedStateSetsBuilder.Add(stateSet);
+                    }
                 }
 
-                RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
+                if (analyzedStateSetsBuilder.Count > 0)
+                {
+                    var oldResult = result.OldResult ?? ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+                    RaiseProjectDiagnosticsIfNeeded(project, analyzedStateSetsBuilder.ToImmutable(), oldResult, result.Result);
+                }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

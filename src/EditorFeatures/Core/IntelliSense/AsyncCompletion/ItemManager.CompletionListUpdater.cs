@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // We prefer using the original snapshot, which should always be available from items provided by Roslyn's CompletionSource.
                 // Only use data.Snapshot in the theoretically possible but rare case when all items we are handling are from some non-Roslyn CompletionSource.
-                var snapshotForDocument = TryGetInitialTriggerLocation(_snapshotData, out var intialTriggerLocation)
-                    ? intialTriggerLocation.Snapshot
+                var snapshotForDocument = TryGetInitialTriggerLocation(_snapshotData, out var initialTriggerLocation)
+                    ? initialTriggerLocation.Snapshot
                     : _snapshotData.Snapshot;
 
                 _document = snapshotForDocument?.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // We can change this if get requests from partner teams.
                     _completionHelper = CompletionHelper.GetHelper(_document);
                     _filterMethod = _completionService == null
-                        ? ((matchResults, text, filtereditemsBuilder) => CompletionService.FilterItems(_completionHelper, matchResults, text, filtereditemsBuilder))
-                        : ((matchResults, text, filtereditemsBuilder) => _completionService.FilterItems(_document, matchResults, text, filtereditemsBuilder));
+                        ? ((matchResults, text, filteredItemsBuilder) => CompletionService.FilterItems(_completionHelper, matchResults, text, filteredItemsBuilder))
+                        : ((matchResults, text, filteredItemsBuilder) => _completionService.FilterItems(_document, matchResults, text, filteredItemsBuilder));
 
                     // Nothing to highlight if user hasn't typed anything yet.
                     _highlightMatchingPortions = _filterText.Length > 0
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     if (CompletionItemData.TryGetData(item, out var itemData))
                     {
-                        // currentIndex is used to track the index of the VS CompletionItem in the intial sorted list to maintain a map from Roslyn itemt o VS item.
+                        // currentIndex is used to track the index of the VS CompletionItem in the initial sorted list to maintain a map from Roslyn item to VS item.
                         // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
                         // same pattern match score since `List<T>.Sort` isn't stable.
                         if (CompletionHelper.TryCreateMatchResult(_completionHelper, itemData.RoslynItem, _filterText,
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             /// <summary>
-            /// Given multiple possible chosen completion items, pick the one using the following perferences (in order):
+            /// Given multiple possible chosen completion items, pick the one using the following preferences (in order):
             ///     1. Most recently used item is our top preference
             ///     2. IntelliCode item over non-IntelliCode item
             ///     3. Higher MatchPriority
@@ -645,18 +645,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return bestResult;
             }
 
-            private static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint intialTriggerLocation)
+            private static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint initialTriggerLocation)
             {
                 foreach (var item in data.InitialSortedItemList)
                 {
                     if (CompletionItemData.TryGetData(item, out var itemData) && itemData.TriggerLocation.HasValue)
                     {
-                        intialTriggerLocation = itemData.TriggerLocation.Value;
+                        initialTriggerLocation = itemData.TriggerLocation.Value;
                         return true;
                     }
                 }
 
-                intialTriggerLocation = default;
+                initialTriggerLocation = default;
                 return false;
             }
 
@@ -756,9 +756,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (_snapshotData.Defaults.IsDefaultOrEmpty || itemSelection.SelectedItemIndex == SuggestionItemIndex)
                     return itemSelection;
 
-                // "Preselect" is only used when we have high confidence with the selection, so don't override it.
+                // "Preselect" is only used when we have high confidence with the selection, so don't override it;
+                // unless it's an IntelliCode item, in which case the default item wins.
                 var selectedItem = items[itemSelection.SelectedItemIndex].CompletionItem;
-                if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect)
+                if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect && !selectedItem.IsPreferredItem())
                     return itemSelection;
 
                 var tick = Environment.TickCount;
@@ -774,7 +775,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             /// If the suggested default is no worse than current selected item (in a case-sensitive manner,) use the suggested default. Otherwise use the original selection.
             /// For example, if user typed "C", roslyn might select "CancellationToken", but with suggested default "Console" we will end up selecting "Console" instead.
             /// </summary>
-            private ItemSelection GetDefaultsMatch(IReadOnlyList<MatchResult> items, ItemSelection intialSelection, CancellationToken cancellationToken)
+            private ItemSelection GetDefaultsMatch(IReadOnlyList<MatchResult> items, ItemSelection initialSelection, CancellationToken cancellationToken)
             {
                 // Because the items are already sorted based on pattern-matching score, try to limit the range for the items we compare default with
                 // by searching for the first "inferior" item, so we can avoid always going through the entire list.
@@ -786,18 +787,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
                 else
                 {
-                    var selectedItemMatch = items[intialSelection.SelectedItemIndex].PatternMatch;
+                    var selectedItemMatch = items[initialSelection.SelectedItemIndex].PatternMatch;
 
                     // It's possible that an item doesn't match filter text but still ended up being selected, this is because we just always keep all the
                     // items in the list in some cases. For example, user brought up completion with ctrl-j or through deletion.
                     // Don't bother changing the selection in such cases (since there's no match to the filter text in the list)
                     if (!selectedItemMatch.HasValue)
-                        return intialSelection;
+                        return initialSelection;
 
                     // Because the items are sorted based on pattern-matching score, the selectedIndex is in the middle of a range of
                     // -- as far as the pattern matcher is concerned -- equivalent items (items with identical PatternMatch.Kind and IsCaseSensitive).
                     // Find the last items in the range and use that to limit the items searched for from the defaults list.     
-                    inferiorItemIndex = intialSelection.SelectedItemIndex;
+                    inferiorItemIndex = initialSelection.SelectedItemIndex;
                     while (++inferiorItemIndex < items.Count)
                     {
                         var itemMatch = items[inferiorItemIndex].PatternMatch;
@@ -818,18 +819,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // so we just need to search for the first item that matches the suggested default.
                     for (var i = 0; i < inferiorItemIndex; ++i)
                     {
-                        if (items[i].CompletionItem.DisplayText == defaultText)
+                        if (items[i].CompletionItem.FilterText == defaultText)
                         {
                             // If user hasn't typed anything, we'd like to hard select the default item.
                             // This way, they can easily commit the default item which matches what WLC shows.
-                            var selectionHint = _filterText.Length == 0 ? UpdateSelectionHint.Selected : intialSelection.SelectionHint;
-                            return intialSelection with { SelectedItemIndex = i, SelectionHint = selectionHint };
+                            var selectionHint = _filterText.Length == 0 ? UpdateSelectionHint.Selected : initialSelection.SelectionHint;
+                            return initialSelection with { SelectedItemIndex = i, SelectionHint = selectionHint };
                         }
                     }
                 }
 
                 // Don't change the original selection since there's no match to the defaults provided.
-                return intialSelection;
+                return initialSelection;
             }
 
             private sealed class FilterStateHelper

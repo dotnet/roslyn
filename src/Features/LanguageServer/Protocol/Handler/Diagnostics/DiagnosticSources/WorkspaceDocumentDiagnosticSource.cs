@@ -11,23 +11,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed record WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
+internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
-    protected override bool IncludeTaskListItems { get; }
-    protected override bool IncludeStandardDiagnostics { get; }
-
-    public WorkspaceDocumentDiagnosticSource(
-        TextDocument document,
-        bool includeTaskListItems,
-        bool includeStandardDiagnostics) : base(document)
+    public WorkspaceDocumentDiagnosticSource(TextDocument document)
+        : base(document)
     {
-        Contract.ThrowIfFalse(includeTaskListItems || includeStandardDiagnostics,
-            $"At least one of includeTaskListItems={includeTaskListItems} or includeStandardDiagnostics={includeStandardDiagnostics} must be true.");
-        IncludeTaskListItems = includeTaskListItems;
-        IncludeStandardDiagnostics = includeStandardDiagnostics;
     }
 
-    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
         CancellationToken cancellationToken)
@@ -43,7 +34,8 @@ internal sealed record WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagn
             // We call GetDiagnosticsForIdsAsync as we want to ensure we get the full set of diagnostics for this document
             // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
             // However we can include them as a part of workspace pull when FSA is on.
-            var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(Document.Project.Solution, Document.Project.Id, Document.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
+                Document.Project.Solution, Document.Project.Id, Document.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
             return documentDiagnostics;
         }
     }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -24,6 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
         {
         }
+
+        protected override string? GetDiagnosticCategory(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
@@ -64,9 +68,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
             => ConvertTags(diagnosticData, potentialDuplicate: false);
 
-        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+            VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            return ValueTaskFactory.FromResult(GetDiagnosticSources(context));
+            var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
+
+            if (category == PullDiagnosticCategories.Task)
+                return new(GetDiagnosticSources(diagnosticKind: default, taskList: true, context, GlobalOptions));
+
+            var diagnosticKind = category switch
+            {
+                PullDiagnosticCategories.DocumentCompilerSyntax => DiagnosticKind.CompilerSyntax,
+                PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
+                PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSemantic,
+                PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
+                // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
+                null => DiagnosticKind.All,
+                // if it's a category we don't recognize, return nothing.
+                _ => (DiagnosticKind?)null,
+            };
+
+            if (diagnosticKind is null)
+                return new(ImmutableArray<IDiagnosticSource>.Empty);
+
+            return new(GetDiagnosticSources(diagnosticKind.Value, taskList: false, context, GlobalOptions));
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
@@ -74,7 +99,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetFlattenedValues();
         }
 
-        internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(RequestContext context)
+        internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(
+            DiagnosticKind diagnosticKind, bool taskList, RequestContext context, IGlobalOptionService globalOptions)
         {
             // For the single document case, that is the only doc we want to process.
             //
@@ -97,7 +123,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(document));
+            return taskList
+                ? ImmutableArray.Create<IDiagnosticSource>(new TaskListDiagnosticSource(document, globalOptions))
+                : ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, document));
         }
     }
 }

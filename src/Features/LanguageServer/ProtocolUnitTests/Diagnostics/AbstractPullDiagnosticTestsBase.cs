@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
@@ -57,7 +56,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useVSDiagnostics,
             ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
             bool useProgress = false,
-            bool includeTaskListItems = false)
+            bool includeTaskListItems = false,
+            string? category = null)
         {
             var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTaskListItems);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 BufferedProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport[]>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
                     VSInternalMethods.WorkspacePullDiagnosticName,
-                    CreateWorkspaceDiagnosticParams(previousResults, progress),
+                    CreateWorkspaceDiagnosticParams(previousResults, progress, category),
                     CancellationToken.None).ConfigureAwait(false);
 
                 if (useProgress)
@@ -142,24 +142,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         private protected static VSInternalDocumentDiagnosticsParams CreateDocumentDiagnosticParams(
             VSTextDocumentIdentifier vsTextDocumentIdentifier,
             string? previousResultId = null,
-            IProgress<VSInternalDiagnosticReport[]>? progress = null)
+            IProgress<VSInternalDiagnosticReport[]>? progress = null,
+            string? category = null)
         {
             return new VSInternalDocumentDiagnosticsParams
             {
                 TextDocument = vsTextDocumentIdentifier,
                 PreviousResultId = previousResultId,
                 PartialResultToken = progress,
+                QueryingDiagnosticKind = category == null ? null : new(category),
             };
         }
 
         private protected static VSInternalWorkspaceDiagnosticsParams CreateWorkspaceDiagnosticParams(
             ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
-            IProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = null)
+            IProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = null,
+            string? category = null)
         {
             return new VSInternalWorkspaceDiagnosticsParams
             {
                 PreviousResults = previousResults?.Select(r => new VSInternalDiagnosticParams { PreviousResultId = r.resultId, TextDocument = r.identifier }).ToArray(),
                 PartialResultToken = progress,
+                QueryingDiagnosticKind = category == null ? null : new(category),
             };
         }
 
@@ -182,9 +186,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Uri uri,
             bool useVSDiagnostics,
             string? previousResultId = null,
-            bool useProgress = false)
+            bool useProgress = false,
+            string? category = null)
         {
-            return RunGetDocumentPullDiagnosticsAsync(testLspServer, new VSTextDocumentIdentifier { Uri = uri }, useVSDiagnostics, previousResultId, useProgress);
+            return RunGetDocumentPullDiagnosticsAsync(testLspServer, new VSTextDocumentIdentifier { Uri = uri }, useVSDiagnostics, previousResultId, useProgress, category);
         }
 
         private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
@@ -192,7 +197,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             VSTextDocumentIdentifier vsTextDocumentIdentifier,
             bool useVSDiagnostics,
             string? previousResultId = null,
-            bool useProgress = false)
+            bool useProgress = false,
+            string? category = null)
         {
             await testLspServer.WaitForDiagnosticsAsync();
 
@@ -201,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 BufferedProgress<VSInternalDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalDiagnosticReport[]>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                     VSInternalMethods.DocumentPullDiagnosticName,
-                    CreateDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress),
+                    CreateDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress, category),
                     CancellationToken.None).ConfigureAwait(false);
 
                 if (useProgress)
@@ -258,13 +264,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateTestLspServerAsync(markup, GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push));
+            => CreateTestLspServerAsync(markup, GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
 
         private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateTestLspServerAsync(markups, GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push));
+            => CreateTestLspServerAsync(markups, GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
 
         private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
-            => CreateXmlTestLspServerAsync(xmlMarkup, initializationOptions: GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push));
+            => CreateXmlTestLspServerAsync(xmlMarkup, initializationOptions: GetInitializationOptions(scope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
 
         private protected static InitializationOptions GetInitializationOptions(
             BackgroundAnalysisScope scope,

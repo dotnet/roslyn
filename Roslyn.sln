@@ -507,6 +507,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Too
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package.Arm64", "src\NuGet\Microsoft.Net.Compilers.Toolset\arm64\Microsoft.Net.Compilers.Toolset.Package.Arm64.csproj", "{A9A8ADE5-F123-4109-9FA4-4B92F1657043}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateRulesMissingDocumentation", "src\Tools\GenerateRulesMissingDocumentation\GenerateRulesMissingDocumentation.csproj", "{039CB167-3A6F-4B90-B6E8-14178D11D687}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests", "src\Compilers\CSharp\Test\EndToEnd\Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests.csproj", "{C247414A-8946-4BAB-BE1F-C82B90C63EF6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.csproj", "{D2589BCE-4F2E-4113-B7E7-37392C0C5492}"
@@ -517,9 +519,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageSer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.TestAnalyzerReference", "src\Workspaces\TestAnalyzerReference\Microsoft.CodeAnalysis.TestAnalyzerReference.csproj", "{8A29449D-411E-49E4-B99E-E8428076BB21}"
 EndProject
-Project("{9a19103f-16f7-4668-be54-9a1e7a4f7556}") = "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol", "src\Features\LanguageServer\Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol\Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol.csproj", "{4C1B26EE-465B-4B30-9E50-0285EF7AB035}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol", "src\Features\LanguageServer\Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol\Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol.csproj", "{4C1B26EE-465B-4B30-9E50-0285EF7AB035}"
 EndProject
-Project("{778dae3c-4631-46ea-aa77-85c1314464d9}") = "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol", "src\Features\LanguageServer\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol.vbproj", "{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol", "src\Features\LanguageServer\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol.vbproj", "{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestDiscoveryWorker", "src\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj", "{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}"
 EndProject
@@ -1245,6 +1247,10 @@ Global
 		{A9A8ADE5-F123-4109-9FA4-4B92F1657043}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9A8ADE5-F123-4109-9FA4-4B92F1657043}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9A8ADE5-F123-4109-9FA4-4B92F1657043}.Release|Any CPU.Build.0 = Release|Any CPU
+		{039CB167-3A6F-4B90-B6E8-14178D11D687}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{039CB167-3A6F-4B90-B6E8-14178D11D687}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{039CB167-3A6F-4B90-B6E8-14178D11D687}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{039CB167-3A6F-4B90-B6E8-14178D11D687}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1507,6 +1513,7 @@ Global
 		{46429C41-0733-4568-9BA6-3F52CB47C4ED} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{6131713D-DFB4-49B5-8010-50071FED3E85} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{A9A8ADE5-F123-4109-9FA4-4B92F1657043} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
+		{039CB167-3A6F-4B90-B6E8-14178D11D687} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{D2589BCE-4F2E-4113-B7E7-37392C0C5492} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}

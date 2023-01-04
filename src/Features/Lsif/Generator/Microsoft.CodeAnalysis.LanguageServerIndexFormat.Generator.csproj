@@ -72,7 +72,7 @@
 
     <!-- Work around https://github.com/dotnet/msbuild/issues/7873; without this we won't have a new enough System.Memory and we'll get
          method missing exceptions when we are running with some newer MSBuild versions. -->
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <!-- Since we may be loading analyzers in-process, we need to have the appropriate binding redirects in place -->

@@ -511,6 +511,24 @@ class C
         }
 
         [Fact]
+        public async Task AssignmentThroughScopedRefLocal()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(ref int [|p|])
+    {
+        scoped ref var [|local|] = ref [|p|];
+        [|local|] = 0;
+        [|local|] = 1;
+        Console.WriteLine([|local|]);
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestRefLocalReassignment()
         {
             await TestAsync(
@@ -654,6 +672,23 @@ class C
         }
 
         [Fact]
+        public async Task TestScopedReadonlyRefLocalWithNoReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int p = 0;
+        scoped ref readonly int refP = ref p;
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestReadonlyRefLocalWithNoReassignment1()
         {
             await TestAsync(
@@ -665,6 +700,23 @@ class C
     {
         int p = 0;
         ref readonly int refP = ref p!;
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestScopedReadonlyRefLocalWithNoReassignment1()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M1()
+    {
+        int p = 0;
+        scoped ref readonly int refP = ref p!;
         Console.WriteLine(p);
     }
 }");
