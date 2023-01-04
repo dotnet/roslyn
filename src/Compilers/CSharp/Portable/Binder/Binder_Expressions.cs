@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (FallBackOnDiscard(identifier, diagnostics))
                     {
-                        expression = new BoundDiscardExpression(node, type: null);
+                        expression = new BoundDiscardExpression(node, NullableAnnotation.Oblivious, type: null);
                     }
                 }
 
@@ -2825,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var declType = BindVariableTypeWithAnnotations(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
                         Debug.Assert(isVar != declType.HasType);
 
-                        return new BoundDiscardExpression(declarationExpression, declType.Type);
+                        return new BoundDiscardExpression(declarationExpression, declType.NullableAnnotation, declType.Type);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
@@ -3113,7 +3113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     Debug.Assert(parameterTypeWithAnnotations.HasType);
-                    arguments[arg] = ((BoundDiscardExpression)argument).SetInferredTypeWithAnnotations(parameterTypeWithAnnotations);
+                    // Discard expression should be nullable annoted since we don't care about the warnings here
+                    arguments[arg] = ((BoundDiscardExpression)argument).SetInferredTypeWithAnnotations(parameterTypeWithAnnotations.AsAnnotated());
                 }
                 else if (argument.NeedsToBeConverted())
                 {

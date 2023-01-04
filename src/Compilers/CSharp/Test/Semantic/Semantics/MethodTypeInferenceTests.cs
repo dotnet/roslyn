@@ -633,6 +633,64 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArity, "Goo<>").WithArguments("Program.Goo<T, U>(T, U)", "method", "2"));
         }
 
+        [Fact]
+        public void Bug50782()
+        {
+            string source = @"
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+interface IOperation<T> { }
+class StringOperation : IOperation<string?> { }
+class C {   
+    void M() {
+        TestA(new StringOperation(), out string? discardA);
+        TestA(new StringOperation(), out string? _);
+        TestA(new StringOperation(), out var _);
+        TestA(new StringOperation(), out _);
+        
+        TestB(new StringOperation(), out string? discardB);
+        TestB(new StringOperation(), out string? _);
+        TestB(new StringOperation(), out var _);
+        TestB(new StringOperation(), out _);
+
+        TestC<string?>(out string? discardC);
+        TestC<string?>(out string? _);
+        TestC<string?>(out var _);
+        TestC<string?>(out _);
+
+        TestD<string?>(out string? discardD);
+        TestD<string?>(out string? _);
+        TestD<string?>(out var _);
+        TestD<string?>(out _);
+
+        TestE(out string? discardE);
+        TestE(out string? _);
+        TestE(out var _);
+        TestE(out _);
+
+        TestF(out string? discardF);
+        TestF(out string? _);
+        TestF(out var _);
+        TestF(out _);
+    }
+    
+    void TestA<T>(IOperation<T> operation, [MaybeNull] out T result) => result = default;
+    void TestB<T>(IOperation<T> operation, out T result) => result = default;
+    
+    void TestC<T>([MaybeNull] out T result) => result = default;
+    void TestD<T>(out T result) => result = default;
+
+    void TestE([MaybeNull] out string result) => result = default;
+    void TestF(out string result) => result = default;
+}
+";
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(new[] {
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(40, 70), // We assume that T will be non-nullable.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(43, 45), // We assume that T will be non-nullable.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(46, 47) // We assume that T will be non-nullable.
+            });
+        }
+
         [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
         [Fact]
         public void Bug8785_2()

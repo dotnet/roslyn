@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.Type);
+            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.NullableAnnotation, declTypeWithAnnotations.Type);
         }
 
         /// <summary>

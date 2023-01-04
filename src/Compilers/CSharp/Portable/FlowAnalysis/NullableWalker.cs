@@ -10995,7 +10995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            var result = TypeWithAnnotations.Create(node.Type);
+            var result = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation);
             var rValueType = TypeWithState.ForType(node.Type);
             SetResult(node, rValueType, result);
             return null;
