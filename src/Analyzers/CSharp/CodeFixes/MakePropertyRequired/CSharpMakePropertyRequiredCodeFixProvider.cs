@@ -44,7 +44,8 @@ internal sealed class CSharpMakePropertyRequiredCodeFixProvider : SyntaxEditorBa
         if (node is not PropertyDeclarationSyntax propertyDeclaration)
             return;
 
-        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var compilation = semanticModel.Compilation;
 
         // 1. Required members are available in C# 11 or higher
         // 2. `RequiredMember` attribute must be present in the metadata in order to emit required members
