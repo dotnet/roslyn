@@ -21773,12 +21773,12 @@ struct S
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition });
             comp.VerifyDiagnostics(
-                // (6,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                // (6,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] object P3 { get; init; } // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(6, 6),
-                // (15,10): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(6, 6),
+                // (15,10): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //         [UnscopedRef] init; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(15, 10));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(15, 10));
         }
 
         [Theory]
@@ -21876,12 +21876,42 @@ struct B
                 // (11,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         init { value.F = ref this; } // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 16),
-                // (19,10): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                // (19,10): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //         [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(19, 10),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(19, 10),
                 // (20,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         init { value.F = ref this; } // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 16));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Event_01()
+        {
+            var source =
+@"#pragma warning disable 67
+using System.Diagnostics.CodeAnalysis;
+delegate void D();
+class C
+{
+    [UnscopedRef] event D E1;
+    [UnscopedRef] event D E2 { add { } remove { } }
+    event D E3 { [UnscopedRef] add { } remove { } }
+    event D E4 { add { } [UnscopedRef] remove { } }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (6,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] event D E1;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(6, 6),
+                // (7,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] event D E2 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(7, 6),
+                // (8,19): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     event D E3 { [UnscopedRef] add { } remove { } }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(8, 19),
+                // (9,27): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     event D E4 { add { } [UnscopedRef] remove { } }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(9, 27));
         }
 
         [Theory]
@@ -22065,9 +22095,9 @@ struct B
                 // (15,6): warning CS0436: The type 'UnscopedRefAttribute' in '' conflicts with the imported type 'UnscopedRefAttribute' in 'System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "UnscopedRef").WithArguments("", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", "System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(15, 6),
-                // (15,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                // (15,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(15, 6),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(15, 6),
                 // (18,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         r.F = ref this; // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(18, 9));
@@ -22086,15 +22116,15 @@ struct S
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] static S() { } // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(4, 6),
-                // (5,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(4, 6),
+                // (5,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] static object F() => null; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(5, 6),
-                // (6,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(5, 6),
+                // (6,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] static object P => null; // 3
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(6, 6));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(6, 6));
         }
 
         [Fact]
@@ -22116,12 +22146,12 @@ record struct S
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] object F1() => null; // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(4, 6),
-                // (8,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(4, 6),
+                // (8,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] object F2() => null; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(8, 6));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(8, 6));
         }
 
         [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
@@ -22385,6 +22415,30 @@ public class A<T>
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Parameter_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void F([UnscopedRef] int x, [UnscopedRef] object y) { }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     static void F([UnscopedRef] int x, [UnscopedRef] object y) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 20),
+                // (4,41): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     static void F([UnscopedRef] int x, [UnscopedRef] object y) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 41));
+
+            var parameters = comp.GetMember<MethodSymbol>("Program.F").Parameters;
+            VerifyParameterSymbol(parameters[0], "System.Int32 x", RefKind.None, default, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(parameters[1], "System.Object y", RefKind.None, default, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -24673,18 +24727,18 @@ public class A
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (8,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                // (8,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] ref T F1(); // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(8, 6),
-                // (9,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(8, 6),
+                // (9,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] void F2(); // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(9, 6),
-                // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(9, 6),
+                // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] void F3(out R<T> r); // 3
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(10, 6),
-                // (11,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(10, 6),
+                // (11,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] ref T P { get; } // 4
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(11, 6),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(11, 6),
                 // (23,34): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation.
                 //     [UnscopedRef] public ref int F1() => ref _f2; // 5
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "F1").WithLocation(23, 34),
@@ -24818,21 +24872,97 @@ public class A
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                // (5,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] ref T F2(); // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(5, 6),
-                // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(5, 6),
+                // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] public ref int F1() => ref _f1; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(10, 6),
-                // (11,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(10, 6),
+                // (11,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] public ref int F2() => ref _f1; // 3
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(11, 6),
-                // (16,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(11, 6),
+                // (16,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] ref int I<int>.F1() => ref _f2; // 4
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(16, 6),
-                // (17,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(16, 6),
+                // (17,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] ref int I<int>.F2() => ref _f2; // 5
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(17, 6));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(17, 6));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_InterfaceImplementation_06()
+        {
+            string source = """
+                #pragma warning disable 67
+                using System.Diagnostics.CodeAnalysis;
+                delegate void D<T>();
+                interface I<T>
+                {
+                    event D<T> E;
+                }
+                class C1 : I<int>
+                {
+                    [UnscopedRef] public event D<int> E; // 1
+                }
+                class C2 : I<int>
+                {
+                    [UnscopedRef] public event D<int> E { add { } remove { } } // 2
+                }
+                class C3 : I<object>
+                {
+                    [UnscopedRef] event D<object> I<object>.E { add { } remove { } } // 3
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] public event D<int> E; // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(10, 6),
+                // (14,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] public event D<int> E { add { } remove { } } // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(14, 6),
+                // (18,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] event D<object> I<object>.E { add { } remove { } } // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(18, 6));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_InterfaceImplementation_07()
+        {
+            string source = """
+                #pragma warning disable 67
+                using System.Diagnostics.CodeAnalysis;
+                delegate void D<T>();
+                interface I<T>
+                {
+                    event D<T> E1;
+                    event D<T> E2;
+                }
+                class C1 : I<int>
+                {
+                    public event D<int> E1 { [UnscopedRef] add { } remove { } } // 1
+                    public event D<int> E2 { add { } [UnscopedRef] remove { } } // 2
+                }
+                class C2 : I<object>
+                {
+                    event D<object> I<object>.E1 { [UnscopedRef] add { } remove { } } // 3
+                    event D<object> I<object>.E2 { add { } [UnscopedRef] remove { } } // 4
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (11,31): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     public event D<int> E1 { [UnscopedRef] add { } remove { } } // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(11, 31),
+                // (12,39): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     public event D<int> E2 { add { } [UnscopedRef] remove { } } // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(12, 39),
+                // (16,37): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     event D<object> I<object>.E1 { [UnscopedRef] add { } remove { } } // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(16, 37),
+                // (17,45): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     event D<object> I<object>.E2 { add { } [UnscopedRef] remove { } } // 4
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(17, 45));
         }
 
         [Fact]
@@ -24860,15 +24990,15 @@ public class A
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                // (5,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] public abstract ref T F2(); // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(5, 6),
-                // (16,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(5, 6),
+                // (16,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] public override ref string F1() => ref _f2; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(16, 6),
-                // (17,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(16, 6),
+                // (17,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] public override ref string F2() => ref _f2; // 3
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget, "UnscopedRef").WithLocation(17, 6));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(17, 6));
         }
 
         [Theory]

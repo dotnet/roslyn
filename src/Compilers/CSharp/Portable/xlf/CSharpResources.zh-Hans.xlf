@@ -1642,9 +1642,9 @@
         <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMethodTarget">
-        <source>UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to struct instance methods, and cannot be applied to constructors or init-only methods.</target>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">

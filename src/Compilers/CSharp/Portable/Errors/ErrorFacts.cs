@@ -2273,7 +2273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
-                case ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethodTarget:
+                case ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget:
                 case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
                     return false;
                 default:
