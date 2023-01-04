@@ -425,14 +425,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return 0;
             }
-            // If the current semicolon token belongs to a property
-            // then it is a semicolon at the end of a property typically (but not always) after a property initializer:
-            // public int Prop { get; } = 1; <-- this one
-            // public int Prop { get; }; <-- this produces a syntax error, but the semicolon is still attached to the property
-            // In such cases we need to have 2 line breaks in order to have propper separation between members of a class, struct etc.
-            // Note: case, when the property is the last member and needs only 1 line break after it is handled above (the next token is a closing brace then)
             else if (currentToken.Parent.IsKind(SyntaxKind.PropertyDeclaration))
             {
+                // If the current semicolon token belongs to a property
+                // then it is a semicolon at the end of a property typically (but not always) after a property initializer:
+                // public int Prop { get; } = 1; <-- this one
+                // public int Prop { get; }; <-- this produces a syntax error, but the semicolon is still attached to the property
+                // In such cases we need to have 2 line breaks in order to have proper separation between members of a class, struct etc.
+                // Note: case, when the property is the last member and needs only 1 line break after it is handled above (the next token is a closing brace then)
                 return 2;
             }
             else
