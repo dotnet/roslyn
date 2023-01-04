@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -76,10 +77,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 {
                     _callback.AddItem(navigateToItem);
                 }
-                catch (InvalidOperationException)
+                catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
-                    // Mitigation for race condition in platform:
-                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1534364.
+                    // Mitigation for race condition in platform https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1534364
+                    //
+                    // Catch this so that don't tear down OOP, but still report the exception so that we ensure this issue
+                    // gets attention and is fixed.
                 }
             }
 
