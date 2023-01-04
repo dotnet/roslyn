@@ -1069,6 +1069,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerExceptionDiagnostics.Add,
                         Arguments.ReportAnalyzer,
                         severityFilter,
+                        trackSuppressedDiagnosticIds: true,
                         out compilation,
                         analyzerCts.Token);
 
