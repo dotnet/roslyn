@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return value;
             }
 
-            return await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false);
+            return await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
         }
     }
 #endif

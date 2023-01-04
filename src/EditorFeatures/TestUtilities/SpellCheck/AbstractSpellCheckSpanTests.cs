@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SpellCheck
 {
+
     public abstract class AbstractSpellCheckSpanTests
     {
         protected abstract TestWorkspace CreateWorkspace(string content);

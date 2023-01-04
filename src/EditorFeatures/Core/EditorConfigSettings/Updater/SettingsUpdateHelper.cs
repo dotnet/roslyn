@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
-                                                                  string filePath,
-                                                                  OptionSet optionSet,
-                                                                  IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(
+            SourceText originalText,
+            string filePath,
+            IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
         {
             if (originalText is null)
                 return null;
@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 return null;
 
             var updatedText = originalText;
-            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value, optionSet))
+            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value))
                                            .Where(x => x.success)
                                            .Select(x => (x.option, x.value, x.language))
                                            .ToList();
 
             return TryUpdateAnalyzerConfigDocument(originalText, filePath, settings);
 
-            static (bool success, string option, string value, Language language) TryGetOptionValueAndLanguage(IOption2 option, object value, OptionSet optionSet)
+            static (bool success, string option, string value, Language language) TryGetOptionValueAndLanguage(IOption2 option, object value)
             {
                 if (option.StorageLocations.FirstOrDefault(x => x is IEditorConfigStorageLocation2) is not IEditorConfigStorageLocation2 storageLocation)
                 {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 }
 
                 var optionName = storageLocation.KeyName;
-                var optionValue = storageLocation.GetEditorConfigStringValue(value, optionSet);
+                var optionValue = storageLocation.GetEditorConfigStringValue(value);
                 if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
                 {
                     var severity = codeStyleOption.Notification.Severity switch
@@ -87,7 +87,26 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     optionValue = $"{optionValue}:{severity}";
                 }
 
-                var language = option.IsPerLanguage ? Language.CSharp | Language.VisualBasic : Language.CSharp;
+                Language language;
+                if (option is ISingleValuedOption singleValuedOption)
+                {
+                    language = singleValuedOption.LanguageName switch
+                    {
+                        LanguageNames.CSharp => Language.CSharp,
+                        LanguageNames.VisualBasic => Language.VisualBasic,
+                        null => Language.CSharp | Language.VisualBasic,
+                        _ => throw ExceptionUtilities.UnexpectedValue(singleValuedOption.LanguageName),
+                    };
+                }
+                else if (option is IPerLanguageValuedOption perLanguageValuedOption)
+                {
+                    language = Language.CSharp | Language.VisualBasic;
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(option);
+                }
+
                 return (true, optionName, optionValue, language);
             }
         }
@@ -251,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             {
                 // We splice on the last occurrence of '.' to account for filenames containing periods.
                 var nameExtensionSplitIndex = mostRecentHeaderText.LastIndexOf('.');
-                var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
+                var fileName = mostRecentHeaderText[..nameExtensionSplitIndex];
                 var splicedFileExtensions = mostRecentHeaderText[(nameExtensionSplitIndex + 1)..].Split(',', ' ', '{', '}');
 
                 // Replacing characters in the header with the regex equivalent.

@@ -5,6 +5,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -77,12 +78,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
 
-            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageService>());
+            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             var text = SourceText.From("Hello, World!");
 
             // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
             await temporaryStorage.WriteTextAsync(text);
 
@@ -99,12 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
 
-            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageService>());
+            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
             // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
             await temporaryStorage.WriteTextAsync(text);
 
@@ -119,8 +120,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static void TestCreateTextInferredEncoding(ITextFactoryService textFactoryService, byte[] bytes, Encoding? defaultEncoding, Encoding expectedEncoding)
         {
             using var stream = new MemoryStream(bytes);
-            var text = textFactoryService.CreateText(stream, defaultEncoding);
+            var text = textFactoryService.CreateText(stream, defaultEncoding, SourceHashAlgorithms.Default, CancellationToken.None);
             Assert.Equal(expectedEncoding, text.Encoding);
+            Assert.Equal(SourceHashAlgorithms.Default, text.ChecksumAlgorithm);
         }
     }
 }

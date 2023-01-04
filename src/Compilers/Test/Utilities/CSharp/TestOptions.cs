@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
         public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
+        public static readonly CSharpParseOptions Regular1 = Regular.WithLanguageVersion(LanguageVersion.CSharp1);
+        public static readonly CSharpParseOptions Regular2 = Regular.WithLanguageVersion(LanguageVersion.CSharp2);
+        public static readonly CSharpParseOptions Regular3 = Regular.WithLanguageVersion(LanguageVersion.CSharp3);
+        public static readonly CSharpParseOptions Regular4 = Regular.WithLanguageVersion(LanguageVersion.CSharp4);
+        public static readonly CSharpParseOptions Regular5 = Regular.WithLanguageVersion(LanguageVersion.CSharp5);
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions Regular7 = Regular.WithLanguageVersion(LanguageVersion.CSharp7);
         public static readonly CSharpParseOptions Regular7_1 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_1);
@@ -70,6 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions DebugDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Debug);
         public static readonly CSharpCompilationOptions DebugExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Debug);
 
+        public static readonly CSharpCompilationOptions DebugDllThrowing = DebugDll.WithMetadataReferenceResolver(new ThrowingMetadataReferenceResolver());
+        public static readonly CSharpCompilationOptions DebugExeThrowing = DebugExe.WithMetadataReferenceResolver(new ThrowingMetadataReferenceResolver());
+
         public static readonly CSharpCompilationOptions ReleaseWinMD = CreateTestOptions(OutputKind.WindowsRuntimeMetadata, OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions DebugWinMD = CreateTestOptions(OutputKind.WindowsRuntimeMetadata, OptimizationLevel.Debug);
 
@@ -117,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithNullablePublicOnly(this CSharpParseOptions options)
         {
             return options.WithFeature("nullablePublicOnly");
+        }
+
+        public static CSharpParseOptions WithNoRefSafetyRulesAttribute(this CSharpParseOptions options)
+        {
+            return options.WithFeature("noRefSafetyRulesAttribute");
         }
 
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")

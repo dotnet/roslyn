@@ -167,6 +167,11 @@
         <target state="translated">Модификаторы не упорядочены</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Имя может быть упрощено</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
         <target state="translated">Пространство имен (namespace) "{0}" не соответствует структуре папок, ожидается "{1}".</target>
@@ -257,6 +262,11 @@
         <target state="translated">Удалить ненужное приведение</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="new">Remove accessibility modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Удалите лишнее равенство.</target>
@@ -305,6 +315,21 @@
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">Упростите выражение LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Упрощение доступа для членов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Упрощение имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="new">Simplify check</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

@@ -8,7 +8,7 @@ using WindowsInput.Native;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal struct InputKey
+    internal readonly struct InputKey
     {
         public readonly ImmutableArray<VirtualKeyCode> Modifiers;
         public readonly VirtualKeyCode VirtualKeyCode;
@@ -91,7 +91,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     {
                         var nextSpecial = Text.IndexOfAny(new[] { '\r', '\n', '\t' }, offset);
                         var endOfCurrentSegment = nextSpecial < 0 ? Text.Length : nextSpecial;
-                        simulator.Keyboard.TextEntry(Text.Substring(offset, endOfCurrentSegment - offset));
+                        simulator.Keyboard.TextEntry(Text[offset..endOfCurrentSegment]);
                         offset = endOfCurrentSegment;
                     }
                 }

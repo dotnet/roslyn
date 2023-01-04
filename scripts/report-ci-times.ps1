@@ -4,8 +4,8 @@
 . (Join-Path $PSScriptRoot ".." "eng" "build-utils.ps1")
 
 $roslynPipelineId = "15"
-$minDate = [DateTime]"2021-01-14"
-$maxDate = [DateTime]"2021-01-21"
+$minDate = [DateTime]"2022-07-20"
+$maxDate = [DateTime]"2022-08-03"
 
 $baseURL = "https://dev.azure.com/dnceng/public/_apis/"
 $runsURL = "$baseURL/pipelines/$roslynPipelineId/runs?api-version=6.0-preview.1"
@@ -18,17 +18,27 @@ $wantedRecords = @(
 
     "Correctness_Determinism",
     "Correctness_Build",
-    "Correctness_SourceBuild",
+    "Correctness_TodoCheck",
+    "Correctness_Rebuild",
+    "Correctness_Analyzers",
+    "Correctness_Bootstrap_Build",
+    "Correctness_Code_Analysis",
+    "Correctness_Build_Artifacts",
 
     "Test_Windows_Desktop_Debug_32",
-    "Test_Windows_Desktop_Spanish_Debug_32",
     "Test_Windows_Desktop_Debug_64",
     "Test_Windows_CoreClr_Debug",
+    "Test_Windows_CoreClr_Debug_Single_Machine",
+    "Test_Windows_CoreClr_IOperation_Debug",
+    "Test_Windows_CoreClr_UsedAssemblies_Debug",
+
     "Test_Windows_Desktop_Release_32",
-    "Test_Windows_Desktop_Spanish_Release_32",
+    "Test_Windows_Desktop_Spanish_Release_64",
     "Test_Windows_Desktop_Release_64",
     "Test_Windows_CoreClr_Release",
+
     "Test_Linux_Debug",
+    "Test_Linux_Debug_Single_Machine",
     "Test_macOS_Debug"
 )
 
@@ -41,17 +51,27 @@ $priorities = @{
 
     Correctness_Determinism = 7;
     Correctness_Build = 7;
-    Correctness_SourceBuild = 7;
+    Correctness_TodoCheck = 7;
+    Correctness_Rebuild = 7;
+    Correctness_Analyzers = 7;
+    Correctness_Bootstrap_Build = 7;
+    Correctness_Code_Analysis = 7;
+    Correctness_Build_Artifacts = 7;
 
     Test_Windows_Desktop_Debug_32 = 2;
-    Test_Windows_Desktop_Spanish_Debug_32 = 2;
     Test_Windows_Desktop_Debug_64 = 2;
     Test_Windows_CoreClr_Debug = 2;
+    Test_Windows_CoreClr_Debug_Single_Machine = 2;
+    Test_Windows_CoreClr_IOperation_Debug = 2;
+    Test_Windows_CoreClr_UsedAssemblies_Debug = 2;
+
     Test_Windows_Desktop_Release_32 = 4;
-    Test_Windows_Desktop_Spanish_Release_32 = 4;
+    Test_Windows_Desktop_Spanish_Release_64 = 4;
     Test_Windows_Desktop_Release_64 = 4;
     Test_Windows_CoreClr_Release = 4;
+
     Test_Linux_Debug = 6;
+    Test_Linux_Debug_Single_Machine = 6;
     Test_macOS_Debug = 6
 }
 
@@ -128,6 +148,9 @@ function initialPass() {
             # ignore specific PRs which modify infra and thus don't measure the "production" behavior
             # $refName -eq "refs/pulls/50046/merge" -or $refName -eq "refs/pulls/49626/merge"
 
+            # look for specific PRs which modify infra and thus don't measure the "production" behavior
+            # $refName -ne "refs/pull/62797/merge"
+
             # specifically gather data on experimental builds
             # $refName -ne "refs/heads/dev/rigibson/no-windows-vmImage"
         ) {
@@ -171,24 +194,34 @@ function initialPass() {
 # there might be rest API that makes it unnecessary to reverse engineer this stuff
 # but for now this is more convenient.
 $prerequisites = @{
-    "1_Build_Windows_Debug"                   = $null;
-    "3_Build_Windows_Release"                 = $null;
-    "5_Build_Unix_Debug"                      = $null;
+    "1_Build_Windows_Debug"                       = $null;
+    "3_Build_Windows_Release"                     = $null;
+    "5_Build_Unix_Debug"                          = $null;
 
-    "7_Correctness_Determinism"               = $null;
-    "7_Correctness_Build"                     = $null;
-    "7_Correctness_SourceBuild"               = $null;
+    "7_Correctness_Determinism"                   = $null;
+    "7_Correctness_Build"                         = $null;
+    "7_Correctness_TodoCheck"                     = $null;
+    "7_Correctness_Rebuild"                       = $null;
+    "7_Correctness_Analyzers"                     = $null;
+    "7_Correctness_Bootstrap_Build"               = $null;
+    "7_Correctness_Code_Analysis"                 = $null;
+    "7_Correctness_Build_Artifacts"               = $null;
 
-    "2_Test_Windows_Desktop_Debug_32"         = "1_Build_Windows_Debug";
-    "2_Test_Windows_Desktop_Spanish_Debug_32" = "1_Build_Windows_Debug";
-    "2_Test_Windows_Desktop_Debug_64"         = "1_Build_Windows_Debug";
-    "2_Test_Windows_CoreClr_Debug"            = "1_Build_Windows_Debug";
-    "4_Test_Windows_Desktop_Release_32"       = "3_Build_Windows_Release";
-    "4_Test_Windows_Desktop_Spanish_Release_32" = "3_Build_Windows_Release";
-    "4_Test_Windows_Desktop_Release_64"       = "3_Build_Windows_Release";
-    "4_Test_Windows_CoreClr_Release"          = "3_Build_Windows_Release";
-    "6_Test_Linux_Debug"                      = "5_Build_Unix_Debug";
-    "6_Test_macOS_Debug"                      = "5_Build_Unix_Debug";
+    "2_Test_Windows_Desktop_Debug_32"             = "1_Build_Windows_Debug";
+    "2_Test_Windows_Desktop_Debug_64"             = "1_Build_Windows_Debug";
+    "2_Test_Windows_CoreClr_Debug"                = "1_Build_Windows_Debug";
+    "2_Test_Windows_CoreClr_Debug_Single_Machine" = "1_Build_Windows_Debug";
+    "2_Test_Windows_CoreClr_IOperation_Debug"     = "1_Build_Windows_Debug";
+    "2_Test_Windows_CoreClr_UsedAssemblies_Debug" = "1_Build_Windows_Debug";
+
+    "4_Test_Windows_Desktop_Release_32"           = "3_Build_Windows_Release";
+    "4_Test_Windows_Desktop_Spanish_Release_64"   = "3_Build_Windows_Release";
+    "4_Test_Windows_Desktop_Release_64"           = "3_Build_Windows_Release";
+    "4_Test_Windows_CoreClr_Release"              = "3_Build_Windows_Release";
+
+    "6_Test_Linux_Debug"                          = "5_Build_Unix_Debug";
+    "6_Test_Linux_Debug_Single_Machine"           = "5_Build_Unix_Debug";
+    "6_Test_macOS_Debug"                          = "5_Build_Unix_Debug";
 }
 
 function findPrereq([Job]$job) {

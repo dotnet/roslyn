@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
@@ -34,6 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
                 new ManagedHotReloadServiceImpl(_debuggerService),
+                NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
@@ -82,23 +82,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             _sessionId = default;
         }
 
-        public async ValueTask<ManagedModuleUpdates> GetEditAndContinueUpdatesAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
         {
             var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-
-            return result.ModuleUpdates.FromContract();
-        }
-
-        public async ValueTask<ManagedHotReloadUpdates> GetHotReloadUpdatesAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-
-            var updates = result.ModuleUpdates.Updates.SelectAsArray(
-                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));
-
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, result.GetDiagnosticData(solution), result.RudeEdits, result.GetSyntaxErrorData(solution), cancellationToken).ConfigureAwait(false);
-
-            return new ManagedHotReloadUpdates(updates, diagnostics.FromContract());
+            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, result.GetDiagnosticData(solution), result.RudeEdits, result.GetSyntaxErrorData(solution), result.ModuleUpdates.Status, cancellationToken).ConfigureAwait(false);
+            return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), diagnostics.FromContract());
         }
     }
 }

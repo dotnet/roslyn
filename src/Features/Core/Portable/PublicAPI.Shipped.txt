@@ -1,5 +1,4 @@
 abstract Microsoft.CodeAnalysis.Completion.CompletionProvider.ProvideCompletionsAsync(Microsoft.CodeAnalysis.Completion.CompletionContext context) -> System.Threading.Tasks.Task
-abstract Microsoft.CodeAnalysis.Completion.CompletionService.GetCompletionsAsync(Microsoft.CodeAnalysis.Document document, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger = default(Microsoft.CodeAnalysis.Completion.CompletionTrigger), System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionList>
 abstract Microsoft.CodeAnalysis.Completion.CompletionService.Language.get -> string
 const Microsoft.CodeAnalysis.Completion.CompletionTags.Assembly = "Assembly" -> string
 const Microsoft.CodeAnalysis.Completion.CompletionTags.Class = "Class" -> string
@@ -184,8 +183,10 @@ Microsoft.CodeAnalysis.Completion.CompletionRules.WithDismissIfEmpty(bool dismis
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithDismissIfLastCharacterDeleted(bool dismissIfLastCharacterDeleted) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithSnippetsRule(Microsoft.CodeAnalysis.Completion.SnippetsRule snippetsRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionService
+Microsoft.CodeAnalysis.Completion.CompletionService.GetCompletionsAsync(Microsoft.CodeAnalysis.Document document, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger = default(Microsoft.CodeAnalysis.Completion.CompletionTrigger), System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionList>
 Microsoft.CodeAnalysis.Completion.CompletionService.GetDescriptionAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionDescription>
-Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders
+Microsoft.CodeAnalysis.Completion.CompletionService.GetRules() -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionService.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null) -> bool
 Microsoft.CodeAnalysis.Completion.CompletionTags
 Microsoft.CodeAnalysis.Completion.CompletionTrigger
 Microsoft.CodeAnalysis.Completion.CompletionTrigger.Character.get -> char
@@ -226,7 +227,7 @@ Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection.TaggedParts.get -> System.Coll
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection.Text.get -> string
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
-Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.QuickInfoService() -> void
+Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.GetQuickInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem>
 Microsoft.CodeAnalysis.TaggedText
 Microsoft.CodeAnalysis.TaggedText.Tag.get -> string
 Microsoft.CodeAnalysis.TaggedText.TaggedText() -> void
@@ -235,11 +236,7 @@ Microsoft.CodeAnalysis.TaggedText.Text.get -> string
 Microsoft.CodeAnalysis.TextTags
 override Microsoft.CodeAnalysis.CodeActions.DocumentNavigationOperation.Apply(Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken) -> void
 override Microsoft.CodeAnalysis.Completion.CompletionItem.ToString() -> string
-override Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetChangeAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, char? commitKey, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionChange>
-override Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetCompletionsAsync(Microsoft.CodeAnalysis.Document document, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, System.Collections.Immutable.ImmutableHashSet<string> roles, Microsoft.CodeAnalysis.Options.OptionSet options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionList>
 override Microsoft.CodeAnalysis.TaggedText.ToString() -> string
-override sealed Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetRules() -> Microsoft.CodeAnalysis.Completion.CompletionRules
-override sealed Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null) -> bool
 static Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Create(Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind kind, params char[] characters) -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
 static Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Create(Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind kind, System.Collections.Immutable.ImmutableArray<char> characters) -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
 static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(Microsoft.CodeAnalysis.Text.TextChange textChange, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange
@@ -278,6 +275,3 @@ virtual Microsoft.CodeAnalysis.Completion.CompletionService.FilterItems(Microsof
 virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetChangeAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, char? commitCharacter = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionChange>
 virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetDefaultCompletionListSpan(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition) -> Microsoft.CodeAnalysis.Text.TextSpan
 virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetDefaultItemSpan(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition) -> Microsoft.CodeAnalysis.Text.TextSpan
-virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetRules() -> Microsoft.CodeAnalysis.Completion.CompletionRules
-virtual Microsoft.CodeAnalysis.Completion.CompletionService.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null) -> bool
-virtual Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.GetQuickInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem>

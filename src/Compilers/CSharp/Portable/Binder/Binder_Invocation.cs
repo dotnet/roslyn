@@ -1126,19 +1126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
-            if (!gotError)
-            {
-                gotError = !CheckInvocationArgMixing(
-                    node,
-                    method,
-                    receiver,
-                    method.Parameters,
-                    args,
-                    argsToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
-            }
-
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
@@ -1862,13 +1849,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.MayBeNameofOperator())
             {
                 var binder = this.GetBinder(node);
-                if (binder is null)
-                {
-                    // This could happen during speculation due to a bug
-                    // Tracked by https://github.com/dotnet/roslyn/issues/60801
-                    result = null;
-                    return false;
-                }
                 if (binder.EnclosingNameofArgument == node.ArgumentList.Arguments[0].Expression)
                 {
                     result = binder.BindNameofOperatorInternal(node, diagnostics);
@@ -2057,19 +2037,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
-            if (!hasErrors)
-            {
-                hasErrors = !CheckInvocationArgMixing(
-                    node,
-                    funcPtr.Signature,
-                    receiverOpt: null,
-                    funcPtr.Signature.Parameters,
-                    args,
-                    methodResult.Result.ArgsToParamsOpt,
-                    LocalScopeDepth,
-                    diagnostics);
-            }
-
             return new BoundFunctionPointerInvocation(
                 node,
                 boundExpression,

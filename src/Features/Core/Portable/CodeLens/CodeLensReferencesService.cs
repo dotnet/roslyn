@@ -12,7 +12,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -277,67 +278,64 @@ namespace Microsoft.CodeAnalysis.CodeLens
         {
             var document = solution.GetDocument(syntaxNode.GetLocation().SourceTree);
 
-            using (solution.Services.CacheService?.EnableCaching(document.Project.Id))
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var declaredSymbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+
+            if (declaredSymbol == null)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var declaredSymbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+                return string.Empty;
+            }
 
-                if (declaredSymbol == null)
+            var parts = declaredSymbol.ToDisplayParts(MethodDisplayFormat);
+            var pool = PooledStringBuilder.GetInstance();
+
+            try
+            {
+                var actualBuilder = pool.Builder;
+                var previousWasClass = false;
+
+                for (var index = 0; index < parts.Length; index++)
                 {
-                    return string.Empty;
-                }
-
-                var parts = declaredSymbol.ToDisplayParts(MethodDisplayFormat);
-                var pool = PooledStringBuilder.GetInstance();
-
-                try
-                {
-                    var actualBuilder = pool.Builder;
-                    var previousWasClass = false;
-
-                    for (var index = 0; index < parts.Length; index++)
+                    var part = parts[index];
+                    if (previousWasClass &&
+                        part.Kind == SymbolDisplayPartKind.Punctuation &&
+                        index < parts.Length - 1)
                     {
-                        var part = parts[index];
-                        if (previousWasClass &&
-                            part.Kind == SymbolDisplayPartKind.Punctuation &&
-                            index < parts.Length - 1)
+                        switch (parts[index + 1].Kind)
                         {
-                            switch (parts[index + 1].Kind)
-                            {
-                                case SymbolDisplayPartKind.ClassName:
-                                case SymbolDisplayPartKind.RecordClassName:
-                                case SymbolDisplayPartKind.DelegateName:
-                                case SymbolDisplayPartKind.EnumName:
-                                case SymbolDisplayPartKind.ErrorTypeName:
-                                case SymbolDisplayPartKind.InterfaceName:
-                                case SymbolDisplayPartKind.StructName:
-                                case SymbolDisplayPartKind.RecordStructName:
-                                    actualBuilder.Append('+');
-                                    break;
+                            case SymbolDisplayPartKind.ClassName:
+                            case SymbolDisplayPartKind.RecordClassName:
+                            case SymbolDisplayPartKind.DelegateName:
+                            case SymbolDisplayPartKind.EnumName:
+                            case SymbolDisplayPartKind.ErrorTypeName:
+                            case SymbolDisplayPartKind.InterfaceName:
+                            case SymbolDisplayPartKind.StructName:
+                            case SymbolDisplayPartKind.RecordStructName:
+                                actualBuilder.Append('+');
+                                break;
 
-                                default:
-                                    actualBuilder.Append(part);
-                                    break;
-                            }
+                            default:
+                                actualBuilder.Append(part);
+                                break;
                         }
-                        else
-                        {
-                            actualBuilder.Append(part);
-                        }
-
-                        previousWasClass = part.Kind is SymbolDisplayPartKind.ClassName or
-                                           SymbolDisplayPartKind.RecordClassName or
-                                           SymbolDisplayPartKind.InterfaceName or
-                                           SymbolDisplayPartKind.StructName or
-                                           SymbolDisplayPartKind.RecordStructName;
+                    }
+                    else
+                    {
+                        actualBuilder.Append(part);
                     }
 
-                    return actualBuilder.ToString();
+                    previousWasClass = part.Kind is SymbolDisplayPartKind.ClassName or
+                                       SymbolDisplayPartKind.RecordClassName or
+                                       SymbolDisplayPartKind.InterfaceName or
+                                       SymbolDisplayPartKind.StructName or
+                                       SymbolDisplayPartKind.RecordStructName;
                 }
-                finally
-                {
-                    pool.Free();
-                }
+
+                return actualBuilder.ToString();
+            }
+            finally
+            {
+                pool.Free();
             }
         }
     }

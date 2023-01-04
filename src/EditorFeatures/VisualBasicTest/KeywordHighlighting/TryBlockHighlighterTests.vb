@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class TryBlockHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return GetType(TryBlockHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestTryBlock1() As Task
             Await TestAsync(<Text>
 Class C
@@ -29,7 +30,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestTryBlock2() As Task
             Await TestAsync(<Text>
 Class C
@@ -46,7 +47,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestTryBlock3() As Task
             Await TestAsync(<Text>
 Class C
@@ -63,7 +64,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestTryBlock4() As Task
             Await TestAsync(<Text>
 Class C
@@ -80,7 +81,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestTryBlock5() As Task
             Await TestAsync(<Text>
 Class C
@@ -97,7 +98,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestTryBlock6() As Task
             Await TestAsync(<Text>
 Class C
@@ -114,7 +115,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestExitTryInCatchBlock() As Task
             Await TestAsync(<Text>
 Class C
@@ -131,7 +132,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestExitTryInCatchBlock2() As Task
             Await TestAsync(<Text>
 Class C
@@ -148,7 +149,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function NegativeTestExitTryInNestedTry() As Task
             Await TestAsync(<Text>
 Class C

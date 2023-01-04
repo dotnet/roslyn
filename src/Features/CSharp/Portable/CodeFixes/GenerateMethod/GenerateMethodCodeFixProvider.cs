@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS1503 = nameof(CS1503); // error CS1503: Argument 1: cannot convert from 'double' to 'int'
         private const string CS1660 = nameof(CS1660); // error CS1660: Cannot convert lambda expression to type 'string[]' because it is not a delegate type
         private const string CS1739 = nameof(CS1739); // error CS1739: The best overload for 'M' does not have a parameter named 'x'
-        private const string CS7036 = nameof(CS7036); // error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.M(int)'
+        private const string CS7036 = nameof(CS7036); // error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.M(int)'
         private const string CS1955 = nameof(CS1955); // error CS1955: Non-invocable member 'Goo' cannot be used like a method.
 
         public static readonly ImmutableArray<string> FixableDiagnosticIds =
@@ -54,7 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.GenerateVariable)]
     internal sealed class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         [ImportingConstructor]

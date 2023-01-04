@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Sub New()
             MyBase.New()
 
-            _comAggregate = Interop.ComAggregate.CreateAggregatedObject(Me)
+            _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
         Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task

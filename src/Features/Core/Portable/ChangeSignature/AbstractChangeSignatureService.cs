@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -20,7 +19,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -55,6 +54,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
+            LineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext => await GetChangeSignatureResultAsync(changeSignatureAnalyzedSucceedContext, options, cancellationToken).ConfigureAwait(false),
                 CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext => new ChangeSignatureResult(succeeded: false, changeSignatureFailureKind: cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             async Task<ChangeSignatureResult> GetChangeSignatureResultAsync(ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return null;
             }
 
-            var changeSignatureOptionsService = succeededContext.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
+            var changeSignatureOptionsService = succeededContext.Solution.Services.GetRequiredService<IChangeSignatureOptionsService>();
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
                 succeededContext.Document, succeededContext.PositionForTypeBinding, succeededContext.Symbol, succeededContext.ParameterConfiguration);
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var doc = currentSolution.GetRequiredDocument(docId);
-                var updater = doc.Project.LanguageServices.GetRequiredService<AbstractChangeSignatureService>();
+                var updater = doc.Project.Services.GetRequiredService<AbstractChangeSignatureService>();
                 var root = await doc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 if (root is null)
                 {
@@ -396,6 +396,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         potentiallyUpdatedNode,
                         originalNode,
                         UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(definitionToUse[originalNode], options.UpdatedSignature),
+                        context.FallbackOptions,
                         cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                 });
 
@@ -405,7 +406,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var formattedRoot = Formatter.Format(
                     newRoot,
                     changeSignatureFormattingAnnotation,
-                    doc.Project.Solution.Workspace.Services,
+                    doc.Project.Solution.Services,
                     options: formattingOptions,
                     rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             telemetryTimer.Stop();
-            ChangeSignatureLogger.LogCommitInformation(telemetryNumberOfDeclarationsToUpdate, telemetryNumberOfReferencesToUpdate, (int)telemetryTimer.ElapsedMilliseconds);
+            ChangeSignatureLogger.LogCommitInformation(telemetryNumberOfDeclarationsToUpdate, telemetryNumberOfReferencesToUpdate, telemetryTimer.Elapsed);
 
             return (currentSolution, confirmationMessage);
         }
@@ -813,11 +814,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
                         // https://github.com/dotnet/roslyn/issues/43354
-                        var argument = generateAttributeArguments ?
-                            Generator.AttributeArgument(
+                        var argument = generateAttributeArguments
+                            ? Generator.AttributeArgument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
-                                expression: expression) :
-                            Generator.Argument(
+                                expression: expression)
+                            : Generator.Argument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 refKind: RefKind.None,
                                 expression: expression);
@@ -916,10 +917,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
-            var options = RecommendationServiceOptions.From(document.Project);
+            var recommendationOptions = new RecommendationServiceOptions()
+            {
+                HideAdvancedMembers = false,
+                FilterOutOfScopeLocals = true,
+            };
 
             var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            var recommendations = recommender.GetRecommendedSymbolsInContext(context, options, cancellationToken).NamedSymbols;
+            var recommendations = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken).NamedSymbols;
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 
@@ -953,12 +958,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return null;
         }
 
-        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)
+        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes, LanguageServices services, LineFormattingOptions options)
         {
             var updatedLeadingTrivia = ImmutableArray.CreateBuilder<SyntaxTrivia>();
             var index = 0;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = services.GetRequiredService<ISyntaxFactsService>();
 
             foreach (var trivia in node.GetLeadingTrivia())
             {
@@ -1016,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var extraDocComments = Generator.DocumentationCommentTrivia(
                     extraNodeList,
                     node.GetTrailingTrivia(),
-                    document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
+                    options.NewLine);
                 var newTrivia = Generator.Trivia(extraDocComments);
 
                 updatedLeadingTrivia.Add(newTrivia);
@@ -1053,6 +1058,21 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return false;
+        }
+
+        protected static int GetParameterIndexFromInvocationArgument(SyntaxNode argument, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var parameter = semanticFacts.FindParameterForArgument(semanticModel, argument, cancellationToken);
+            if (parameter is null)
+                return 0;
+
+            // If we're in the invocation of an extension method that is called via this.Method(params). The 'this'
+            // argument has an ordinal value of -1 but change signature is expecting all params to start at 0 (including
+            // the 'this' param).
+            return parameter.ContainingSymbol.IsReducedExtension()
+                ? parameter.Ordinal + 1
+                : parameter.Ordinal;
         }
     }
 }

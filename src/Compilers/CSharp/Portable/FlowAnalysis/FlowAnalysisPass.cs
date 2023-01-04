@@ -113,15 +113,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length);
             foreach (var field in implicitlyInitializedFields)
             {
-                builder.Add(
-                    F.ExpressionStatement(
-                        F.AssignmentExpression(
-                            F.Field(F.This(), field),
-                            F.Default(field.Type))));
+                if (field.RefKind == RefKind.None)
+                {
+                    // field = default(T);
+                    builder.Add(
+                        F.ExpressionStatement(
+                            F.AssignmentExpression(
+                                F.Field(F.This(), field),
+                                F.Default(field.Type))));
+                }
+                else
+                {
+                    // field = ref *default(T*);
+                    builder.Add(
+                        F.ExpressionStatement(
+                            F.AssignmentExpression(
+                                F.Field(F.This(), field),
+                                F.NullRef(field.TypeWithAnnotations),
+                                isRef: true)));
+                }
             }
             var initializations = F.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
 
-            return body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(index: 0, initializations));
+            return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Statements.Insert(index: 0, initializations));
         }
 
         private static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, bool originalBodyNested)
@@ -135,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(statements, n - 1);
                 builder.Add(AppendImplicitReturn((BoundBlock)statements[n - 1], method));
 
-                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, builder.ToImmutableAndFree());
+                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, body.HasUnsafeModifier, builder.ToImmutableAndFree());
             }
             else
             {
@@ -163,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
-            return body.Update(body.Locals, body.LocalFunctions, body.Statements.Add(ret));
+            return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Statements.Add(ret));
         }
 
         private static bool Analyze(

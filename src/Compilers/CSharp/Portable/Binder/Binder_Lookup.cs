@@ -984,7 +984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    TypeSymbol.Equals(iFaceOriginal, inpcSymbol, TypeCompareKind.ConsiderEverything2);
         }
 
-
         // find the nearest symbol in list to the symbol 'type'.  It may be the same symbol if its the only one.
         private static Symbol GetNearestOtherSymbol(ConsList<TypeSymbol> list, TypeSymbol type)
         {
@@ -1010,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Lookup member in interface, and any base interfaces.
-        private static void LookupMembersInInterfaceOnly(
+        private void LookupMembersInInterfaceOnly(
             LookupResult current,
             NamedTypeSymbol type,
             string name,
@@ -1026,7 +1025,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type.IsInterface);
 
             LookupMembersWithoutInheritance(current, type, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteInfo, basesBeingResolved);
-            if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && !originalBinder.InCrefButNotParameterOrReturnType)
+            if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && !originalBinder.InCrefButNotParameterOrReturnType &&
+                ((options & LookupOptions.NamespacesOrTypesOnly) == 0 || !(current.IsSingleViable && TypeSymbol.Equals(current.SingleSymbolOrDefault.ContainingType, type, TypeCompareKind.AllIgnoreOptions)))) // The nested type will shadow everything from bases
             {
                 LookupMembersInInterfacesWithoutInheritance(current, GetBaseInterfaces(type, basesBeingResolved, ref useSiteInfo),
                     name, arity, basesBeingResolved, options, originalBinder, accessThroughType, diagnose, ref useSiteInfo);
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void LookupMembersInInterfacesWithoutInheritance(
+        private void LookupMembersInInterfacesWithoutInheritance(
             LookupResult current,
             ImmutableArray<NamedTypeSymbol> interfaces,
             string name,
@@ -1184,20 +1184,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupMembersInInterfacesWithoutInheritance(current, typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo), name, arity, basesBeingResolved: null, options, originalBinder, typeParameter, diagnose, ref useSiteInfo);
         }
 
-        private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.ConsiderEverything2));
-            for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+
+            if (basesBeingResolved?.Any() != true)
             {
-                if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2)) return true;
+                for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                {
+                    if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2)) return true;
+                }
             }
+            else
+            {
+                PooledHashSet<NamedTypeSymbol> visited = null;
+
+                for (var b = (NamedTypeSymbol)derivedType.GetNextBaseTypeNoUseSiteDiagnostics(basesBeingResolved, compilation, ref visited);
+                     (object)b != null;
+                     b = (NamedTypeSymbol)b.GetNextBaseTypeNoUseSiteDiagnostics(basesBeingResolved, compilation, ref visited))
+                {
+                    b.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+
+                    if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2))
+                    {
+                        visited?.Free();
+                        return true;
+                    }
+                }
+
+                visited?.Free();
+            }
+
             return baseType.IsInterface && GetBaseInterfaces(derivedType, basesBeingResolved, ref useSiteInfo).Contains(baseType);
         }
 
         // Merge resultHidden into resultHiding, whereby viable results in resultHiding should hide results
         // in resultHidden if the owner of the symbol in resultHiding is a subtype of the owner of the symbol
         // in resultHidden. We merge together methods [indexers], but non-methods [non-indexers] hide everything and methods [indexers] hide non-methods [non-indexers].
-        private static void MergeHidingLookupResults(LookupResult resultHiding, LookupResult resultHidden, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void MergeHidingLookupResults(LookupResult resultHiding, LookupResult resultHidden, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Methods hide non-methods, non-methods hide everything.
 
@@ -1226,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
 
-                            if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingSym.ContainingType, basesBeingResolved, useSiteInfo: ref useSiteInfo) &&
+                            if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingSym.ContainingType, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
                             {
                                 continue; // not in inheritance relationship, so it cannot hide
@@ -1308,7 +1332,7 @@ symIsHidden:;
 
         private bool IsInScopeOfAssociatedSyntaxTree(Symbol symbol)
         {
-            while (symbol is not null and not SourceMemberContainerTypeSymbol { IsFileLocal: true })
+            while (symbol is not null and not NamedTypeSymbol { AssociatedFileIdentifier: not null })
             {
                 symbol = symbol.ContainingType;
             }
@@ -1319,22 +1343,35 @@ symIsHidden:;
                 return true;
             }
 
-            var tree = getSyntaxTreeForFileTypes();
-            return symbol.IsDefinedInSourceTree(tree, definedWithinSpan: null);
+            if ((object)symbol.DeclaringCompilation != this.Compilation
+                && (this.Flags & BinderFlags.InEEMethodBinder) == 0)
+            {
+                return false;
+            }
 
-            SyntaxTree getSyntaxTreeForFileTypes()
+            var symbolFileIdentifier = ((NamedTypeSymbol)symbol).AssociatedFileIdentifier.GetValueOrDefault();
+            if (symbolFileIdentifier.FilePathChecksumOpt.IsDefault)
+            {
+                // the containing file of the file-local type has an ill-formed path.
+                return false;
+            }
+
+            var binderFileIdentifier = getFileIdentifierForFileTypes();
+            return !binderFileIdentifier.FilePathChecksumOpt.IsDefault
+                && binderFileIdentifier.FilePathChecksumOpt.SequenceEqual(symbolFileIdentifier.FilePathChecksumOpt);
+
+            FileIdentifier getFileIdentifierForFileTypes()
             {
                 for (var binder = this; binder != null; binder = binder.Next)
                 {
                     if (binder is BuckStopsHereBinder lastBinder)
                     {
-                        Debug.Assert(lastBinder.AssociatedSyntaxTree is not null);
-                        return lastBinder.AssociatedSyntaxTree;
+                        // we never expect to bind a file type in a context where the BuckStopsHereBinder lacks an AssociatedFileIdentifier
+                        return lastBinder.AssociatedFileIdentifier.Value;
                     }
                 }
 
-                Debug.Assert(false);
-                return null;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

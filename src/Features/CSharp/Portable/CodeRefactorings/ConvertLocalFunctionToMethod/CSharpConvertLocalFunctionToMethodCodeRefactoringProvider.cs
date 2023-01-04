@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -52,7 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            if (!localFunction.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
+            if (localFunction.Parent is not BlockSyntax parentBlock)
+            {
+                return;
+            }
+
+            var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
+            // If the local function is defined in a block within the top-level statements context, then we can't provide the refactoring because
+            // there is no class we can put the generated method in.
+            if (container == null || container.IsKind(SyntaxKind.GlobalStatement))
             {
                 return;
             }
@@ -62,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             context.RegisterRefactoring(
                 CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_method,
-                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, context.Options, c),
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, container, context.Options, c),
                     nameof(CSharpFeaturesResources.Convert_to_method)),
                 localFunction.Span);
         }
@@ -72,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             Document document,
             BlockSyntax parentBlock,
             LocalFunctionStatementSyntax localFunction,
+            MemberDeclarationSyntax container,
             CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
@@ -106,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var captureTypes = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
             RemoveUnusedTypeParameters(localFunction, semanticModel, typeParameters, reservedTypeParameters: captureTypes);
 
-            var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
             var containerSymbol = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
 
@@ -183,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
-                if (node.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+                if (node.Parent is InvocationExpressionSyntax invocation)
                 {
                     if (hasAdditionalArguments)
                     {

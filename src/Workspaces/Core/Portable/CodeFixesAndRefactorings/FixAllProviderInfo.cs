@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
         }
     }
 }

@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private static void UpdateLabelsForNode(ISymbol symbol, Solution solution, GraphNode node)
         {
-            var progressionLanguageService = solution.Workspace.Services.GetLanguageServices(symbol.Language).GetService<IProgressionLanguageService>();
+            var progressionLanguageService = solution.Services.GetLanguageServices(symbol.Language).GetService<IProgressionLanguageService>();
 
             // A call from unittest may not have a proper language service.
             if (progressionLanguageService != null)

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             if (document.Project.IsSubmission)
                 return;
 
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
                 return;
 
             var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();

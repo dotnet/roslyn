@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
@@ -25,20 +26,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         private readonly ParseOptions? _parseOptions;
 
-        public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly)
+        public MetadataAsSourceGeneratedFileInfo(string rootPath, Workspace sourceWorkspace, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly)
         {
             this.SourceProjectId = sourceProject.Id;
-            this.Workspace = sourceProject.Solution.Workspace;
+            this.Workspace = sourceWorkspace;
             this.LanguageName = signaturesOnly ? sourceProject.Language : LanguageNames.CSharp;
             this.SignaturesOnly = signaturesOnly;
-            if (sourceProject.Language == LanguageName)
-            {
-                _parseOptions = sourceProject.ParseOptions;
-            }
-            else
-            {
-                _parseOptions = Workspace.Services.GetLanguageServices(LanguageName).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
-            }
+
+            _parseOptions = sourceProject.Language == LanguageName
+                ? sourceProject.ParseOptions
+                : sourceProject.Solution.Services.GetLanguageServices(LanguageName).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
 
             this.References = sourceProject.MetadataReferences.ToImmutableArray();
             this.AssemblyIdentity = topLevelNamedType.ContainingAssembly.Identity;
@@ -50,6 +47,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         }
 
         public static Encoding Encoding => Encoding.UTF8;
+        public static SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithms.Default;
 
         /// <summary>
         /// Creates a ProjectInfo to represent the fake project created for metadata as source documents.
@@ -74,26 +72,34 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 ? string.Format(@"[assembly: System.Reflection.AssemblyVersion(""{0}"")]", AssemblyIdentity.Version)
                 : string.Format(@"<Assembly: System.Reflection.AssemblyVersion(""{0}"")>", AssemblyIdentity.Version);
 
-            var assemblyInfoSourceTextContainer = SourceText.From(assemblyInfoString, Encoding).Container;
+            var assemblyInfoSourceText = SourceText.From(assemblyInfoString, Encoding, ChecksumAlgorithm);
 
             var assemblyInfoDocument = DocumentInfo.Create(
                 assemblyInfoDocumentId,
                 assemblyInfoFileName,
-                loader: TextLoader.From(assemblyInfoSourceTextContainer, VersionStamp.Default));
+                loader: TextLoader.From(assemblyInfoSourceText.Container, VersionStamp.Default),
+                filePath: null,
+                isGenerated: true)
+                .WithDesignTimeOnly(true);
 
             var generatedDocumentId = DocumentId.CreateNewId(projectId);
             var generatedDocument = DocumentInfo.Create(
                 generatedDocumentId,
                 Path.GetFileName(TemporaryFilePath),
+                loader: loadFileFromDisk ? new WorkspaceFileTextLoader(workspace.Services.SolutionServices, TemporaryFilePath, Encoding) : null,
                 filePath: TemporaryFilePath,
-                loader: loadFileFromDisk ? new FileTextLoader(TemporaryFilePath, Encoding) : null);
+                isGenerated: true)
+                .WithDesignTimeOnly(true);
 
             var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Default,
-                name: AssemblyIdentity.Name,
-                assemblyName: AssemblyIdentity.Name,
-                language: LanguageName,
+                new ProjectInfo.ProjectAttributes(
+                    id: projectId,
+                    version: VersionStamp.Default,
+                    name: AssemblyIdentity.Name,
+                    assemblyName: AssemblyIdentity.Name,
+                    language: LanguageName,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm: ChecksumAlgorithm),
                 compilationOptions: compilationOptions,
                 parseOptions: _parseOptions,
                 documents: new[] { assemblyInfoDocument, generatedDocument },

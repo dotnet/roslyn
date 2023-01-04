@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             : base(IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId,
                    EnforceOnBuildValues.UseImplicitObjectCreation,
                    CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_new), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.new_expression_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

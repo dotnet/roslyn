@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
-                           services As HostWorkspaceServices,
+                           services As SolutionServices,
                            structuralTypeDisplayService As IStructuralTypeDisplayService,
                            options As SymbolDescriptionOptions,
                            cancellationToken As CancellationToken)

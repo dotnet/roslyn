@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -34,6 +35,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PropertyAccess:
                     return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
+
+                case BoundKind.IndexerAccess:
+                    return ((BoundIndexerAccess)node).Indexer.RefKind;
+
+                case BoundKind.ImplicitIndexerAccess:
+                    return ((BoundImplicitIndexerAccess)node).IndexerOrSliceAccess.GetRefKind();
+
+                case BoundKind.ObjectInitializerMember:
+                    var member = (BoundObjectInitializerMember)node;
+                    if (member.HasErrors)
+                        return RefKind.None;
+
+                    return member.MemberSymbol switch
+                    {
+                        FieldSymbol f => f.RefKind,
+                        PropertySymbol f => f.RefKind,
+                        EventSymbol => RefKind.None,
+                        var s => throw ExceptionUtilities.UnexpectedValue(s?.Kind)
+                    };
 
                 default:
                     return RefKind.None;
@@ -247,6 +267,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol? receiverType = expressionOpt.Type;
             return receiverType is NamedTypeSymbol { Kind: SymbolKind.NamedType, IsComImport: true };
+        }
+
+        internal static bool IsDiscardExpression(this BoundExpression expr)
+        {
+            return expr switch
+            {
+                BoundDiscardExpression => true,
+                OutDeconstructVarPendingInference { IsDiscardExpression: true } => true,
+                BoundDeconstructValuePlaceholder { IsDiscardExpression: true } => true,
+                _ => false
+            };
         }
     }
 }

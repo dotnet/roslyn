@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             string displayTextSuffix,
             int position,
             string snippetIdentifier,
-            Glyph glyph)
+            Glyph glyph,
+            ImmutableArray<SymbolDisplayPart> description,
+            string inlineDescription,
+            ImmutableArray<string> additionalFilterTexts)
         {
             var props = ImmutableDictionary<string, string>.Empty
                 .Add("Position", position.ToString())
@@ -28,9 +31,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 glyph: glyph,
+                description: description,
+                // Adding a space after the identifier string that way it will always be sorted after a keyword.
+                sortText: snippetIdentifier + " ",
+                filterText: snippetIdentifier,
                 properties: props,
                 isComplexTextEdit: true,
-                rules: CompletionItemRules.Default);
+                inlineDescription: inlineDescription,
+                rules: CompletionItemRules.Default)
+                .WithAdditionalFilterTexts(additionalFilterTexts);
         }
 
         public static string GetSnippetIdentifier(CompletionItem item)

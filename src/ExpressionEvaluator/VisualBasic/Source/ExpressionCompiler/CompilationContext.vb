@@ -1144,7 +1144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Function IsDisplayClassInstanceFieldName(name As String) As Boolean
             Debug.Assert(name IsNot Nothing) ' Verified by caller.
             Return name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
-                name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
+                name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
                 name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) ' Async lambda case
         End Function
 
@@ -1247,7 +1247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(Not field.IsShared)
                     variableKind = DisplayClassVariableKind.Local
                     variableName = fieldName.Substring(GeneratedNameConstants.HoistedSpecialVariablePrefix.Length)
-                ElseIf GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
+                ElseIf GeneratedNameParser.TryParseStateMachineHoistedUserVariableOrDisplayClassName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
                     Debug.Assert(Not field.IsShared)
 
                     If Not inScopeHoistedLocalSlots.Contains(hoistedLocalSlotIndex) Then

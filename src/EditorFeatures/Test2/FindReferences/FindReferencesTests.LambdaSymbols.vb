@@ -6,8 +6,9 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterDefinition(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -29,7 +30,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -58,7 +59,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -87,7 +88,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -116,7 +117,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -145,7 +146,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas5(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

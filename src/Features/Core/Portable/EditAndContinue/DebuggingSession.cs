@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class DebuggingSession : IDisposable
     {
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
+        internal readonly IPdbMatchingSourceTextProvider SourceTextProvider;
         private readonly CancellationTokenSource _cancellationSource = new();
 
         /// <summary>
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
         /// even when it's replaced in <see cref="_projectEmitBaselines"/> by a newer baseline.
         /// </remarks>
-        private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines = new();
+        private readonly Dictionary<ProjectId, (EmitBaseline Baseline, int Generation)> _projectEmitBaselines = new();
         private readonly List<IDisposable> _initialBaselineModuleReaders = new();
         private readonly object _projectEmitBaselinesGuard = new();
 
@@ -94,17 +95,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Last array of module updates generated during the debugging session.
         /// Useful for crash dump diagnostics.
         /// </summary>
-        private ImmutableArray<ManagedModuleUpdate> _lastModuleUpdatesLog;
+        private ImmutableArray<ModuleUpdate> _lastModuleUpdatesLog;
 
         internal DebuggingSession(
             DebuggingSessionId id,
             Solution solution,
             IManagedHotReloadService debuggerService,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
+            IPdbMatchingSourceTextProvider sourceTextProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
             bool reportDiagnostics)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
+            SourceTextProvider = sourceTextProvider;
             _reportTelemetry = ReportTelemetry;
             _telemetry = new DebuggingSessionTelemetry(solution.State.SolutionAttributes.TelemetryId);
 
@@ -152,9 +155,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (_isDisposed)
                 throw new ObjectDisposedException(nameof(DebuggingSession));
         }
-
-        internal Task OnSourceFileUpdatedAsync(Document document)
-            => LastCommittedSolution.OnSourceFileUpdatedAsync(document, _cancellationSource.Token);
 
         private void StorePendingUpdate(Solution solution, SolutionUpdate update)
         {
@@ -307,43 +307,55 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Get <see cref="EmitBaseline"/> for given project.
         /// </summary>
         /// <returns>True unless the project outputs can't be read.</returns>
-        internal bool TryGetOrCreateEmitBaseline(Project project, out ImmutableArray<Diagnostic> diagnostics, [NotNullWhen(true)] out EmitBaseline? baseline, [NotNullWhen(true)] out ReaderWriterLockSlim? baselineAccessLock)
+        internal bool TryGetOrCreateEmitBaseline(
+            Project project,
+            out ImmutableArray<Diagnostic> diagnostics,
+            [NotNullWhen(true)] out EmitBaseline? baseline,
+            out int baselineGeneration,
+            [NotNullWhen(true)] out ReaderWriterLockSlim? baselineAccessLock)
         {
             baselineAccessLock = _baselineAccessLock;
 
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectEmitBaselines.TryGetValue(project.Id, out baseline))
+                if (_projectEmitBaselines.TryGetValue(project.Id, out var baselineAndGeneration))
                 {
+                    (baseline, baselineGeneration) = baselineAndGeneration;
                     diagnostics = ImmutableArray<Diagnostic>.Empty;
                     return true;
                 }
             }
 
             var outputs = GetCompilationOutputs(project);
-            if (!TryCreateInitialBaseline(outputs, project.Id, out diagnostics, out var newBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
+            if (!TryCreateInitialBaseline(outputs, project.Id, out diagnostics, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
             {
                 // Unable to read the DLL/PDB at this point (it might be open by another process).
                 // Don't cache the failure so that the user can attempt to apply changes again.
+                baselineGeneration = -1;
+                baseline = null;
                 return false;
             }
 
+            const int initialBaselineGeneration = 0;
+
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectEmitBaselines.TryGetValue(project.Id, out baseline))
+                if (_projectEmitBaselines.TryGetValue(project.Id, out var baselineAndGeneration))
                 {
                     metadataReaderProvider.Dispose();
                     debugInfoReaderProvider.Dispose();
+                    (baseline, baselineGeneration) = baselineAndGeneration;
                     return true;
                 }
 
-                _projectEmitBaselines[project.Id] = newBaseline;
+                _projectEmitBaselines.Add(project.Id, (initialBaseline, initialBaselineGeneration));
 
                 _initialBaselineModuleReaders.Add(metadataReaderProvider);
                 _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
             }
 
-            baseline = newBaseline;
+            baseline = initialBaseline;
+            baselineGeneration = initialBaselineGeneration;
             return true;
         }
 
@@ -514,7 +526,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             LogSolutionUpdate(solutionUpdate);
 
-            if (solutionUpdate.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
+            if (solutionUpdate.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 StorePendingUpdate(solution, solutionUpdate);
             }
@@ -526,26 +538,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void LogSolutionUpdate(SolutionUpdate update)
         {
-            EditAndContinueWorkspaceService.Log.Write("Solution update status: {0}",
-                ((int)update.ModuleUpdates.Status, typeof(ManagedModuleUpdateStatus)));
+            var log = EditAndContinueWorkspaceService.Log;
 
-            if (update.ModuleUpdates.Updates.Length > 0)
+            log.Write("Solution update status: {0}", update.ModuleUpdates.Status);
+
+            foreach (var moduleUpdate in update.ModuleUpdates.Updates)
             {
-                var firstUpdate = update.ModuleUpdates.Updates[0];
-
-                EditAndContinueWorkspaceService.Log.Write("Solution update deltas: #{0} [types: #{1} (0x{2}:X8), methods: #{3} (0x{4}:X8)",
-                    update.ModuleUpdates.Updates.Length,
-                    firstUpdate.UpdatedTypes.Length,
-                    firstUpdate.UpdatedTypes.FirstOrDefault(),
-                    firstUpdate.UpdatedMethods.Length,
-                    firstUpdate.UpdatedMethods.FirstOrDefault());
+                log.Write("Module update: capabilities=[{0}], types=[{1}], methods=[{2}]",
+                    moduleUpdate.RequiredCapabilities,
+                    moduleUpdate.UpdatedTypes,
+                    moduleUpdate.UpdatedMethods);
             }
 
             if (update.Diagnostics.Length > 0)
             {
                 var firstProjectDiagnostic = update.Diagnostics[0];
 
-                EditAndContinueWorkspaceService.Log.Write("Solution update diagnostics: #{0} [{1}: {2}, ...]",
+                log.Write("Solution update diagnostics: #{0} [{1}: {2}, ...]",
                     update.Diagnostics.Length,
                     firstProjectDiagnostic.ProjectId,
                     firstProjectDiagnostic.Diagnostics[0]);
@@ -555,7 +564,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var firstDocumentWithRudeEdits = update.DocumentsWithRudeEdits[0];
 
-                EditAndContinueWorkspaceService.Log.Write("Solution update documents with rude edits: #{0} [{1}: {2}, ...]",
+                log.Write("Solution update documents with rude edits: #{0} [{1}: {2}, ...]",
                     update.DocumentsWithRudeEdits.Length,
                     firstDocumentWithRudeEdits.DocumentId,
                     firstDocumentWithRudeEdits.Diagnostics[0].Kind);
@@ -586,7 +595,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 foreach (var (projectId, baseline) in pendingUpdate.EmitBaselines)
                 {
-                    _projectEmitBaselines[projectId] = baseline;
+                    _projectEmitBaselines[projectId] = (baseline, _projectEmitBaselines[projectId].Generation + 1);
                 }
             }
 
@@ -663,7 +672,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Debug.Assert(oldProject.SupportsEditAndContinue());
                     Debug.Assert(newProject.SupportsEditAndContinue());
 
-                    var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                    var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
                     await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                     {
@@ -750,7 +759,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -788,7 +797,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
 
-                var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
                 using var _ = ArrayBuilder<ActiveStatementSpan>.GetInstance(out var adjustedMappedSpans);
 
@@ -827,11 +836,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
+        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(
+            Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
 
@@ -940,7 +950,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var analyzer = newDocument.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newDocument.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
                 var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
                 return oldDocumentActiveStatements.GetStatement(baseActiveStatement.Ordinal).ExceptionRegions.IsActiveStatementCovered;
             }
@@ -982,7 +992,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Debug.Assert(oldProject.SupportsEditAndContinue());
                     Debug.Assert(newProject.SupportsEditAndContinue());
 
-                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
+                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                        activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -999,10 +1010,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // TODO: https://github.com/dotnet/roslyn/issues/1204
                         // oldProject == null ==> project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
                         // correspond to the PDB.
-                        var id = (oldProject?.SupportsEditAndContinue() == true) ?
-                            await GetChangedDocumentContainingUnmappedActiveStatementAsync(
-                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) :
-                            null;
+                        var id = (oldProject?.SupportsEditAndContinue() == true)
+                            ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false)
+                            : null;
 
                         Interlocked.CompareExchange(ref documentId, id, null);
                         if (id != null)
@@ -1027,19 +1038,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
         // Enumerate all changed documents in the project whose module contains the active statement.
         // For each such document enumerate all #line directives to find which maps code to the span that contains the active statement.
-        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
+        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(
+            ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
         {
             Debug.Assert(oldProject.Id == newProject.Id);
             Debug.Assert(oldProject.SupportsEditAndContinue());
             Debug.Assert(newProject.SupportsEditAndContinue());
 
-            var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
             {
@@ -1066,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)
         {
             // report telemetry (fire and forget):
-            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, LogAggregator.GetNextId));
+            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, CorrelationIdFactory.GetNextId));
         }
 
         internal TestAccessor GetTestAccessor()
@@ -1091,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 lock (_instance._projectEmitBaselinesGuard)
                 {
-                    return _instance._projectEmitBaselines[id];
+                    return _instance._projectEmitBaselines[id].Baseline;
                 }
             }
 

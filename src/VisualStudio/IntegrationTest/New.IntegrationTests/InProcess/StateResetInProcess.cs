@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
             ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
-            ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
+            ResetPerLanguageOption(globalOptions, NavigationBarViewOptionsStorage.ShowNavigationBar);
             ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
             ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
             ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);
@@ -94,7 +94,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     break;
                 }
 
-                await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE);
+                await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, cancellationToken);
                 var nextModalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
                 if (nextModalWindow == modalWindow)
                 {

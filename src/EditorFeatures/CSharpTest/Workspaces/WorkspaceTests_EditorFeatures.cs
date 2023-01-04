@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             TestComposition composition = null)
         {
             composition ??= EditorTestCompositions.EditorFeatures;
-            return new TestWorkspace(exportProvider: null, composition, workspaceKind, disablePartialSolutions: disablePartialSolutions);
+            return new TestWorkspace(composition, workspaceKind, disablePartialSolutions: disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
@@ -1328,7 +1328,7 @@ class D { }
             var input = $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Test.cs"">{ originalText }</Document>
+        <Document FilePath=""Test.cs"">{originalText}</Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <Document IsLinkFile=""true"" LinkAssemblyName=""Assembly1"" LinkFilePath=""Test.cs"" />

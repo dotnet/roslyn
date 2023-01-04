@@ -38,7 +38,7 @@ internal abstract class CodeGenerationOptions
     public NamingStylePreferences NamingStyle => Common.NamingStyle;
 
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetDefault(HostLanguageServices languageServices)
+    public static CodeGenerationOptions GetDefault(LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().DefaultOptions;
 
     public abstract CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions);
@@ -52,13 +52,21 @@ internal abstract class CodeGenerationOptions
 }
 
 [DataContract]
-internal readonly record struct CodeAndImportGenerationOptions(
-    [property: DataMember(Order = 0)] CodeGenerationOptions GenerationOptions,
-    [property: DataMember(Order = 1)] AddImportPlacementOptions AddImportOptions)
+internal readonly record struct CodeAndImportGenerationOptions
 {
+    [DataMember]
+    public required CodeGenerationOptions GenerationOptions { get; init; }
+
+    [DataMember]
+    public required AddImportPlacementOptions AddImportOptions { get; init; }
+
 #if !CODE_STYLE
-    internal static CodeAndImportGenerationOptions GetDefault(HostLanguageServices languageServices)
-        => new(CodeGenerationOptions.GetDefault(languageServices), AddImportPlacementOptions.Default);
+    internal static CodeAndImportGenerationOptions GetDefault(LanguageServices languageServices)
+        => new()
+        {
+            GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
+            AddImportOptions = AddImportPlacementOptions.Default
+        };
 
     internal CodeAndImportGenerationOptionsProvider CreateProvider()
         => new Provider(this);
@@ -70,16 +78,16 @@ internal readonly record struct CodeAndImportGenerationOptions(
         public Provider(CodeAndImportGenerationOptions options)
             => _options = options;
 
-        ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_options);
 
-        ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_options.GenerationOptions);
 
-        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_options.GenerationOptions.NamingStyle);
 
-        ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_options.AddImportOptions);
     }
 #endif
@@ -115,16 +123,16 @@ internal static class CodeGenerationOptionsProviders
     }
 
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions, HostLanguageServices languageServices)
+    public static CodeGenerationOptions GetCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(fallbackOptions, document.Project.LanguageServices);
+        return configOptions.GetCodeGenerationOptions(fallbackOptions, document.Project.Services);
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
 
-            return Task.FromResult(Formatter.GetFormattedTextChanges(parsedDocument.Root, SpecializedCollections.SingletonEnumerable(formattingSpan), parsedDocument.LanguageServices.WorkspaceServices, options, cancellationToken).ToImmutableArray());
+            return Task.FromResult(Formatter.GetFormattedTextChanges(parsedDocument.Root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Services, options, cancellationToken).ToImmutableArray());
         }
 
         public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)

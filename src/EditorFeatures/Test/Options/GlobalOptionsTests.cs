@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -202,7 +203,7 @@ public class GlobalOptionsTests
 
     private static TestWorkspace CreateWorkspace(out TestGlobalOptions globalOptions)
     {
-        var composition = EditorTestCompositions.LanguageServerProtocol.
+        var composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures.
             AddExcludedPartTypes(typeof(GlobalOptionService)).
             AddParts(typeof(TestGlobalOptions));
 
@@ -233,7 +234,7 @@ public class GlobalOptionsTests
     public void ReadingOptionsFromGlobalOptions(string language)
     {
         using var workspace = CreateWorkspace(out var globalOptions);
-        var languageServices = workspace.Services.GetLanguageServices(language);
+        var languageServices = workspace.Services.SolutionServices.GetLanguageServices(language);
 
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetIdeAnalyzerOptions(languageServices), IdeAnalyzerOptions.GetDefault(languageServices), language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetCodeActionOptions(languageServices), CodeActionOptions.GetDefault(languageServices), language);

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
 
         public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
         {
-            var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+            var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
 
             var membersInType = selectedType.GetMembers().
                WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
@@ -83,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             var viewModel = new ExtractClassViewModel(
                 _uiThreadOperationExecutor,
                 notificationService,
+                selectedType,
                 memberViewModels,
                 memberToDependentsMap,
                 defaultTypeName,

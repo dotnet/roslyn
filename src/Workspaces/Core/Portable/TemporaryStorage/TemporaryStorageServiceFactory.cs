@@ -98,19 +98,19 @@ namespace Microsoft.CodeAnalysis.Host
             _textFactory = textFactory;
         }
 
-        public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
+        public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
             => new TemporaryTextStorage(this);
 
-        public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, CancellationToken cancellationToken)
+        public ITemporaryTextStorageInternal AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
             => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding);
 
-        ITemporaryStreamStorage ITemporaryStorageService.CreateTemporaryStreamStorage(CancellationToken cancellationToken)
+        ITemporaryStreamStorageInternal ITemporaryStorageServiceInternal.CreateTemporaryStreamStorage()
             => CreateTemporaryStreamStorage();
 
         internal TemporaryStreamStorage CreateTemporaryStreamStorage()
             => new(this);
 
-        public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size, CancellationToken cancellationToken)
+        public ITemporaryStreamStorageInternal AttachTemporaryStreamStorage(string storageName, long offset, long size)
             => new TemporaryStreamStorage(this, storageName, offset, size);
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Host
         public static string CreateUniqueName(long size)
             => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
-        private sealed class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryTextStorageWithName
+        private sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryTextStorageWithName
         {
             private readonly TemporaryStorageService _service;
             private SourceHashAlgorithm _checksumAlgorithm;
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Host
                     using var reader = CreateTextReaderFromTemporaryStorage(stream);
 
                     // we pass in encoding we got from original source text even if it is null.
-                    return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
+                    return _service._textFactory.CreateText(reader, _encoding, _checksumAlgorithm, cancellationToken);
                 }
             }
 
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        internal class TemporaryStreamStorage : ITemporaryStreamStorage, ITemporaryStorageWithName
+        internal class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
         {
             private readonly TemporaryStorageService _service;
             private MemoryMappedInfo? _memoryMappedInfo;
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _memoryMappedInfo = null;
             }
 
-            Stream ITemporaryStreamStorage.ReadStream(CancellationToken cancellationToken)
+            Stream ITemporaryStreamStorageInternal.ReadStream(CancellationToken cancellationToken)
                 => ReadStream(cancellationToken);
 
             public UnmanagedMemoryStream ReadStream(CancellationToken cancellationToken)

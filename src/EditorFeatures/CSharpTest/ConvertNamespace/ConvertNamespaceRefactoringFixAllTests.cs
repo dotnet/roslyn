@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ConvertNamespaceCodeRefactoringProvider();
 
-        private OptionsCollection PreferBlockScopedNamespace =>
-            this.Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Warning);
+        private OptionsCollection PreferBlockScopedNamespace
+            => this.Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Warning);
 
-        private OptionsCollection PreferFileScopedNamespace =>
-            this.Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Warning);
+        private OptionsCollection PreferFileScopedNamespace
+            => this.Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Warning);
 
         [Fact]
         public async Task TestConvertToFileScope_FixAllInProject()

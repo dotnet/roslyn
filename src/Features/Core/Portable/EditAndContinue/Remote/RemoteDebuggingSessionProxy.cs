@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public async ValueTask<(
-                ManagedModuleUpdates updates,
+                ModuleUpdates updates,
                 ImmutableArray<DiagnosticData> diagnostics,
                 ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
                 DiagnosticData? syntaxError)> EmitSolutionUpdateAsync(
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             CancellationToken cancellationToken)
         {
-            ManagedModuleUpdates moduleUpdates;
+            ModuleUpdates moduleUpdates;
             ImmutableArray<DiagnosticData> diagnosticData;
             ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
             DiagnosticData? syntaxError;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty);
+                        moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
                         diagnosticData = ImmutableArray<DiagnosticData>.Empty;
                         rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                         syntaxError = null;
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
+                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty);
+                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
                 syntaxError = null;
             }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await GetLocalService().GetCurrentActiveStatementPositionAsync(_sessionId, solution, activeStatementSpanProvider, instructionId, cancellationToken).ConfigureAwait(false);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await GetLocalService().IsActiveStatementInExceptionRegionAsync(_sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);
@@ -258,6 +258,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
+            // filter out documents that are not synchronized to remote process before we attempt remote invoke:
+            if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            {
+                return ImmutableArray<ActiveStatementSpan>.Empty;
+            }
+
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {

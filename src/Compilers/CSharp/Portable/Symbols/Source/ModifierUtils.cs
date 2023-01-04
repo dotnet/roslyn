@@ -5,14 +5,16 @@
 #nullable disable
 
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class ModifierUtils
     {
-        internal static DeclarationModifiers MakeAndCheckNontypeMemberModifiers(
-            bool isForTypeDeclaration,
+        internal static DeclarationModifiers MakeAndCheckNonTypeMemberModifiers(
+            bool isOrdinaryMethod,
             bool isForInterfaceMember,
             SyntaxTokenList modifiers,
             DeclarationModifiers defaultAccess,
@@ -21,13 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
-            var result = modifiers.ToDeclarationModifiers(diagnostics.DiagnosticBag ?? new DiagnosticBag());
-            result = CheckModifiers(isForTypeDeclaration, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
+            var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
+            result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
+
+            var readonlyToken = modifiers.FirstOrDefault(static t => t.Kind() == SyntaxKind.ReadOnlyKeyword);
+            if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
+                modifierErrors |= !MessageID.IDS_FeatureReadOnlyMembers.CheckFeatureAvailability(diagnostics, readonlyToken.Parent, readonlyToken.GetLocation());
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
-            {
                 result |= defaultAccess;
-            }
 
             return result;
         }
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
                 Debug.Assert(oneError != DeclarationModifiers.None);
-                errorModifiers = errorModifiers & ~oneError;
+                errorModifiers &= ~oneError;
 
                 switch (oneError)
                 {
@@ -100,13 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifierErrors = true;
             }
 
-            modifierErrors |= checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected)
-                              | checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers);
-
-            if ((result & DeclarationModifiers.File) != 0)
-            {
-                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureFileTypes, diagnostics, errorLocation);
-            }
+            modifierErrors |=
+                checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected) |
+                checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers) |
+                checkFeature(DeclarationModifiers.File, MessageID.IDS_FeatureFileTypes) |
+                checkFeature(DeclarationModifiers.Async, MessageID.IDS_FeatureAsync);
 
             return result;
 
@@ -382,20 +384,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static DeclarationModifiers ToDeclarationModifiers(
-            this SyntaxTokenList modifiers, DiagnosticBag diagnostics)
+            this SyntaxTokenList modifiers, bool isForTypeDeclaration, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
         {
             var result = DeclarationModifiers.None;
             bool seenNoDuplicates = true;
-            bool seenNoAccessibilityDuplicates = true;
 
-            foreach (var modifier in modifiers)
+            for (int i = 0; i < modifiers.Count; i++)
             {
+                SyntaxToken modifier = modifiers[i];
                 DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
 
                 ReportDuplicateModifiers(
                     modifier, one, result,
-                    ref seenNoDuplicates, ref seenNoAccessibilityDuplicates,
+                    ref seenNoDuplicates,
                     diagnostics);
+
+                if (one == DeclarationModifiers.Partial)
+                {
+                    var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
+                    messageId.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
+
+                    // `partial` must always be the last modifier according to the language.  However, there was a bug
+                    // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
+                    // backcompat.
+                    var isLast = i == modifiers.Count - 1;
+                    var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
+                    if (!isLast && !isPartialAsyncMethod)
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_PartialMisplaced,
+                            modifier.GetLocation());
+                    }
+                }
 
                 result |= one;
             }
@@ -423,7 +443,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifierKind,
             DeclarationModifiers allModifiers,
             ref bool seenNoDuplicates,
-            ref bool seenNoAccessibilityDuplicates,
             DiagnosticBag diagnostics)
         {
             if ((allModifiers & modifierKind) != 0)

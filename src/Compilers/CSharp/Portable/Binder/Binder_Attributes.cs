@@ -51,7 +51,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // BindType for AttributeSyntax's name is handled specially during lookup, see Binder.LookupAttributeType.
                     // When looking up a name in attribute type context, we generate a diagnostic + error type if it is not an attribute type, i.e. named type deriving from System.Attribute.
                     // Hence we can assume here that BindType returns a NamedTypeSymbol.
-                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributeToBind.Name, diagnostics).Type;
+                    var boundType = binder.BindType(attributeToBind.Name, diagnostics);
+                    var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
+
+                    // Check the attribute type (unless the attribute type is already an error).
+                    if (boundTypeSymbol.TypeKind != TypeKind.Error)
+                    {
+                        var location = attributeToBind.Name.GetLocation();
+                        binder.CheckDisallowedAttributeDependentType(boundType, location, diagnostics);
+                    }
+
+                    boundAttributeTypes[i] = boundTypeSymbol;
 
                     afterAttributePartBound?.Invoke(attributeToBind);
                 }
@@ -834,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Walk a custom attribute argument bound node and return a TypedConstant.  Verify that the expression is a constant expression.
         /// </summary>
-        private struct AttributeExpressionVisitor
+        private readonly struct AttributeExpressionVisitor
         {
             private readonly Binder _binder;
 
@@ -1119,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region AnalyzedAttributeArguments
 
-        private struct AnalyzedAttributeArguments
+        private readonly struct AnalyzedAttributeArguments
         {
             internal readonly AnalyzedArguments ConstructorArguments;
             internal readonly ArrayBuilder<BoundAssignmentOperator>? NamedArguments;

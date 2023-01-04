@@ -228,7 +228,7 @@ public class Program
     private object _f3 = null!;
 }";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'

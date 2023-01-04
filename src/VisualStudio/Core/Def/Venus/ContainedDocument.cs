@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +38,7 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
 #pragma warning disable CS0618 // Type or member is obsolete
-    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
+    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument, IContainedDocument
 #pragma warning restore CS0618 // Type or member is obsolete
     {
         private const string ReturnReplacementString = @"{|r|}";
@@ -90,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly VisualStudioProject _project;
 
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
+        public bool SupportsSemanticSnippets { get { return false; } }
 
         public DocumentId Id { get; }
         public ITextBuffer SubjectBuffer { get; }
@@ -177,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SourceTextContainer GetOpenTextContainer()
@@ -214,11 +215,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public void UpdateText(SourceText newText)
         {
-            var subjectBuffer = (IProjectionBuffer)this.SubjectBuffer;
-            var originalSnapshot = subjectBuffer.CurrentSnapshot;
-            var originalText = originalSnapshot.AsText();
+            var originalText = SubjectBuffer.CurrentSnapshot.AsText();
+            ApplyChanges(originalText, newText.GetTextChanges(originalText));
+        }
 
-            var changes = newText.GetTextChanges(originalText);
+        public ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes)
+            => ApplyChanges(SubjectBuffer.CurrentSnapshot.AsText(), changes);
+
+        private ITextSnapshot ApplyChanges(SourceText originalText, IEnumerable<TextChange> changes)
+        {
+            var subjectBuffer = (IProjectionBuffer)SubjectBuffer;
 
             IEnumerable<int> affectedVisibleSpanIndices = null;
             var editorVisibleSpansInOriginal = SharedPools.Default<List<TextSpan>>().AllocateAndClear();
@@ -229,14 +235,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                 editorVisibleSpansInOriginal.AddRange(GetEditorVisibleSpans());
                 var newChanges = FilterTextChanges(originalText, editorVisibleSpansInOriginal, changes).ToList();
-                if (newChanges.Count == 0)
+                if (newChanges.Count > 0)
                 {
-                    // no change to apply
-                    return;
+                    ApplyChanges(subjectBuffer, newChanges, editorVisibleSpansInOriginal, out affectedVisibleSpanIndices);
+                    AdjustIndentation(subjectBuffer, affectedVisibleSpanIndices);
                 }
 
-                ApplyChanges(subjectBuffer, newChanges, editorVisibleSpansInOriginal, out affectedVisibleSpanIndices);
-                AdjustIndentation(subjectBuffer, affectedVisibleSpanIndices);
+                return subjectBuffer.CurrentSnapshot;
             }
             finally
             {
@@ -245,10 +250,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IReadOnlyList<TextChange> changes)
+        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IEnumerable<TextChange> changes)
         {
             // no visible spans or changes
-            if (editorVisibleSpansInOriginal.Count == 0 || changes.Count == 0)
+            if (editorVisibleSpansInOriginal.Count == 0 || !changes.Any())
             {
                 // return empty one
                 yield break;
@@ -554,7 +559,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(visibleFirstLineInOriginalText.EndIncludingLineBreak, spanInOriginalText.End),
-                        snippetInRightText.Substring(firstLineOfRightTextSnippet.Length));
+                        snippetInRightText[firstLineOfRightTextSnippet.Length..]);
                     return true;
                 }
 
@@ -571,7 +576,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(spanInOriginalText.Start, visibleLastLineInOriginalText.Start),
-                        snippetInRightText.Substring(0, snippetInRightText.Length - lastLineOfRightTextSnippet.Length));
+                        snippetInRightText[..^lastLineOfRightTextSnippet.Length]);
                     return true;
                 }
 
@@ -582,7 +587,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             // if it got hit, then it means there is a missing case
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private IHierarchicalDifferenceCollection DiffStrings(string leftTextWithReplacement, string rightTextWithReplacement)
@@ -757,7 +762,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             Debug.Assert(ReferenceEquals(parsedDocument.Text, subjectBuffer.CurrentSnapshot.AsText()));
 
             var editorOptionsService = _componentModel.GetService<EditorOptionsService>();
-            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -793,7 +798,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
             var changes = formatter.GetFormattingResult(
                 root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },

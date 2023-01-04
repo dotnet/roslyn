@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public byte TypeParameterCount => GetTypeParameterCount(_flags);
         public bool IsNestedType => GetIsNestedType(_flags);
         public bool IsPartial => GetIsPartial(_flags);
+        public bool HasAttributes => GetHasAttributes(_flags);
 
         [Obsolete("Do not call directly.  Only around for serialization.  Use Create instead")]
         public DeclaredSymbolInfo(
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string? containerDisplayName,
             string fullyQualifiedContainerName,
             bool isPartial,
+            bool hasAttributes,
             DeclaredSymbolInfoKind kind,
             Accessibility accessibility,
             TextSpan span,
@@ -145,7 +147,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ((uint)parameterCount << 9) |
                 ((uint)typeParameterCount << 13) |
                 ((isNestedType ? 1u : 0u) << 17) |
-                ((isPartial ? 1u : 0u) << 18);
+                ((isPartial ? 1u : 0u) << 18) |
+                ((hasAttributes ? 1u : 0u) << 19);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             return new DeclaredSymbolInfo(
@@ -159,7 +162,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        [return: NotNullIfNotNull("name")]
+        [return: NotNullIfNotNull(nameof(name))]
         public static string? Intern(StringTable stringTable, string? name)
             => name == null ? null : stringTable.Add(name);
 
@@ -180,6 +183,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool GetIsPartial(uint flags)
             => ((flags >> 18) & 1) == 1;
+
+        private static bool GetHasAttributes(uint flags)
+            => ((flags >> 19) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {
@@ -207,24 +213,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var spanLength = reader.ReadInt32();
 
             var inheritanceNamesLength = reader.ReadInt32();
-            var builder = ArrayBuilder<string>.GetInstance(inheritanceNamesLength);
+            using var _ = ArrayBuilder<string>.GetInstance(inheritanceNamesLength, out var inheritanceNames);
             for (var i = 0; i < inheritanceNamesLength; i++)
-                builder.Add(reader.ReadString());
+                inheritanceNames.Add(reader.ReadString());
 
             var span = new TextSpan(spanStart, spanLength);
             return Create(
                 stringTable,
-                name: name,
-                nameSuffix: nameSuffix,
-                containerDisplayName: containerDisplayName,
-                fullyQualifiedContainerName: fullyQualifiedContainerName,
-                isPartial: GetIsPartial(flags),
-                kind: GetKind(flags),
-                accessibility: GetAccessibility(flags),
-                span: span,
-                inheritanceNames: builder.ToImmutableAndFree(),
-                parameterCount: GetParameterCount(flags),
-                typeParameterCount: GetTypeParameterCount(flags));
+                name,
+                nameSuffix,
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                GetIsPartial(flags),
+                GetHasAttributes(flags),
+                GetKind(flags),
+                GetAccessibility(flags),
+                span,
+                inheritanceNames.ToImmutableAndClear(),
+                GetIsNestedType(flags),
+                GetParameterCount(flags),
+                GetTypeParameterCount(flags));
         }
 
         public ISymbol? TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)

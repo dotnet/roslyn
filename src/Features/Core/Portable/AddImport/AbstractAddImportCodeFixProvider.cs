@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             var diagnostics = context.Diagnostics;
 
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
-            var codeActionOptions = context.Options.GetOptions(document.Project.LanguageServices);
+            var codeActionOptions = context.Options.GetOptions(document.Project.Services);
             var searchOptions = codeActionOptions.SearchOptions;
 
             var symbolSearchService = _symbolSearchService ?? services.GetRequiredService<ISymbolSearchService>();

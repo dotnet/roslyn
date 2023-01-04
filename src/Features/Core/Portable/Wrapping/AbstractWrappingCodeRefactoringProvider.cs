@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var token = root.FindToken(position);
 
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var options = GetWrappingOptions(configOptions, context.Options.GetOptions(document.Project.LanguageServices));
+            var options = GetWrappingOptions(configOptions, context.Options.GetOptions(document.Project.Services));
 
             foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
             {

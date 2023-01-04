@@ -8,11 +8,10 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.AddConstructorParametersFromMembers.AddConstructorParametersFromMembersCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddConstructorParametersFromMembers
-
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
     Public Class AddConstructorParametersFromMembersTests
-        <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
+        <Fact, WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAdd1() As Task
             Dim source =
 "Class Program
@@ -41,8 +40,7 @@ End Class"
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
-        <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
+        <Fact, WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
         Public Async Function TestProperlyWrapParameters1() As Task
             Dim source =
 "Class Program
@@ -72,8 +70,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
-        <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
+        <Fact, WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
         Public Async Function TestProperlyWrapParameters2() As Task
             Dim source =
 "Class Program
@@ -110,8 +107,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
-        <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
+        <Fact, WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
         Public Async Function TestProperlyWrapParameters3() As Task
             Dim source =
 "Class Program
@@ -146,8 +142,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
-        <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
+        <Fact, WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
         Public Async Function TestProperlyWrapParameters4() As Task
             Dim source =
 "Class Program
@@ -182,9 +177,8 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
+        <Fact, WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddOptional1() As Task
             Dim source =
 "Class Program
@@ -214,9 +208,8 @@ End Class"
 
         End Function
 
-        <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
+        <Fact, WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddToConstructorWithMostMatchingParameters1() As Task
             ' behavior change with 33603, now all constructors offered
             Dim source =
@@ -257,9 +250,8 @@ End Class"
 
         End Function
 
-        <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
+        <Fact, WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddOptionalToConstructorWithMostMatchingParameters1() As Task
             ' behavior change with 33603, now all constructors offered
             Dim source =
@@ -300,8 +292,7 @@ End Class"
 
         End Function
 
-        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
         Public Async Function TestAddParamtersToConstructorBySelectOneMember() As Task
             Dim source =
 "Class Program
@@ -331,8 +322,7 @@ End Class"
 
         End Function
 
-        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
         Public Async Function TestParametersAreStillRightIfMembersAreOutOfOrder() As Task
             Dim source =
 "Class Program
@@ -362,8 +352,7 @@ End Class"
 
         End Function
 
-        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
         Public Async Function TestNormalProperty() As Task
             Dim source =
 "
@@ -390,8 +379,7 @@ End Class"
 
         End Function
 
-        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
         Public Async Function TestMissingIfFieldsAndPropertyAlreadyExists() As Task
             Dim source =
 "
@@ -408,8 +396,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")>
         Public Async Function TestConstructorWithNoParameters() As Task
             Dim source =
 "
@@ -437,8 +424,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")>
         Public Async Function TestDefaultConstructor() As Task
             Dim source =
 "
@@ -452,8 +438,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialSelection() As Task
             Dim source =
 "Class Program
@@ -479,8 +464,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestMultiplePartialSelection() As Task
             Dim source =
 "Class Program
@@ -509,8 +493,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestMultiplePartialSelection2() As Task
             Dim source =
 "Class Program
@@ -538,8 +521,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         Public Async Function TestMultipleConstructors_FirstOfThree() As Task
             Dim source =
 "Class Program
@@ -582,8 +564,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         Public Async Function TestMultipleConstructors_SecondOfThree() As Task
             Dim source =
 "Class Program
@@ -627,8 +608,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         Public Async Function TestMultipleConstructors_ThirdOfThree() As Task
             Dim source =
 "Class Program
@@ -672,8 +652,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         Public Async Function TestMultipleConstructors_OneMustBeOptional() As Task
             Dim source =
 "Class Program
@@ -727,8 +706,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         Public Async Function TestMultipleConstructors_OneMustBeOptional2() As Task
             Dim source =
 "Class Program
@@ -778,8 +756,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         Public Async Function TestMultipleConstructors_AllMustBeOptional1() As Task
             Dim source =
 "Class Program
@@ -822,8 +799,7 @@ End Class"
 
         End Function
 
-        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         Public Async Function TestMultipleConstructors_AllMustBeOptional2() As Task
             Dim source =
 "Class Program
@@ -867,8 +843,7 @@ End Class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelection1() As Task
             Dim source =
 "imports System.Collections.Generic
@@ -903,8 +878,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelection2() As Task
             Dim source =
 "imports System.Collections.Generic
@@ -939,8 +913,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelection3() As Task
             Dim source =
 "imports System.Collections.Generic
@@ -975,8 +948,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelection4() As Task
             Dim source =
 "imports System.Collections.Generic
@@ -1011,8 +983,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelection5() As Task
             Dim source =
 "imports System.Collections.Generic
@@ -1047,8 +1018,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMultiVar1() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1084,8 +1054,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMultiVar2() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1121,8 +1090,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMultiVar3() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1157,8 +1125,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMultiVar4() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1193,8 +1160,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMultiVar5() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1229,8 +1195,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMultiVar6() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1265,8 +1230,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMissing1() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1287,8 +1251,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMissing2() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1308,8 +1271,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMissing3() As Task
             Dim source =
 "imports System.Collection.Generic
@@ -1329,8 +1291,7 @@ end class"
 
         End Function
 
-        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
         Public Async Function TestNonSelectionMissing4() As Task
             Dim source =
 "imports System.Collection.Generic

@@ -4,15 +4,17 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class CommonCompletionService : CompletionService
     {
-        protected CommonCompletionService(Workspace workspace)
-            : base(workspace)
+        protected CommonCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
+            : base(services, listenerProvider)
         {
         }
 
@@ -42,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal override void FilterItems(
            Document document,
-           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           IReadOnlyList<MatchResult> matchResults,
            string filterText,
-           IList<CompletionItem> builder)
+           IList<MatchResult> builder)
         {
             var helper = CompletionHelper.GetHelper(document);
-            CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText, builder);
+            CompletionService.FilterItems(helper, matchResults, filterText, builder);
         }
     }
 }

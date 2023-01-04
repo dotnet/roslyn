@@ -603,7 +603,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return installedPackagesMap;
         }
 
-        public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
+        public bool IsInstalled(ProjectId projectId, string packageName)
         {
             ThisCanBeCalledOnAnyThread();
             return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out var installedPackages) &&

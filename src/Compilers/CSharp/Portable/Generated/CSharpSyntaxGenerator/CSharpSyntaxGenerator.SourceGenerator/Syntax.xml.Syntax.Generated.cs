@@ -1010,29 +1010,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken ScopedKeyword
-        {
-            get
-            {
-                var slot = ((Syntax.InternalSyntax.RefTypeSyntax)this.Green).scopedKeyword;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
-            }
-        }
+        public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
-        public TypeSyntax Type => GetRed(ref this.type, 3)!;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.type, 3)! : null;
-
-        internal override SyntaxNode? GetCachedSlot(int index) => index == 3 ? this.type : null;
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefType(this);
 
-        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, SyntaxToken scopedKeyword, TypeSyntax type)
+        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
         {
-            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || scopedKeyword != this.ScopedKeyword || type != this.Type)
+            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
             {
-                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, scopedKeyword, type);
+                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -1040,10 +1031,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword) => Update(refKeyword, this.ReadOnlyKeyword, this.ScopedKeyword, this.Type);
-        public RefTypeSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword) => Update(this.RefKeyword, readOnlyKeyword, this.ScopedKeyword, this.Type);
-        public RefTypeSyntax WithScopedKeyword(SyntaxToken scopedKeyword) => Update(this.RefKeyword, this.ReadOnlyKeyword, scopedKeyword, this.Type);
-        public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, this.ScopedKeyword, type);
+        public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword) => Update(refKeyword, this.ReadOnlyKeyword, this.Type);
+        public RefTypeSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword) => Update(this.RefKeyword, readOnlyKeyword, this.Type);
+        public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, type);
+    }
+
+    /// <summary>The 'scoped' modifier of a local.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ScopedType"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class ScopedTypeSyntax : TypeSyntax
+    {
+        private TypeSyntax? type;
+
+        internal ScopedTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken ScopedKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ScopedTypeSyntax)this.Green).scopedKeyword, Position, 0);
+
+        public TypeSyntax Type => GetRed(ref this.type, 1)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.type : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitScopedType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitScopedType(this);
+
+        public ScopedTypeSyntax Update(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+            if (scopedKeyword != this.ScopedKeyword || type != this.Type)
+            {
+                var newNode = SyntaxFactory.ScopedType(scopedKeyword, type);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public ScopedTypeSyntax WithScopedKeyword(SyntaxToken scopedKeyword) => Update(scopedKeyword, this.Type);
+        public ScopedTypeSyntax WithType(TypeSyntax type) => Update(this.ScopedKeyword, type);
     }
 
     public abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode

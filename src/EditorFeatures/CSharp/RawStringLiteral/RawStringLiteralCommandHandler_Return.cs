@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
                 return false;
             }
 
-            var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+            var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
             var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
 
             var newLine = indentationOptions.FormattingOptions.NewLine;

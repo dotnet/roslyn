@@ -11,26 +11,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _name As String
         Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
         Private ReadOnly _returnType As TypeSymbol
-        Private ReadOnly _isCheckedBuiltin As Boolean
 
-        Public Sub New(container As NamedTypeSymbol, name As String, rightType As TypeSymbol, returnType As TypeSymbol, isCheckedBuiltin As Boolean)
+        Public Sub New(container As NamedTypeSymbol, name As String, rightType As TypeSymbol, returnType As TypeSymbol)
             MyBase.New(container)
 
             _name = name
             _returnType = returnType
             _parameters = (New ParameterSymbol() {New SynthesizedOperatorParameterSymbol(Me, container, 0, "left"),
                                                    New SynthesizedOperatorParameterSymbol(Me, rightType, 1, "right")}).AsImmutableOrNull()
-            _isCheckedBuiltin = isCheckedBuiltin
         End Sub
 
-        Public Sub New(container As NamedTypeSymbol, name As String, returnType As TypeSymbol, isCheckedBuiltin As Boolean)
+        Public Sub New(container As NamedTypeSymbol, name As String, returnType As TypeSymbol)
             MyBase.New(container)
 
             _name = name
             _returnType = returnType
             _parameters = (New ParameterSymbol() {New SynthesizedOperatorParameterSymbol(Me, container, 0, "value")}).AsImmutableOrNull()
-            _isCheckedBuiltin = isCheckedBuiltin
         End Sub
+
+        Public Overrides ReadOnly Property IsCheckedBuiltin As Boolean
+            Get
+                Select Case Me.Name
+                    Case WellKnownMemberNames.CheckedUnaryNegationOperatorName,
+                         WellKnownMemberNames.CheckedAdditionOperatorName,
+                         WellKnownMemberNames.CheckedDivisionOperatorName,
+                         WellKnownMemberNames.CheckedMultiplyOperatorName,
+                         WellKnownMemberNames.CheckedSubtractionOperatorName
+                        Return True
+
+                    Case Else
+                        Return False
+                End Select
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
@@ -61,8 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            If _isCheckedBuiltin = other._isCheckedBuiltin AndAlso
-               _parameters.Length = other._parameters.Length AndAlso
+            If _parameters.Length = other._parameters.Length AndAlso
                String.Equals(_name, other._name, StringComparison.Ordinal) AndAlso
                TypeSymbol.Equals(m_containingType, other.m_containingType, TypeCompareKind.ConsiderEverything) AndAlso
                TypeSymbol.Equals(_returnType, other._returnType, TypeCompareKind.ConsiderEverything) Then
@@ -146,12 +158,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property MethodKind As MethodKind
             Get
                 Return MethodKind.BuiltinOperator
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property IsCheckedBuiltin As Boolean
-            Get
-                Return _isCheckedBuiltin
             End Get
         End Property
 

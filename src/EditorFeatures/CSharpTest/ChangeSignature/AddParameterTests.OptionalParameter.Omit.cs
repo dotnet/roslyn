@@ -14,9 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameter_ToEmptySignature_CallsiteOmitted()
         {
             var markup = @"
@@ -41,7 +42,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameter_AfterRequiredParameter_CallsiteOmitted()
         {
             var markup = @"
@@ -67,7 +68,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameter_BeforeOptionalParameter_CallsiteOmitted()
         {
             var markup = @"
@@ -97,7 +98,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameter_BeforeExpandedParamsArray_CallsiteOmitted()
         {
             var markup = @"
@@ -129,7 +130,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameterWithOmittedCallsiteToAttributeConstructor()
         {
             var markup = @"

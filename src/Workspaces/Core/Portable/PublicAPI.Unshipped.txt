@@ -1,13 +1,41 @@
-Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> void
-Microsoft.CodeAnalysis.CodeFixes.FixAllContext.FixAllContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan? diagnosticSpan, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllScope scope, string codeActionEquivalenceKey, System.Collections.Generic.IEnumerable<string> diagnosticIds, Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider fixAllDiagnosticProvider, System.Threading.CancellationToken cancellationToken) -> void
-Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingMember = 4 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
-Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingType = 5 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
-Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsRequired.get -> bool
-Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsRequired(bool isRequired) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext(Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.Diagnostic diagnostic, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext(Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument
+Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.DocumentExtensions.get -> string[]
+Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.DocumentExtensions.set -> void
+Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.DocumentKinds.get -> string[]
+Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.DocumentKinds.set -> void
+Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.CodeRefactoringContext(Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction> registerRefactoring, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument
+Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentExtensions.get -> string[]
+Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentExtensions.set -> void
+Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentKinds.get -> string[]
+Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentKinds.set -> void
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsFile.get -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
+Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.SolutionServices services) -> void
+*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Host.HostLanguageServices.LanguageServices.get -> Microsoft.CodeAnalysis.Host.LanguageServices
+Microsoft.CodeAnalysis.Host.LanguageServices
+Microsoft.CodeAnalysis.Host.LanguageServices.GetRequiredService<TLanguageService>() -> TLanguageService
+Microsoft.CodeAnalysis.Host.LanguageServices.GetService<TLanguageService>() -> TLanguageService
+Microsoft.CodeAnalysis.Host.LanguageServices.Language.get -> string
+Microsoft.CodeAnalysis.Host.LanguageServices.SolutionServices.get -> Microsoft.CodeAnalysis.Host.SolutionServices
+Microsoft.CodeAnalysis.Host.SolutionServices
+Microsoft.CodeAnalysis.Host.SolutionServices.GetLanguageServices(string languageName) -> Microsoft.CodeAnalysis.Host.LanguageServices
+Microsoft.CodeAnalysis.Host.SolutionServices.GetRequiredLanguageService<TLanguageService>(string language) -> TLanguageService
+Microsoft.CodeAnalysis.Host.SolutionServices.GetRequiredService<TWorkspaceService>() -> TWorkspaceService
+Microsoft.CodeAnalysis.Host.SolutionServices.GetService<TWorkspaceService>() -> TWorkspaceService
+Microsoft.CodeAnalysis.Host.SolutionServices.IsSupported(string languageName) -> bool
+Microsoft.CodeAnalysis.Host.SolutionServices.SupportedLanguages.get -> System.Collections.Generic.IEnumerable<string>
+Microsoft.CodeAnalysis.ISupportedChangesService
+Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyChange(Microsoft.CodeAnalysis.ApplyChangesKind kind) -> bool
+Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyCompilationOptionChange(Microsoft.CodeAnalysis.CompilationOptions oldOptions, Microsoft.CodeAnalysis.CompilationOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
+Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyParseOptionChange(Microsoft.CodeAnalysis.ParseOptions oldOptions, Microsoft.CodeAnalysis.ParseOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
+Microsoft.CodeAnalysis.Project.Services.get -> Microsoft.CodeAnalysis.Host.LanguageServices
+Microsoft.CodeAnalysis.Solution.Services.get -> Microsoft.CodeAnalysis.Host.SolutionServices
 Microsoft.CodeAnalysis.TextDocumentEventArgs
 Microsoft.CodeAnalysis.TextDocumentEventArgs.Document.get -> Microsoft.CodeAnalysis.TextDocument
 Microsoft.CodeAnalysis.TextDocumentEventArgs.TextDocumentEventArgs(Microsoft.CodeAnalysis.TextDocument document) -> void
@@ -15,30 +43,18 @@ Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentClosedEventAsync(Microsoft.Cod
 Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentOpenedEventAsync(Microsoft.CodeAnalysis.TextDocument document) -> System.Threading.Tasks.Task
 Microsoft.CodeAnalysis.Workspace.TextDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
 Microsoft.CodeAnalysis.Workspace.TextDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
-static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AllTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
-static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
-static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Required.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.File.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static Microsoft.CodeAnalysis.Recommendations.Recommender.GetRecommendedSymbolsAtPositionAsync(Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>>
-static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions() -> void
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions(bool RenameOverloads = false, bool RenameInStrings = false, bool RenameInComments = false, bool RenameFile = false) -> void
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameOverloads.get -> bool
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInStrings.get -> bool
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInComments.get -> bool
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameFile.get -> bool
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameOverloads.init -> void
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInStrings.init -> void
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInComments.init -> void
-Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameFile.init -> void
-Microsoft.CodeAnalysis.Rename.DocumentRenameOptions
-Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.DocumentRenameOptions() -> void
-Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.DocumentRenameOptions(bool RenameMatchingTypeInStrings = false, bool RenameMatchingTypeInComments = false) -> void
-Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInStrings.get -> bool
-Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInComments.get -> bool
-Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInStrings.init -> void
-Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInComments.init -> void
-static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Rename.DocumentRenameOptions options, string newDocumentName, System.Collections.Generic.IReadOnlyList<string> newDocumentFolders = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet>
-static Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Rename.SymbolRenameOptions options, string newName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
-Microsoft.CodeAnalysis.Editing.OperatorKind.UnsignedRightShift = 26 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.LoadTextOptions
+Microsoft.CodeAnalysis.LoadTextOptions.ChecksumAlgorithm.get -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
+Microsoft.CodeAnalysis.LoadTextOptions.Equals(Microsoft.CodeAnalysis.LoadTextOptions other) -> bool
+Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions() -> void
+Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions(Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm) -> void
+override Microsoft.CodeAnalysis.LoadTextOptions.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.LoadTextOptions.GetHashCode() -> int
+override Microsoft.CodeAnalysis.LoadTextOptions.ToString() -> string
+static Microsoft.CodeAnalysis.LoadTextOptions.operator !=(Microsoft.CodeAnalysis.LoadTextOptions left, Microsoft.CodeAnalysis.LoadTextOptions right) -> bool
+static Microsoft.CodeAnalysis.LoadTextOptions.operator ==(Microsoft.CodeAnalysis.LoadTextOptions left, Microsoft.CodeAnalysis.LoadTextOptions right) -> bool
+override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+*REMOVED*abstract Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+virtual Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+virtual Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>

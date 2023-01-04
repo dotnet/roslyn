@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal abstract partial class AbstractEditorInlineRenameService
     {
-        internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+        internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(FeaturesResources.You_cannot_rename_this_element);
 
         private sealed class FailureInlineRenameInfo : IInlineRenameInfo
         {
@@ -52,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
 
             public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
+
+            public InlineRenameFileRenameInfo GetFileRenameInfo() => InlineRenameFileRenameInfo.NotAllowed;
         }
     }
 }

@@ -379,7 +379,10 @@ dotnet_diagnostic.cs0169.severity = suppress";
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void CompilerBinariesAreAnyCPU()
         {
+#pragma warning disable SYSLIB0037
+            // warning SYSLIB0037: 'AssemblyName.ProcessorArchitecture' is obsolete: 'AssemblyName members HashAlgorithm, ProcessorArchitecture, and VersionCompatibility are obsolete and not supported.'
             Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(s_CSharpCompilerExecutable).ProcessorArchitecture);
+#pragma warning restore SYSLIB0037
         }
 
         [Fact]
@@ -2118,7 +2121,6 @@ class C
                 Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a.b\0b"));
             Assert.Null(parsedArgs.PdbPath);
 
-
             parsedArgs = DefaultParse(new[] { "/pdb:a\uD800b.pdb", "/debug", "a.cs" }, WorkingDirectory);
             //parsedArgs.Errors.Verify(
             //    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a\uD800b.pdb"));
@@ -2577,7 +2579,6 @@ print Goodbye, World";
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[1].Properties);
 
-
             parsedArgs = DefaultParse(new string[] { @"/l:goo.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
@@ -2588,7 +2589,6 @@ print Goodbye, World";
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly.WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[1].Properties);
 
-
             parsedArgs = DefaultParse(new string[] { @"/addmodule:goo.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
@@ -2598,7 +2598,6 @@ print Goodbye, World";
 
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Module, parsedArgs.MetadataReferences[1].Properties);
-
 
             parsedArgs = DefaultParse(new string[] { @"/r:a=goo.dll", "/l:b=bar.dll", "/addmodule:c=mod.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -4304,7 +4303,6 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 Console.WriteLine(outWriter.ToString());
                 Assert.Equal(0, exitCode);
             }
-
 
             Assert.Equal(1, Directory.EnumerateFiles(dir.Path, exeName).Count());
 
@@ -7477,7 +7475,6 @@ class C
   </trustInfo>
 </assembly>";
 
-
             var expectedManifest =
 @"<?xml version=""1.0"" encoding=""utf-16""?>
 <ManifestResource Size=""476"">
@@ -7918,12 +7915,12 @@ namespace System
             src.WriteAllText(source + mslib);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
+            int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
+            exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
             string OriginalSource = src.Path;
@@ -7931,7 +7928,7 @@ namespace System
             src = Temp.CreateFile("NoStdLib02b.cs");
             src.WriteAllText(mslib);
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = CreateCSharpCompiler(GetDefaultResponseFilePath(), WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
+            exitCode = CreateCSharpCompiler(GetDefaultResponseFilePath(), WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
@@ -8615,7 +8612,7 @@ class Program3
             fsDll.Dispose();
             fsPdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
         }
 
         /// <summary>
@@ -8672,7 +8669,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             peDll.Dispose();
             pePdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
 
             // files can be deleted now:
             File.Delete(libSrc.Path);
@@ -8713,7 +8710,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             fsDll.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
         }
 
         [Fact]
@@ -9531,10 +9528,10 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.Equal("-_+@%#*^", parsedArgs.EmitOptions.RuntimeMetadataVersion);
 
-            var comp = CreateEmptyCompilation(string.Empty);
+            var comp = CreateEmptyCompilation(string.Empty, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             Assert.Equal("v4.0.30319", ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "v4.0.30319"))).Module.MetadataVersion);
 
-            comp = CreateEmptyCompilation(string.Empty);
+            comp = CreateEmptyCompilation(string.Empty, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             Assert.Equal("_+@%#*^", ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion);
         }
 
@@ -10174,7 +10171,6 @@ a = globalA");
             Assert.Equal("globalA", globalA);
             Assert.Equal("localA", localA);
 
-
             RunWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(2, configOptionsCallbackCount); // we can't compare the provider directly, so we consider it modified
@@ -10193,7 +10189,6 @@ a = diffLocalA
             Assert.Equal(2, filteredLocalCallbackCount);
             Assert.Equal("globalA", globalA);
             Assert.Equal("diffLocalA", localA);
-
 
             globalconfig.WriteAllText(@"
 is_global = true
@@ -11679,7 +11674,6 @@ class C
 </doc>";
             Assert.Equal(expectedDoc, content.Trim());
 
-
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
         }
@@ -11775,7 +11769,7 @@ class C
                 $@"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
 System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors>b__0(Object _)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
 -----
 Analyzer 'TestAnalyzer' threw the following exception:
@@ -13617,6 +13611,49 @@ class C
         }
 
         [Fact]
+        public void SourceGenerators_ChecksumAlgorithm()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs");
+            src.WriteAllText("class C { }");
+
+            var genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.cs");
+            var genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.cs");
+
+            var generator = new TestSourceGenerator()
+            {
+                ExecuteImpl = context =>
+                {
+                    context.AddSource("hint1", "class G1 { void F() {} }");
+                    context.AddSource("hint2", SourceText.From("class G2 { void F() {} }", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1));
+                }
+            };
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/langversion:preview", "/out:checksum.exe", "/pdb:checksum.pdb", "/debug:portable", "/checksumAlgorithm:SHA256" },
+                generators: new[] { generator },
+                analyzers: null);
+
+            using (Stream peStream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb")))
+            {
+                // TOOD: /checksumAlgorithm setting should override any checksum algorithms set by the generators:
+                PdbValidation.VerifyPdb(peStream, pdbStream, $@"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""A0-78-BB-A8-E8-B1-E1-3B-E8-63-80-7D-CE-CC-4B-0D-14-EF-06-D3-9B-14-52-E1-95-C6-64-D1-36-EC-7C-25"" />
+    <file id=""2"" name=""{genPath1}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD""><![CDATA[﻿class G1 {{ void F() {{}} }}]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""F1-D0-FD-F0-08-9F-1B-32-9F-EF-41-A1-58-A3-14-FF-E8-06-A8-38""><![CDATA[﻿class G2 {{ void F() {{}} }}]]></file>
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods);
+            }
+
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
         public void SourceGenerators_WriteGeneratedSources()
         {
             var dir = Temp.CreateDirectory();
@@ -14181,7 +14218,6 @@ option1 = def");
             Assert.Contains("'option1'", output, StringComparison.Ordinal);
             Assert.Contains("'Global Section'", output, StringComparison.Ordinal);
 
-
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
 global_level = 100
@@ -14303,7 +14339,6 @@ dotnet_diagnostic.CS0164.severity = warning;
             // the editor config downgrades the error back to warning, but the cmdline setting overrides it
             verify(configs: globalAndSpecific, expectedWarnings: 1);
             verify(configs: globalAndSpecific, noWarn: "CS0164", expectedWarnings: 0);
-
 
             void verify(TempFile[] configs, int expectedWarnings = 0, int expectedErrors = 0, string noWarn = "0")
                 => VerifyOutput(dir, src,

@@ -53,17 +53,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |...........................|rr|c|n|s|
+            // |.........................|uu|rr|c|n|s|
             //
             // s = special name flag. 1 bit
             // n = runtime special name flag. 1 bit
             // c = call methods directly flag. 1 bit
             // r = Required member. 2 bits (1 bit for value + 1 completion bit).
+            // u = Unscoped ref. 2 bits (1 bit for value + 1 completion bit).
             private const int IsSpecialNameFlag = 1 << 0;
             private const int IsRuntimeSpecialNameFlag = 1 << 1;
             private const int CallMethodsDirectlyFlag = 1 << 2;
             private const int HasRequiredMemberAttribute = 1 << 4;
             private const int RequiredMemberCompletionBit = 1 << 5;
+            private const int HasUnscopedRefAttribute = 1 << 6;
+            private const int UnscopedRefCompletionBit = 1 << 7;
 
             private int _bits;
 
@@ -89,6 +92,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 hasRequiredMemberAttribute = false;
+                return false;
+            }
+
+            public void SetHasUnscopedRefAttribute(bool unscopedRef)
+            {
+                var bitsToSet = (unscopedRef ? HasUnscopedRefAttribute : 0) | UnscopedRefCompletionBit;
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool TryGetHasUnscopedRefAttribute(out bool hasUnscopedRefAttribute)
+            {
+                if ((_bits & UnscopedRefCompletionBit) != 0)
+                {
+                    hasUnscopedRefAttribute = (_bits & HasUnscopedRefAttribute) != 0;
+                    return true;
+                }
+
+                hasUnscopedRefAttribute = false;
                 return false;
             }
 
@@ -507,6 +528,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal sealed override bool HasUnscopedRefAttribute
+        {
+            get
+            {
+                if (!_flags.TryGetHasUnscopedRefAttribute(out bool hasUnscopedRefAttribute))
+                {
+                    var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
+                    hasUnscopedRefAttribute = containingPEModuleSymbol.Module.HasUnscopedRefAttribute(_handle);
+                    _flags.SetHasUnscopedRefAttribute(hasUnscopedRefAttribute);
+                }
+
+                return hasUnscopedRefAttribute;
+            }
+        }
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get { return _parameters; }
@@ -606,9 +642,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
                       _handle,
                       out _,
-                      this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default);
+                      this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
+                      out CustomAttributeHandle required,
+                      AttributeDescription.RequiredMemberAttribute);
 
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
+                _flags.SetHasRequiredMemberAttribute(!required.IsNil);
             }
             return _lazyCustomAttributes;
         }

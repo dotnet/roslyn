@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -23,6 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     ''' </summary>
     Friend NotInheritable Class PEFieldSymbol
         Inherits FieldSymbol
+
+        ''' <summary>
+        ''' This symbol is used as a type for a "fake" required custom modifier added for ByRef fields.
+        ''' This allows us to report use site errors for ByRef fields, and, at the same time, allows us
+        ''' to accurately match them by signature (since this instance is unique and is not used for anything else)
+        ''' without adding full support for RefKind and RefCustomModifiers
+        ''' </summary>
+        Private Shared ReadOnly _byRefPlaceholder As New UnsupportedMetadataTypeSymbol()
 
         Private ReadOnly _handle As FieldDefinitionHandle
         Private ReadOnly _name As String
@@ -167,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
             For Each attribute In GetAttributes()
                 Yield attribute
             Next
@@ -348,14 +357,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If _lazyType Is Nothing Then
                 Dim moduleSymbol = _containingType.ContainingPEModule
                 Dim fieldInfo As FieldInfo(Of TypeSymbol) = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle)
-                Dim type As TypeSymbol = fieldInfo.Type
 
-                ' https://github.com/dotnet/roslyn/issues/62121: Report use-site diagnostic if fieldInfo.IsByRef.
+                Dim type As TypeSymbol = Nothing
+                Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
+                GetSignatureParts(fieldInfo, type, customModifiers)
 
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol)
 
-                ImmutableInterlocked.InterlockedCompareExchange(_lazyCustomModifiers, VisualBasicCustomModifier.Convert(fieldInfo.CustomModifiers), Nothing)
+                ImmutableInterlocked.InterlockedCompareExchange(_lazyCustomModifiers, VisualBasicCustomModifier.Convert(customModifiers), Nothing)
                 Interlocked.CompareExchange(_lazyType, type, Nothing)
+            End If
+        End Sub
+
+        Friend Shared Sub GetSignatureParts(fieldInfo As FieldInfo(Of TypeSymbol), ByRef type As TypeSymbol, ByRef customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)))
+            type = fieldInfo.Type
+            customModifiers = fieldInfo.CustomModifiers.NullToEmpty
+
+            If fieldInfo.IsByRef Then
+                Dim refCustomModifiers = fieldInfo.RefCustomModifiers.NullToEmpty.Add(New ModifierInfo(Of TypeSymbol)(isOptional:=False, _byRefPlaceholder))
+                customModifiers = refCustomModifiers.AddRange(customModifiers)
+            ElseIf Not fieldInfo.RefCustomModifiers.IsDefaultOrEmpty Then
+                Throw ExceptionUtilities.Unreachable
             End If
         End Sub
 

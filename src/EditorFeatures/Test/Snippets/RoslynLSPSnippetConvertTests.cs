@@ -21,11 +21,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
     public class RoslynLSPSnippetConvertTests
     {
         #region Edgecase extend TextChange tests
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeForwardsForCaret()
         {
             var markup =
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeBackwardsForCaret()
         {
             var markup =
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeForwardsForPlaceholder()
         {
             var markup =
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeBackwardsForPlaceholder()
         {
             var markup =
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeForwardsForPlaceholderThenCaret()
         {
             var markup =
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeForwardsForCaretThenPlaceholder()
         {
             var markup =
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeBackwardsForPlaceholderThenCaret()
         {
             var markup =
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeBackwardsForCaretThenPlaceholder()
         {
             var markup =
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeBackwardsForCaretForwardsForPlaceholder()
         {
             var markup =
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeBackwardsForPlaceholderForwardsForCaret()
         {
             var markup =
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodForwardsForCaret()
         {
             var markup =
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodBackwardsForCaret()
         {
             var markup =
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodForwardsForPlaceholder()
         {
             var markup =
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholder()
         {
             var markup =
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodForwardsForPlaceholderThenCaret()
         {
             var markup =
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodForwardsForCaretThenPlaceholder()
         {
             var markup =
@@ -298,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderThenCaret()
         {
             var markup =
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodBackwardsForCaretThenPlaceholder()
         {
             var markup =
@@ -336,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodBackwardsForCaretForwardsForPlaceholder()
         {
             var markup =
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderForwardsForCaret()
         {
             var markup =
@@ -374,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestExtendSnippetTextChangeInMethodWithCodeBeforeAndAfterBackwardsForPlaceholderForwardsForCaret()
         {
             var markup =
@@ -396,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public void TestExtendTextChangeInsertion()
         {
             var testString = "foo bar quux baz";
@@ -407,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             AssertEx.EqualOrDiff("quux$0", lspSnippetString);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public void TestExtendTextChangeReplacement()
         {
             var testString = "foo bar quux baz";
@@ -422,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 
         #region LSP Snippet generation tests
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestForLoopSnippet()
         {
             var markup =
@@ -438,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestIfSnippetSamePlaceholderCursorLocation()
         {
             var markup =
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        [Fact]
         public Task TestIfSnippetSameCursorPlaceholderLocation()
         {
             var markup =

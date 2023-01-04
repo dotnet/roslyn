@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
-                if (!ContainsPreviousAnonymousDelegates(definitionMap, baseline.AnonymousDelegatesWithFixedTypes, moduleBeingBuilt.GetAnonymousDelegatesWithFixedTypes()))
+                if (!ContainsPreviousAnonymousDelegates(definitionMap, baseline.AnonymousDelegatesWithIndexedNames, moduleBeingBuilt.GetAnonymousDelegatesWithIndexedNames()))
                 {
                     diagnostics.Add(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged, Location.None);
                 }
@@ -177,12 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
 
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
-            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMethods();
+            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
             var anonymousDelegates = moduleBeingBuilt.GetAnonymousDelegates();
-            var anonymousDelegatesWithFixedTypes = moduleBeingBuilt.GetAnonymousDelegatesWithFixedTypes();
+            var anonymousDelegatesWithIndexedNames = moduleBeingBuilt.GetAnonymousDelegatesWithIndexedNames();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
             var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var matcher = new CSharpSymbolMatcher(
                 anonymousTypeMap,
                 anonymousDelegates,
-                anonymousDelegatesWithFixedTypes,
+                anonymousDelegatesWithIndexedNames,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
@@ -198,16 +198,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 currentSynthesizedMembers,
                 currentDeletedMembers);
 
-            var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
+            var mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping: false);
 
             // Deleted members are mapped the same way as synthesized members, so we can just call the same method.
-            var mappedDeletedMembers = matcher.MapSynthesizedMembers(previousGeneration.DeletedMembers, currentDeletedMembers);
+            var mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping: true);
 
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
                 anonymousTypeMap,
                 anonymousDelegates,
-                anonymousDelegatesWithFixedTypes,
+                anonymousDelegatesWithIndexedNames,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,

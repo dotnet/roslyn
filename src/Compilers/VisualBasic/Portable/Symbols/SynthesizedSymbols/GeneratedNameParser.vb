@@ -26,8 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return GeneratedNameKind.IteratorParameterProxyField
             ElseIf name.StartsWith(GeneratedNameConstants.StateMachineAwaiterFieldPrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.StateMachineAwaiterField
-            ElseIf name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.StateMachineHoistedUserVariableField
+            ElseIf name.StartsWith(GeneratedNameConstants.HoistedWithLocalPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.HoistedWithLocalPrefix
+            ElseIf name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.StateMachineHoistedUserVariableOrDisplayClassField
             ElseIf name.StartsWith(GeneratedNameConstants.AnonymousTypeTemplateNamePrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.AnonymousType
             ElseIf name.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
@@ -83,16 +85,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Try to parse the local name and return <paramref name="variableName"/> and <paramref name="index"/> if successful.
         ''' </summary>
-        Public Shared Function TryParseStateMachineHoistedUserVariableName(proxyName As String, <Out> ByRef variableName As String, <Out()> ByRef index As Integer) As Boolean
+        Public Shared Function TryParseStateMachineHoistedUserVariableOrDisplayClassName(proxyName As String, <Out> ByRef variableName As String, <Out()> ByRef index As Integer) As Boolean
             variableName = Nothing
             index = 0
 
             ' All names should start with "$VB$ResumableLocal_"
-            If Not proxyName.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
+            If Not proxyName.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 
-            Dim prefixLen As Integer = GeneratedNameConstants.StateMachineHoistedUserVariablePrefix.Length
+            Dim prefixLen As Integer = GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix.Length
             Dim separator As Integer = proxyName.LastIndexOf("$"c)
             If separator <= prefixLen Then
                 Return False

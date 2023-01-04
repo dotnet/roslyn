@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class DeclarationTable
     {
         public static readonly DeclarationTable Empty = new DeclarationTable(
-            allOlderRootDeclarations: ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration>.Empty,
+            allOlderRootDeclarations: ImmutableSetWithInsertionOrder<Lazy<RootSingleNamespaceDeclaration>>.Empty,
             latestLazyRootDeclaration: null,
             cache: null);
 
         // All our root declarations.  We split these so we can separate out the unchanging 'older'
         // declarations from the constantly changing 'latest' declaration.
-        private readonly ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> _allOlderRootDeclarations;
+        private readonly ImmutableSetWithInsertionOrder<Lazy<RootSingleNamespaceDeclaration>> _allOlderRootDeclarations;
         private readonly Lazy<RootSingleNamespaceDeclaration>? _latestLazyRootDeclaration;
 
         // The cache of computed values for the old declarations.
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ICollection<ReferenceDirective>? _referenceDirectives;
 
         private DeclarationTable(
-            ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> allOlderRootDeclarations,
+            ImmutableSetWithInsertionOrder<Lazy<RootSingleNamespaceDeclaration>> allOlderRootDeclarations,
             Lazy<RootSingleNamespaceDeclaration>? latestLazyRootDeclaration,
             Cache? cache)
         {
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // we already had a 'latest' item.  This means we're hearing about a change to a
-                // different tree.  Realize the old latest item, add it to the 'oldest' collection
+                // different tree.  Add old latest item to the 'oldest' collection
                 // and don't reuse the cache.
-                return new DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration.Value), lazyRootDeclaration, cache: null);
+                return new DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration), lazyRootDeclaration, cache: null);
             }
         }
 
@@ -77,13 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // We're removing a different tree than the latest one added.  We need to realize the
-                // passed in root and remove that from our 'older' list.  We also can't reuse the
+                // We're removing a different tree than the latest one added.  We need
+                // to remove the passed in root from our 'older' list.  We also can't reuse the
                 // cache.
                 //
-                // Note: we can keep around the 'latestLazyRootDeclaration'.  There's no need to
-                // realize it if we don't have to.
-                return new DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration.Value), _latestLazyRootDeclaration, cache: null);
+                // Note: we can keep around the 'latestLazyRootDeclaration'.
+                return new DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration), _latestLazyRootDeclaration, cache: null);
             }
         }
 

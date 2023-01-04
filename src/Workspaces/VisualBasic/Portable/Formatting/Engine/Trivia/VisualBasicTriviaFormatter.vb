@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return _newLine
         End Function
 
-        Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
+        Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia, cancellationToken As CancellationToken) As LineColumnRule
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then

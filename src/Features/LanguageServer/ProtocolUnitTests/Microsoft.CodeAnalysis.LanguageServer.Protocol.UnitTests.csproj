@@ -13,6 +13,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <!-- Prevents ambiguity caused by InternalsVisibleTo from dependent assemblies. -->
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
+  </ItemGroup>
 
   <ItemGroup Label="Package References">
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
@@ -43,6 +47,8 @@
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol\Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol.vbproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>

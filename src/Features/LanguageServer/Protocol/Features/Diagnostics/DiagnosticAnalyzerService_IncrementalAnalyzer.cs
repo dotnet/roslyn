@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            if (GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode))
+            if (GlobalOptions.IsLspPullDiagnostics())
             {
                 // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
                 // have happened to the project or closed files outside of VS.
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, AnalyzerInfoCache);
+            return new DiagnosticIncrementalAnalyzer(this, CorrelationIdFactory.GetNextId(), workspace, AnalyzerInfoCache);
         }
 
         private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)

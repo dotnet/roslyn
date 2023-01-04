@@ -146,6 +146,15 @@ stages:
                    /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
 
+    - template: eng\common\templates\steps\generate-sbom.yml
+
+    - task: PowerShell@2
+      displayName: Publish Assets
+      inputs:
+        filePath: 'eng\publish-assets.ps1'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+      condition: succeeded()
+
     # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
     # a build execution.
     - task: PublishBuildArtifacts@1
@@ -243,4 +252,5 @@ stages:
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
         publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+        queueSpeedometerValidation: true
 

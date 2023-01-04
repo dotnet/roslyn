@@ -11,7 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -226,6 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode>? statements)
         {
             var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
+
+            if (!hasBody)
+                modifiers -= DeclarationModifiers.Async;
 
             return SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
@@ -557,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode WithoutConstraints(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax? method))
+            if (declaration is MethodDeclarationSyntax method)
             {
                 if (method.ConstraintClauses.Count > 0)
                 {
@@ -573,6 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
+                SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
+                SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 _ => declaration,
@@ -591,16 +596,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (declaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    var method = (MethodDeclarationSyntax)declaration;
-                    return (method.Body == null) ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
-
-                case SyntaxKind.OperatorDeclaration:
-                    var op = (OperatorDeclarationSyntax)declaration;
-                    return (op.Body == null) ? op.WithSemicolonToken(default).WithBody(CreateBlock()) : op;
-
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    var cop = (ConversionOperatorDeclarationSyntax)declaration;
-                    return (cop.Body == null) ? cop.WithSemicolonToken(default).WithBody(CreateBlock()) : cop;
+                case SyntaxKind.OperatorDeclaration:
+                    var method = (BaseMethodDeclarationSyntax)declaration;
+                    return (method.Body == null && method.ExpressionBody == null) ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
 
                 case SyntaxKind.PropertyDeclaration:
                     var prop = (PropertyDeclarationSyntax)declaration;
@@ -623,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax accessor)
         {
-            if (accessor.Body == null)
+            if (accessor.Body == null && accessor.ExpressionBody == null)
             {
                 return accessor.WithSemicolonToken(default).WithBody(CreateBlock(null));
             }
@@ -763,6 +762,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 Accessibility acc;
                 DeclarationModifiers modifiers;
+
+                // return any nested member "as is" without any additional changes
+                if (member is BaseTypeDeclarationSyntax)
+                    return member;
 
                 switch (member.Kind())
                 {
@@ -921,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return (AttributeArgumentSyntax)node;
         }
 
-        [return: MaybeNull, NotNullIfNotNull("node")]
+        [return: MaybeNull, NotNullIfNotNull(nameof(node))]
         public override TNode ClearTrivia<TNode>([MaybeNull] TNode node)
         {
             if (node != null)
@@ -1178,6 +1181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ParameterSyntax parameter => parameter.WithAttributeLists(attributeLists),
                 CompilationUnitSyntax compilationUnit => compilationUnit.WithAttributeLists(AsAssemblyAttributes(attributeLists)),
                 StatementSyntax statement => statement.WithAttributeLists(attributeLists),
+                TypeParameterSyntax typeParameter => typeParameter.WithAttributeLists(attributeLists),
+                LambdaExpressionSyntax lambdaExpression => lambdaExpression.WithAttributeLists(attributeLists),
                 _ => declaration,
             };
 
@@ -1332,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        [return: NotNullIfNotNull("members")]
+        [return: NotNullIfNotNull(nameof(members))]
         private IEnumerable<MemberDeclarationSyntax>? AsMembersOf(SyntaxNode declaration, IEnumerable<SyntaxNode>? members)
             => members?.Select(m => AsMemberOf(declaration, m)).OfType<MemberDeclarationSyntax>();
 
@@ -1600,6 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             accessibility = Accessibility.NotApplicable;
                         }
                     }
+
                     var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });
@@ -2133,7 +2139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             public AddMissingTokensRewriter(bool recurse)
                 => _recurse = recurse;
 
-            [return: NotNullIfNotNull("node")]
+            [return: NotNullIfNotNull(nameof(node))]
             public override SyntaxNode? Visit(SyntaxNode? node)
             {
                 if (!_recurse && !_firstVisit)
@@ -3196,7 +3202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // this counts for actual reference type, or a type parameter with a 'class' constraint.
             // Also, if it's a nullable type, then we can use "null".
             if (type.IsReferenceType ||
-                type.IsPointerType() ||
+                type is IPointerTypeSymbol ||
                 type.IsNullable())
             {
                 return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
@@ -3321,11 +3327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode BaseExpression()
             => SyntaxFactory.BaseExpression();
 
-        public override SyntaxNode LiteralExpression(object? value)
-            => ExpressionGenerator.GenerateNonEnumValueExpression(type: null, value, canUseFieldReference: true);
-
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
             => ExpressionGenerator.GenerateExpression(value);
+
+        private protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
+            => ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference);
 
         public override SyntaxNode IdentifierName(string identifier)
             => identifier.ToIdentifierName();

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private abstract class LongestCommonSubsequence<TSequence>
         {
-            protected struct Edit
+            protected readonly struct Edit
             {
                 public readonly EditKind Kind;
                 public readonly int IndexA;

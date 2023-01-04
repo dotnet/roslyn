@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Null(symbol);
         }
 
-        [Fact]
-        [WorkItem(53269, "https://github.com/dotnet/roslyn/issues/53269")]
+        [Fact, WorkItem(53269, "https://github.com/dotnet/roslyn/issues/53269")]
         public async Task PositionInCaseLabel()
         {
             using var workspace = TestWorkspace.CreateCSharp(

@@ -1367,14 +1367,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return foundType is not null;
         }
 
-        internal static string? AssociatedFileIdentifier(this NamedTypeSymbol type)
+        internal static string? GetFileLocalTypeMetadataNamePrefix(this NamedTypeSymbol type)
         {
-            if (type.AssociatedSyntaxTree is not SyntaxTree tree)
+            if (type.AssociatedFileIdentifier is not FileIdentifier identifier)
             {
                 return null;
             }
-            var ordinal = type.DeclaringCompilation.GetSyntaxTreeOrdinal(tree);
-            return GeneratedNames.MakeFileIdentifier(tree.FilePath, ordinal);
+            return GeneratedNames.MakeFileTypeMetadataNamePrefix(identifier.DisplayFilePath, identifier.FilePathChecksumOpt);
         }
 
         public static bool IsPointerType(this TypeSymbol type)
@@ -2060,18 +2059,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsWellKnownSetsRequiredMembersAttribute(this TypeSymbol type)
             => type.Name == "SetsRequiredMembersAttribute" && type.IsWellKnownDiagnosticsCodeAnalysisTopLevelType();
 
+        internal static bool IsWellKnownINumberBaseType(this TypeSymbol type)
+        {
+            type = type.OriginalDefinition;
+            return type is NamedTypeSymbol { Name: "INumberBase", IsInterface: true, Arity: 1, ContainingType: null } &&
+                   IsContainedInNamespace(type, "System", "Numerics");
+        }
+
         private static bool IsWellKnownDiagnosticsCodeAnalysisTopLevelType(this TypeSymbol typeSymbol)
             => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Diagnostics", "CodeAnalysis");
 
-        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
+        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string? innerNS = null)
         {
-            var innerNamespace = typeSymbol.ContainingNamespace;
-            if (innerNamespace?.Name != innerNS)
+            NamespaceSymbol? midNamespace;
+
+            if (innerNS != null)
             {
-                return false;
+                var innerNamespace = typeSymbol.ContainingNamespace;
+                if (innerNamespace?.Name != innerNS)
+                {
+                    return false;
+                }
+                midNamespace = innerNamespace.ContainingNamespace;
+            }
+            else
+            {
+                midNamespace = typeSymbol.ContainingNamespace;
             }
 
-            var midNamespace = innerNamespace.ContainingNamespace;
             if (midNamespace?.Name != midNS)
             {
                 return false;

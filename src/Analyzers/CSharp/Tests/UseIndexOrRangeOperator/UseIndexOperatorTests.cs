@@ -2,23 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator.CSharpUseIndexOperatorDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator.CSharpUseIndexOperatorCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpUseIndexOperatorDiagnosticAnalyzer,
+        CSharpUseIndexOperatorCodeFixProvider>;
+
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
     public class UseIndexOperatorTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestNotInCSharp7()
         {
             var source =
@@ -73,7 +75,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestSimple()
         {
             var source =
@@ -103,7 +105,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestMultipleDefinitions()
         {
             var source =
@@ -148,7 +150,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestComplexSubtaction()
         {
             var source =
@@ -178,7 +180,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestComplexInstance()
         {
             var source =
@@ -212,7 +214,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestNotWithoutSubtraction1()
         {
             var source =
@@ -233,7 +235,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestNotWithoutSubtraction2()
         {
             var source =
@@ -254,7 +256,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestNotWithMultipleArgs()
         {
             var source =
@@ -276,7 +278,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestUserDefinedTypeWithLength()
         {
             var source =
@@ -308,7 +310,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestUserDefinedTypeWithCount()
         {
             var source =
@@ -340,7 +342,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestUserDefinedTypeWithNoLengthOrCount()
         {
             var source =
@@ -362,7 +364,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestUserDefinedTypeWithNoInt32Indexer()
         {
             var source =
@@ -384,7 +386,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestUserDefinedTypeWithNoIndexIndexer()
         {
             var source =
@@ -416,7 +418,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestMethodToMethod()
         {
             var source =
@@ -448,7 +450,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestMethodToMethodMissingIndexIndexer()
         {
             var source =
@@ -470,7 +472,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestMethodToMethodWithIntIndexer()
         {
             var source =
@@ -492,8 +494,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact, WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
         public async Task TestMissingWithNoSystemIndex()
         {
             var source =
@@ -515,7 +516,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestMissingWithInaccessibleSystemIndex()
         {
             var source =
@@ -551,7 +552,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestArray()
         {
             var source =
@@ -581,7 +582,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestFixAll1()
         {
             var source =
@@ -613,7 +614,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestNestedFixAll1()
         {
             var source =
@@ -643,7 +644,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestNestedFixAll2()
         {
             var source =
@@ -673,7 +674,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer()
         {
             var source =
@@ -705,7 +706,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer_Set()
         {
             var source =
@@ -737,7 +738,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact]
         public async Task NotOnConstructedIndexer()
         {
             var source =
@@ -759,8 +760,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
-        [WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
+        [Fact, WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
         public async Task TestNotInExpressionTree()
         {
             var source =

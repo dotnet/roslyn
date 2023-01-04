@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var project in solution.Projects)
             {
-                await AddCompilationDeclarationsWithNormalQueryAsync(
+                await AddCompilationSourceDeclarationsWithNormalQueryAsync(
                     project, query, criteria, result, cancellationToken).ConfigureAwait(false);
             }
 
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             using var query = SearchQuery.Create(name, ignoreCase);
 
-            await AddCompilationDeclarationsWithNormalQueryAsync(
+            await AddCompilationSourceDeclarationsWithNormalQueryAsync(
                 project, query, filter, result, cancellationToken).ConfigureAwait(false);
 
             return result.ToImmutable();

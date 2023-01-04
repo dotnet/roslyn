@@ -3,17 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ImplementsKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ImplementsAfterClassDeclarationTest()
             VerifyRecommendationsContain(<File>
 Class Goo
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ImplementsAfterClassDeclarationAndBlankLineTest()
             VerifyRecommendationsContain(<File>
 Class Goo
@@ -21,7 +22,7 @@ Class Goo
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ImplementsAfterImplementsTest()
             VerifyRecommendationsContain(<File>
 Class Goo
@@ -29,14 +30,14 @@ Implements IGooable
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ImplementsInStructureTest()
             VerifyRecommendationsContain(<File>
 Structure Goo
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ImplementsAfterInheritsTest()
             VerifyRecommendationsContain(<File>
 Class Goo
@@ -44,7 +45,7 @@ Inherits Base
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ImplementsAfterMethodInClassImplementingInterfaceTest()
             VerifyRecommendationsContain(<File>
 Class Goo
@@ -53,7 +54,7 @@ Sub Goo() |
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ImplementsNotAfterMethodInClassNotImplementingInterfaceTest()
             VerifyRecommendationsMissing(<File>
 Class Goo
@@ -61,8 +62,7 @@ Sub Goo() |
 |</File>, "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub ImplementsAfterPropertyNameTest()
             VerifyRecommendationsContain(
 <File>
@@ -76,8 +76,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterPropertyOpenParenTest()
             VerifyRecommendationsMissing(
 <File>
@@ -91,8 +90,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub ImplementsAfterPropertyCloseParenTest()
             VerifyRecommendationsContain(
 <File>
@@ -106,8 +104,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterPropertyAsTest()
             VerifyRecommendationsMissing(
 <File>
@@ -121,8 +118,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub ImplementsAfterCompletePropertyAsClauseTest()
             VerifyRecommendationsContain(
 <File>
@@ -136,8 +132,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterIncompletePropertyAsClauseInitializerTest()
             VerifyRecommendationsMissing(
 <File>
@@ -151,8 +146,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub ImplementsAfterCompletePropertyAsClauseInitializerTest()
             VerifyRecommendationsContain(
 <File>
@@ -166,8 +160,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterIncompletePropertyAsNewClauseTest()
             VerifyRecommendationsMissing(
 <File>
@@ -181,8 +174,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub ImplementsAfterCompletePropertyAsNewClauseTest()
             VerifyRecommendationsContain(
 <File>
@@ -196,8 +188,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterPropertyAsNewClauseOpenParenTest()
             VerifyRecommendationsMissing(
 <File>
@@ -211,8 +202,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub ImplementsAfterPropertyAsNewClauseCloseParenTest()
             VerifyRecommendationsContain(
 <File>
@@ -226,8 +216,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterPropertyAsNamespaceDotTest()
             VerifyRecommendationsMissing(
 <File>
@@ -241,8 +230,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterPropertyAsListOfTest()
             VerifyRecommendationsMissing(
 <File>
@@ -257,8 +245,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterPropertyAsListOfTypeTest()
             VerifyRecommendationsMissing(
 <File>
@@ -273,8 +260,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         Public Sub NoImplementsAfterPropertyParameterTest()
             VerifyRecommendationsMissing(
 <File>
@@ -289,8 +275,7 @@ Class bar
 "Implements")
         End Sub
 
-        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
         Public Sub ImplementsAfterEventNameTest()
             VerifyRecommendationsContain(
 <File>
@@ -304,8 +289,7 @@ Class C1
 "Implements")
         End Sub
 
-        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
         Public Sub NoImplementsAfterEventOpenParenTest()
             VerifyRecommendationsMissing(
 <File>
@@ -319,8 +303,7 @@ Class C1
 "Implements")
         End Sub
 
-        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
         Public Sub ImplementsAfterEventCloseParenTest()
             VerifyRecommendationsContain(
 <File>
@@ -334,8 +317,7 @@ Class C1
 "Implements")
         End Sub
 
-        <WorkItem(546404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546404")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(546404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546404")>
         Public Sub ImplementsAfterAsClauseTest()
             VerifyRecommendationsContain(
 <File>
@@ -349,8 +331,7 @@ Class Bar
 "Implements")
         End Sub
 
-        <WorkItem(531254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(531254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
         Public Sub ImplementsInPartialClass1Test()
             VerifyRecommendationsContain(
 <File>
@@ -365,8 +346,7 @@ Partial Public Class Test
 "Implements")
         End Sub
 
-        <WorkItem(531254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(531254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
         Public Sub ImplementsInPartialClass2Test()
             VerifyRecommendationsMissing(
 <File>
@@ -380,8 +360,7 @@ Partial Public Class Test
 "Implements")
         End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub NoImplementsInInterface1Test()
             VerifyRecommendationsMissing(
 <File>
@@ -393,8 +372,7 @@ Public Interface ITest2
 "Implements")
         End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub NoImplementsInInterface2Test()
             VerifyRecommendationsMissing(
 <File>
@@ -407,8 +385,7 @@ Public Interface ITest2
 "Implements")
         End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub NoImplementsInModuleTest()
             VerifyRecommendationsMissing(
 <File>
@@ -420,8 +397,7 @@ Public Module Test2
 "Implements")
         End Sub
 
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

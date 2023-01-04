@@ -45,7 +45,7 @@ internal partial class CSharpRecommendationService
 
         public override bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(true)] out ITypeSymbol? explicitLambdaParameterType)
         {
-            if (lambdaSyntax.IsKind<ParenthesizedLambdaExpressionSyntax>(SyntaxKind.ParenthesizedLambdaExpression, out var parenthesizedLambdaSyntax))
+            if (lambdaSyntax is ParenthesizedLambdaExpressionSyntax parenthesizedLambdaSyntax)
             {
                 var parameters = parenthesizedLambdaSyntax.ParameterList.Parameters;
                 if (parameters.Count > ordinalInLambda)
@@ -190,7 +190,7 @@ internal partial class CSharpRecommendationService
 
             return allLabels
                 .WhereAsArray(label => label.DeclaringSyntaxReferences.First().GetSyntax(_cancellationToken)
-                    .IsKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel));
+                    .Kind() is SyntaxKind.LabeledStatement or SyntaxKind.DefaultSwitchLabel);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext()
@@ -365,7 +365,6 @@ internal partial class CSharpRecommendationService
             bool unwrapNullable,
             bool isForDereference)
         {
-            var abstractsOnly = false;
             var excludeInstance = false;
             var excludeStatic = true;
             var excludeBaseMethodsForRefStructs = true;
@@ -412,7 +411,6 @@ internal partial class CSharpRecommendationService
                     // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
-                    abstractsOnly = symbol.Kind == SymbolKind.TypeParameter;
                     containerSymbol = symbol;
                 }
 
@@ -440,7 +438,6 @@ internal partial class CSharpRecommendationService
                 return default;
 
             Debug.Assert(!excludeInstance || !excludeStatic);
-            Debug.Assert(!abstractsOnly || (abstractsOnly && !excludeStatic && excludeInstance));
 
             // nameof(X.|
             // Show static and instance members.
@@ -458,7 +455,7 @@ internal partial class CSharpRecommendationService
             // If we're showing instance members, don't include nested types
             var namedSymbols = excludeStatic
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : (abstractsOnly ? symbols.WhereAsArray(s => s.IsAbstract) : symbols);
+                : symbols;
 
             //If container type is "ref struct" then we should exclude methods from object and ValueType that are not overriden
             //if recomendations are requested not in nameof context,

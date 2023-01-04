@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
             => CodeStyleHelpers.CreateOption(
                 group, nameof(CSharpCodeStyleOptions), name, defaultValue,
-                s_allOptionsBuilder, storageLocation);
+                s_allOptionsBuilder, storageLocation, LanguageNames.CSharp);
 
         private static Option2<T> CreateOption<T>(
             OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
             => CodeStyleHelpers.CreateOption(
                 group, nameof(CSharpCodeStyleOptions), name, defaultValue,
-                s_allOptionsBuilder, storageLocation1, storageLocation2);
+                s_allOptionsBuilder, storageLocation1, storageLocation2, LanguageNames.CSharp);
 
         private static Option2<CodeStyleOption2<bool>> CreateOption(
             OptionGroup group, string name, CodeStyleOption2<bool> defaultValue, string editorconfigKeyName, string roamingProfileStorageKeyName)
@@ -231,6 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_prefer_static_local_function",
             "TextEditor.CSharp.Specific.PreferStaticLocalFunction");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferReadOnlyStruct = CreateOption(
+            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferReadOnlyStruct),
+            CSharpIdeCodeStyleOptions.Default.PreferReadOnlyStruct,
+            "csharp_style_prefer_readonly_struct",
+            "TextEditor.CSharp.Specific.PreferReadOnlyStruct");
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferSimpleUsingStatement = CreateOption(
             CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferSimpleUsingStatement),
             CSharpIdeCodeStyleOptions.Default.PreferSimpleUsingStatement,
@@ -272,7 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 name: "UnusedValueExpressionStatement",
                 editorConfigName: "csharp_style_unused_value_expression_statement_preference",
                 CSharpIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
-                s_allOptionsBuilder);
+                s_allOptionsBuilder,
+                LanguageNames.CSharp);
 
         internal static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueAssignment =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
@@ -281,7 +288,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 name: "UnusedValueAssignment",
                 editorConfigName: "csharp_style_unused_value_assignment_preference",
                 CSharpIdeCodeStyleOptions.Default.UnusedValueAssignment,
-                s_allOptionsBuilder);
+                s_allOptionsBuilder,
+                LanguageNames.CSharp);
 
         public static readonly Option2<CodeStyleOption2<bool>> ImplicitObjectCreationWhenTypeIsApparent = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(ImplicitObjectCreationWhenTypeIsApparent),
@@ -312,6 +320,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterColonInConstructorInitializer,
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.AllowBlankLineAfterColonInConstructorInitializer"));
+
+        public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInConditionalExpression { get; } = CreateOption(
+            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLineAfterTokenInConditionalExpression),
+            CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInConditionalExpression,
+            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
+            new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.AllowBlankLineAfterTokenInConditionalExpression"));
+
+        public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterTokenInArrowExpressionClause { get; } = CreateOption(
+            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLineAfterTokenInArrowExpressionClause),
+            CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterTokenInArrowExpressionClause,
+            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
+            new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.AllowBlankLineAfterTokenInArrowExpressionClause"));
 
         private static Option2<CodeStyleOption2<NamespaceDeclarationPreference>> CreateNamespaceDeclarationOption(string optionName, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, string editorconfigKeyName)
             => CreateOption(
@@ -376,6 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferRangeOperator;
             yield return AllowEmbeddedStatementsOnSameLine;
             yield return AllowBlankLinesBetweenConsecutiveBraces;
+            yield return AllowBlankLineAfterColonInConstructorInitializer;
+            yield return AllowBlankLineAfterTokenInConditionalExpression;
+            yield return AllowBlankLineAfterTokenInArrowExpressionClause;
         }
 
         public static IEnumerable<Option2<CodeStyleOption2<ExpressionBodyPreference>>> GetExpressionBodyOptions()

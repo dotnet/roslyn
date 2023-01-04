@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override BoundNode VisitMethodGroup(BoundMethodGroup node)
-                    => throw ExceptionUtilities.Unreachable;
+                    => throw ExceptionUtilities.Unreachable();
 
                 public override BoundNode VisitBlock(BoundBlock node)
                 {

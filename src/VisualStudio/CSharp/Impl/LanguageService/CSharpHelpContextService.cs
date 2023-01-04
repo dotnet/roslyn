@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             else
             {
-                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace.Services, cancellationToken)
+                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Services, cancellationToken)
                                       .GetAnySymbol(includeType: true);
 
                 if (symbol == null)
@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken))
+            if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
                 {
@@ -324,7 +324,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList))
+            if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken &&
+                token.Parent is (kind: SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList))
             {
                 text = Keyword("generics");
                 return true;
@@ -392,6 +393,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         return true;
                 }
             }
+            else if (token.ValueText is "notnull" or "unmanaged")
+            {
+                if (token.Parent is IdentifierNameSyntax { Parent: TypeConstraintSyntax { Parent: TypeParameterConstraintClauseSyntax } })
+                {
+                    text = Keyword(token.ValueText);
+                    return true;
+                }
+            }
 
             text = null;
             return false;
@@ -450,10 +459,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 }
             }
 
-            if (token.IsKind(SyntaxKind.DefaultKeyword) && token.Parent is DefaultSwitchLabelSyntax)
+            if (token.IsKind(SyntaxKind.DefaultKeyword))
             {
-                text = Keyword("defaultcase");
-                return true;
+                if (token.Parent is DefaultConstraintSyntax)
+                {
+                    text = Keyword("defaultconstraint");
+                    return true;
+                }
+
+                if (token.Parent is DefaultSwitchLabelSyntax or GotoStatementSyntax)
+                {
+                    text = Keyword("defaultcase");
+                    return true;
+                }
+
+                if (token.Parent is LineDirectiveTriviaSyntax)
+                {
+                    text = Keyword("defaultline");
+                    return true;
+                }
             }
 
             if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax)
@@ -471,6 +495,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.UsingKeyword) && token.Parent is UsingStatementSyntax or LocalDeclarationStatementSyntax)
             {
                 text = Keyword("using-statement");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.SwitchKeyword) && token.Parent is SwitchExpressionSyntax)
+            {
+                text = Keyword("switch-expression");
                 return true;
             }
 

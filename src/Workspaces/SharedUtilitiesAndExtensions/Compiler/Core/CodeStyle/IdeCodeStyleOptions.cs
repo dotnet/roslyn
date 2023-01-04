@@ -71,7 +71,7 @@ internal abstract class IdeCodeStyleOptions
     public CommonOptions Common { get; init; } = CommonOptions.Default;
 
 #if !CODE_STYLE
-    public static IdeCodeStyleOptions GetDefault(HostLanguageServices languageServices)
+    public static IdeCodeStyleOptions GetDefault(LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeStyleService>().DefaultOptions;
 #endif
 }

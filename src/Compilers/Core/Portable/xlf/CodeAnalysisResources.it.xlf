@@ -17,6 +17,21 @@
         <target state="translated">L'assembly che contiene il tipo '{0}' fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">Nome dell'operatore predefinito '{0}' non valido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">Operatore predefinito non supportato: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">'{0}' non era un nome di operatore predefinito valido</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">Le modifiche devono rientrare nei limiti di SourceText</target>
@@ -51,12 +66,12 @@
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
-        <target state="new">Generator</target>
+        <target state="translated">Generatore</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorTotalExecutionTime">
         <source>Total generator execution time: {0} seconds.</source>
-        <target state="new">Total generator execution time: {0} seconds.</target>
+        <target state="translated">Tempo totale di esecuzione del generatore: {0} secondi.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">

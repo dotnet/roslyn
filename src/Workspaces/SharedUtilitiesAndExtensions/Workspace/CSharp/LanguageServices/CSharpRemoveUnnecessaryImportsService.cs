@@ -10,11 +10,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             => CSharpSyntaxFormatting.Instance;
 #endif
 
-        protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
+        protected override IUnnecessaryImportsProvider<UsingDirectiveSyntax> UnnecessaryImportsProvider
             => CSharpUnnecessaryImportsProvider.Instance;
 
         public override async Task<Document> RemoveUnnecessaryImportsAsync(
@@ -67,13 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var oldRoot = (CompilationUnitSyntax)root;
-                var newRoot = (CompilationUnitSyntax)new Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot);
+                var newRoot = (CompilationUnitSyntax)new Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot);
 
                 cancellationToken.ThrowIfCancellationRequested();
 #if CODE_STYLE
                 var provider = GetSyntaxFormatting();
 #else
-                var provider = document.Project.Solution.Workspace.Services;
+                var provider = document.Project.Solution.Services;
 #endif
                 var spans = new List<TextSpan>();
                 AddFormattingSpans(newRoot, spans, cancellationToken);

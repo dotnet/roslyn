@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         {
             var (document, span, cancellationToken) = context;
 
-            var service = document.Project.Solution.Workspace.Services.GetService<IMoveStaticMembersOptionsService>();
+            var service = document.Project.Solution.Services.GetService<IMoveStaticMembersOptionsService>();
             if (service == null)
             {
                 return;
@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return;
-            }
-
             var memberNodeSymbolPairs = selectedMemberNodes
                 .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
                 // Use same logic as pull members up for determining if a selected member

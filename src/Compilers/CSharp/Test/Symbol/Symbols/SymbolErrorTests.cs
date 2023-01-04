@@ -1464,9 +1464,9 @@ class C : I
     // (10,77): error CS0100: The parameter name 'p' is a duplicate
     //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
     Diagnostic(ErrorCode.ERR_DuplicateParamName, "p").WithArguments("p").WithLocation(10, 77),
-    // (10,82): error CS0229: Ambiguity between 'object' and 'ref string'
+    // (10,82): error CS0229: Ambiguity between 'object p' and 'ref string p'
     //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
-    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object", "ref string").WithLocation(10, 82)
+    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object p", "ref string p").WithLocation(10, 82)
                 );
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -7781,7 +7781,7 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -11520,7 +11520,7 @@ public class Test
                 // (2,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(2, 39),
-                // (2,2): error CS76: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
+                // (2,2): error CS76: There is no argument given that corresponds to the required parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2)
                 );
@@ -12622,10 +12622,10 @@ class A<T, S>
 {
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class C<T> : System.Attribute
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(1, 14));
         }
 
         [Fact]
@@ -12638,13 +12638,13 @@ class C<T>
 {
     class B : A { }
 }";
-            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (2,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class B<T> : A { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(2, 14),
-                // (5,15): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A").WithArguments("generic attributes", "11.0").WithLocation(2, 14),
+                // (5,15): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     class B : A { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(5, 15));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A").WithArguments("generic attributes", "11.0").WithLocation(5, 15));
         }
 
         [Fact]
@@ -13059,9 +13059,9 @@ public static class C
 //     public static C operator +(C c)  // CS0715
 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "+").WithArguments("C.operator +(C)"),
 
-// (4,30): error CS0721: 'C': static types cannot be used as parameters
+// (4,32): error CS0721: 'C': static types cannot be used as parameters
 //     public static C operator +(C c)  // CS0715
-Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "+").WithArguments("C"),
+Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C"),
 
 // (4,19): error CS0722: 'C': static types cannot be used as return types
 //     public static C operator +(C c)  // CS0715
@@ -13350,7 +13350,7 @@ static class S
         [Fact]
         public void CS0721ERR_ParameterIsStaticClass01()
         {
-            var text = @"namespace NS
+            var source = @"namespace NS
 {
     public static class C
     {
@@ -13379,13 +13379,16 @@ static class S
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): warning CS8897: 'D<T>': static types cannot be used as parameters
+                //         void M(D<T> d); // Dev10 no error?
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "D<T>").WithArguments("NS.D<T>").WithLocation(12, 16),
+                // (16,23): error CS0721: 'C': static types cannot be used as parameters
+                //         public void F(C p)  // CS0721
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("NS.C").WithLocation(16, 23),
+                // (22,25): error CS0721: 'D<T>': static types cannot be used as parameters
+                //             object M<T>(D<T> p1)  // CS0721
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "D<T>").WithArguments("NS.D<T>").WithLocation(22, 25));
         }
 
         [Fact]
@@ -13398,8 +13401,44 @@ class C
     S P { set { } }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,11): error CS0721: 'S': static types cannot be used as parameters
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("S").WithLocation(4, 11));
+                // (4,5): error CS0721: 'S': static types cannot be used as parameters
+                //     S P { set { } }
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(4, 5));
+        }
+
+        [WorkItem(61831, "https://github.com/dotnet/roslyn/issues/61831")]
+        [Fact]
+        public void CS0721ERR_ParameterIsStaticClass_Lambdas()
+        {
+            var source =
+@"static class S { }
+delegate void Dlg(S p);
+class C
+{
+    void M()
+    {
+        var _a = (S p) => { };
+        var _b = delegate (S p) { };
+        Dlg _c = (p) => { };
+        Dlg _d = p => { };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,19): error CS0721: 'S': static types cannot be used as parameters
+                // delegate void Dlg(S p);
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(2, 19),
+                // (7,18): error CS0721: 'S': static types cannot be used as parameters
+                //         var _a = (S p) => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(7, 19),
+                // (8,18): error CS0721: 'S': static types cannot be used as parameters
+                //         var _b = delegate (S p) { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(8, 28),
+                // (9,19): error CS0721: 'S': static types cannot be used as parameters
+                //         Dlg _c = (p) => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "p").WithArguments("S").WithLocation(9, 19),
+                // (10,18): error CS0721: 'S': static types cannot be used as parameters
+                //         Dlg _d = p => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "p").WithArguments("S").WithLocation(10, 18));
         }
 
         [Fact]
@@ -13458,8 +13497,9 @@ class C
     S P { get { return null; } }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,11): error CS0722: 'S': static types cannot be used as return types
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(4, 11));
+                // (4,5): error CS0722: 'S': static types cannot be used as return types
+                //     S P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(4, 5));
         }
 
         [WorkItem(530434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530434")]
@@ -13542,34 +13582,28 @@ interface I
 {
     void M1(C c); // 1
     C M2(); // 2
-    C Prop { get; set; } // 3, 4
-    C this[C c] { get; set; } // 5, 6, 7
+    C Prop { get; set; } // 3
+    C this[C c] { get; set; } // 4, 5
 }
 ";
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (5,10): warning CS8897: 'C': static types cannot be used as parameters
+                // (5,13): warning CS8897: 'C': static types cannot be used as parameters
                 //     void M1(C c); // 1
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "M1").WithArguments("C").WithLocation(5, 10),
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(5, 13),
                 // (6,7): warning CS8898: 'C': static types cannot be used as return types
                 //     C M2(); // 2
                 Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
-                // (7,14): warning CS8898: 'C': static types cannot be used as return types
-                //     C Prop { get; set; } // 3, 4
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(7, 14),
-                // (7,19): warning CS8897: 'C': static types cannot be used as parameters
-                //     C Prop { get; set; } // 3, 4
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19),
-                // (8,7): warning CS8897: 'C': static types cannot be used as parameters
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "this").WithArguments("C").WithLocation(8, 7),
-                // (8,19): warning CS8898: 'C': static types cannot be used as return types
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(8, 19),
-                // (8,24): warning CS8897: 'C': static types cannot be used as parameters
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
+                // (7,5): warning CS8898: 'C': static types cannot be used as return types
+                //     C Prop { get; set; } // 3
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(7, 5),
+                // (8,5): warning CS8898: 'C': static types cannot be used as return types
+                //     C this[C c] { get; set; } // 4, 5
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(8, 5),
+                // (8,12): warning CS8897: 'C': static types cannot be used as parameters
+                //     C this[C c] { get; set; } // 4, 5
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(8, 12)
             );
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4));
@@ -14578,8 +14612,8 @@ class Goo1
             compilation.VerifyDiagnostics(
                 // (3,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"),
-                // (4,17): error CS0721: 'C': static types cannot be used as parameters
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M2").WithArguments("C"),
+                // (4,25): error CS0721: 'C': static types cannot be used as parameters
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C"),
                 // (5,25): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic"));
         }
@@ -15229,7 +15263,6 @@ class AAttribute : Attribute { }
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ab[10]");
         }
 
-
         [Fact]
         public void CS1642ERR_FixedNotInStruct()
         {
@@ -15464,7 +15497,6 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("goo.ABC", "0"));
         }
 
-
         [Fact]
         public void C1666ERR_InvalidFixedBufferInUnfixedContext()
         {
@@ -15522,8 +15554,6 @@ unsafe struct @s
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]"));
         }
-
-
 
         [Fact()]
         public void CS1667ERR_AttributeNotOnAccessor()
@@ -17429,7 +17459,6 @@ namespace SA
                 //         Class1 cls;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "cls").WithArguments("SA.Test.cls"));
 
-
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("SA").Single() as NamespaceSymbol;
             // TODO...
         }
@@ -18556,7 +18585,7 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -19195,7 +19224,6 @@ namespace NS
                 //         public int MyMeth;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "MyMeth").WithArguments("NS.MyType.MyMeth", "0")
                 );
-
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("MyType").Single() as NamedTypeSymbol;
@@ -21844,6 +21872,181 @@ using System.Runtime.CompilerServices;
                 // [assembly: TypeForwardedTo(typeof(C1))]
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "C1").WithArguments("C1", "SomeFeatureIsRequired").WithLocation(4, 35)
                 );
+        }
+
+        [Fact]
+        public void PartialConstructor()
+        {
+            CreateCompilation(new[]
+            {
+                """
+                public class PartialCtor
+                {
+                    partial PartialCtor() { }
+                }
+                """,
+                """
+                public class PublicPartialCtor
+                {
+                    public partial PublicPartialCtor() { }
+                }
+                """,
+                """
+                public class PartialPublicCtor
+                {
+                    partial public PartialPublicCtor() { }
+                }
+                """
+            }).VerifyDiagnostics(
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial public PartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial public PartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial PartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 5),
+                // (3,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial PublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 12),
+                // (3,13): error CS0542: 'PartialCtor': member names cannot be the same as their enclosing type
+                //     partial PartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PartialCtor").WithArguments("PartialCtor").WithLocation(3, 13),
+                // (3,13): error CS0161: 'PartialCtor.PartialCtor()': not all code paths return a value
+                //     partial PartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "PartialCtor").WithArguments("PartialCtor.PartialCtor()").WithLocation(3, 13),
+                // (3,20): error CS0542: 'PublicPartialCtor': member names cannot be the same as their enclosing type
+                //     public partial PublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PublicPartialCtor").WithArguments("PublicPartialCtor").WithLocation(3, 20),
+                // (3,20): error CS0161: 'PublicPartialCtor.PublicPartialCtor()': not all code paths return a value
+                //     public partial PublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "PublicPartialCtor").WithArguments("PublicPartialCtor.PublicPartialCtor()").WithLocation(3, 20));
+        }
+
+        [Fact]
+        public void PartialStaticConstructor()
+        {
+            CreateCompilation(new[]
+            {
+                """
+                public class PartialStaticCtor
+                {
+                    partial static PartialStaticCtor() { }
+                }
+                """,
+                """
+                public class StaticPartialCtor
+                {
+                    static partial StaticPartialCtor() { }
+                }
+                """,
+                """
+                public class PublicStaticPartialCtor
+                {
+                    public static partial PublicStaticPartialCtor() { }
+                }
+                """,
+                """
+                public class PublicPartialStaticCtor
+                {
+                    public partial static PublicPartialStaticCtor() { }
+                }
+                """,
+                """
+                public class StaticPublicPartialCtor
+                {
+                    static public partial StaticPublicPartialCtor() { }
+                }
+                """,
+                """
+                public class StaticPartialPublicCtor
+                {
+                    static partial public StaticPartialPublicCtor() { }
+                }
+                """,
+                """
+                public class PartialStaticPublicCtor
+                {
+                    partial static public PartialStaticPublicCtor() { }
+                }
+                """,
+                """
+                public class PartialPublicStaticCtor
+                {
+                    partial public static PartialPublicStaticCtor() { }
+                }
+                """,
+            }).VerifyDiagnostics(
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial static PartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial static PartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial static public PartialStaticPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial static public PartialStaticPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     public partial static PublicPartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     public partial static PublicPartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // (3,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     static partial StaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 12),
+                // (3,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static partial PublicStaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 19),
+                // (3,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     static public partial StaticPublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 19),
+                // (3,20): error CS0542: 'StaticPartialCtor': member names cannot be the same as their enclosing type
+                //     static partial StaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "StaticPartialCtor").WithArguments("StaticPartialCtor").WithLocation(3, 20),
+                // (3,20): error CS0161: 'StaticPartialCtor.StaticPartialCtor()': not all code paths return a value
+                //     static partial StaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "StaticPartialCtor").WithArguments("StaticPartialCtor.StaticPartialCtor()").WithLocation(3, 20),
+                // (3,27): error CS0515: 'PartialPublicStaticCtor.PartialPublicStaticCtor()': access modifiers are not allowed on static constructors
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PartialPublicStaticCtor").WithArguments("PartialPublicStaticCtor.PartialPublicStaticCtor()").WithLocation(3, 27),
+                // (3,27): error CS0515: 'PublicPartialStaticCtor.PublicPartialStaticCtor()': access modifiers are not allowed on static constructors
+                //     public partial static PublicPartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PublicPartialStaticCtor").WithArguments("PublicPartialStaticCtor.PublicPartialStaticCtor()").WithLocation(3, 27),
+                // (3,27): error CS0515: 'StaticPartialPublicCtor.StaticPartialPublicCtor()': access modifiers are not allowed on static constructors
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "StaticPartialPublicCtor").WithArguments("StaticPartialPublicCtor.StaticPartialPublicCtor()").WithLocation(3, 27),
+                // (3,27): error CS0515: 'PartialStaticPublicCtor.PartialStaticPublicCtor()': access modifiers are not allowed on static constructors
+                //     partial static public PartialStaticPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PartialStaticPublicCtor").WithArguments("PartialStaticPublicCtor.PartialStaticPublicCtor()").WithLocation(3, 27),
+                // (3,27): error CS0542: 'StaticPublicPartialCtor': member names cannot be the same as their enclosing type
+                //     static public partial StaticPublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "StaticPublicPartialCtor").WithArguments("StaticPublicPartialCtor").WithLocation(3, 27),
+                // (3,27): error CS0542: 'PublicStaticPartialCtor': member names cannot be the same as their enclosing type
+                //     public static partial PublicStaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PublicStaticPartialCtor").WithArguments("PublicStaticPartialCtor").WithLocation(3, 27),
+                // (3,27): error CS0161: 'StaticPublicPartialCtor.StaticPublicPartialCtor()': not all code paths return a value
+                //     static public partial StaticPublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "StaticPublicPartialCtor").WithArguments("StaticPublicPartialCtor.StaticPublicPartialCtor()").WithLocation(3, 27),
+                // (3,27): error CS0161: 'PublicStaticPartialCtor.PublicStaticPartialCtor()': not all code paths return a value
+                //     public static partial PublicStaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "PublicStaticPartialCtor").WithArguments("PublicStaticPartialCtor.PublicStaticPartialCtor()").WithLocation(3, 27));
         }
     }
 }

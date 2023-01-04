@@ -15,16 +15,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
+
     /// <summary>
     /// Looks for code of the forms:
-    /// 
+    /// <code>
     ///     var x = o as Type;
     ///     if (x != null) ...
-    /// 
+    /// </code>
     /// and converts it to:
-    /// 
+    /// <code>
     ///     if (o is Type x) ...
-    ///     
+    /// </code>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
@@ -33,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
                    EnforceOnBuildValues.InlineAsType,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                         nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 BinaryExpressionSyntax binaryExpression => (binaryExpression.Left, (SyntaxNode)binaryExpression.Right),
                 IsPatternExpressionSyntax isPattern => (isPattern.Expression, isPattern.Pattern),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
             var operand = GetNullCheckOperand(comparisonLeft, comparison.Kind(), comparisonRight)?.WalkDownParentheses();
             if (operand == null)
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var semanticModel = syntaxContext.SemanticModel;
-            if (operand.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax? castExpression))
+            if (operand is CastExpressionSyntax castExpression)
             {
                 // Unwrap object cast
                 var castType = semanticModel.GetTypeInfo(castExpression.Type).Type;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     break;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     // Check if this is a 'write' to the asOperand.
                     if (identifierName.Identifier.ValueText == asOperand?.Name &&
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         // if ((x = e as T) != null) F(x);
                         var assignment = (AssignmentExpressionSyntax)operand;
                         if (!assignment.Right.IsKind(SyntaxKind.AsExpression, out asExpression) ||
-                            !assignment.Left.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifier))
+                            assignment.Left is not IdentifierNameSyntax identifier)
                         {
                             break;
                         }
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return left;
             }
 
-            if (right.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType)
+            if (right is PredefinedTypeSyntax predefinedType
                 && predefinedType.Keyword.IsKind(SyntaxKind.ObjectKeyword)
                 && comparisonKind == SyntaxKind.IsExpression)
             {
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return left;
             }
 
-            if (right.IsKind(SyntaxKind.ConstantPattern, out ConstantPatternSyntax? constantPattern)
+            if (right is ConstantPatternSyntax constantPattern
                 && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression)
                 && comparisonKind == SyntaxKind.IsPatternExpression)
             {

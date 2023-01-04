@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class FilePathUtilitiesTests
     {
-        [Fact]
-        [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
+        [Fact, WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_SameDirectory()
         {
             var baseDirectory = @"C:\Alpha\Beta\Gamma";
@@ -24,8 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: @"Doc.txt", actual: result);
         }
 
-        [Fact]
-        [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
+        [Fact, WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_NestedOneLevelDown()
         {
             var baseDirectory = @"C:\Alpha\Beta\Gamma";
@@ -36,8 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: @"Delta\Doc.txt", actual: result);
         }
 
-        [Fact]
-        [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
+        [Fact, WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_NestedTwoLevelsDown()
         {
             var baseDirectory = @"C:\Alpha\Beta\Gamma";
@@ -48,8 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: @"Delta\Epsilon\Doc.txt", actual: result);
         }
 
-        [Fact]
-        [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
+        [Fact, WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_UpOneLevel()
         {
             var baseDirectory = @"C:\Alpha\Beta\Gamma";
@@ -60,8 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: @"..\Doc.txt", actual: result);
         }
 
-        [Fact]
-        [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
+        [Fact, WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_UpTwoLevels()
         {
             var baseDirectory = @"C:\Alpha\Beta\Gamma";
@@ -72,8 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: @"..\..\Doc.txt", actual: result);
         }
 
-        [Fact]
-        [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
+        [Fact, WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_UpTwoLevelsAndThenDown()
         {
             var baseDirectory = @"C:\Alpha\Beta\Gamma";
@@ -84,8 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: @"..\..\Phi\Omega\Doc.txt", actual: result);
         }
 
-        [Fact]
-        [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
+        [Fact, WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_OnADifferentDrive()
         {
             var baseDirectory = @"C:\Alpha\Beta\Gamma";
@@ -96,8 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: @"D:\Alpha\Beta\Gamma\Doc.txt", actual: result);
         }
 
-        [Fact]
-        [WorkItem(4660, "https://github.com/dotnet/roslyn/issues/4660")]
+        [Fact, WorkItem(4660, "https://github.com/dotnet/roslyn/issues/4660")]
         public void GetRelativePath_WithBaseDirectoryMatchingIncompletePortionOfFullPath()
         {
             var baseDirectory = @"C:\Alpha\Beta";

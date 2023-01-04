@@ -5614,6 +5614,12 @@
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
+    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+  </data>
   <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
     <value>assigning to or passing 'ByRef' properties with init-only setters</value>
   </data>
@@ -5655,5 +5661,11 @@
   </data>
   <data name="ERR_DoNotUseCompilerFeatureRequired" xml:space="preserve">
     <value>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference" xml:space="preserve">
+    <value>Analyzer reference '{0}' specified multiple times</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
+    <value>Analyzer reference specified multiple times</value>
   </data>
 </root>

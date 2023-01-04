@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var activeStatementTrackingService = document.Project.Solution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+            var activeStatementTrackingService = document.Project.Solution.Services.GetService<IActiveStatementTrackingService>();
             if (activeStatementTrackingService == null)
             {
                 return;
@@ -100,6 +101,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Let the context know that this was the span we actually tried to tag.
             context.SetSpansTagged(ImmutableArray.Create(spanToTag.SnapshotSpan));
+        }
+
+        protected override bool TagEquals(ITextMarkerTag tag1, ITextMarkerTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 == tag2, "ActiveStatementTag is a supposed to be a singleton");
+            return true;
         }
     }
 }

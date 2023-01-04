@@ -167,6 +167,11 @@
         <target state="translated">Modifikátory nejsou seřazené.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Název může být zjednodušený.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
         <target state="translated">Namespace {0} neodpovídá struktuře složek, očekávalo se {1}.</target>
@@ -257,6 +262,11 @@
         <target state="translated">Odebrat nepotřebné přetypování</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="new">Remove accessibility modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Odebrat nadbytečnou rovnost</target>
@@ -305,6 +315,21 @@
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">Zjednodušit výraz LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Zjednodušit přístup ke členům</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Zjednodušit názvy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="new">Simplify check</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

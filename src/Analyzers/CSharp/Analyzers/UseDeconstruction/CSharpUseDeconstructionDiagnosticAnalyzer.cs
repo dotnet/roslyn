@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
                    EnforceOnBuildValues.UseDeconstruction,
                    CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_deconstructed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -259,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return true;
             }
 
-            if (type.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax? tupleType))
+            if (type is TupleTypeSyntax tupleType)
             {
                 // '(int x, int y) t' can be convered to '(int x, int y)'.  So all the elements
                 // need names.

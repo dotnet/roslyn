@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
             // Embedded attributes should never be synthesized in modules.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override EmitBaseline? PreviousGeneration => null;

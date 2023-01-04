@@ -24,11 +24,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class GlobalOptionServiceTests
     {
         private static IGlobalOptionService GetGlobalOptionService(HostWorkspaceServices services, IOptionPersisterProvider? optionPersisterProvider = null)
         {
-            var mefHostServices = (IMefHostExportProvider)services.HostServices;
+            var mefHostServices = services.SolutionServices.ExportProvider;
             var workspaceThreadingService = mefHostServices.GetExportedValues<IWorkspaceThreadingService>().SingleOrDefault();
             return new GlobalOptionService(
                 workspaceThreadingService,
@@ -92,66 +93,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void OptionWithNullOrWhitespace()
-        {
-            using var workspace = new AdhocWorkspace();
-            var optionService = GetOptionService(workspace.Services);
-            var optionSet = new SolutionOptionSet(optionService);
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var option = new Option<bool>("Test Feature", "", false);
-            });
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var option2 = new Option<bool>("Test Feature", null!, false);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
-                var option3 = new Option<bool>(" ", "Test Name", false);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
-                var option4 = new Option<bool>(null!, "Test Name", false);
-            });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void OptionPerLanguageOption()
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetOptionService(workspace.Services);
             var optionSet = new SolutionOptionSet(optionService);
 
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var option = new PerLanguageOption<bool>("Test Feature", "", false);
-            });
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var option2 = new PerLanguageOption<bool>("Test Feature", null!, false);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
-                var option3 = new PerLanguageOption<bool>(" ", "Test Name", false);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
-                var option4 = new PerLanguageOption<bool>(null!, "Test Name", false);
-            });
-
             var optionvalid = new PerLanguageOption<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(optionvalid, "CS"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void GettingOptionReturnsOption()
         {
             using var workspace = new AdhocWorkspace();
@@ -161,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.False(optionSet.GetOption(option));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void GlobalOptions()
         {
             using var workspace = new AdhocWorkspace();
@@ -201,7 +154,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             globalOptions.OptionChanged -= handler;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void GettingOptionWithChangedOption()
         {
             using var workspace = new AdhocWorkspace();
@@ -214,7 +167,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.True((bool?)optionSet.GetOption(key));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void GettingOptionWithoutChangedOption()
         {
             using var workspace = new AdhocWorkspace();
@@ -234,7 +187,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.True((bool?)optionSet.GetOption(trueKey));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void GetKnownOptions()
         {
             using var workspace = new AdhocWorkspace();
@@ -247,7 +200,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.True(value);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void GetKnownOptionsKey()
         {
             using var workspace = new AdhocWorkspace();
@@ -391,7 +344,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             //  Test matrix using different OptionKey and OptionKey2 get/set operations.
             var optionKey = new OptionKey(option, language);
-            var optionKey2 = new OptionKey2(option, language);
+            var optionKey2 = option switch
+            {
+                IPerLanguageValuedOption perLanguageValuedOption => new OptionKey2(perLanguageValuedOption, language!),
+                ISingleValuedOption singleValued => new OptionKey2(singleValued),
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
 
             // Value return from "object GetOption(OptionKey)" should always be public CodeStyleOption type.
             var newPublicValue = newValue.AsPublicCodeStyleOption();

@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using SymbolExtensions = Microsoft.CodeAnalysis.Test.Utilities.SymbolExtensions;
@@ -831,6 +830,23 @@ class C<T>
             //value
             Assert.Equal(expectedValueParameter, model.GetSymbolInfo(names[10]).Symbol);
             Assert.Equal(expectedValueParameter, model.GetSymbolInfo(names[11]).Symbol);
+        }
+
+        [Fact]
+        public void ExtensionMethodsAreNotAvailableInEarlierCSharpVersions()
+        {
+            var code = @"
+ public static class Test
+ {
+     public static void DoSomething(this int x) { }
+ }";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp2)).VerifyDiagnostics(
+                // (4,37): error CS8023: Feature 'extension method' is not available in C# 2. Please use language version 3 or greater.
+                //      public static void DoSomething(this int x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "this").WithArguments("extension method", "3").WithLocation(4, 37));
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.Latest)).VerifyDiagnostics();
         }
 
         private static IEnumerable<IdentifierNameSyntax> GetNameAttributeValues(CSharpCompilation compilation)

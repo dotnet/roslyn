@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var parameters = MarkVariableInfoToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap.Values));
                     var variableToUseAsReturnValue = parameters.FirstOrDefault(v => v.UseAsReturnValue);
                     var returnType = variableToUseAsReturnValue != null
-                        ? variableToUseAsReturnValue.GetVariableType(_semanticDocument)
+                        ? variableToUseAsReturnValue.GetVariableType()
                         : compilation.GetSpecialType(SpecialType.System_Void);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap(SemanticModel model)
             {
-                var syntaxFactsService = _semanticDocument.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = _semanticDocument.Document.Project.Services.GetService<ISyntaxFactsService>();
                 var context = SelectionResult.GetContainingScope();
                 var symbolMap = SymbolMapBuilder.Build(syntaxFactsService, model, context, SelectionResult.FinalSpan, CancellationToken);
                 return symbolMap;
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // we probably need to move the API to syntaxFact service not semanticFact.
                 //
                 // if one wants to get result that also considers semantic, he should use data control flow analysis API.
-                var semanticFacts = _semanticDocument.Document.Project.LanguageServices.GetRequiredService<ISemanticFactsService>();
+                var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
                 return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, CancellationToken.None));
             }
 
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private static bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
             {
-                if (!type.IsValueType || type.IsPointerType() || type.IsEnumType())
+                if (!type.IsValueType || type is IPointerTypeSymbol || type.IsEnumType())
                 {
                     return false;
                 }
@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 List<string>? names = null;
-                var semanticFacts = _semanticDocument.Document.Project.LanguageServices.GetRequiredService<ISemanticFactsService>();
+                var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.Field))
                 {
                     var field = (IFieldSymbol)pair.Key;

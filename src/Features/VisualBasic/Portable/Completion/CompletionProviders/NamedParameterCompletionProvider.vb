@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(NamedParameterCompletionProvider), LanguageNames.VisualBasic)>
@@ -85,13 +85,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Dim unspecifiedParameters = parameterLists.SelectMany(Function(pl) pl).
                                                            Where(Function(p) Not existingNamedParameters.Contains(p.Name))
 
-                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim rightToken = syntaxTree.FindTokenOnRightOfPosition(position, cancellationToken)
+                Dim textSuffix = If(rightToken.IsKind(SyntaxKind.ColonEqualsToken), Nothing, s_colonEquals)
 
                 For Each parameter In unspecifiedParameters
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                         displayText:=parameter.Name,
-                        displayTextSuffix:=s_colonEquals,
-                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
+                        displayTextSuffix:=textSuffix,
+                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & textSuffix,
                         symbols:=ImmutableArray.Create(parameter),
                         contextPosition:=position,
                         rules:=s_itemRules))

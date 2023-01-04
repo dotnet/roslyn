@@ -11,12 +11,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfToSwitch
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertIfToSwitchCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task ConvertIfToSwitchStatement_FixAllInDocument()
         {
             await TestInRegularAndScriptAsync(
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task ConvertIfToSwitchExpression_FixAllInDocument()
         {
             await TestInRegularAndScriptAsync(
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task ConvertIfToSwitchStatement_Nested_FixAllInDocument()
         {
             await TestInRegularAndScriptAsync(
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task ConvertIfToSwitchStatement_FixAllInProject()
         {
             await TestInRegularAndScriptAsync(
@@ -323,7 +324,7 @@ class C3
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task ConvertIfToSwitchStatement_FixAllInSolution()
         {
             await TestInRegularAndScriptAsync(
@@ -453,7 +454,7 @@ class C3
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task ConvertIfToSwitchStatement_FixAllInContainingMember()
         {
             await TestInRegularAndScriptAsync(
@@ -520,7 +521,7 @@ class C3
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task ConvertIfToSwitchStatement_FixAllInContainingType()
         {
             await TestInRegularAndScriptAsync(

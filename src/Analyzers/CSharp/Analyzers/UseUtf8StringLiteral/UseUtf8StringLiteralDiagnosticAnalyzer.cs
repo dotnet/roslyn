@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             : base(IDEDiagnosticIds.UseUtf8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUtf8StringLiteral,
                 CSharpCodeStyleOptions.PreferUtf8StringLiterals,
-                LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_Utf8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }

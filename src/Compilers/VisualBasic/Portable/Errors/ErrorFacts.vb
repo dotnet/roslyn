@@ -1525,7 +1525,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_GeneratorFailedDuringGeneration,
                      ERRID.WRN_AnalyzerReferencesFramework,
                      ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential,
-                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName
+                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
+                     ERRID.WRN_AnalyzerReferencesNewerCompiler,
+                     ERRID.WRN_DuplicateAnalyzerReference
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement

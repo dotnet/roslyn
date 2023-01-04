@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -23,6 +24,7 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public partial class CodeGenerationTests
     {
         [UseExportProvider]
@@ -967,8 +969,8 @@ class C
                 await TestAddStatementsAsync(input, expected, "Console.WriteLine(2);");
             }
 
-            [WorkItem(840265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(840265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
             public async Task AddDefaultParameterWithNonDefaultValueToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
@@ -995,8 +997,8 @@ class C
                     Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5f)));
             }
 
-            [WorkItem(841365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(841365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
             public async Task AddParamsParameterToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
@@ -1091,7 +1093,8 @@ class C
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
                     isIndexer: true,
-                    options: new Dictionary<OptionKey2, object> {
+                    options: new OptionsCollection(LanguageNames.CSharp)
+                    {
                         { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                         { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                     });
@@ -1594,8 +1597,7 @@ namespace N
             }
         }
 
-        [WorkItem(665008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(665008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
         public async Task TestExtensionMethods()
         {
             var generationSource = @"
@@ -1613,8 +1615,7 @@ public static class [|C|]
                 onlyGenerateMembers: true);
         }
 
-        [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
         public async Task TestVBPropertiesWithParams()
         {
             var generationSource = @"
@@ -1644,8 +1645,7 @@ End Namespace
                 context: new CodeGenerationContext(generateMethodBodies: false));
         }
 
-        [WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
         public async Task TestRefParamsWithDefaultValue()
         {
             var generationSource = @"
@@ -1663,8 +1663,7 @@ End Class";
                 onlyGenerateMembers: true);
         }
 
-        [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
         public async Task TestConstraints()
         {
             var generationSource = @"

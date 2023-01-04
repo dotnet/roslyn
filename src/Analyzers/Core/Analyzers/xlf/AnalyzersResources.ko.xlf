@@ -167,6 +167,11 @@
         <target state="translated">한정자가 순서대로 정렬되지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">이름을 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
         <target state="translated">네임스페이스 "{0}"이(가) 폴더 구조와 일치하지 않습니다. "{1}"이(가) 필요합니다.</target>
@@ -257,6 +262,11 @@
         <target state="translated">불필요한 캐스트 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="new">Remove accessibility modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">중복 같음 제거</target>
@@ -305,6 +315,21 @@
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">LINQ 식 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">멤버 액세스 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">이름 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="new">Simplify check</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

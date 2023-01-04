@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
     public class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
             }
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Theory]
         [MemberData(nameof(InvocationData))]
         public async Task TestInvocationSubstitution(string before, string after)
         {
@@ -109,8 +110,7 @@ class T
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        [Fact, WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
         public async Task TestMissing_ConsoleWriteLine()
         {
             await TestMissingAsync(
@@ -128,8 +128,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        [Fact, WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
         public async Task TestMissing_ConsoleWrite()
         {
             await TestMissingAsync(
@@ -147,7 +146,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestItemOrdering()
         {
             await TestInRegularAndScriptAsync(
@@ -171,7 +170,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestItemOrdering2()
         {
             await TestInRegularAndScriptAsync(
@@ -195,7 +194,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestItemOrdering3()
         {
             await TestInRegularAndScriptAsync(
@@ -219,7 +218,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestItemOutsideRange()
         {
             await TestInRegularAndScriptAsync(
@@ -243,7 +242,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestItemDoNotHaveCast()
         {
             await TestInRegularAndScriptAsync(
@@ -267,7 +266,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestItemWithSyntaxErrorDoesHaveCast()
         {
             await TestInRegularAndScriptAsync(
@@ -291,7 +290,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestItemWithoutSyntaxErrorDoesNotHaveCast()
         {
             await TestInRegularAndScriptAsync(
@@ -315,7 +314,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestParenthesisAddedForTernaryExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -339,7 +338,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestDoesNotAddDoubleParenthesisForTernaryExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -363,7 +362,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestMultiLineExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -389,7 +388,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatSpecifiers()
         {
             await TestInRegularAndScriptAsync(
@@ -416,7 +415,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatSpecifiers2()
         {
             await TestInRegularAndScriptAsync(
@@ -440,7 +439,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatSpecifiers3()
         {
             await TestInRegularAndScriptAsync(
@@ -471,7 +470,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatSpecifiers4()
         {
             await TestInRegularAndScriptAsync(
@@ -495,7 +494,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatSpecifiers5()
         {
             await TestInRegularAndScriptAsync(
@@ -549,7 +548,7 @@ public class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatSpecifiers6()
         {
             await TestInRegularAndScriptAsync(
@@ -593,7 +592,7 @@ public class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestVerbatimStringLiteral()
         {
             await TestInRegularAndScriptAsync(
@@ -628,7 +627,7 @@ And {value2,10} ({value2,8:X8})
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatWithParams()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -651,7 +650,7 @@ public class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestInvalidInteger()
         {
             await TestInRegularAndScriptAsync(
@@ -675,7 +674,7 @@ public class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestOutVariableDeclaration_01()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -690,7 +689,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestOutVariableDeclaration_02()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -705,7 +704,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatWithNamedArguments1()
         {
             await TestInRegularAndScriptAsync(
@@ -729,7 +728,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatWithNamedArguments2()
         {
             await TestInRegularAndScriptAsync(
@@ -753,7 +752,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatWithNamedArguments3()
         {
             await TestInRegularAndScriptAsync(
@@ -777,7 +776,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatWithNamedArguments4()
         {
             await TestInRegularAndScriptAsync(
@@ -801,7 +800,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestFormatWithNamedArguments5()
         {
             await TestInRegularAndScriptAsync(
@@ -825,8 +824,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestOnlyArgumentSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -850,8 +848,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestOnlyArgumentSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -875,8 +872,7 @@ class T
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -900,8 +896,7 @@ class T
 }");
         }
 
-        [WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact, WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
         public async Task TestNoCastToObjectWhenNullableEnabled()
         {
             await TestInRegularAndScriptAsync(

@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         public void OverflowOnFluentCall()
         {
-            int numberFluentCalls = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 520, // 510
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1400, // 1310
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250, // 225,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 700, // 620
-                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+                (4, ExecutionConfiguration.Debug) => 520, // 510
+                (4, ExecutionConfiguration.Release) => 1400, // 1310
+                (8, ExecutionConfiguration.Debug) => 250, // 225,
+                (8, ExecutionConfiguration.Release) => 700, // 620
+                _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
             // <path>\xunit.console.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests"
@@ -156,14 +156,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         [WorkItem(53361, "https://github.com/dotnet/roslyn/issues/53361")]
         public void DeeplyNestedGeneric()
         {
-            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            int nestingLevel = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
                 // Legacy baselines are indicated by comments
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 370, // 270
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290, // 1290
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 270, // 170
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
-                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+                (4, ExecutionConfiguration.Debug) => 370, // 270
+                (4, ExecutionConfiguration.Release) => 1290, // 1290
+                (8, ExecutionConfiguration.Debug) => 270, // 170
+                (8, ExecutionConfiguration.Release) => 730, // 730
+                _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
             // Un-comment loop below and use above commands to figure out the new limits
@@ -228,16 +228,16 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly), typeof(NoIOperationValidation))]
         public void NestedIfStatements()
         {
-            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            int nestingLevel = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 310,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1650,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 200,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 780,
-                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+                (4, ExecutionConfiguration.Debug) => 310,
+                (4, ExecutionConfiguration.Release) => 1650,
+                (8, ExecutionConfiguration.Debug) => 200,
+                (8, ExecutionConfiguration.Release) => 780,
+                _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
             RunTest(nestingLevel, runTest);
@@ -277,13 +277,13 @@ $@"        if (F({i}))
         [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void Constraints()
         {
-            int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            int n = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 420,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1100,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 180,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 400,
-                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+                (4, ExecutionConfiguration.Debug) => 420,
+                (4, ExecutionConfiguration.Release) => 1100,
+                (8, ExecutionConfiguration.Debug) => 180,
+                (8, ExecutionConfiguration.Release) => 400,
+                _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
             RunTest(n, runTest);

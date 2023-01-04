@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |y|x|w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -74,7 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // u = IsUnmanagedCallersOnlyAttributePopulated. 1 bit.
             // v = IsSetsRequiredMembersBit. 1 bit.
             // w = IsSetsRequiredMembersPopulated. 1 bit.
-            // 4 bits remain for future purposes.
+            // x = IsUnscopedRef. 1 bit.
+            // y = IsUnscopedRefPopulated. 1 bit.
+            // 2 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int MethodKindMask = 0x1F;
@@ -102,6 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1 << 26;
             private const int HasSetsRequiredMembersBit = 0x1 << 27;
             private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
+            private const int IsUnscopedRefBit = 0x1 << 29;
+            private const int IsUnscopedRefPopulatedBit = 0x1 << 30;
 
             private int _bits;
 
@@ -140,6 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
             public bool HasSetsRequiredMembers => (_bits & HasSetsRequiredMembersBit) != 0;
             public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
+            public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
+            public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -251,6 +257,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 int bitsToSet = HasSetsRequiredMembersPopulatedBit;
                 if (value) bitsToSet |= HasSetsRequiredMembersBit;
+
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool InitializeIsUnscopedRef(bool value)
+            {
+                int bitsToSet = IsUnscopedRefPopulatedBit;
+                if (value) bitsToSet |= IsUnscopedRefBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
@@ -442,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override Accessibility DeclaredAccessibility
@@ -968,7 +982,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filteredOutAttribute4: out _,
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
-                        filterOut5: default);
+                        filterOut5: default,
+                        filteredOutAttribute6: out _,
+                        filterOut6: default);
 
                     isExtensionMethod = !extensionAttribute.IsNil;
                     isReadOnly = !isReadOnlyAttribute.IsNil;
@@ -1034,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override byte? GetLocalNullableContextValue()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override MethodKind MethodKind
@@ -1498,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
@@ -1587,17 +1603,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         // perf, not correctness
@@ -1609,6 +1625,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // Internal for unit test
         internal bool TestIsExtensionBitTrue => _packedFlags.IsExtensionMethod;
 
-        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasUnscopedRefAttribute
+        {
+            get
+            {
+                if (!_packedFlags.IsUnscopedRefPopulated)
+                {
+                    var moduleSymbol = _containingType.ContainingPEModule;
+                    bool unscopedRef = moduleSymbol.Module.HasUnscopedRefAttribute(_handle);
+                    _packedFlags.InitializeIsUnscopedRef(unscopedRef);
+                }
+
+                return _packedFlags.IsUnscopedRef;
+            }
+        }
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
     }
 }

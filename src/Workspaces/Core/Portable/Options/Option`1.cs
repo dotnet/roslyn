@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RS0030 // Do not used banned APIs: Option<T>
+
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <inheritdoc cref="Option2{T}"/>
-    public class Option<T> : ILanguageSpecificOption<T>
+    public class Option<T> : ISingleValuedOption<T>
     {
         private readonly OptionDefinition _optionDefinition;
 
@@ -38,27 +42,25 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public Option(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
+            : this(feature ?? throw new ArgumentNullException(nameof(feature)),
+                   OptionGroup.Default,
+                   name ?? throw new ArgumentNullException(nameof(name)),
+                   defaultValue,
+                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
         {
         }
 
         public Option(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations.ToImmutableArray())
+            : this(feature ?? throw new ArgumentNullException(nameof(feature)),
+                   OptionGroup.Default,
+                   name ?? throw new ArgumentNullException(nameof(name)),
+                   defaultValue,
+                   (storageLocations ?? throw new ArgumentNullException(nameof(storageLocations))).ToImmutableArray())
         {
         }
 
-        internal Option(string feature, string name, T defaultValue, OptionStorageLocation storageLocation)
-            : this(feature, name, defaultValue, storageLocations: ImmutableArray.Create(storageLocation))
-        {
-        }
-
-        internal Option(string feature, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(feature, OptionGroup.Default, name, defaultValue, storageLocations)
-        {
-        }
-
-        internal Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: false), storageLocations)
+        internal Option(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+            : this(new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T)), storageLocations)
         {
         }
 
@@ -76,9 +78,18 @@ namespace Microsoft.CodeAnalysis.Options
 
         OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 
+        string? ISingleValuedOption.LanguageName
+        {
+            get
+            {
+                Debug.Fail("It's not expected that we access LanguageName property for Option<T>. The options we use should be Option2<T>.");
+                return null;
+            }
+        }
+
         bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
-        public override string ToString() => _optionDefinition.ToString();
+        public override string ToString() => _optionDefinition.PublicOptionDefinitionToString();
 
         public override int GetHashCode() => _optionDefinition.GetHashCode();
 
@@ -91,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return true;
             }
 
-            return _optionDefinition == other?.OptionDefinition;
+            return other is not null && _optionDefinition.PublicOptionDefinitionEquals(other.OptionDefinition);
         }
 
         public static implicit operator OptionKey(Option<T> option)

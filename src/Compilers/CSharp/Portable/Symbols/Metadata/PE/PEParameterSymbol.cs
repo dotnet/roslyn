@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |..|ss|fffffffff|n|rr|cccccccc|vvvvvvvv|
+            // |.|u|ss|fffffffff|n|rr|cccccccc|vvvvvvvv|
             // 
             // v = decoded well known attribute values. 8 bits.
             // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
             // s = Scope. 2 bits.
+            // u = HasUnscopedRefAttribute. 1 bit.
             // Current total = 30 bits.
 
             private const int WellKnownAttributeDataOffset = 0;
@@ -63,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             private const int HasNameInMetadataBit = 0x1 << 18;
             private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 19;
+            private const int HasUnscopedRefAttributeBit = 0x1 << 30;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -78,9 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 get { return (_bits & HasNameInMetadataBit) != 0; }
             }
 
-            public DeclarationScope Scope
+            public ScopedKind Scope
             {
-                get { return (DeclarationScope)((_bits >> ScopeOffset) & ScopeMask); }
+                get { return (ScopedKind)((_bits >> ScopeOffset) & ScopeMask); }
+            }
+
+            public bool HasUnscopedRefAttribute
+            {
+                get { return (_bits & HasUnscopedRefAttributeBit) != 0; }
             }
 
 #if DEBUG
@@ -90,18 +97,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(EnumUtilities.ContainsAllValues<WellKnownAttributeFlags>(WellKnownAttributeDataMask));
                 Debug.Assert(EnumUtilities.ContainsAllValues<RefKind>(RefKindMask));
                 Debug.Assert(EnumUtilities.ContainsAllValues<FlowAnalysisAnnotations>(FlowAnalysisAnnotationsMask));
-                Debug.Assert(EnumUtilities.ContainsAllValues<DeclarationScope>(ScopeMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<ScopedKind>(ScopeMask));
             }
 #endif
 
-            public PackedFlags(RefKind refKind, bool attributesAreComplete, bool hasNameInMetadata, DeclarationScope scope)
+            public PackedFlags(RefKind refKind, bool attributesAreComplete, bool hasNameInMetadata, ScopedKind scope, bool hasUnscopedRefAttribute)
             {
                 int refKindBits = ((int)refKind & RefKindMask) << RefKindOffset;
                 int attributeBits = attributesAreComplete ? AllWellKnownAttributesCompleteNoData : 0;
                 int hasNameInMetadataBits = hasNameInMetadata ? HasNameInMetadataBit : 0;
                 int scopeBits = ((int)scope & ScopeMask) << ScopeOffset;
+                int hasUnscopedRefAttributeBits = hasUnscopedRefAttribute ? HasUnscopedRefAttributeBit : 0;
 
-                _bits = refKindBits | attributeBits | hasNameInMetadataBits | scopeBits;
+                _bits = refKindBits | attributeBits | hasNameInMetadataBits | scopeBits | hasUnscopedRefAttributeBits;
             }
 
             public bool SetWellKnownAttribute(WellKnownAttributeFlags flag, bool value)
@@ -237,7 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _handle = handle;
 
             RefKind refKind = RefKind.None;
-            DeclarationScope scope = DeclarationScope.Unscoped;
+            ScopedKind scope = ScopedKind.None;
+            bool hasUnscopedRefAttribute = false;
 
             if (handle.IsNil)
             {
@@ -270,7 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (inOutFlags == ParameterAttributes.Out)
                     {
                         refKind = RefKind.Out;
-                        scope = DeclarationScope.RefScoped;
                     }
                     else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
                     {
@@ -294,17 +302,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, accessSymbol: accessSymbol, nullableContext: nullableContext);
                 typeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithAnnotations, handle, moduleSymbol);
 
-                if (_moduleSymbol.Module.HasLifetimeAnnotationAttribute(_handle, out var pair))
+                hasUnscopedRefAttribute = _moduleSymbol.Module.HasUnscopedRefAttribute(_handle);
+                if (hasUnscopedRefAttribute)
                 {
-                    var scopeOpt = GetScope(refKind, typeWithAnnotations.Type, pair.IsRefScoped, pair.IsValueScoped);
-                    if (scopeOpt is null)
+                    if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
                     {
                         isBad = true;
                     }
+                    scope = ScopedKind.None;
+                }
+                else if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
+                {
+                    if (isByRef)
+                    {
+                        Debug.Assert(refKind != RefKind.None);
+                        scope = ScopedKind.ScopedRef;
+                    }
+                    else if (typeWithAnnotations.Type.IsRefLikeType)
+                    {
+                        scope = ScopedKind.ScopedValue;
+                    }
                     else
                     {
-                        scope = scopeOpt.GetValueOrDefault();
+                        isBad = true;
                     }
+                }
+                else if (ParameterHelpers.IsRefScopedByDefault(_moduleSymbol.UseUpdatedEscapeRules, refKind))
+                {
+                    scope = ScopedKind.ScopedRef;
                 }
             }
 
@@ -317,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _name = "value";
             }
 
-            _packedFlags = new PackedFlags(refKind, attributesAreComplete: handle.IsNil, hasNameInMetadata: hasNameInMetadata, scope);
+            _packedFlags = new PackedFlags(refKind, attributesAreComplete: handle.IsNil, hasNameInMetadata: hasNameInMetadata, scope, hasUnscopedRefAttribute);
 
             Debug.Assert(refKind == this.RefKind);
             Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
@@ -978,17 +1003,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override DeclarationScope Scope => _packedFlags.Scope;
+        internal sealed override ScopedKind EffectiveScope => _packedFlags.Scope;
 
-        private static DeclarationScope? GetScope(RefKind refKind, TypeSymbol type, bool isRefScoped, bool isValueScoped)
-        {
-            return (isRefScoped, isValueScoped) switch
-            {
-                (false, false) => DeclarationScope.Unscoped,
-                (true, false) => refKind != RefKind.None ? DeclarationScope.RefScoped : null,
-                (_, true) => type.IsRefLikeType ? DeclarationScope.ValueScoped : null,
-            };
-        }
+        internal override bool HasUnscopedRefAttribute => _packedFlags.HasUnscopedRefAttribute;
+
+        internal sealed override bool UseUpdatedEscapeRules => _moduleSymbol.UseUpdatedEscapeRules;
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
@@ -1031,7 +1050,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         out _,
                         filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
                         out _,
-                        AttributeDescription.LifetimeAnnotationAttribute,
+                        AttributeDescription.ScopedRefAttribute,
+                        out _,
+                        default,
                         out _,
                         default);
 
@@ -1089,7 +1110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get { return null; }
         }
-
 
         public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {

@@ -67,11 +67,6 @@
         <target state="translated">Wstaw brakujący element „{0}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Wstawiona zmienna tymczasowa</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Wykryto konflikty.</target>

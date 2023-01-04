@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
             var length = oldText.Length;
             var span = new TextSpan(offset, length);
-            var newFullText = oldFullText.Substring(0, offset) + newText + oldFullText.Substring(span.End);
+            var newFullText = oldFullText[..offset] + newText + oldFullText[span.End..];
             return SourceText.From(newFullText);
         }
 

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
         // the naming style that the user has specified.
-        private static ImmutableArray<string> s_disposedValueNameParts =
+        private static readonly ImmutableArray<string> s_disposedValueNameParts =
             ImmutableArray.Create("disposed", "value");
 
         // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return value.Value;
                 }
 
-                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false);
+                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
 
                 return fallbackFormattingOptions.AccessibilityModifiersRequired;
             }

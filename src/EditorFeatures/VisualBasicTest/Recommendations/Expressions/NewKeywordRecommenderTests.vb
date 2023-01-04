@@ -3,135 +3,135 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class NewKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewNotInStatementTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterReturnTest()
             VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterArgument1Test()
             VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterArgument2Test()
             VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterBinaryExpressionTest()
             VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterNotTest()
             VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterTypeOfTest()
             VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterDoWhileTest()
             VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterDoUntilTest()
             VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterLoopWhileTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterLoopUntilTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterIfTest()
             VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterElseIfTest()
             VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterElseSpaceIfTest()
             VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterErrorTest()
             VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterThrowTest()
             VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterInitializerTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterArrayInitializerSquiggleTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterArrayInitializerCommaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterDimAsTest()
             VerifyRecommendationsContain(<MethodBody>Dim x As |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterWhileLoopTest()
             VerifyRecommendationsContain(<MethodBody>While |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterAsInPropertyDeclarationTest()
             VerifyRecommendationsContain(<ClassDeclaration>Public Property goo As |</ClassDeclaration>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewAfterAsInReadOnlyPropertyDeclarationTest()
             VerifyRecommendationsContain(<ClassDeclaration>Public ReadOnly Property goo As |</ClassDeclaration>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NewNotAfterAsInWriteOnlyPropertyDeclarationTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Public WriteOnly Property goo As |</ClassDeclaration>, "New")
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NotInDelegateCreationTest()
             Dim code =
 <File>
@@ -151,23 +151,21 @@ End Module
             VerifyRecommendationsMissing(code, "New")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>Dim x As 
 |</MethodBody>, "New")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>Dim x As _
 |</MethodBody>, "New")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>Dim x As _ ' Test

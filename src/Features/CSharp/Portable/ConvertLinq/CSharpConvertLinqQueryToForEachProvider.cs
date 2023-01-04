@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
                 // Do not try refactoring queries with comments or conditional compilation in them.
                 // We can consider supporting queries with comments in the future.
-                if (_source.DescendantTrivia().Any(trivia => trivia.MatchesKind(
-                        SyntaxKind.SingleLineCommentTrivia,
-                        SyntaxKind.MultiLineCommentTrivia,
+                if (_source.DescendantTrivia().Any(trivia => trivia is (kind:
+                        SyntaxKind.SingleLineCommentTrivia or
+                        SyntaxKind.MultiLineCommentTrivia or
                         SyntaxKind.MultiLineDocumentationCommentTrivia) ||
                     _source.ContainsDirectives))
                 {
@@ -465,7 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     case SyntaxKind.EqualsValueClause:
                         // Avoid for(int i = (from x in a select x).Count(); i < 10; i++)
-                        if (invocationParent.IsParentKind(SyntaxKind.VariableDeclarator, SyntaxKind.VariableDeclaration, SyntaxKind.LocalDeclarationStatement) &&
+                        if (invocationParent?.Parent.Kind() is
+                                SyntaxKind.VariableDeclarator or
+                                SyntaxKind.VariableDeclaration or
+                                SyntaxKind.LocalDeclarationStatement &&
                             // Avoid int i = (from x in a select x).Count(), j = i;
                             ((VariableDeclarationSyntax)invocationParent.Parent.Parent).Variables.Count == 1)
                         {

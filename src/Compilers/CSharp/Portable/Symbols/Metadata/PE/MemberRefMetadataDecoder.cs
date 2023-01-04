@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -110,15 +111,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Search through the members of the <see cref="_containingType"/> type symbol to find the method that matches a particular
         /// signature.
         /// </summary>
-        /// <param name="memberRef">A MemberRef handle that can be used to obtain the name and signature of the method</param>
+        /// <param name="memberRefOrMethodDef">A MemberRef or a MethodDef handle that can be used to obtain the name and signature of the method</param>
         /// <param name="methodsOnly">True to only return a method.</param>
         /// <returns>The matching method symbol, or null if the inputs do not correspond to a valid method.</returns>
-        internal Symbol FindMember(MemberReferenceHandle memberRef, bool methodsOnly)
+        internal Symbol FindMember(EntityHandle memberRefOrMethodDef, bool methodsOnly)
         {
             try
             {
-                string memberName = Module.GetMemberRefNameOrThrow(memberRef);
-                BlobHandle signatureHandle = Module.GetSignatureOrThrow(memberRef);
+                string memberName;
+                BlobHandle signatureHandle;
+
+                switch (memberRefOrMethodDef.Kind)
+                {
+                    case HandleKind.MemberReference:
+                        var memberRef = (MemberReferenceHandle)memberRefOrMethodDef;
+                        memberName = Module.GetMemberRefNameOrThrow(memberRef);
+                        signatureHandle = Module.GetSignatureOrThrow(memberRef);
+                        break;
+
+                    case HandleKind.MethodDefinition:
+                        var methodDef = (MethodDefinitionHandle)memberRefOrMethodDef;
+                        memberName = Module.GetMethodDefNameOrThrow(methodDef);
+                        signatureHandle = Module.GetMethodSignatureOrThrow(methodDef);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(memberRefOrMethodDef.Kind);
+                }
 
                 SignatureHeader signatureHeader;
                 BlobReader signaturePointer = this.DecodeSignatureHeaderOrThrow(signatureHandle, out signatureHeader);

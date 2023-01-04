@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
             : base(IDEDiagnosticIds.SimplifyPropertyPatternDiagnosticId,
                    EnforceOnBuildValues.SimplifyPropertyPattern,
                    CSharpCodeStyleOptions.PreferExtendedPropertyPattern,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Property_pattern_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_property_pattern), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

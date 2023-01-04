@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public static unsafe MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3? symReader,
-            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namesapace
+            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namespace
             int methodToken,
             int methodVersion,
             int ilOffset,
@@ -170,6 +170,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
+                string? name = null;
+                if (symReader.GetMethod(methodToken) is ISymEncUnmanagedMethod and ISymUnmanagedMethod methodInfo)
+                {
+                    // We need a receiver of type `ISymUnmanagedMethod` to call the extension `GetDocumentsForMethod()` here.
+                    // We also need to ensure that the receiver implements `ISymEncUnmanagedMethod` to prevent the extension from throwing.
+                    if (methodInfo.GetDocumentsForMethod() is [var singleDocument])
+                    {
+                        name = singleDocument.GetName();
+                    }
+                }
+
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                     hoistedLocalScopeRecords,
                     importRecordGroups,
@@ -179,7 +190,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     defaultNamespaceName,
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
-                    reuseSpan);
+                    reuseSpan,
+                    name);
             }
             catch (InvalidOperationException)
             {

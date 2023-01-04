@@ -167,6 +167,11 @@
         <target state="translated">修飾子が順序付けされていません</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">名前を簡素化できます</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
         <target state="translated">Namespace "{0}" はフォルダー構造と一致しません。"{1}" が必要です</target>
@@ -257,6 +262,11 @@
         <target state="translated">不要なキャストの削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="new">Remove accessibility modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">冗長な等値を削除</target>
@@ -305,6 +315,21 @@
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">LINQ 式を簡略化する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">メンバー アクセスを単純化します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">名前を単純化します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="new">Simplify check</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

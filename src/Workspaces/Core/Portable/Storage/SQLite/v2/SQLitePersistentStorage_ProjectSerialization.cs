@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
@@ -15,40 +16,38 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
     internal partial class SQLitePersistentStorage
     {
         protected override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, Project? project, string name, Checksum checksum, CancellationToken cancellationToken)
-            => _projectAccessor.ChecksumMatchesAsync((projectKey, name), checksum, cancellationToken);
+            => _projectAccessor.ChecksumMatchesAsync(projectKey, name, checksum, cancellationToken);
 
         protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? project, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => _projectAccessor.ReadStreamAsync((projectKey, name), checksum, cancellationToken);
+            => _projectAccessor.ReadStreamAsync(projectKey, name, checksum, cancellationToken);
 
         protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => _projectAccessor.WriteStreamAsync((projectKey, name), stream, checksum, cancellationToken);
+            => _projectAccessor.WriteStreamAsync(projectKey, name, stream, checksum, cancellationToken);
+
+        private readonly record struct ProjectPrimaryKey(int ProjectPathId, int ProjectNameId);
 
         /// <summary>
-        /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and
+        /// <see cref="Accessor{TKey, TDatabaseId}"/> responsible for storing and
         /// retrieving data from <see cref="ProjectDataTableName"/>.
         /// </summary>
-        private class ProjectAccessor : Accessor<
-            (ProjectKey projectKey, string name),
-            (ProjectId projectId, string name),
-            long>
+        private sealed class ProjectAccessor : Accessor<ProjectKey, ProjectPrimaryKey>
         {
-            public ProjectAccessor(SQLitePersistentStorage storage) : base(storage)
+            public ProjectAccessor(SQLitePersistentStorage storage)
+                : base(Table.Project,
+                      storage,
+                      (ProjectPathIdColumnName, SQLiteIntegerType),
+                      (ProjectNameIdColumnName, SQLiteIntegerType))
             {
             }
 
-            protected override Table Table => Table.Project;
+            protected override ProjectPrimaryKey? TryGetDatabaseKey(SqlConnection connection, ProjectKey projectKey, bool allowWrite)
+                => Storage.TryGetProjectPrimaryKey(connection, projectKey, allowWrite);
 
-            protected override (ProjectId projectId, string name) GetWriteQueueKey((ProjectKey projectKey, string name) key)
-                => (key.projectKey.Id, key.name);
-
-            protected override bool TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite, out long dataId)
-                => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, allowWrite, out dataId);
-
-            protected override void BindFirstParameter(SqlStatement statement, long dataId)
-                => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);
-
-            protected override bool TryGetRowId(SqlConnection connection, Database database, long dataId, out long rowId)
-                => GetAndVerifyRowId(connection, database, dataId, out rowId);
+            protected override void BindAccessorSpecificPrimaryKeyParameters(SqlStatement statement, ProjectPrimaryKey primaryKey)
+            {
+                statement.BindInt64Parameter(parameterIndex: 1, primaryKey.ProjectPathId);
+                statement.BindInt64Parameter(parameterIndex: 2, primaryKey.ProjectNameId);
+            }
         }
     }
 }

@@ -14,9 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameter_ToConstructor()
         {
             var markup = @"
@@ -57,7 +58,7 @@ class D : B
         }
 
         [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameter_ToConstructor_ImplicitObjectCreation()
         {
             var markup = @"
@@ -97,7 +98,7 @@ class D : B
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameter_ToIndexer()
         {
             var markup = @"
@@ -129,7 +130,7 @@ class B
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public async Task AddOptionalParameter_ToAttribute()
         {
             var markup = @"

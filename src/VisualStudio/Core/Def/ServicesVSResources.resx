@@ -1885,7 +1885,7 @@ Additional information: {1}</value>
     <value>End of line</value>
   </data>
   <data name="Paste_valid_stack_trace" xml:space="preserve">
-    <value>Paste a stack trace to view and navigate its values.</value>
+    <value>Paste a stack trace to view and navigate it's values.</value>
     <comment>"Stack Trace" is a language term and should be kept the same. </comment>
   </data>
   <data name="Stack_Trace_Explorer" xml:space="preserve">
@@ -1965,11 +1965,29 @@ Additional information: {1}</value>
   <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
     <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
   </data>
+  <data name="Document_Outline_Search" xml:space="preserve">
+    <value>Search Document Outline</value>
+  </data>
+  <data name="Document_Outline_Collapse_All" xml:space="preserve">
+    <value>Collapse All</value>
+  </data>
+  <data name="Document_Outline_Expand_All" xml:space="preserve">
+    <value>Expand All</value>
+  </data>
+  <data name="Document_Outline_Sort_Name" xml:space="preserve">
+    <value>Sort By Name</value>
+  </data>
+  <data name="Document_Outline_Sort_Order" xml:space="preserve">
+    <value>Sort By Order</value>
+  </data>
+  <data name="Document_Outline_Sort_Type" xml:space="preserve">
+    <value>Sort By Type</value>
+  </data>
   <data name="Rename" xml:space="preserve">
     <value>Rename</value>
   </data>
   <data name="Rename_asynchronously_experimental" xml:space="preserve">
-    <value>Rename asynchronously experimental</value>
+    <value>Rename asynchronously (experimental)</value>
   </data>
   <data name="Fix_analyzer_warnings_and_errors" xml:space="preserve">
     <value>Fix analyzer warnings and errors</value>
@@ -1982,5 +2000,33 @@ Additional information: {1}</value>
   </data>
   <data name="Stack_Trace" xml:space="preserve">
     <value>Stack Trace</value>
+  </data>
+  <data name="Document_Outline" xml:space="preserve">
+    <value>Document Outline</value>
+  </data>
+  <data name="Enable_navigation_to_sourcelink_and_embedded_sources" xml:space="preserve">
+    <value>Enable navigation to Source Link and Embedded sources</value>
+  </data>
+  <data name="Extract_Base_Record" xml:space="preserve">
+    <value>Extract Base Record</value>
+    <comment>{Locked="Record"} "Record" is a language construct for C# and should not be localized</comment>
+  </data>
+  <data name="Show_UI_as_dashboard_in_top_right" xml:space="preserve">
+    <value>Show UI as a dashboard in top right</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Show_UI_inline" xml:space="preserve">
+    <value>Show UI Inline</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Where_should_the_rename_UI_be_shown" xml:space="preserve">
+    <value>Where should the rename UI be shown?</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Prefer_read_only_struct" xml:space="preserve">
+    <value>Prefer read-only struct</value>
+  </data>
+  <data name="Analyze_source_generated_files" xml:space="preserve">
+    <value>Analyze source generated files</value>
   </data>
 </root>

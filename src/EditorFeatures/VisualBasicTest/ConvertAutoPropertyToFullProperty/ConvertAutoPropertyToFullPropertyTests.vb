@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
+    <Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
     Public Class ConvertAutoPropertyToFullPropertyTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return New VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function SimpleTest() As Task
             Dim initial = "
 Class C
@@ -36,7 +37,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function WithInitializer() As Task
             Dim initial = "
 Class C
@@ -58,7 +59,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function WithReadonly() As Task
             Dim initial = "
 Class C
@@ -77,7 +78,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function WithReadonlyAndInitializer() As Task
             Dim initial = "
 Class C
@@ -97,7 +98,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function PrivateProperty() As Task
             Dim initial = "
 Class C
@@ -119,7 +120,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function WithComments() As Task
             Dim initial = "
 Class C
@@ -146,7 +147,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function SharedProperty() As Task
             Dim initial = "
 Class C
@@ -169,7 +170,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function WithOverridable() As Task
             Dim initial = "
 Class C
@@ -192,7 +193,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function WithMustOverride() As Task
             Await TestMissingAsync("
 Class C
@@ -200,7 +201,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function CursorBeforeInitializer() As Task
             Dim initial = "
 Class C
@@ -222,7 +223,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function CursorOnInitializer() As Task
             Await TestMissingAsync("
 Class C
@@ -230,7 +231,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function InInterface() As Task
             Await TestMissingAsync("
 Interface I
@@ -238,7 +239,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        <Fact>
         Public Async Function InvalidLocation() As Task
             Await TestMissingAsync("
 Namespace NS

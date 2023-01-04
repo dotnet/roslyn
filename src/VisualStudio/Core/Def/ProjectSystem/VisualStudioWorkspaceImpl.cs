@@ -32,7 +32,6 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
@@ -50,6 +49,8 @@ using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 using Task = System.Threading.Tasks.Task;
 using Solution = Microsoft.CodeAnalysis.Solution;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -125,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private VirtualMemoryNotificationListener? _memoryListener;
 
         private OpenFileTracker? _openFileTracker;
-        internal FileChangeWatcher FileChangeWatcher { get; }
+        internal IFileChangeWatcher FileChangeWatcher { get; }
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
@@ -158,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
-            FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
+            FileWatchedReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(this.Services.SolutionServices, FileChangeWatcher);
 
             FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
@@ -167,8 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this,
                     exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
+                    exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
                     exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                    _threadingContext), isThreadSafe: true);
+                    _threadingContext),
+                isThreadSafe: true);
 
             _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
         }
@@ -247,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
 
-            var logDelta = _globalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+            var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
             var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
             telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
@@ -461,14 +464,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
-            => project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
+        public override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
+            => project.Services.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
             _projectToMaxSupportedLangVersionMap.TryGetValue(project.Id, out var maxSupportLangVersion);
 
-            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions, maxSupportLangVersion);
+            return project.Services.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions, maxSupportLangVersion);
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
@@ -561,7 +564,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var originalProject = CurrentSolution.GetRequiredProject(projectId);
-            var compilationOptionsService = originalProject.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
+            var compilationOptionsService = originalProject.Services.GetRequiredService<ICompilationOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
             compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
         }
@@ -578,7 +581,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).LanguageServices.GetRequiredService<IParseOptionsChangingService>();
+            var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).Services.GetRequiredService<IParseOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
             parseOptionsService.Apply(options, storage);
         }
@@ -1627,28 +1630,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-            var oldSolution = this.CurrentSolution;
-
             if (!solutionChanges.HasChange)
-            {
                 return;
-            }
 
-            foreach (var documentId in solutionChanges.DocumentIdsRemoved)
-            {
-                this.ClearDocumentData(documentId);
-            }
-
-            SetCurrentSolution(solutionChanges.Solution);
-
-            // This method returns the task that could be used to wait for the workspace changed event; we don't want
-            // to do that.
-            _ = RaiseWorkspaceChangedEventAsync(
+            this.SetCurrentSolution(
+                _ => solutionChanges.Solution,
                 solutionChanges.WorkspaceChangeKind,
-                oldSolution,
-                solutionChanges.Solution,
                 solutionChanges.WorkspaceChangeProjectId,
-                solutionChanges.WorkspaceChangeDocumentId);
+                solutionChanges.WorkspaceChangeDocumentId,
+                onBeforeUpdate: (_, _) =>
+                {
+                    // Clear out mutable state not associated with the solution snapshot (for example, which documents are
+                    // currently open).
+                    foreach (var documentId in solutionChanges.DocumentIdsRemoved)
+                        this.ClearDocumentData(documentId);
+                });
         }
 
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
@@ -1732,6 +1728,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Create a new empty solution and set this; we will reuse the same SolutionId and path since components still may have persistence information they still need
             // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
+            ClearOpenDocuments();
+
             SetCurrentSolution(
                 solution => CreateSolution(
                     SolutionInfo.Create(

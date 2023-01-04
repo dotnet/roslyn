@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var openParenIndex = searchText.IndexOf('(');
             if (openParenIndex != -1)
             {
-                searchText = searchText.Substring(openParenIndex);
+                searchText = searchText[openParenIndex..];
             }
 
             return searchText;

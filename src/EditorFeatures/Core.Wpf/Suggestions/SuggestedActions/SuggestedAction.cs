@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
         protected readonly Workspace Workspace;
+        protected readonly Solution OriginalSolution;
         protected readonly ITextBuffer SubjectBuffer;
 
         protected readonly object Provider;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
+            Solution originalSolution,
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction)
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             SourceProvider = sourceProvider;
             Workspace = workspace;
+            OriginalSolution = originalSolution;
             SubjectBuffer = subjectBuffer;
             Provider = provider;
             CodeAction = codeAction;
@@ -164,9 +167,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                     await EditHandler.ApplyAsync(
-                        Workspace, document,
-                        operations.ToImmutableArray(), CodeAction.Title,
-                        progressTracker, cancellationToken).ConfigureAwait(false);
+                        Workspace,
+                        OriginalSolution,
+                        document,
+                        operations.ToImmutableArray(),
+                        CodeAction.Title,
+                        progressTracker,
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
     /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all possible
     /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     /// </summary>
+    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTests
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -32,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
             return (await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans;
         }
 
-        [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task PrependedDollarSign()
         {
             const string code = @"
@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task SymbolsAndPunctuation()
         {
             const string code = @"
@@ -60,19 +59,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task IdentifierThatLooksLikeCode()
         {
             const string code = @"
 {|hint1:$$class C{|textspan1:
 {
-    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} /* now everything is commented ();
-}";
+    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();
+}|}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+                Region("textspan3", "/* now everything is commented (); ...", autoCollapse: true));
         }
     }
 }

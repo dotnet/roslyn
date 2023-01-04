@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Workspace workspace, string language)
-            => GetGenerator(workspace.Services, language);
+            => GetGenerator(workspace.Services.SolutionServices, language);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
-        internal static SyntaxGenerator GetGenerator(HostWorkspaceServices services, string language)
+        internal static SyntaxGenerator GetGenerator(SolutionServices services, string language)
             => services.GetLanguageServices(language).GetRequiredService<SyntaxGenerator>();
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the project.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Project project)
-            => project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+            => project.Services.GetRequiredService<SyntaxGenerator>();
 
         #region Declarations
 
@@ -273,9 +273,12 @@ namespace Microsoft.CodeAnalysis.Editing
             return ParameterDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
-                initializer,
+                initializer is not null ? initializer :
+                symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
                 symbol.RefKind);
         }
+
+        private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
 
         /// <summary>
         /// Creates a property declaration. The property will have a <c>get</c> accessor if
@@ -1269,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return false;
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         protected static SyntaxNode? PreserveTrivia<TNode>(TNode? node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
             if (node == null)
@@ -1317,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a new instance of the node with the leading and trailing trivia removed and replaced with elastic markers.
         /// </summary>
-        [return: MaybeNull, NotNullIfNotNull("node")]
+        [return: MaybeNull, NotNullIfNotNull(nameof(node))]
         public abstract TNode ClearTrivia<TNode>([MaybeNull] TNode node) where TNode : SyntaxNode;
 
 #pragma warning disable CA1822 // Mark members as static - shipped public API
@@ -1600,7 +1603,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a literal expression. This is typically numeric primitives, strings or chars.
         /// </summary>
-        public abstract SyntaxNode LiteralExpression(object? value);
+        public SyntaxNode LiteralExpression(object? value)
+            => GenerateExpression(type: null, value, canUseFieldReference: true);
 
         /// <summary>
         /// Creates an expression for a typed constant.

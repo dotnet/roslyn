@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             Platform
         }
 
-        internal struct TypeHandleTargetInfo
+        internal readonly struct TypeHandleTargetInfo
         {
             public readonly string Namespace;
             public readonly string Name;
@@ -164,7 +164,6 @@ namespace Microsoft.CodeAnalysis
             (byte)SignatureAttributes.Instance, 5, Void, Byte, Byte, UInt32, UInt32, UInt32 };
         private static readonly byte[] s_signature_HasThis_Void_UIn8_UInt8_Int32_Int32_Int32 = new byte[] {
             (byte)SignatureAttributes.Instance, 5, Void, Byte, Byte, Int32, Int32, Int32 };
-
 
         private static readonly byte[] s_signature_HasThis_Void_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, Boolean };
         private static readonly byte[] s_signature_HasThis_Void_Boolean_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Boolean, Boolean };
@@ -334,7 +333,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfNullableAttribute = { s_signature_HasThis_Void_Byte, s_signature_HasThis_Void_SzArray_Byte };
         private static readonly byte[][] s_signaturesOfNullableContextAttribute = { s_signature_HasThis_Void_Byte };
         private static readonly byte[][] s_signaturesOfNativeIntegerAttribute = { s_signature_HasThis_Void, s_signature_HasThis_Void_SzArray_Boolean };
-        private static readonly byte[][] s_signaturesOfLifetimeAnnotationAttribute = { s_signature_HasThis_Void_Boolean_Boolean };
+        private static readonly byte[][] s_signaturesOfRefSafetyRulesAttribute = { s_signature_HasThis_Void_Int32 };
         private static readonly byte[][] s_signaturesOfInterpolatedStringArgumentAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_SzArray_String };
 
         // early decoded attributes:
@@ -470,7 +469,8 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription EnumeratorCancellationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "EnumeratorCancellationAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription SkipLocalsInitAttribute = new AttributeDescription("System.Runtime.CompilerServices", "SkipLocalsInitAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription NativeIntegerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NativeIntegerAttribute", s_signaturesOfNativeIntegerAttribute);
-        internal static readonly AttributeDescription LifetimeAnnotationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "LifetimeAnnotationAttribute", s_signaturesOfLifetimeAnnotationAttribute);
+        internal static readonly AttributeDescription ScopedRefAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ScopedRefAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription RefSafetyRulesAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RefSafetyRulesAttribute", s_signaturesOfRefSafetyRulesAttribute);
         internal static readonly AttributeDescription ModuleInitializerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ModuleInitializerAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription UnmanagedCallersOnlyAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnmanagedCallersOnlyAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterpolatedStringHandlerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerAttribute", s_signatures_HasThis_Void_Only);
@@ -478,5 +478,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription RequiredMemberAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiredMemberAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription SetsRequiredMembersAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "SetsRequiredMembersAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription CompilerFeatureRequiredAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilerFeatureRequiredAttribute", s_signatures_HasThis_Void_String_Only);
+        internal static readonly AttributeDescription UnscopedRefAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "UnscopedRefAttribute", s_signatures_HasThis_Void_Only);
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.ClassName);
 
         [DebuggerStepThrough]
-        public static FormattedClassification Record(string text)
+        public static FormattedClassification RecordClass(string text)
             => New(text, ClassificationTypeNames.RecordClassName);
 
         [DebuggerStepThrough]

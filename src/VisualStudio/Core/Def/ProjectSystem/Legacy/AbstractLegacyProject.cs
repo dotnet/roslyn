@@ -127,17 +127,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // (e.g. through a <defaultnamespace> msbuild property)
             VisualStudioProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
 
-            if (TryGetPropertyValue(hierarchy, AdditionalPropertyNames.MaxSupportedLangVersion, out var maxLangVer))
+            if (TryGetPropertyValue(hierarchy, BuildPropertyNames.MaxSupportedLangVersion, out var maxLangVer))
             {
                 VisualStudioProject.MaxLangVersion = maxLangVer;
             }
 
-            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzers, out var runAnayzers))
+            if (TryGetBoolPropertyValue(hierarchy, BuildPropertyNames.RunAnalyzers, out var runAnayzers))
             {
                 VisualStudioProject.RunAnalyzers = runAnayzers;
             }
 
-            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, out var runAnayzersDuringLiveAnalysis))
+            if (TryGetBoolPropertyValue(hierarchy, BuildPropertyNames.RunAnalyzersDuringLiveAnalysis, out var runAnayzersDuringLiveAnalysis))
             {
                 VisualStudioProject.RunAnalyzersDuringLiveAnalysis = runAnayzersDuringLiveAnalysis;
             }

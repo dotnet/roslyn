@@ -355,7 +355,8 @@ partial interface T3
         {
             await TestInMethodAsync(@"@""goo""u8",
                 testHost,
-                Verbatim(@"@""goo""u8"));
+                Verbatim(@"@""goo""u8"),
+                Keyword("u8"));
         }
 
         [Theory]
@@ -364,7 +365,8 @@ partial interface T3
         {
             await TestInMethodAsync(@"@""goo""U8",
                 testHost,
-                Verbatim(@"@""goo""U8"));
+                Verbatim(@"@""goo""U8"),
+                Keyword("U8"));
         }
 
         /// <summary>
@@ -445,6 +447,7 @@ more stuff";
                 Verbatim(@"@"" goo bar
 and 
 on a new line ""u8"),
+                Keyword("u8"),
                 Identifier("more"),
                 Local("stuff"));
         }
@@ -464,12 +467,12 @@ more stuff";
                 Verbatim(@"@"" goo bar
 and 
 on a new line ""U8"),
+                Keyword("U8"),
                 Identifier("more"),
                 Local("stuff"));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VerbatimStringLiterals6(bool script, TestHost testHost)
         {
@@ -506,6 +509,7 @@ on a new line ""U8"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
                 Verbatim(@"@""""""/*""u8"),
+                Keyword("u8"),
                 Punctuation.Semicolon);
         }
 
@@ -526,6 +530,7 @@ on a new line ""U8"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
                 Verbatim(@"@""""""/*""u8"),
+                Keyword("u8"),
                 Punctuation.Semicolon);
         }
 
@@ -544,7 +549,8 @@ on a new line ""U8"),
         {
             await TestAsync(@"""goo""u8",
                 testHost,
-                String(@"""goo""u8"));
+                String(@"""goo""u8"),
+                Keyword("u8"));
         }
 
         [Theory]
@@ -553,7 +559,8 @@ on a new line ""U8"),
         {
             await TestAsync(@"""goo""U8",
                 testHost,
-                String(@"""goo""U8"));
+                String(@"""goo""U8"),
+                Keyword("U8"));
         }
 
         [Theory]
@@ -571,7 +578,8 @@ on a new line ""U8"),
         {
             await TestAsync(@"""""u8",
                 testHost,
-                String(@"""""u8"));
+                String(@"""""u8"),
+                Keyword("u8"));
         }
 
         [Theory]
@@ -580,7 +588,8 @@ on a new line ""U8"),
         {
             await TestAsync(@"""""U8",
                 testHost,
-                String(@"""""U8"));
+                String(@"""""U8"),
+                Keyword("U8"));
         }
 
         [Theory]
@@ -682,8 +691,7 @@ on a new line ""U8"),
                 String(@"""bar"""));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VarContextualKeywordAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -702,8 +710,7 @@ on a new line ""U8"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task LinqKeywordsAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -1574,8 +1581,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
-        [Theory]
+        [Theory, WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
         [CombinatorialData]
         public async Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
         {
@@ -2057,8 +2063,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(4302, "DevDiv_Projects/Roslyn")]
-        [Theory]
+        [Theory, WorkItem(4302, "DevDiv_Projects/Roslyn")]
         [CombinatorialData]
         public async Task ClassInEnum(TestHost testHost)
         {
@@ -3895,8 +3900,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
-        [Theory]
+        [Theory, WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
         [CombinatorialData]
         public async Task TestValueInLabel(TestHost testHost)
         {
@@ -3929,8 +3933,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
-        [Theory]
+        [Theory, WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
         [CombinatorialData]
         public async Task TestGenericVar(TestHost testHost)
         {
@@ -3980,8 +3983,7 @@ class var<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
-        [Theory]
+        [Theory, WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestInaccessibleVar(TestHost testHost)
         {
@@ -4036,8 +4038,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
-        [Theory]
+        [Theory, WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
         [CombinatorialData]
         public async Task TestEscapedVar(TestHost testHost)
         {
@@ -4073,8 +4074,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
-        [Theory]
+        [Theory, WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
         [CombinatorialData]
         public async Task TestVar(TestHost testHost)
         {
@@ -4150,8 +4150,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
-        [Theory]
+        [Theory, WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         [CombinatorialData]
         public async Task TestVar2(TestHost testHost)
         {
@@ -4529,6 +4528,47 @@ void M()
                 Method("Goo"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment("======="),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment(">>>>>>> End"),
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestConflictMarkers2(TestHost testHost)
+        {
+            await TestAsync(
+@"class C
+{
+<<<<<<< Start
+    public void Goo();
+||||||| Baseline
+    int removed;
+=======
+    public void Bar();
+>>>>>>> End
+}",
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("<<<<<<< Start"),
+                Keyword("public"),
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment("||||||| Baseline"),
+                Keyword("int"),
+                Identifier("removed"),
                 Punctuation.Semicolon,
                 Comment("======="),
                 Keyword("public"),
@@ -5069,7 +5109,7 @@ switch (new int[0])
             Punctuation.Comma,
             Punctuation.DotDot,
             Keyword("var"),
-            Identifier("end"),
+            Local("end"),
             Punctuation.CloseBracket,
             Punctuation.Colon,
             ControlKeyword("break"),
@@ -5095,11 +5135,11 @@ _ = x switch
             Punctuation.OpenCurly,
             Punctuation.OpenBracket,
             Keyword("var"),
-            Identifier("start"),
+            Local("start"),
             Punctuation.Comma,
             Punctuation.DotDot,
             Keyword("var"),
-            Identifier("end"),
+            Local("end"),
             Punctuation.CloseBracket,
             Operators.EqualsGreaterThan,
             Number("1"),
@@ -5120,7 +5160,7 @@ _ = 1 is var x;
             Number("1"),
             Keyword("is"),
             Keyword("var"),
-            Identifier("x"),
+            Local("x"),
             Punctuation.Semicolon);
         }
 
@@ -5269,8 +5309,7 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Punctuation.Semicolon);
         }
 
-        [WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
-        [Theory]
+        [Theory, WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
         [CombinatorialData]
         public async Task ForEachVariableStatement(TestHost testHost)
         {
@@ -5967,6 +6006,7 @@ class C
                 Local("s"),
                 Operators.Equals,
                 String("\"\"\"Hello world\"\"\"u8"),
+                Keyword("u8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -6004,6 +6044,7 @@ class C
                 Local("s"),
                 Operators.Equals,
                 String("\"\"\"Hello world\"\"\"U8"),
+                Keyword("U8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -6086,6 +6127,7 @@ class C
                 String(@"""""""
       Hello world
    """"""u8"),
+                Keyword("u8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -6127,6 +6169,7 @@ class C
                 String(@"""""""
       Hello world
    """"""U8"),
+                Keyword("U8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -6547,6 +6590,219 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ScopedParameter(TestHost testHost)
+        {
+            await TestInMethodAsync(@"interface I { void F(scoped R r); }",
+                testHost,
+                Keyword("interface"),
+                Interface("I"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("F"),
+                Punctuation.OpenParen,
+                Keyword("scoped"),
+                Identifier("R"),
+                Parameter("r"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ScopedLocalDeclaration(TestHost testHost)
+        {
+            await TestInMethodAsync(@"scoped var v;",
+                testHost,
+                Keyword("scoped"),
+                Identifier("var"),
+                Local("v"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ScopedOutDeclaration(TestHost testHost)
+        {
+            await TestInMethodAsync(@"F(x, out scoped R y);",
+                testHost,
+                Identifier("F"),
+                Punctuation.OpenParen,
+                Identifier("x"),
+                Punctuation.Comma,
+                Keyword("out"),
+                Keyword("scoped"),
+                Identifier("R"),
+                Local("y"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaDefaultParameter_01(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System;
+                class Program
+                {
+                    void M()
+                    {
+                        const int n = 100;
+                        const int m = 200;
+                        var lam = (int x = n + m) => x;
+                    }
+                }
+
+                """,
+                testHost,
+                Keyword("using"),
+                Identifier("System"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("Program"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("const"),
+                Keyword("int"),
+                Constant("n"),
+                Static("n"),
+                Operators.Equals,
+                Number("100"),
+                Punctuation.Semicolon,
+                Keyword("const"),
+                Keyword("int"),
+                Constant("m"),
+                Static("m"),
+                Operators.Equals,
+                Number("200"),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Operators.Equals,
+                Identifier("n"),
+                Operators.Plus,
+                Identifier("m"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("x"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaDefaultParameter_02(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                class Program
+                {
+                    void M()
+                    {
+                        var lam = (string s = "a string") => s;
+                    }
+                }
+
+                """,
+                testHost,
+                Keyword("class"),
+                Class("Program"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("string"),
+                Parameter("s"),
+                Operators.Equals,
+                String(@"""a string"""),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("s"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaParamsArray(TestHost testHost)
+        {
+            await TestInMethodAsync("var lam = (params int[] xs) => xs.Length;",
+                testHost,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Parameter("xs"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("xs"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaParamsArray_Multiple(TestHost testHost)
+        {
+            await TestInMethodAsync("var lam = (int a, int b = 1, params int[] xs, params int[] ys.Length) => { };",
+                testHost,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Local("a"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Identifier("b"),
+                Operators.Equals,
+                Number("1"),
+                Punctuation.Comma,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Local("xs"),
+                Punctuation.Comma,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Local("ys"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.Semicolon);
         }
     }
 }

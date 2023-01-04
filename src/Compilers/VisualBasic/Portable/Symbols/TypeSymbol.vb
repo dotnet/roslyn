@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Type name.
         ''' </param>
         ''' <returns>
-        ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        ''' Symbol for the type, or Nothing if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
         Friend Overridable Function LookupMetadataType(ByRef emittedTypeName As MetadataTypeName) As NamedTypeSymbol
@@ -425,10 +425,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
 Done:
-            If namedType Is Nothing Then
-                Return New MissingMetadataTypeSymbol.Nested(DirectCast(Me, NamedTypeSymbol), emittedTypeName)
-            End If
-
             Return namedType
         End Function
 
@@ -671,7 +667,6 @@ Done:
                 Return If(Interlocked.CompareExchange(_lazyImplementationForInterfaceMemberMap, map, Nothing), map)
             End Get
         End Property
-
 
         ''' <summary>
         ''' Compute the implementation for an interface member in this type, or Nothing if none.

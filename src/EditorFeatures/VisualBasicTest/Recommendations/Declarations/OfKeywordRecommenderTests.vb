@@ -3,99 +3,97 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class OfKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfAfterPossibleMethodTypeParamTest()
             VerifyRecommendationsContain(<ClassDeclaration>Sub Goo(|</ClassDeclaration>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfNotAfterMethodTypeParamTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Sub Goo(Of T)(|</ClassDeclaration>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfDefinitelyInMethodTypeParamTest()
             VerifyRecommendationsContain(<ClassDeclaration>Sub Goo(|)(x As Integer)</ClassDeclaration>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfAfterPossibleDelegateTypeParamTest()
             VerifyRecommendationsContain(<ClassDeclaration>Delegate Sub Goo(|</ClassDeclaration>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfNotAfterDelegateTypeParamTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Delegate Sub Goo(Of T)(|</ClassDeclaration>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfDefinitelyInDelegateTypeParamTest()
             VerifyRecommendationsContain(<ClassDeclaration>Delegate Sub Goo(|)(x As Integer)</ClassDeclaration>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfInClassDeclarationTypeParamTest()
             VerifyRecommendationsContain(<File>Class Goo(|</File>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfInStructureDeclarationTypeParamTest()
             VerifyRecommendationsContain(<File>Structure Goo(|</File>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfInInterfaceDeclarationTypeParamTest()
             VerifyRecommendationsContain(<File>Interface Goo(|</File>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfNotInEnumDeclarationTest()
             ' This is invalid code, so make sure we don't show it
             VerifyRecommendationsMissing(<File>Enum Goo(|</File>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfNotInModuleDeclarationTest()
             VerifyRecommendationsMissing(<File>Module Goo(|</File>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfInVariableDeclaration1Test()
             VerifyRecommendationsMissing(<MethodBody>Dim f As Goo(|</MethodBody>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfInVariableDeclaration2Test()
             VerifyRecommendationsContain(<MethodBody>Dim f As New Goo(|</MethodBody>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfNotInRealArraySpecifierTest()
             VerifyRecommendationsMissing(<MethodBody>Dim f(|</MethodBody>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub OfInMethodCallTest()
             VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "Of")
         End Sub
 
-        <WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
         Public Sub OfInGenericArrayBoundRankSpecifierTest()
             VerifyRecommendationsContain(<MethodBody>Dim i As List(|</MethodBody>, "Of")
         End Sub
 
-        <WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
         Public Sub NoOfInNonGenericArrayBoundRankSpecifierTest()
             VerifyRecommendationsMissing(<MethodBody>Dim i As Integer(|</MethodBody>, "Of")
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NotInNonGenericDelegateCreationTest()
             Dim code =
 <File>
@@ -111,8 +109,7 @@ End Class
             VerifyRecommendationsMissing(code, "Of")
         End Sub
 
-        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         Public Sub InGenericDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Class C
@@ -126,8 +123,7 @@ End Class
             VerifyRecommendationsContain(code, "Of")
         End Sub
 
-        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         Public Sub InPotentiallyGenericDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Class C
@@ -142,8 +138,7 @@ End Class
             VerifyRecommendationsContain(code, "Of")
         End Sub
 
-        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         Public Sub NotInNonGenericDelegateCreationWithGenericTypeOfSameNameTest()
             Dim code =
 <File>
@@ -161,15 +156,14 @@ End Class
             VerifyRecommendationsMissing(code, "Of")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterEolTest()
             VerifyRecommendationsContain(
 <MethodBody>Goo(
 |</MethodBody>, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InImplementsClauseTest()
             Dim code =
 <File>
@@ -189,7 +183,7 @@ End Class
             VerifyRecommendationsContain(code, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InInheritsStatementTest()
             Dim code =
 <File>

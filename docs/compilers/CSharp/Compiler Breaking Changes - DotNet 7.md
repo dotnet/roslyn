@@ -1,5 +1,209 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Ref safety errors do not affect conversion from lambda expression to delegate
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+Ref safety errors reported in a lambda body no longer affect whether the lambda expression is convertible to a delegate type. This change can affect overload resolution.
+
+In the example below, the call to `M(x => ...)` is ambiguous with Visual Studio 17.5 because both `M(D1)` and `M(D2)` are now considered applicable, even though the call to `F(ref x, ref y)` within the lambda body will result in a ref safety with `M(D1)` (see the examples in `d1` and `d2` for comparison). Previously, the call bound unambiguously to `M(D2)` because the `M(D1)` overload was considered not applicable.
+```csharp
+using System;
+
+ref struct R { }
+
+delegate R D1(R r);
+delegate object D2(object o);
+
+class Program
+{
+    static void M(D1 d1) { }
+    static void M(D2 d2) { }
+
+    static void F(ref R x, ref Span<int> y) { }
+    static void F(ref object x, ref Span<int> y) { }
+
+    static void Main()
+    {
+        // error CS0121: ambiguous between: 'M(D1)' and 'M(D2)'
+        M(x =>
+            {
+                Span<int> y = stackalloc int[1];
+                F(ref x, ref y);
+                return x;
+            });
+
+        D1 d1 = x1 =>
+            {
+                Span<int> y1 = stackalloc int[1];
+                F(ref x1, ref y1); // error CS8352: 'y2' may expose referenced variables
+                return x1;
+            };
+
+        D2 d2 = x2 =>
+            {
+                Span<int> y2 = stackalloc int[1];
+                F(ref x2, ref y2); // ok: F(ref object x, ref Span<int> y)
+                return x2;
+            };
+    }
+}
+```
+
+To workaround the overload resolution changes, use explicit types for the lambda parameters or delegate.
+
+```csharp
+        // ok: M(D2)
+        M((object x) =>
+            {
+                Span<int> y = stackalloc int[1];
+                F(ref x, ref y); // ok: F(ref object x, ref Span<int> y)
+                return x;
+            });
+```
+
+## Raw string interpolations at start of line.
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+In .NET SDK XXX or earlier the following was erroneously allowed:
+
+```csharp
+var x = $"""
+    Hello
+{1 + 1}
+    World
+    """;
+```
+
+This violated the rule that the lines content (including where an interpolation starts) must start with same whitespace as the final `    """;` line.  It is now required that the above be written as:
+
+
+```csharp
+var x = $"""
+    Hello
+    {1 + 1}
+    World
+    """;
+```
+
+
+## Inferred delegate type for methods includes default parameter values and `params` modifier
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+In .NET SDK 7.0.100 or earlier, delegate types inferred from methods ignored default parameter values and `params` modifiers
+as demonstrated in the following code:
+
+```csharp
+void Method(int i = 0, params int[] xs) { }
+var action = Method; // System.Action<int, int[]>
+DoAction(action, 1); // ok
+void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
+```
+
+In .NET SDK 7.0.200 or later, such methods are inferred as anonymous synthesized delegate types
+with the same default parameter values and `params` modifiers.
+This change can break the code above as demonstrated below:
+
+```csharp
+void Method(int i = 0, params int[] xs) { }
+var action = Method; // delegate void <anonymous delegate>(int arg1 = 0, params int[] arg2)
+DoAction(action, 1); // error CS1503: Argument 1: cannot convert from '<anonymous delegate>' to 'System.Action<int, int[]>'
+void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
+```
+
+You can learn more about this change in the associated [proposal](https://github.com/dotnet/csharplang/blob/main/proposals/lambda-method-group-defaults.md#breaking-change).
+
+## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+For the purpose of definite assignment analysis, invocations of an async local function is
+no longer treated as being awaited and, therefore, the local function is not considered to
+be fully executed. See https://github.com/dotnet/roslyn/issues/43697 for the rationale.
+
+The code below is now going to report a definite assignment error:
+```csharp
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a); // error CS0165: Use of unassigned local variable 'a'  
+
+        async Task M1()
+        {
+            if ("" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+```
+
+## `INoneOperation` nodes for attributes are now `IAttributeOperation` nodes.
+
+***Introduced in Visual Studio 2022 version 17.5, .NET SDK version 7.0.200***
+
+In previous versions of the compiler, the `IOperation` tree for an attribute was rooted with an `INoneOperation` node.
+We have added native support for attributes, which means that the root of the tree is now an `IAttributeOperation`. Some
+analyzers, including older versions of the .NET SDK analyzers, are not expecting this tree shape, and will incorrectly
+warn (or potentially fail to warn) when encountering it. The workarounds for this are:
+
+* Update your analyzer version, if possible. If using the .NET SDK or older versions of Microsoft.CodeAnalysis.FxCopAnalyzers,
+update to Microsoft.CodeAnalysis.NetAnalyzers 7.0.0-preview1.22464.1 or newer.
+* Suppress any false-positives from the analyzers until they can be updated with a version that takes this change into
+account.
+
+## Type tests for `ref` structs are not supported.
+
+***Introduced in Visual Studio 2022 version 17.4***
+
+When a `ref` struct type is used in an 'is' or 'as' operator, in some scenarios compiler was previously reporting
+an erroneous warning about the type test always failing at runtime, omitting the actual type check, and leading to
+incorrect behavior. When incorrect behavior at execution time was possible, compiler will now produce an error instead.
+
+```csharp
+ref struct G<T>
+{
+    public void Test()
+    {
+        if (this is G<int>) // Will now produce an error, used to be treated as always `false`.
+        {
+```
+
+## Unused results from ref local are dereferences.
+
+***Introduced in Visual Studio 2022 version 17.4***
+
+When a `ref` local variable is referenced by value, but the result is not used (such as being assigned to a discard), the result was previously ignored. The compiler will now dereference that local, ensuring that any side effects are observed.
+
+```csharp
+ref int local = Unsafe.NullRef<int>();
+_ = local; // Will now produce a `NullReferenceException`
+```
+
+## Types cannot be named `scoped`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `scoped`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class scoped {} // Error CS9056
+class @scoped {} // No error
+```
+
+```csharp
+ref scoped local; // Error
+ref scoped.nested local; // Error
+ref @scoped local2; // No error
+```
+
+This was done as `scoped` is now a modifier for variable declarations and reserved following `ref` in a ref type.
+
 ## Types cannot be named `file`
 
 ***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `file`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
@@ -57,6 +261,33 @@ Possible workarounds are:
 Also, implicit conversions between `IntPtr`/`UIntPtr` and other numeric types are treated as standard
 conversions on such platforms. This can affect overload resolution in some cases.
 
+These changes could cause a behavioral change if the user code was depending on overflow exceptions in an
+unchecked context, or if it was not expecting overflow exceptions in a checked context. An analyzer was 
+[added in 7.0](https://github.com/dotnet/runtime/issues/74022) to help detect such behavioral changes
+and take appropriate action. The analyzer will produce diagnostics on potential behavioral changes, which default
+to info severity but can be upgraded to warnings via [editorconfig](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#severity-level).
+
+## Addition of System.UIntPtr and System.Int32
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+When the platform supports __numeric__ `IntPtr` and `UIntPtr` types (as indicated by the presence of
+`System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`), the operator `+(UIntPtr, int)` defined in `System.UIntPtr`
+can no longer be used.
+Instead, adding expressions of types `System.UIntPtr` and a `System.Int32` results in an error:
+
+```csharp
+UIntPtr M(UIntPtr x, int y)
+{
+    return x + y; // error: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+}
+```
+
+Possible workarounds are:
+
+1. Use the `UIntPtr.Add(UIntPtr, int)` method: `UIntPtr.Add(x, y)`
+2. Apply an unchecked cast to type `nuint` on the second operand: `x + unchecked((nuint)y)`
+
 ## Nameof operator in attribute on method or local function
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
@@ -111,21 +342,66 @@ static ref T ReturnOutParamByRef<T>(out T t)
 }
 ```
 
-A possible workaround is to change the method signature to pass the parameter by `ref` instead.
+Possible workarounds are:
+1. Use `System.Diagnostics.CodeAnalysis.UnscopedRefAttribute` to mark the reference as unscoped.
+    ```csharp
+    static ref T ReturnOutParamByRef<T>([UnscopedRef] out T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
+
+1. Change the method signature to pass the parameter by `ref`.
+    ```csharp
+    static ref T ReturnRefParamByRef<T>(ref T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
+
+## Instance method on ref struct may capture unscoped ref parameters
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref struct` instance method invocation is assumed to capture unscoped `ref` or `in` parameters.
 
 ```csharp
-static ref T ReturnRefParamByRef<T>(ref T t)
+R<int> Use(R<int> r)
 {
-    t = default;
-    return ref t; // ok
+    int i = 42;
+    r.MayCaptureArg(ref i); // error CS8350: may expose variables referenced by parameter 't' outside of their declaration scope
+    return r;
+}
+
+ref struct R<T>
+{
+    public void MayCaptureArg(ref T t) { }
+}
+```
+
+A possible workaround, if the `ref` or `in` parameter is not captured in the `ref struct` instance method, is to declare the parameter as `scoped ref` or `scoped in`.
+
+```csharp
+R<int> Use(R<int> r)
+{
+    int i = 42;
+    r.CannotCaptureArg(ref i); // ok
+    return r;
+}
+
+ref struct R<T>
+{
+    public void CannotCaptureArg(scoped ref T t) { }
 }
 ```
 
 ## Method ref struct return escape analysis depends on ref escape of ref arguments
 
-***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
 
-With language version C# 11 or later, or with .NET 7.0 or later, the return value of a method invocation that returns a `ref struct` is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref struct` returned from a method invocation, either as a return value or in an `out` parameters, is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
 
 ```csharp
 ref struct R { }
@@ -159,6 +435,27 @@ static R Create()
 {
     int i = 0;
     return CannotCaptureArg(ref i); // ok
+}
+```
+
+## `ref` to `ref struct` argument considered unscoped in `__arglist`
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref` to a `ref struct` type is considered an unscoped reference when passed as an argument to `__arglist`.
+
+```csharp
+ref struct R { }
+
+class Program
+{
+    static void MayCaptureRef(__arglist) { }
+
+    static void Main()
+    {
+        var r = new R();
+        MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
+    }
 }
 ```
 

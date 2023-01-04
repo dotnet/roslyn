@@ -21,16 +21,17 @@ internal static class ExtractMethodOptionsStorage
             DontPutOutOrRefOnStruct = globalOptions.GetOption(DontPutOutOrRefOnStruct, language)
         };
 
-    public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-        => new(globalOptions.GetCodeGenerationOptions(languageServices))
+    public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
+        => new()
         {
+            CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
             ExtractOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
             AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
             LineFormattingOptions = globalOptions.GetLineFormattingOptions(languageServices.Language)
         };
 
     public static ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-        => document.GetExtractMethodGenerationOptionsAsync(globalOptions.GetExtractMethodGenerationOptions(document.Project.LanguageServices), cancellationToken);
+        => document.GetExtractMethodGenerationOptionsAsync(globalOptions.GetExtractMethodGenerationOptions(document.Project.Services), cancellationToken);
 
     public static readonly PerLanguageOption2<bool> DontPutOutOrRefOnStruct = new(
         "ExtractMethodOptions", "DontPutOutOrRefOnStruct", ExtractMethodOptions.Default.DontPutOutOrRefOnStruct,

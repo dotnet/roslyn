@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(markup, ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(markup, GetComposition());
             var code = workspaceFixture.Target.Code;
             var position = workspaceFixture.Target.Position;
 

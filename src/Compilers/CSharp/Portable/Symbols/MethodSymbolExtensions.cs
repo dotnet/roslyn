@@ -217,5 +217,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
+
+        internal static bool IsValidUnscopedRefAttributeTarget(this MethodSymbol method)
+        {
+            return !method.IsStatic &&
+                method.ContainingType?.IsStructType() == true &&
+                !method.IsConstructor() &&
+                !method.IsInitOnly;
+        }
     }
 }

@@ -56,8 +56,8 @@ class C
 }");
         }
 
-        [WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
+        [WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")]
         public async Task TestThisWithNoType()
         {
             await TestInRegularAndScriptAsync(

@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // If we couldn't find a normal document, and all features are enabled for source generated
                     // documents, attempt to locate a matching source generated document in the project.
                     if (document is null
-                        && project.Solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
+                        && project.Solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true)
                     {
                         document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
                     }
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
 
-                var languageServices = document.Project.LanguageServices;
+                var languageServices = document.Project.Services;
                 var simplifierOptions = (languageServices.GetService<ISimplifierOptionsStorage>() != null) ? globalOptions.GetSimplifierOptions(languageServices) : null;
                 var openFileOnlyAnalyzer = _owner.Analyzer.IsOpenFileOnly(simplifierOptions);
 

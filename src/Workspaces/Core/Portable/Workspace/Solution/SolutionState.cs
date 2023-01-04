@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
@@ -33,14 +34,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal partial class SolutionState
     {
-        // branch id for this solution
-        private readonly BranchId _branchId;
-
         // the version of the workspace this solution is from
         private readonly int _workspaceVersion;
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
-        private readonly SolutionServices _solutionServices;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
@@ -73,9 +70,10 @@ namespace Microsoft.CodeAnalysis
         private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
         private SolutionState(
-            BranchId branchId,
+            string? workspaceKind,
             int workspaceVersion,
-            SolutionServices solutionServices,
+            bool partialSemanticsEnabled,
+            HostWorkspaceServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
             SolutionOptionSet options,
@@ -87,10 +85,11 @@ namespace Microsoft.CodeAnalysis
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers,
             SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
         {
-            _branchId = branchId;
+            WorkspaceKind = workspaceKind;
             _workspaceVersion = workspaceVersion;
+            PartialSemanticsEnabled = partialSemanticsEnabled;
             _solutionAttributes = solutionAttributes;
-            _solutionServices = solutionServices;
+            Services = solutionServices;
             ProjectIds = projectIds;
             Options = options;
             AnalyzerReferences = analyzerReferences;
@@ -113,15 +112,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SolutionState(
-            BranchId primaryBranchId,
-            SolutionServices solutionServices,
+            string? workspaceKind,
+            bool partialSemanticsEnabled,
+            HostWorkspaceServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
-                primaryBranchId,
+                workspaceKind,
                 workspaceVersion: 0,
-                solutionServices,
+                partialSemanticsEnabled,
+                services,
                 solutionAttributes,
                 projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
                 options,
@@ -137,13 +138,9 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionState WithNewWorkspace(Workspace workspace, int workspaceVersion)
         {
-            var services = workspace != _solutionServices.Workspace
-                ? new SolutionServices(workspace)
-                : _solutionServices;
-
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: services);
+            return CreatePrimarySolution(workspace.Kind, workspaceVersion, workspace.Services);
         }
 
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
@@ -154,29 +151,20 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
 
+        public string? WorkspaceKind { get; }
+
+        public bool PartialSemanticsEnabled { get; }
+
         public int WorkspaceVersion => _workspaceVersion;
 
-        public SolutionServices Services => _solutionServices;
+        public HostWorkspaceServices Services { get; }
 
         public SolutionOptionSet Options { get; }
 
         /// <summary>
-        /// branch id of this solution
-        ///
-        /// currently, it only supports one level of branching. there is a primary branch of a workspace and all other
-        /// branches that are branched from the primary branch.
-        ///
-        /// one still can create multiple forked solutions from an already branched solution, but versions among those
-        /// can't be reliably used and compared.
-        ///
-        /// version only has a meaning between primary solution and branched one or between solutions from same branch.
-        /// </summary>
-        public BranchId BranchId => _branchId;
-
-        /// <summary>
         /// The Workspace this solution is associated with.
         /// </summary>
-        public Workspace Workspace => _solutionServices.Workspace;
+        public Workspace Workspace => Services.Workspace;
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
@@ -226,8 +214,6 @@ namespace Microsoft.CodeAnalysis
             ProjectDependencyGraph? dependencyGraph = null,
             Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
         {
-            var branchId = GetBranchId();
-
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
@@ -240,8 +226,7 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
-            if (branchId == _branchId &&
-                solutionAttributes == _solutionAttributes &&
+            if (solutionAttributes == _solutionAttributes &&
                 projectIds == ProjectIds &&
                 options == Options &&
                 analyzerReferencesEqual &&
@@ -255,9 +240,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SolutionState(
-                branchId,
+                WorkspaceKind,
                 _workspaceVersion,
-                _solutionServices,
+                PartialSemanticsEnabled,
+                Services,
                 solutionAttributes,
                 projectIds,
                 options,
@@ -271,20 +257,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState CreatePrimarySolution(
-            BranchId branchId,
+            string? workspaceKind,
             int workspaceVersion,
-            SolutionServices services)
+            HostWorkspaceServices services)
         {
-            if (branchId == _branchId &&
+            if (workspaceKind == WorkspaceKind &&
                 workspaceVersion == _workspaceVersion &&
-                services == _solutionServices)
+                services == Services)
             {
                 return this;
             }
 
             return new SolutionState(
-                branchId,
+                workspaceKind,
                 workspaceVersion,
+                PartialSemanticsEnabled,
                 services,
                 _solutionAttributes,
                 ProjectIds,
@@ -296,15 +283,6 @@ namespace Microsoft.CodeAnalysis
                 _dependencyGraph,
                 _lazyAnalyzers,
                 _frozenSourceGeneratedDocumentState);
-        }
-
-        private BranchId GetBranchId()
-        {
-            // currently we only support one level branching.
-            // my reasonings are
-            // 1. it seems there is no-one who needs sub branches.
-            // 2. this lets us to branch without explicit branch API
-            return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
         }
 
         /// <summary>
@@ -540,7 +518,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
             }
 
-            var newProject = new ProjectState(projectInfo, languageServices, _solutionServices);
+            var newProject = new ProjectState(projectInfo, languageServices, Services);
 
             return this.AddProject(newProject.Id, newProject);
         }
@@ -729,6 +707,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
+        public SolutionState WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        {
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithChecksumAlgorithm(checksumAlgorithm);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the name.
+        /// </summary>
         public SolutionState WithProjectName(ProjectId projectId, string name)
         {
             var oldProject = GetRequiredProjectState(projectId);
@@ -789,7 +783,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            if (Workspace.PartialSemanticsEnabled)
+            if (this.PartialSemanticsEnabled)
             {
                 // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
                 // Since changing options is rare event, it is okay to start compilation building from scratch.
@@ -1053,8 +1047,15 @@ namespace Microsoft.CodeAnalysis
             // we changed, rather than creating an entire new generator driver from scratch and rerunning all generators, is cheaper
             // in the end. This was written without data backing up that assumption, so if a profile indicates to the contrary,
             // this could be changed.
-            var addedReferences = newProject.AnalyzerReferences.Except(oldProject.AnalyzerReferences).ToImmutableArray();
-            var removedReferences = oldProject.AnalyzerReferences.Except(newProject.AnalyzerReferences).ToImmutableArray();
+            //
+            // When we're comparing AnalyzerReferences, we'll compare with reference equality; AnalyzerReferences like AnalyzerFileReference
+            // may implement their own equality, but that can result in things getting out of sync: two references that are value equal can still
+            // have their own generator instances; it's important that as we're adding and removing references that are value equal that we
+            // still update with the correct generator instances that are coming from the new reference that is actually held in the project state from above.
+            // An alternative approach would be to call oldProject.WithAnalyzerReferences keeping all the references in there that are value equal the same,
+            // but this avoids any surprises where other components calling WithAnalyzerReferences might not expect that.
+            var addedReferences = newProject.AnalyzerReferences.Except<AnalyzerReference>(oldProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+            var removedReferences = oldProject.AnalyzerReferences.Except<AnalyzerReference>(newProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
 
             return ForkProject(
                 newProject,
@@ -1068,7 +1069,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions),
+                (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
                 (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
         }
 
@@ -1127,7 +1128,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AdditionalDocumentState(documentInfo, _solutionServices),
+                (documentInfo, project) => new AdditionalDocumentState(documentInfo, new LoadTextOptions(project.ChecksumAlgorithm), Services),
                 (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
         }
 
@@ -1135,7 +1136,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Adding a new analyzer config potentially modifies the compilation options
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
+                (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, new LoadTextOptions(project.ChecksumAlgorithm), Services),
                 (oldProject, documents) =>
                 {
                     var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
@@ -1230,7 +1231,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateName(name));
+            return UpdateDocumentState(oldDocument.UpdateName(name), contentChanged: false);
         }
 
         /// <summary>
@@ -1245,7 +1246,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateFolders(folders));
+            return UpdateDocumentState(oldDocument.UpdateFolders(folders), contentChanged: false);
         }
 
         /// <summary>
@@ -1259,7 +1260,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateFilePath(filePath));
+            return UpdateDocumentState(oldDocument.UpdateFilePath(filePath), contentChanged: false);
         }
 
         /// <summary>
@@ -1274,7 +1275,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1289,7 +1290,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1319,7 +1320,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1334,7 +1335,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1366,7 +1367,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateTree(root, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
         }
 
         private static async Task<Compilation> UpdateDocumentInCompilationAsync(
@@ -1392,16 +1393,16 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
         }
 
-        public SolutionState UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
+        public SolutionState UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
 
-            // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
-            // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return UpdateDocumentState(oldDocument.UpdateText(loader, text, mode), textChanged: true, recalculateDependentVersions: true);
+            // Assumes that content has changed. User could have closed a doc without saving and we are loading text
+            // from closed file with old content.
+            return UpdateDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1412,9 +1413,9 @@ namespace Microsoft.CodeAnalysis
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
 
-            // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
-            // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+            // Assumes that content has changed. User could have closed a doc without saving and we are loading text
+            // from closed file with old content.
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1430,10 +1431,10 @@ namespace Microsoft.CodeAnalysis
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
         }
 
-        private SolutionState UpdateDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private SolutionState UpdateDocumentState(DocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-            var newProject = oldProject.UpdateDocument(newDocument, textChanged, recalculateDependentVersions);
+            var newProject = oldProject.UpdateDocument(newDocument, contentChanged);
 
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
@@ -1447,10 +1448,10 @@ namespace Microsoft.CodeAnalysis
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
         }
 
-        private SolutionState UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private SolutionState UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-            var newProject = oldProject.UpdateAdditionalDocument(newDocument, textChanged, recalculateDependentVersions);
+            var newProject = oldProject.UpdateAdditionalDocument(newDocument, contentChanged);
 
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
@@ -1502,7 +1503,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (forkTracker)
                 {
-                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(_solutionServices, newProjectState, translate));
+                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
                 }
             }
 
@@ -1546,7 +1547,7 @@ namespace Microsoft.CodeAnalysis
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(_solutionServices, tracker.ProjectState));
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState, translate: null));
 
             return builder.ToImmutable();
 
@@ -1632,7 +1633,7 @@ namespace Microsoft.CodeAnalysis
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
                     // in progress solutions are disabled for some testing
-                    if (this.Workspace is Workspace ws && ws.TestHookPartialSolutionsDisabled)
+                    if (Services.GetService<IWorkpacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                     {
                         return this;
                     }
@@ -1674,7 +1675,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -1818,7 +1819,7 @@ namespace Microsoft.CodeAnalysis
                     sourceText,
                     projectState.ParseOptions!,
                     projectState.LanguageServices,
-                    _solutionServices);
+                    Services);
             }
 
             var projectId = documentIdentity.DocumentId.ProjectId;
@@ -1866,6 +1867,28 @@ namespace Microsoft.CodeAnalysis
                 frozenSourceGeneratedDocument: null);
         }
 
+        /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
+        public SolutionState WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+        {
+            CheckContainsProject(projectToUpdate);
+
+            // First see if we have a generator driver that we can get from the other project.
+            if (!projectWithCachedGeneratorState.Solution.State.TryGetCompilationTracker(projectWithCachedGeneratorState.Id, out var tracker) ||
+                tracker.GeneratorDriver is null)
+            {
+                // We don't actually have any state at all, so no change.
+                return this;
+            }
+
+            var projectToUpdateState = GetRequiredProjectState(projectToUpdate);
+
+            return ForkProject(
+                projectToUpdateState,
+                translate: new CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
+                    tracker.GeneratorDriver,
+                    newProjectState: projectToUpdateState));
+        }
+
         /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
@@ -1886,7 +1909,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -1920,7 +1943,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

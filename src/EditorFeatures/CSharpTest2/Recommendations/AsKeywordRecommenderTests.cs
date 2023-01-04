@@ -9,16 +9,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class AsKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtRoot_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -34,7 +35,7 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -42,91 +43,84 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = goo $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterDottedName()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = goo.Current $$"));
         }
 
-        [WorkItem(543041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(543041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]
         public async Task TestNotAfterVarInForLoop()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"for (var $$"));
         }
 
-        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         public async Task TestNotBeforeFirstStringHole()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var x = ""\{0}$$\{1}\{2}"""));
         }
 
-        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         public async Task TestNotBetweenStringHoles()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var x = ""\{0}\{1}$$\{2}"""));
         }
 
-        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         public async Task TestNotAfterStringHoles()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var x = ""\{0}\{1}\{2}$$"""));
         }
 
-        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         public async Task TestAfterLastStringHole()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var x = ""\{0}\{1}\{2}"" $$"));
         }
 
-        [WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")]
         public async Task TestNotWithinNumericLiteral()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var x = .$$0;"));
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task TestNotAfterAsync()
         {
             await VerifyAbsenceAsync(
@@ -146,8 +140,7 @@ class C
 }");
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterMethodReference()
         {
             await VerifyAbsenceAsync(
@@ -159,8 +152,7 @@ class C {
         var v = Console.WriteLine $$");
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterAnonymousMethod()
         {
             await VerifyAbsenceAsync(
@@ -172,8 +164,7 @@ class C {
         Action a = delegate { } $$");
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterLambda1()
         {
             await VerifyAbsenceAsync(
@@ -185,8 +176,7 @@ class C {
         Action b = (() => 0) $$");
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterLambda2()
         {
             await VerifyAbsenceAsync(
@@ -198,8 +188,7 @@ class C {
         Action b = () => {} $$");
         }
 
-        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteral()
         {
             await VerifyAbsenceAsync(
@@ -213,8 +202,7 @@ class C
 }");
         }
 
-        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteralAndDot()
         {
             await VerifyAbsenceAsync(
@@ -228,8 +216,7 @@ class C
 }");
         }
 
-        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteralDotAndSpace()
         {
             await VerifyAbsenceAsync(
@@ -243,8 +230,7 @@ class C
 }");
         }
 
-        [WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
         public async Task TestMissingInCaseClause1()
         {
             await VerifyAbsenceAsync(
@@ -267,8 +253,7 @@ class C
 ");
         }
 
-        [WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
         public async Task TestMissingInCaseClause2()
         {
             await VerifyAbsenceAsync(

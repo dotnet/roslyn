@@ -670,7 +670,6 @@ end namespace
                                                                      Return method.Construct(c2Type)
                                                                  End Function
 
-
             Dim format = New SymbolDisplayFormat(
                 extensionMethodStyle:=SymbolDisplayExtensionMethodStyle.InstanceMethod,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
@@ -994,7 +993,6 @@ end class
                 })
         End Sub
 
-
         <Fact()>
         Public Sub TestEscapeKeywordIdentifiers()
             Dim text =
@@ -1052,7 +1050,6 @@ end namespace
                         typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                         miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
 
-
             ' outer class needs escaping
             TestSymbolDescription(
                 text,
@@ -1080,7 +1077,6 @@ end namespace
                 {
                     SymbolDisplayPartKind.ClassName
                 })
-
 
             findSymbol = Function(globalns) globalns.LookupNestedNamespace({"N1"}).
                             GetTypeMembers("Integer").Single().
@@ -1115,7 +1111,6 @@ end namespace
                     SymbolDisplayPartKind.ClassName,
                     SymbolDisplayPartKind.Punctuation
                 })
-
 
             format = New SymbolDisplayFormat(
                                 memberOptions:=SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeAccessibility Or SymbolDisplayMemberOptions.IncludeParameters,
@@ -1173,7 +1168,6 @@ end namespace
                     SymbolDisplayPartKind.Punctuation
                 })
 
-
             findSymbol = Function(globalns) globalns.LookupNestedNamespace({"Global"})
 
             format = New SymbolDisplayFormat(
@@ -1218,7 +1212,6 @@ end namespace
                 {
                     SymbolDisplayPartKind.Keyword
                 })
-
 
             findSymbol = Function(globalns) globalns.LookupNestedNamespace({"Global"}).LookupNestedNamespace({"Integer"})
 
@@ -1339,7 +1332,6 @@ end class
                 {SymbolDisplayPartKind.MethodName})
         End Sub
 
-
         <Fact()>
         Public Sub TestExplicitMethodImplNameAndInterface()
             Dim text =
@@ -1369,8 +1361,6 @@ end class
                 "I_M",
                 {SymbolDisplayPartKind.MethodName})
         End Sub
-
-
 
         <Fact()>
         Public Sub TestExplicitMethodImplNameAndInterfaceAndType()
@@ -2490,7 +2480,6 @@ End Enum
                 SymbolDisplayPartKind.StructName
                 })
 
-
         End Sub
 
         <Fact()>
@@ -2724,8 +2713,6 @@ End Enum
     </compilation>
             Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetMember(Of NamedTypeSymbol)("C").
                         GetMember(Of MethodSymbol)("M")
-
-
 
             Dim format = New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
@@ -3560,7 +3547,6 @@ End Namespace
                 "N3",
                 text.Value.IndexOf("C2", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.NamespaceName}, True)
-
 
             Dim findGOO As Func(Of NamespaceSymbol, Symbol) = Function(globalns)
                                                                   Return globalns.LookupNestedNamespace({"OUTER"}).
@@ -5283,7 +5269,12 @@ ref struct S<T>
     ref readonly T F2;
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
-            comp.VerifyDiagnostics()
+            ' error CS9064: Target runtime doesn't support ref fields.
+            comp.VerifyDiagnostics(
+                {
+                   Diagnostic(9064, "F1").WithLocation(4, 11),
+                   Diagnostic(9064, "F2").WithLocation(5, 20)
+                })
 
             Dim type = comp.GlobalNamespace.GetTypeMembers("S").Single()
 
@@ -5319,7 +5310,7 @@ ref struct S<T>
         End Sub
 
         ''' <summary>
-        ''' IParameterSymbol.IsRefScoped and IsValueScoped are ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' IParameterSymbol.ScopedKind is ignored in VisualBasic.SymbolDisplayVisitor.
         ''' </summary>
         <Theory>
         <InlineData(False)>
@@ -5329,19 +5320,19 @@ ref struct S<T>
 "ref struct R { }
 class Program
 {
-    static void F(scoped R r1, in scoped R r2, scoped ref R r3) { }
+    static void F(scoped R r1, scoped ref R r3, scoped out R r4) { }
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
             comp.VerifyDiagnostics()
             Dim method = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("F").Single()
 
-            Dim format = SymbolDisplayFormat.TestFormat
+            Dim format = SymbolDisplayFormat.TestFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName)
             If includeScoped Then
-                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
+                format = format.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut)
             End If
 
             Verify(SymbolDisplay.ToDisplayParts(method, format),
-                "Sub Program.F(r1 As R, r2 As R, r3 As R)",
+                "Sub Program.F(r1 As R, r3 As R, r4 As R)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -5371,7 +5362,7 @@ class Program
         End Sub
 
         ''' <summary>
-        ''' ILocalSymbol.IsRefScoped and IsValueScoped are ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' ILocalSymbol.ScopedKind is ignored in VisualBasic.SymbolDisplayVisitor.
         ''' </summary>
         <Theory>
         <InlineData(False)>
@@ -5383,9 +5374,8 @@ class Program
 {
     static void M(R r0)
     {
-        scoped R r1;
-        ref readonly scoped R r2 = ref r1;
-        scoped ref R r3 = ref r0;
+        scoped R r1 = r0;
+        scoped ref readonly R r3 = ref r0;
     }
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
@@ -5395,9 +5385,9 @@ class Program
             Dim decls = tree.GetRoot().DescendantNodes().OfType(Of Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax)().ToArray()
             Dim locals = decls.Select(Function(d) model.GetDeclaredSymbol(d)).ToArray()
 
-            Dim format = SymbolDisplayFormat.TestFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
+            Dim format = SymbolDisplayFormat.TestFormat.WithLocalOptions(SymbolDisplayLocalOptions.IncludeType)
             If includeScoped Then
-                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
+                format = format.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
             End If
 
             Verify(SymbolDisplay.ToDisplayParts(locals(0), format),
@@ -5409,14 +5399,6 @@ class Program
                 SymbolDisplayPartKind.StructName)
 
             Verify(SymbolDisplay.ToDisplayParts(locals(1), format),
-                "r2 As R",
-                SymbolDisplayPartKind.LocalName,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.StructName)
-
-            Verify(SymbolDisplay.ToDisplayParts(locals(2), format),
                 "r3 As R",
                 SymbolDisplayPartKind.LocalName,
                 SymbolDisplayPartKind.Space,

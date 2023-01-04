@@ -7,29 +7,37 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    /// <summary>
+    /// Represents a tree of names of the namespaces, types (and members within those types) within a <see
+    /// cref="Project"/> or <see cref="PortableExecutableReference"/>.  This tree can be used to quickly determine if
+    /// there is a name match, and can provide the named path to that named entity.  This path can then be used to
+    /// produce a corresponding <see cref="ISymbol"/> that can be used by a feature.  The primary purpose of this index
+    /// is to allow features to quickly determine that there is <em>no</em> name match, so that acquiring symbols is not
+    /// necessary.  The secondary purpose is to generate a minimal set of symbols when there is a match, though that
+    /// will still incur a heavy cost (for example, getting the <see cref="IAssemblySymbol"/> root symbol for a
+    /// particular project).
+    /// </summary>
     internal partial class SymbolTreeInfo : IChecksummedObject
     {
+        private static readonly StringComparer s_caseInsensitiveComparer =
+            CaseInsensitiveComparison.Comparer;
+
         public Checksum Checksum { get; }
 
         /// <summary>
-        /// The list of nodes that represent symbols. The primary key into the sorting of this 
-        /// list is the name. They are sorted case-insensitively with the <see cref="s_totalComparer" />.
-        /// Finding case-sensitive matches can be found by binary searching for something that 
-        /// matches insensitively, and then searching around that equivalence class for one that 
-        /// matches.
+        /// The list of nodes that represent symbols. The primary key into the sorting of this list is the name. They
+        /// are sorted case-insensitively . Finding case-sensitive matches can be found by binary searching for
+        /// something that matches insensitively, and then searching around that equivalence class for one that matches.
         /// </summary>
         private readonly ImmutableArray<Node> _nodes;
 
@@ -51,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// For non-array simple types, the receiver type name would be its metadata name, e.g. "Int32".
         /// For any array types with simple type as element, the receiver type name would be just "ElementTypeName[]", e.g. "Int32[]" for int[][,]
         /// For non-array complex types, the receiver type name is "".
-        /// For any array types with complex type as element, the receier type name is "[]"
+        /// For any array types with complex type as element, the receiver type name is "[]"
         /// </summary>
         private readonly MultiDictionary<string, ExtensionMethodInfo>? _receiverTypeNameToExtensionMethodMap;
 
@@ -62,44 +70,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
-        /// <summary>
-        /// The task that produces the spell checker we use for fuzzy match queries.
-        /// We use a task so that we can generate the <see cref="SymbolTreeInfo"/> 
-        /// without having to wait for the spell checker construction to finish.
-        /// 
-        /// Features that don't need fuzzy matching don't want to incur the cost of 
-        /// the creation of this value.  And the only feature which does want fuzzy
-        /// matching (add-using) doesn't want to block waiting for the value to be
-        /// created.
-        /// </summary>
-        private readonly Task<SpellChecker> _spellCheckerTask;
-
-        private static readonly StringSliceComparer s_caseInsensitiveComparer =
-            StringSliceComparer.OrdinalIgnoreCase;
-
-        // We first sort in a case insensitive manner.  But, within items that match insensitively, 
-        // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
-        // the items of a specific casing at once.  This way features can cache values for that
-        // casing and reuse them.  i.e. if we didn't do this we might get "Prop, prop, Prop, prop"
-        // which might cause other features to continually recalculate if that string matches what
-        // they're searching for.  However, with this sort of comparison we now get 
-        // "prop, prop, Prop, Prop".  Features can take advantage of that by caching their previous
-        // result and reusing it when they see they're getting the same string again.
-        private static readonly Comparison<string> s_totalComparer = (s1, s2) =>
-        {
-            var diff = CaseInsensitiveComparison.Comparer.Compare(s1, s2);
-            return diff != 0
-                ? diff
-                : StringComparer.Ordinal.Compare(s1, s2);
-        };
+        private readonly SpellChecker _spellChecker;
 
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            Task<SpellChecker> spellCheckerTask,
+            SpellChecker spellChecker,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
-            : this(checksum, sortedNodes, spellCheckerTask,
+            : this(checksum, sortedNodes, spellChecker,
                    CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap),
                    receiverTypeNameToExtensionMethodMap)
         {
@@ -108,13 +87,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            Task<SpellChecker> spellCheckerTask,
+            SpellChecker spellChecker,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
             Checksum = checksum;
             _nodes = sortedNodes;
-            _spellCheckerTask = spellCheckerTask;
+            _spellChecker = spellChecker;
             _inheritanceMap = inheritanceMap;
             _receiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
         }
@@ -122,18 +101,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static SymbolTreeInfo CreateEmpty(Checksum checksum)
         {
             var unsortedNodes = ImmutableArray.Create(BuilderNode.RootNode);
-            SortNodes(unsortedNodes, out var sortedNodes);
+            var sortedNodes = SortNodes(unsortedNodes);
 
             return new SymbolTreeInfo(checksum, sortedNodes,
-                CreateSpellCheckerAsync(checksum, sortedNodes),
+                CreateSpellChecker(checksum, sortedNodes),
                 new OrderPreservingMultiDictionary<string, string>(),
                 new MultiDictionary<string, ExtensionMethodInfo>());
         }
 
         public SymbolTreeInfo WithChecksum(Checksum checksum)
         {
+            if (checksum == this.Checksum)
+                return this;
+
             return new SymbolTreeInfo(
-                checksum, _nodes, _spellCheckerTask, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
+                checksum, _nodes, _spellChecker, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
         }
 
         public Task<ImmutableArray<ISymbol>> FindAsync(
@@ -144,11 +126,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             return this.FindAsync(
-                query, new AsyncLazy<IAssemblySymbol>(assembly), filter, cancellationToken);
+                query, new AsyncLazy<IAssemblySymbol?>(assembly), filter, cancellationToken);
         }
 
         public async Task<ImmutableArray<ISymbol>> FindAsync(
-            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly,
+            SearchQuery query, AsyncLazy<IAssemblySymbol?> lazyAssembly,
             SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -161,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private Task<ImmutableArray<ISymbol>> FindCoreAsync(
-            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
+            SearchQuery query, AsyncLazy<IAssemblySymbol?> lazyAssembly, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
@@ -186,16 +168,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
         /// </summary>
         private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
-            AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
+            AsyncLazy<IAssemblySymbol?> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-            if (_spellCheckerTask.Status != TaskStatus.RanToCompletion)
-            {
-                // Spell checker isn't ready.  Just return immediately.
-                return ImmutableArray<ISymbol>.Empty;
-            }
-
-            var spellChecker = await _spellCheckerTask.ConfigureAwait(false);
-            var similarNames = spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
+            var similarNames = _spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
             var result = ArrayBuilder<ISymbol>.GetInstance();
 
             foreach (var similarName in similarNames)
@@ -211,81 +186,54 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
         private async Task<ImmutableArray<ISymbol>> FindAsync(
-            AsyncLazy<IAssemblySymbol> lazyAssembly,
+            AsyncLazy<IAssemblySymbol?> lazyAssembly,
             string name,
             bool ignoreCase,
             CancellationToken cancellationToken)
         {
-            var comparer = GetComparer(ignoreCase);
-            IAssemblySymbol? assemblySymbol = null;
-
             using var results = TemporaryArray<ISymbol>.Empty;
-            foreach (var node in FindNodeIndices(name, comparer))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                Bind(node, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
+            var (startIndexInclusive, endIndexExclusive) = FindCaseInsensitiveNodeIndices(_nodes, name);
+
+            IAssemblySymbol? assemblySymbol = null;
+            for (var index = startIndexInclusive; index < endIndexExclusive; index++)
+            {
+                var node = _nodes[index];
+
+                // The find-operation found the case-insensitive range of results.  So if the caller wants
+                // case-insensitive, then just check all of them.  If they caller wants case-sensitive, then
+                // actually check that the node matches case-sensitively
+                if (ignoreCase || StringComparer.Ordinal.Equals(name, node.Name))
+                {
+                    assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    if (assemblySymbol is null)
+                        return ImmutableArray<ISymbol>.Empty;
+
+                    Bind(index, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
+                }
             }
 
             return results.ToImmutableAndClear();
         }
 
-        private static StringSliceComparer GetComparer(bool ignoreCase)
-        {
-            return ignoreCase
-                ? StringSliceComparer.OrdinalIgnoreCase
-                : StringSliceComparer.Ordinal;
-        }
-
-        private IEnumerable<int> FindNodeIndices(string name, StringSliceComparer comparer)
-            => FindNodeIndices(_nodes, name, comparer);
-
-        /// <summary>
-        /// Gets all the node indices with matching names per the <paramref name="comparer" />.
-        /// </summary>
-        private static IEnumerable<int> FindNodeIndices(
-            ImmutableArray<Node> nodes,
-            string name, StringSliceComparer comparer)
+        private static (int startIndexInclusive, int endIndexExclusive) FindCaseInsensitiveNodeIndices(
+            ImmutableArray<Node> nodes, string name)
         {
             // find any node that matches case-insensitively
             var startingPosition = BinarySearch(nodes, name);
-            var nameSlice = name.AsMemory();
 
-            if (startingPosition != -1)
-            {
-                // yield if this matches by the actual given comparer
-                if (comparer.Equals(nameSlice, GetNameSlice(nodes, startingPosition)))
-                {
-                    yield return startingPosition;
-                }
+            if (startingPosition == -1)
+                return default;
 
-                var position = startingPosition;
-                while (position > 0 && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, position - 1), nameSlice))
-                {
-                    position--;
-                    if (comparer.Equals(GetNameSlice(nodes, position), nameSlice))
-                    {
-                        yield return position;
-                    }
-                }
+            var startIndex = startingPosition;
+            while (startIndex > 0 && s_caseInsensitiveComparer.Equals(nodes[startIndex - 1].Name, name))
+                startIndex--;
 
-                position = startingPosition;
-                while (position + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, position + 1), nameSlice))
-                {
-                    position++;
-                    if (comparer.Equals(GetNameSlice(nodes, position), nameSlice))
-                    {
-                        yield return position;
-                    }
-                }
-            }
-        }
+            var endIndex = startingPosition;
+            while (endIndex + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(nodes[endIndex + 1].Name, name))
+                endIndex++;
 
-        private static ReadOnlyMemory<char> GetNameSlice(
-            ImmutableArray<Node> nodes, int nodeIndex)
-        {
-            return nodes[nodeIndex].Name.AsMemory();
+            return (startIndex, endIndex + 1);
         }
 
         private int BinarySearch(string name)
@@ -296,7 +244,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static int BinarySearch(ImmutableArray<Node> nodes, string name)
         {
-            var nameSlice = name.AsMemory();
             var max = nodes.Length - 1;
             var min = 0;
 
@@ -304,8 +251,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var mid = min + ((max - min) >> 1);
 
-                var comparison = s_caseInsensitiveComparer.Compare(
-                    GetNameSlice(nodes, mid), nameSlice);
+                var comparison = s_caseInsensitiveComparer.Compare(nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -325,58 +271,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         #region Construction
 
-        /// <summary>
-        /// Cache the symbol tree infos for assembly symbols that share the same underlying metadata. Generating symbol
-        /// trees for metadata can be expensive (in large metadata cases).  And it's common for us to have many threads
-        /// to want to search the same metadata simultaneously. As such, we use an AsyncLazy to compute the value that
-        /// can be shared among all callers.
-        /// </summary>
-        private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<SymbolTreeInfo>> s_metadataIdToInfo = new();
+        private static SpellChecker CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
+            => new(checksum, sortedNodes.Select(n => n.Name));
 
-        private static Task<SpellChecker> GetSpellCheckerAsync(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, string filePath, ImmutableArray<Node> sortedNodes)
-        {
-            // Create a new task to attempt to load or create the spell checker for this 
-            // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
-            // for non-fuzzy searches, and soon afterwards it will be able to perform
-            // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(services, solutionKey, checksum, filePath, sortedNodes));
-        }
-
-        private static Task<SpellChecker> CreateSpellCheckerAsync(
-            Checksum checksum, ImmutableArray<Node> sortedNodes)
-        {
-            return Task.FromResult(new SpellChecker(
-                checksum, sortedNodes.Select(n => n.Name.AsMemory())));
-        }
-
-        private static void SortNodes(
-            ImmutableArray<BuilderNode> unsortedNodes,
-            out ImmutableArray<Node> sortedNodes)
+        private static ImmutableArray<Node> SortNodes(ImmutableArray<BuilderNode> unsortedNodes)
         {
             // Generate index numbers from 0 to Count-1
-            var tmp = new int[unsortedNodes.Length];
-            for (var i = 0; i < tmp.Length; i++)
-            {
+            using var _1 = ArrayBuilder<int>.GetInstance(unsortedNodes.Length, out var tmp);
+            tmp.Count = unsortedNodes.Length;
+            for (var i = 0; i < tmp.Count; i++)
                 tmp[i] = i;
-            }
 
             // Sort the index according to node elements
-            Array.Sort<int>(tmp, (a, b) => CompareNodes(unsortedNodes[a], unsortedNodes[b], unsortedNodes));
+            tmp.Sort((a, b) => CompareNodes(unsortedNodes[a], unsortedNodes[b], unsortedNodes));
 
             // Use the sort order to build the ranking table which will
             // be used as the map from original (unsorted) location to the
             // sorted location.
-            var ranking = new int[unsortedNodes.Length];
-            for (var i = 0; i < tmp.Length; i++)
-            {
+            using var _2 = ArrayBuilder<int>.GetInstance(unsortedNodes.Length, out var ranking);
+            ranking.Count = unsortedNodes.Length;
+            for (var i = 0; i < tmp.Count; i++)
                 ranking[tmp[i]] = i;
-            }
 
-            // No longer need the tmp array
-            tmp = null;
-
-            var result = ArrayBuilder<Node>.GetInstance(unsortedNodes.Length);
+            using var _3 = ArrayBuilder<Node>.GetInstance(unsortedNodes.Length, out var result);
             result.Count = unsortedNodes.Length;
 
             string? lastName = null;
@@ -401,13 +318,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 lastName = currentName;
             }
 
-            sortedNodes = result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         private static int CompareNodes(
             BuilderNode x, BuilderNode y, ImmutableArray<BuilderNode> nodeList)
         {
-            var comp = s_totalComparer(x.Name, y.Name);
+            var comp = TotalComparer(x.Name, y.Name);
             if (comp == 0)
             {
                 if (x.ParentIndex != y.ParentIndex)
@@ -428,6 +345,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return comp;
+
+            // We first sort in a case insensitive manner.  But, within items that match insensitively, 
+            // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
+            // the items of a specific casing at once.  This way features can cache values for that
+            // casing and reuse them.  i.e. if we didn't do this we might get "Prop, prop, Prop, prop"
+            // which might cause other features to continually recalculate if that string matches what
+            // they're searching for.  However, with this sort of comparison we now get 
+            // "prop, prop, Prop, Prop".  Features can take advantage of that by caching their previous
+            // result and reusing it when they see they're getting the same string again.
+            static int TotalComparer(string s1, string s2)
+            {
+                var diff = CaseInsensitiveComparison.Comparer.Compare(s1, s2);
+                return diff != 0
+                    ? diff
+                    : StringComparer.Ordinal.Compare(s1, s2);
+            }
         }
 
         #endregion
@@ -497,25 +430,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum,
-            string filePath, ImmutableArray<BuilderNode> unsortedNodes,
+            Checksum checksum,
+            ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
-            SortNodes(unsortedNodes, out var sortedNodes);
-            var createSpellCheckerTask = GetSpellCheckerAsync(
-                services, solutionKey, checksum, filePath, sortedNodes);
+            var sortedNodes = SortNodes(unsortedNodes);
+            var spellChecker = CreateSpellChecker(checksum, sortedNodes);
 
             return new SymbolTreeInfo(
-                checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                checksum, sortedNodes, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(
             ImmutableArray<Node> nodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
-            // All names in metadata will be case sensitive.  
-            var comparer = GetComparer(ignoreCase: false);
             var result = new OrderPreservingMultiDictionary<int, int>();
 
             foreach (var (baseName, derivedNames) in inheritanceMap)
@@ -525,9 +455,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var derivedName in derivedNames)
                 {
-                    foreach (var derivedNameIndex in FindNodeIndices(nodes, derivedName, comparer))
+                    var (startIndexInclusive, endIndexExclusive) = FindCaseInsensitiveNodeIndices(nodes, derivedName);
+
+                    for (var derivedNameIndex = startIndexInclusive; derivedNameIndex < endIndexExclusive; derivedNameIndex++)
                     {
-                        result.Add(baseNameIndex, derivedNameIndex);
+                        var node = nodes[derivedNameIndex];
+                        // All names in metadata will be case sensitive.
+                        if (StringComparer.Ordinal.Equals(derivedName, node.Name))
+                            result.Add(baseNameIndex, derivedNameIndex);
                     }
                 }
             }

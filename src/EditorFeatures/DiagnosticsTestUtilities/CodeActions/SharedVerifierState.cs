@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal IdeAnalyzerOptions? IdeAnalyzerOptions { get; set; }
 
         internal IdeAnalyzerOptions GetIdeAnalyzerOptions(Project project)
-            => IdeAnalyzerOptions ?? IdeAnalyzerOptions.GetDefault(project.LanguageServices);
+            => IdeAnalyzerOptions ?? IdeAnalyzerOptions.GetDefault(project.Services);
 #endif
         internal void Apply()
         {

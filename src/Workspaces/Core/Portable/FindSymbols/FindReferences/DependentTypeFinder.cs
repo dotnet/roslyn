@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<Location, bool> s_isInMetadata = static loc => loc.IsInMetadata;
         private static readonly Func<Location, bool> s_isInSource = static loc => loc.IsInSource;
 
-        private static readonly Func<INamedTypeSymbol, bool> s_isInterface = t => t?.TypeKind == TypeKind.Interface;
-        private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
-        private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass = t => s_isInterface(t) || s_isNonSealedClass(t);
+        private static readonly Func<INamedTypeSymbol, bool> s_isInterface = static t => t is { TypeKind: TypeKind.Interface };
+        private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = static t => t is { TypeKind: TypeKind.Class, IsSealed: false };
+        private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass = static t => s_isInterface(t) || s_isNonSealedClass(t);
 
         private static readonly ObjectPool<PooledHashSet<INamedTypeSymbol>> s_symbolSetPool = PooledHashSet<INamedTypeSymbol>.CreatePool(SymbolEquivalenceComparer.Instance);
 
@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Same as above, but contains source types as well.
             using var _3 = GetSymbolSet(out var currentSourceAndMetadataTypes);
 
+            // The set of PEReferences we've examined.  We only need to examine a reference once when we encounter it
+            // while walking projects.  PEReferences cannot reference source symbols, so the results from them cannot 
+            // change as we examine further projects.
+            using var _4 = PooledHashSet<PortableExecutableReference>.GetInstance(out var seenPEReferences);
+
             currentSourceAndMetadataTypes.Add(type);
             if (searchInMetadata)
                 currentMetadataTypes.Add(type);
@@ -128,88 +133,240 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (project.SupportsCompilation)
-                {
-                    await DescendInheritanceTreeInProjectAsync(
-                        searchInMetadata, result,
-                        currentMetadataTypes, currentSourceAndMetadataTypes,
-                        project,
-                        typeMatches,
-                        shouldContinueSearching,
-                        transitive, cancellationToken).ConfigureAwait(false);
-                }
+                    await DescendInheritanceTreeInProjectAsync(project).ConfigureAwait(false);
             }
 
             return result.ToImmutableArray();
-        }
 
-        private static async Task DescendInheritanceTreeInProjectAsync(
-            bool searchInMetadata,
-            SymbolSet result,
-            SymbolSet currentMetadataTypes,
-            SymbolSet currentSourceAndMetadataTypes,
-            Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Debug.Assert(project.SupportsCompilation);
-
-            // First see what derived metadata types we might find in this project. This is only necessary if we
-            // started with a metadata type (i.e. a source type could not have a descendant type found in metadata,
-            // but a metadata type could have descendant types in source and metadata).
-            if (searchInMetadata)
+            async Task DescendInheritanceTreeInProjectAsync(Project project)
             {
-                using var _ = GetSymbolSet(out var tempBuffer);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                await AddDescendantMetadataTypesInProjectAsync(
-                    currentMetadataTypes,
-                    result: tempBuffer,
-                    project,
-                    typeMatches,
-                    shouldContinueSearching,
-                    transitive,
-                    cancellationToken).ConfigureAwait(false);
+                Debug.Assert(project.SupportsCompilation);
 
-                // Add all the matches we found to the result set.
-                AssertContents(tempBuffer, assert: s_isInMetadata, "Found type was not from metadata");
-                AddRange(tempBuffer, result);
-
-                // Now, if we're doing a transitive search, add these found types to the 'current' sets we're
-                // searching for more results for. These will then be used when searching for more types in the next
-                // project (which our caller controls).
-                if (transitive)
+                // First see what derived metadata types we might find in this project. This is only necessary if we
+                // started with a metadata type (i.e. a source type could not have a descendant type found in metadata,
+                // but a metadata type could have descendant types in source and metadata).
+                if (searchInMetadata)
                 {
-                    AddRange(tempBuffer, currentMetadataTypes, shouldContinueSearching);
-                    AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
+                    using var _ = GetSymbolSet(out var tempBuffer);
+
+                    await AddDescendantMetadataTypesInProjectAsync(tempBuffer, project).ConfigureAwait(false);
+
+                    // Add all the matches we found to the result set.
+                    AssertContents(tempBuffer, assert: s_isInMetadata, "Found type was not from metadata");
+                    AddRange(tempBuffer, result);
+
+                    // Now, if we're doing a transitive search, add these found types to the 'current' sets we're
+                    // searching for more results for. These will then be used when searching for more types in the next
+                    // project (which our caller controls).
+                    if (transitive)
+                    {
+                        AddRange(tempBuffer, currentMetadataTypes, shouldContinueSearching);
+                        AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
+                    }
+                }
+
+                {
+                    using var _ = GetSymbolSet(out var tempBuffer);
+
+                    // Now search the project and see what source types we can find.
+                    await AddDescendantSourceTypesInProjectAsync(tempBuffer, project).ConfigureAwait(false);
+
+                    // Add all the matches we found to the result set.
+                    AssertContents(tempBuffer, assert: s_isInSource, "Found type was not from source");
+                    AddRange(tempBuffer, result);
+
+                    // Now, if we're doing a transitive search, add these types to the currentSourceAndMetadataTypes
+                    // set. These will then be used when searching for more types in the next project (which our caller
+                    // controls).  We don't have to add this to currentMetadataTypes since these will all be
+                    // source types.
+                    if (transitive)
+                        AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
                 }
             }
 
+            async Task AddDescendantSourceTypesInProjectAsync(SymbolSet result, Project project)
             {
-                using var _ = GetSymbolSet(out var tempBuffer);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                // Now search the project and see what source types we can find.
-                await AddDescendantSourceTypesInProjectAsync(
-                    currentSourceAndMetadataTypes,
-                    result: tempBuffer,
-                    project,
-                    typeMatches,
-                    shouldContinueSearching,
-                    transitive,
-                    cancellationToken).ConfigureAwait(false);
+                // We're going to be sweeping over this project over and over until we reach a 
+                // fixed point.  In order to limit GC and excess work, we cache all the semantic
+                // models and DeclaredSymbolInfo for the documents we look at.
+                // Because we're only processing a project at a time, this is not an issue.
+                var cachedModels = new ConcurrentSet<SemanticModel>();
 
-                // Add all the matches we found to the result set.
-                AssertContents(tempBuffer, assert: s_isInSource, "Found type was not from source");
-                AddRange(tempBuffer, result);
+                using var _1 = GetSymbolSet(out var typesToSearchFor);
+                using var _2 = GetSymbolSet(out var tempBuffer);
 
-                // Now, if we're doing a transitive search, add these types to the currentSourceAndMetadataTypes
-                // set. These will then be used when searching for more types in the next project (which our caller
-                // controls).  We don't have to add this to currentMetadataTypes since these will all be
-                // source types.
-                if (transitive)
-                    AddRange(tempBuffer, currentSourceAndMetadataTypes, shouldContinueSearching);
+                typesToSearchFor.AddAll(currentSourceAndMetadataTypes);
+
+                var projectIndex = await ProjectIndex.GetIndexAsync(project, cancellationToken).ConfigureAwait(false);
+
+                // As long as there are new types to search for, keep looping.
+                while (typesToSearchFor.Count > 0)
+                {
+                    foreach (var type in typesToSearchFor)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        switch (type.SpecialType)
+                        {
+                            case SpecialType.System_Object:
+                                await AddMatchingTypesAsync(
+                                    projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
+                                    tempBuffer,
+                                    predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object).ConfigureAwait(false);
+                                break;
+                            case SpecialType.System_ValueType:
+                                await AddMatchingTypesAsync(
+                                    projectIndex.ValueTypes, tempBuffer, predicateOpt: null).ConfigureAwait(false);
+                                break;
+                            case SpecialType.System_Enum:
+                                await AddMatchingTypesAsync(
+                                    projectIndex.Enums, tempBuffer, predicateOpt: null).ConfigureAwait(false);
+                                break;
+                            case SpecialType.System_MulticastDelegate:
+                                await AddMatchingTypesAsync(
+                                    projectIndex.Delegates, tempBuffer, predicateOpt: null).ConfigureAwait(false);
+                                break;
+                        }
+
+                        await AddSourceTypesThatDeriveFromNameAsync(tempBuffer, type.Name).ConfigureAwait(false);
+                    }
+
+                    PropagateTemporaryResults(
+                        result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
+                }
+
+                async Task AddMatchingTypesAsync(
+                    MultiDictionary<Document, DeclaredSymbolInfo> documentToInfos,
+                    SymbolSet result,
+                    Func<INamedTypeSymbol, bool>? predicateOpt)
+                {
+                    foreach (var (document, infos) in documentToInfos)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        Debug.Assert(infos.Count > 0);
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        cachedModels.Add(semanticModel);
+
+                        foreach (var info in infos)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            var resolvedSymbol = info.TryResolve(semanticModel, cancellationToken);
+                            if (resolvedSymbol is INamedTypeSymbol namedType)
+                            {
+                                if (predicateOpt == null ||
+                                    predicateOpt(namedType))
+                                {
+                                    result.Add(namedType);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                async Task AddSourceTypesThatDeriveFromNameAsync(SymbolSet result, string name)
+                {
+                    foreach (var (document, info) in projectIndex.NamedTypes[name])
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        cachedModels.Add(semanticModel);
+
+                        var resolvedType = info.TryResolve(semanticModel, cancellationToken);
+                        if (resolvedType is INamedTypeSymbol namedType &&
+                            typeMatches(namedType, typesToSearchFor))
+                        {
+                            result.Add(namedType);
+                        }
+                    }
+                }
+            }
+
+            async Task AddDescendantMetadataTypesInProjectAsync(SymbolSet result, Project project)
+            {
+                Debug.Assert(project.SupportsCompilation);
+
+                if (currentMetadataTypes.Count == 0)
+                    return;
+
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                using var _1 = GetSymbolSet(out var typesToSearchFor);
+                using var _2 = GetSymbolSet(out var tempBuffer);
+
+                typesToSearchFor.AddAll(currentMetadataTypes);
+
+                // As long as there are new types to search for, keep looping.
+                while (typesToSearchFor.Count > 0)
+                {
+                    foreach (var reference in compilation.References)
+                    {
+                        if (reference is not PortableExecutableReference peReference)
+                            continue;
+
+                        // Don't look inside this reference if we already looked inside it in another project.
+                        if (seenPEReferences.Contains(peReference))
+                            continue;
+
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        await AddMatchingMetadataTypesInMetadataReferenceAsync(
+                            typesToSearchFor, project, compilation, peReference, tempBuffer).ConfigureAwait(false);
+                    }
+
+                    PropagateTemporaryResults(
+                        result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
+                }
+
+                // Mark all these references as having been seen.  We don't need to examine it in future projects.
+                seenPEReferences.AddRange(compilation.References.OfType<PortableExecutableReference>());
+            }
+
+            async Task AddMatchingMetadataTypesInMetadataReferenceAsync(
+                SymbolSet metadataTypes,
+                Project project,
+                Compilation compilation,
+                PortableExecutableReference reference,
+                SymbolSet result)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // We store an index in SymbolTreeInfo of the *simple* metadata type name to the names of the all the types
+                // that either immediately derive or implement that type.  Because the mapping is from the simple name we
+                // might get false positives.  But that's fine as we still use 'tpeMatches' to make sure the match is
+                // correct.
+                var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
+
+                Contract.ThrowIfNull(symbolTreeInfo);
+
+                // For each type we care about, see if we can find any derived types
+                // in this index.
+                foreach (var metadataType in metadataTypes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var baseTypeName = metadataType.Name;
+
+                    // For each derived type we find, see if we can map that back 
+                    // to an actual symbol.  Then check if that symbol actually fits
+                    // our criteria.
+                    foreach (var derivedType in symbolTreeInfo.GetDerivedMetadataTypes(baseTypeName, compilation, cancellationToken))
+                    {
+                        if (derivedType != null &&
+                            derivedType.Locations.Any(s_isInMetadata) &&
+                            typeMatches(derivedType, metadataTypes))
+                        {
+                            result.Add(derivedType);
+                        }
+                    }
+                }
             }
         }
 
@@ -354,93 +511,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                  .ToImmutableArray();
         }
 
-        private static async Task AddDescendantMetadataTypesInProjectAsync(
-            SymbolSet currentMetadataTypes,
-            SymbolSet result,
-            Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            Debug.Assert(project.SupportsCompilation);
-
-            if (currentMetadataTypes.Count == 0)
-                return;
-
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            using var _1 = GetSymbolSet(out var typesToSearchFor);
-            using var _2 = GetSymbolSet(out var tempBuffer);
-
-            typesToSearchFor.AddAll(currentMetadataTypes);
-
-            // As long as there are new types to search for, keep looping.
-            while (typesToSearchFor.Count > 0)
-            {
-                foreach (var reference in compilation.References)
-                {
-                    if (reference is not PortableExecutableReference peReference)
-                        continue;
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    await AddMatchingMetadataTypesInMetadataReferenceAsync(
-                        typesToSearchFor, project, typeMatches,
-                        compilation, peReference, tempBuffer,
-                        cancellationToken).ConfigureAwait(false);
-                }
-
-                PropagateTemporaryResults(
-                    result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
-            }
-        }
-
-        private static async Task AddMatchingMetadataTypesInMetadataReferenceAsync(
-            SymbolSet metadataTypes,
-            Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            Compilation compilation,
-            PortableExecutableReference reference,
-            SymbolSet result,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // We store an index in SymbolTreeInfo of the *simple* metadata type name
-            // to the names of the all the types that either immediately derive or 
-            // implement that type.  Because the mapping is from the simple name
-            // we might get false positives.  But that's fine as we still use 
-            // 'tpeMatches' to make sure the match is correct.
-            var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            // This will always be non-null since we pass loadOnly: false above.
-            Contract.ThrowIfNull(symbolTreeInfo);
-
-            // For each type we care about, see if we can find any derived types
-            // in this index.
-            foreach (var metadataType in metadataTypes)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var baseTypeName = metadataType.Name;
-
-                // For each derived type we find, see if we can map that back 
-                // to an actual symbol.  Then check if that symbol actually fits
-                // our criteria.
-                foreach (var derivedType in symbolTreeInfo.GetDerivedMetadataTypes(baseTypeName, compilation, cancellationToken))
-                {
-                    if (derivedType != null &&
-                        derivedType.Locations.Any(s_isInMetadata) &&
-                        typeMatches(derivedType, metadataTypes))
-                    {
-                        result.Add(derivedType);
-                    }
-                }
-            }
-        }
-
         private static bool TypeHasBaseTypeInSet(INamedTypeSymbol type, SymbolSet set)
         {
             var baseType = type.BaseType?.OriginalDefinition;
@@ -456,88 +526,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return false;
-        }
-
-        private static async Task AddDescendantSourceTypesInProjectAsync(
-            SymbolSet currentSourceAndMetadataTypes,
-            SymbolSet result,
-            Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // We're going to be sweeping over this project over and over until we reach a 
-            // fixed point.  In order to limit GC and excess work, we cache all the semantic
-            // models and DeclaredSymbolInfo for the documents we look at.
-            // Because we're only processing a project at a time, this is not an issue.
-            var cachedModels = new ConcurrentSet<SemanticModel>();
-
-            using var _1 = GetSymbolSet(out var typesToSearchFor);
-            using var _2 = GetSymbolSet(out var tempBuffer);
-
-            typesToSearchFor.AddAll(currentSourceAndMetadataTypes);
-
-            var projectIndex = await ProjectIndex.GetIndexAsync(project, cancellationToken).ConfigureAwait(false);
-
-            // As long as there are new types to search for, keep looping.
-            while (typesToSearchFor.Count > 0)
-            {
-                foreach (var type in typesToSearchFor)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    switch (type.SpecialType)
-                    {
-                        case SpecialType.System_Object:
-                            await AddMatchingTypesAsync(
-                                cachedModels,
-                                projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
-                                result: tempBuffer,
-                                predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object,
-                                cancellationToken).ConfigureAwait(false);
-                            break;
-                        case SpecialType.System_ValueType:
-                            await AddMatchingTypesAsync(
-                                cachedModels,
-                                projectIndex.ValueTypes,
-                                result: tempBuffer,
-                                predicateOpt: null,
-                                cancellationToken).ConfigureAwait(false);
-                            break;
-                        case SpecialType.System_Enum:
-                            await AddMatchingTypesAsync(
-                                cachedModels,
-                                projectIndex.Enums,
-                                result: tempBuffer,
-                                predicateOpt: null,
-                                cancellationToken).ConfigureAwait(false);
-                            break;
-                        case SpecialType.System_MulticastDelegate:
-                            await AddMatchingTypesAsync(
-                                cachedModels,
-                                projectIndex.Delegates,
-                                result: tempBuffer,
-                                predicateOpt: null,
-                                cancellationToken).ConfigureAwait(false);
-                            break;
-                    }
-
-                    await AddSourceTypesThatDeriveFromNameAsync(
-                        typeMatches,
-                        cachedModels,
-                        typesToSearchFor,
-                        projectIndex,
-                        result: tempBuffer,
-                        type.Name,
-                        cancellationToken).ConfigureAwait(false);
-                }
-
-                PropagateTemporaryResults(
-                    result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
-            }
         }
 
         /// <summary>
@@ -569,63 +557,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             tempBuffer.Clear();
-        }
-
-        private static async Task AddSourceTypesThatDeriveFromNameAsync(
-            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
-            ConcurrentSet<SemanticModel> cachedModels,
-            SymbolSet typesToSearchFor,
-            ProjectIndex index,
-            SymbolSet result,
-            string name,
-            CancellationToken cancellationToken)
-        {
-            foreach (var (document, info) in index.NamedTypes[name])
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                cachedModels.Add(semanticModel);
-
-                var resolvedType = info.TryResolve(semanticModel, cancellationToken);
-                if (resolvedType is INamedTypeSymbol namedType &&
-                    typeMatches(namedType, typesToSearchFor))
-                {
-                    result.Add(namedType);
-                }
-            }
-        }
-
-        private static async Task AddMatchingTypesAsync(
-            ConcurrentSet<SemanticModel> cachedModels,
-            MultiDictionary<Document, DeclaredSymbolInfo> documentToInfos,
-            SymbolSet result,
-            Func<INamedTypeSymbol, bool>? predicateOpt,
-            CancellationToken cancellationToken)
-        {
-            foreach (var (document, infos) in documentToInfos)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                Debug.Assert(infos.Count > 0);
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                cachedModels.Add(semanticModel);
-
-                foreach (var info in infos)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var resolvedSymbol = info.TryResolve(semanticModel, cancellationToken);
-                    if (resolvedSymbol is INamedTypeSymbol namedType)
-                    {
-                        if (predicateOpt == null ||
-                            predicateOpt(namedType))
-                        {
-                            result.Add(namedType);
-                        }
-                    }
-                }
-            }
         }
 
         public static PooledDisposer<PooledHashSet<INamedTypeSymbol>> GetSymbolSet(out SymbolSet instance)

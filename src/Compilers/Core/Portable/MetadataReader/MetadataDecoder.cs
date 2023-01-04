@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [StructLayout(LayoutKind.Auto)]
-    internal struct ModifierInfo<TypeSymbol>
+    internal readonly struct ModifierInfo<TypeSymbol>
         where TypeSymbol : class
     {
         internal readonly bool IsOptional;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal struct FieldInfo<TypeSymbol>
+    internal readonly struct FieldInfo<TypeSymbol>
         where TypeSymbol : class
     {
         internal readonly bool IsByRef;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
     }
 
     [StructLayout(LayoutKind.Auto)]
-    internal struct LocalInfo<TypeSymbol>
+    internal readonly struct LocalInfo<TypeSymbol>
         where TypeSymbol : class
     {
         internal readonly byte[] SignatureOpt;

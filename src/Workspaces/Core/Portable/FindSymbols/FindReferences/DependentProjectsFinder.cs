@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var commaIndex = value.IndexOf(',');
-                var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
+                var assemblyName = commaIndex >= 0 ? value[..commaIndex].Trim() : value;
 
                 set.Add(assemblyName);
             }
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // WORKAROUND:
                 // perf check metadata reference using newly created empty compilation with only metadata references.
-                compilation = project.LanguageServices.CompilationFactory!.CreateCompilation(
+                compilation = project.Services.GetRequiredService<ICompilationFactoryService>().CreateCompilation(
                     project.AssemblyName, project.CompilationOptions!);
 
                 compilation = compilation.AddReferences(project.MetadataReferences);
