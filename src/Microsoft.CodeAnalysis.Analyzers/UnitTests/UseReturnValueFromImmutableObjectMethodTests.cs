@@ -4,7 +4,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer,
+    Microsoft.CodeAnalysis.Analyzers.ImmutableObjectMethodAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.ImmutableObjectMethodAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
@@ -23,25 +27,56 @@ class TestSimple
     void M()
     {
         Document document = default(Document);
-        document.WithText(default(SourceText));
+        {|#0:document.WithText(default(SourceText))|};
 
         Project project = default(Project);
-        project.AddDocument(""Sample.cs"", default(SourceText));
+        {|#1:project.AddDocument(""Sample.cs"", default(SourceText))|};
 
         Solution solution = default(Solution);
-        solution.AddProject(""Sample"", ""Sample"", ""CSharp"");
+        {|#2:solution.AddProject(""Sample"", ""Sample"", ""CSharp"")|};
 
         Compilation compilation = default(Compilation);
-        compilation.RemoveAllSyntaxTrees();
+        {|#3:compilation.RemoveAllSyntaxTrees()|};
     }
 }
 ";
-            DiagnosticResult documentExpected = GetCSharpExpectedDiagnostic(10, 9, "Document", "WithText");
-            DiagnosticResult projectExpected = GetCSharpExpectedDiagnostic(13, 9, "Project", "AddDocument");
-            DiagnosticResult solutionExpected = GetCSharpExpectedDiagnostic(16, 9, "Solution", "AddProject");
-            DiagnosticResult compilationExpected = GetCSharpExpectedDiagnostic(19, 9, "Compilation", "RemoveAllSyntaxTrees");
+            DiagnosticResult documentExpected = GetCSharpExpectedDiagnostic(0, "Document", "WithText");
+            DiagnosticResult projectExpected = GetCSharpExpectedDiagnostic(1, "Project", "AddDocument");
+            DiagnosticResult solutionExpected = GetCSharpExpectedDiagnostic(2, "Solution", "AddProject");
+            DiagnosticResult compilationExpected = GetCSharpExpectedDiagnostic(3, "Compilation", "RemoveAllSyntaxTrees");
 
             await VerifyCS.VerifyAnalyzerAsync(source, documentExpected, projectExpected, solutionExpected, compilationExpected);
+        }
+
+        [Fact]
+        public async Task VisualBasicVerifyDiagnosticsAsync()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Text
+
+Class TestSimple
+    Sub M()
+        Dim document As Document = Nothing
+        {|#0:document.WithText(Nothing)|}
+
+        Dim project As Project = Nothing
+        {|#1:project.AddDocument(""Sample.cs"", CType(Nothing, SourceText))|}
+
+        Dim solution As Solution = Nothing
+        {|#2:solution.AddProject(""Sample"", ""Sample"", ""CSharp"")|}
+
+        Dim compilation As Compilation = Nothing
+        {|#3:compilation.RemoveAllSyntaxTrees()|}
+    End Sub
+End Class
+";
+            DiagnosticResult documentExpected = GetVisualBasicExpectedDiagnostic(0, "Document", "WithText");
+            DiagnosticResult projectExpected = GetVisualBasicExpectedDiagnostic(1, "Project", "AddDocument");
+            DiagnosticResult solutionExpected = GetVisualBasicExpectedDiagnostic(2, "Solution", "AddProject");
+            DiagnosticResult compilationExpected = GetVisualBasicExpectedDiagnostic(3, "Compilation", "RemoveAllSyntaxTrees");
+
+            await VerifyVB.VerifyAnalyzerAsync(source, documentExpected, projectExpected, solutionExpected, compilationExpected);
         }
 
         [Fact]
@@ -56,11 +91,28 @@ class TestExtensionMethodTrivia
     void M()
     {
         SyntaxNode node = default(SyntaxNode);
-        node.WithLeadingTrivia<SyntaxNode>();
+        {|#0:node.WithLeadingTrivia<SyntaxNode>()|};
     }
 }";
-            DiagnosticResult expected = GetCSharpExpectedDiagnostic(10, 9, "SyntaxNode", "WithLeadingTrivia");
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(0, "SyntaxNode", "WithLeadingTrivia");
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
+        }
+
+        [Fact]
+        public async Task VisualBasic_VerifyDiagnosticOnExtensionMethodAsync()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Text
+
+Class TestExtensionMethodTrivia
+    Sub M()
+        Dim node As SyntaxNode = Nothing
+        {|#0:node.WithLeadingTrivia()|}
+    End Sub
+End Class";
+            DiagnosticResult expected = GetVisualBasicExpectedDiagnostic(0, "SyntaxNode", "WithLeadingTrivia");
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
@@ -92,11 +144,35 @@ namespace ConsoleApplication1
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string objectName, string methodName) =>
-#pragma warning disable RS0030 // Do not use banned APIs
-            VerifyCS.Diagnostic()
-                .WithLocation(line, column)
-#pragma warning restore RS0030 // Do not use banned APIs
-                .WithArguments(objectName, methodName);
+        [Fact]
+        public async Task VisualBasic_VerifyNoDiagnosticAsync()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Text
+
+Namespace ConsoleApplication1
+    Class TestNoDiagnostic
+        Public Function M() As Document
+            Dim document As Document = Nothing
+            Dim newDocument = document.WithText(Nothing)
+            document = document.WithText(Nothing)
+
+            OtherMethod(document.WithText(Nothing))
+            Return document.WithText(Nothing)
+        End Function
+
+        Public Sub OtherMethod(document As Document)
+        End Sub
+    End Class
+End Namespace";
+            await VerifyVB.VerifyAnalyzerAsync(source);
+        }
+
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int markupKey, string objectName, string methodName) =>
+            VerifyCS.Diagnostic().WithLocation(markupKey).WithArguments(objectName, methodName);
+
+        private static DiagnosticResult GetVisualBasicExpectedDiagnostic(int markupKey, string objectName, string methodName) =>
+            VerifyVB.Diagnostic().WithLocation(markupKey).WithArguments(objectName, methodName);
     }
 }

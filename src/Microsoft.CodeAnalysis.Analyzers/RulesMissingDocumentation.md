@@ -15,7 +15,7 @@ RS1010 |  | Create code actions should have a unique EquivalenceKey for FixAll o
 RS1011 |  | Use code actions that have a unique EquivalenceKey for FixAll occurrences support |
 RS1012 |  | Start action has no registered actions |
 RS1013 |  | Start action has no registered non-end actions |
-RS1014 |  | Do not ignore values returned by methods on immutable objects. |
+RS1014 |  | Do not ignore values returned by methods on immutable objects |
 RS1015 |  | Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor |
 RS1016 |  | Code fix providers should provide FixAll support |
 RS1017 |  | DiagnosticId for analyzers must be a non-null constant |

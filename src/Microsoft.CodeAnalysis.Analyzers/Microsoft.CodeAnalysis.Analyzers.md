@@ -172,7 +172,7 @@ An analyzer start action enables performing stateful analysis over a given code 
 |CodeFix|False|
 ---
 
-## RS1014: Do not ignore values returned by methods on immutable objects.
+## RS1014: Do not ignore values returned by methods on immutable objects
 
 Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.
 

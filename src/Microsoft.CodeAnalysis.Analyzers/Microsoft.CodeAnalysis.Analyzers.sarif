@@ -116,6 +116,24 @@
             ]
           }
         },
+        "RS1014": {
+          "id": "RS1014",
+          "shortDescription": "Do not ignore values returned by methods on immutable objects",
+          "fullDescription": "Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "ImmutableObjectMethodAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS1015": {
           "id": "RS1015",
           "shortDescription": "Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor",
@@ -738,23 +756,6 @@
             "category": "MicrosoftCodeAnalysisPerformance",
             "isEnabledByDefault": true,
             "typeName": "CSharpRegisterActionAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS1014": {
-          "id": "RS1014",
-          "shortDescription": "Do not ignore values returned by methods on immutable objects.",
-          "fullDescription": "Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "MicrosoftCodeAnalysisCorrectness",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpImmutableObjectMethodAnalyzer",
             "languages": [
               "C#"
             ],
