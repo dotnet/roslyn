@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(analyzerConfigSet is object);
                 analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
 
-                // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
+                // https://github.com/dotnet/roslyn/issues/31916: The compiler currently doesn't support
                 // configuring diagnostic reporting on additional text files individually.
                 ImmutableArray<AnalyzerConfigOptionsResult> additionalFileAnalyzerOptions =
                     additionalTextFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
