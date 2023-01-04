@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Selection_cannot_be_in_constructor_initializer">
         <source>Selection cannot be in constructor initializer</source>
-        <target state="new">Selection cannot be in constructor initializer</target>
+        <target state="translated">선택 영역은 생성자 이니셜라이저에 있을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
