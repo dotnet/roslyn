@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // if our member is already Task-Like, and that functionality recognizes
             // ValueTask if it is available, but does not care if it is not.
             var knownTypes = new KnownTypes(compilation);
-            if (knownTypes._taskType == null || knownTypes._taskOfTType == null)
+            if (knownTypes.TaskType == null || knownTypes.TaskOfTType == null)
             {
                 return;
             }
@@ -206,22 +206,22 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
         protected static bool IsTaskLike(ITypeSymbol returnType, KnownTypes knownTypes)
         {
-            if (returnType.Equals(knownTypes._taskType))
+            if (returnType.Equals(knownTypes.TaskType))
             {
                 return true;
             }
 
-            if (returnType.Equals(knownTypes._valueTaskType))
+            if (returnType.Equals(knownTypes.ValueTaskType))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
+            if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(knownTypes._valueTaskOfTTypeOpt))
+            if (returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTTypeOpt))
             {
                 return true;
             }

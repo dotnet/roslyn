@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return parameter switch
             {
-                { EffectiveScope: DeclarationScope.ValueScoped } => CurrentMethodScope,
+                { EffectiveScope: ScopedKind.ScopedValue } => CurrentMethodScope,
                 { RefKind: RefKind.Out, UseUpdatedEscapeRules: true } => ReturnOnlyScope,
                 _ => CallingMethodScope
             };
@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter switch
             {
                 { RefKind: RefKind.None } => CurrentMethodScope,
-                { EffectiveScope: DeclarationScope.RefScoped } => CurrentMethodScope,
+                { EffectiveScope: ScopedKind.ScopedRef } => CurrentMethodScope,
                 { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => ReturnOnlyScope,
                 { HasUnscopedRefAttribute: true, IsThis: false } => CallingMethodScope,
                 _ => ReturnOnlyScope
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refSafeToEscape = GetParameterRefEscape(parameterSymbol);
             if (refSafeToEscape > escapeTo)
             {
-                var isRefScoped = parameterSymbol.EffectiveScope == DeclarationScope.RefScoped;
+                var isRefScoped = parameterSymbol.EffectiveScope == ScopedKind.ScopedRef;
                 Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped || refSafeToEscape == ReturnOnlyScope);
                 var inUnsafeRegion = _inUnsafeRegion;
 
@@ -4446,7 +4446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC: 1. ...
                     // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
                     if (_useUpdatedEscapeRules &&
-                        call.Method.Parameters[0].EffectiveScope == DeclarationScope.ValueScoped)
+                        call.Method.Parameters[0].EffectiveScope == ScopedKind.ScopedValue)
                     {
                         continue;
                     }

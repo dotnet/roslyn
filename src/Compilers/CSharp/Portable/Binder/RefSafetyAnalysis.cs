@@ -394,13 +394,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // | ref Span<int> s        | calling method     | calling method |
             // | scoped ref Span<int> s | current method     | calling method |
 
-            var scopedModifier = _useUpdatedEscapeRules ? local.Scope : DeclarationScope.Unscoped;
-            if (scopedModifier != DeclarationScope.Unscoped)
+            var scopedModifier = _useUpdatedEscapeRules ? local.Scope : ScopedKind.None;
+            if (scopedModifier != ScopedKind.None)
             {
-                refEscapeScope = scopedModifier == DeclarationScope.RefScoped ?
+                refEscapeScope = scopedModifier == ScopedKind.ScopedRef ?
                     _localScopeDepth :
                     CurrentMethodScope;
-                valEscapeScope = scopedModifier == DeclarationScope.ValueScoped ?
+                valEscapeScope = scopedModifier == ScopedKind.ScopedValue ?
                     _localScopeDepth :
                     CallingMethodScope;
             }
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localSymbol = (SourceLocalSymbol)node.LocalSymbol;
                 (uint refEscapeScope, uint valEscapeScope) = GetLocalScopes(localSymbol);
 
-                if (_useUpdatedEscapeRules && localSymbol.Scope != DeclarationScope.Unscoped)
+                if (_useUpdatedEscapeRules && localSymbol.Scope != ScopedKind.None)
                 {
                     // If the local has a scoped modifier, then the lifetime is not inferred from
                     // the initializer. Validate the escape values for the initializer instead.

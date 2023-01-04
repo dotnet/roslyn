@@ -227,6 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
 
+            if (!hasBody)
+                modifiers -= DeclarationModifiers.Async;
+
             return SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
                 modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
