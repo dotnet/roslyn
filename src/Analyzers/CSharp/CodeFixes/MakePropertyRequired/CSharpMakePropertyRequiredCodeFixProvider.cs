@@ -55,7 +55,7 @@ internal sealed class CSharpMakePropertyRequiredCodeFixProvider : SyntaxEditorBa
             return;
         }
 
-        var propertySymbol = compilation.GetSemanticModel(syntaxTree).GetDeclaredSymbol(propertyDeclaration, cancellationToken);
+        var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
 
         if (propertySymbol is null)
             return;
