@@ -6786,7 +6786,6 @@ class C
             verifier.VerifyIL("C.M2", expectedIL);
         }
 
-
         [Theory]
         [InlineData("  3 and int t")]
         [InlineData("<=1 and int t")]
