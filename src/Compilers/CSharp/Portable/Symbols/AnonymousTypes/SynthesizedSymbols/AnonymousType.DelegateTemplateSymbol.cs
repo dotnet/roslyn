@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeParams = containingType.TypeParameters;
 
                     int parameterCount = typeParams.Length - (voidReturnTypeOpt is null ? 1 : 0);
-                    var parameters = ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, DeclarationScope Scope, ConstantValue? DefaultValue, bool IsParams)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, ScopedKind Scope, ConstantValue? DefaultValue, bool IsParams)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
-                        parameters.Add((TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], DeclarationScope.Unscoped, DefaultValue: null, IsParams: false));
+                        parameters.Add((TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], ScopedKind.None, DefaultValue: null, IsParams: false));
                     }
 
                     // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var returnsVoid = returnParameter.Type.IsVoidType();
 
                     var parameterCount = fields.Length - 1;
-                    var parameters = ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, DeclarationScope Scope, ConstantValue? DefaultValue, bool IsParams)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, ScopedKind Scope, ConstantValue? DefaultValue, bool IsParams)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
                         var field = fields[i];
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeMap typeMap)
                 {
                     var parameterCount = fields.Length - 1;
-                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, ConstantValue?, bool)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, ScopedKind, ConstantValue?, bool)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
                         var field = fields[i];
