@@ -179,14 +179,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
-            }
-
             if (this.HasUnscopedRefAttribute && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor));
+            }
+
+            if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
         }
 
@@ -195,8 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
         internal sealed override DeclarationScope EffectiveScope => _scope;
-
-        internal abstract override bool HasUnscopedRefAttribute { get; }
 
         internal sealed override bool UseUpdatedEscapeRules => _container?.UseUpdatedEscapeRules ?? false;
     }
