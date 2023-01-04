@@ -4022,7 +4022,7 @@ public record A(int X, int Y);";
 
             var compilation = CreateCompilation(new[] { source1, source2, source3 });
 
-            var options = compilation.Options;
+            CSharpCompilationOptions options;
             if (treeBasedOptions)
             {
                 // Enable disabled by default analyzer for first source file with analyzer config options.
