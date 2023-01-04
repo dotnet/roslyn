@@ -243,17 +243,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     for (var i = 0; i < boundConstructorArguments.Length; i++)
                     {
-                        TypeSymbol parameterType;
-                        if (i < attributeConstructor.Parameters.Length)
+                        var parameter = GetCorrespondingParameter(i, attributeConstructor.Parameters, argsToParamsOpt, expanded);
+                        if (parameter is null)
                         {
-                            parameterType = attributeConstructor.Parameters[i].Type;
+                            continue;
                         }
-                        else
-                        {
-                            var parameter = attributeConstructor.Parameters[^1];
-                            Debug.Assert(parameter.IsParams);
-                            parameterType = parameter.Type is ArrayTypeSymbol arrayType && arrayType.IsSZArray ? arrayType.ElementType : parameter.Type;
-                        }
+
+                        var parameterType = expanded && parameter.IsParams && parameter.Type is ArrayTypeSymbol arrayType && arrayType.IsSZArray ? arrayType.ElementType : parameter.Type;
 
                         // An enum constant as an object attribute argument triggers serialization of the enum's type.
                         // This would fail for enums nested in a type referencing a function pointer, because
