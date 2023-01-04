@@ -866,7 +866,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
-
             if (compilation == null)
             {
                 return Failed;
