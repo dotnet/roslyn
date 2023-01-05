@@ -862,6 +862,11 @@
         <target state="translated">Vytvoření neplatného objektu</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
+        <source>Cannot use primary constructor parameter '{0}' in this context.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">Pro vlastnost nebo indexer {0} i jejich přístupový objekt nelze zadat modifikátory readonly. Odeberte jeden z nich.</target>

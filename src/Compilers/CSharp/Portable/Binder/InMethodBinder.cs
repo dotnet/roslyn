@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -24,6 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MultiDictionary<string, ParameterSymbol> _lazyParameterMap;
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
+
+#if DEBUG
+        /// <summary>
+        /// This map is used to by MethodCompiler.BindMethodBody and Binder.BindIdentifier 
+        /// to validate some assumptions around identifiers.
+        /// </summary>
+        public ConcurrentDictionary<IdentifierNameSyntax, int> IdentifierMap;
+#endif
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)

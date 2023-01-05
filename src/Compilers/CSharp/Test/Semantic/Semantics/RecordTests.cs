@@ -22079,7 +22079,7 @@ partial record C
 }
 ");
 
-            var comp = CreateCompilation(src);
+            var comp = (CSharpCompilation)verifier.Compilation;
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -22094,6 +22094,8 @@ partial record C
             Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
+
+            Assert.Empty(((SynthesizedPrimaryConstructor)symbol.GetSymbol().ContainingSymbol).GetCapturedParameters());
         }
 
         [Fact]
@@ -24672,9 +24674,9 @@ record C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,20): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                // (4,20): error CS9500: Cannot use primary constructor parameter 'int X' in this context.
                 //     static int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 20)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -24684,9 +24686,9 @@ record C(int X)
             Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
 
             var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Equal(SymbolKind.Property, symbol!.Kind);
-            Assert.Equal("System.Int32 C.X { get; init; }", symbol.ToTestDisplayString());
-            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
@@ -24703,9 +24705,12 @@ record C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,19): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                // (4,19): error CS9500: Cannot use primary constructor parameter 'int X' in this context.
                 //     const int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 19),
+                // (4,19): error CS0133: The expression being assigned to 'C.Z' must be constant
+                //     const int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "X + 1").WithArguments("C.Z").WithLocation(4, 19)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -24715,9 +24720,9 @@ record C(int X)
             Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
 
             var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Equal(SymbolKind.Property, symbol!.Kind);
-            Assert.Equal("System.Int32 C.X { get; init; }", symbol.ToTestDisplayString());
-            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
@@ -29525,9 +29530,12 @@ record C2(int P)
                 // (6,15): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record C2(int P)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(6, 15),
-                // (8,15): error CS0110: The evaluation of the constant value for 'C2.P' involves a circular definition
+                // (8,19): error CS9500: Cannot use primary constructor parameter 'int P' in this context.
                 //     const int P = P;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "P").WithArguments("C2.P").WithLocation(8, 15)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "P").WithArguments("int P").WithLocation(8, 19),
+                // (8,19): error CS0133: The expression being assigned to 'C2.P' must be constant
+                //     const int P = P;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "P").WithArguments("C2.P").WithLocation(8, 19)
                 );
         }
 

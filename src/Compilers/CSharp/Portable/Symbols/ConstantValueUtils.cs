@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = symbol.DeclaringCompilation;
             var binderFactory = compilation.GetBinderFactory((SyntaxTree)symbol.Locations[0].SourceTree);
             var binder = binderFactory.GetBinder(equalsValueNode);
+
+            binder = new WithPrimaryConstructorParametersBinder(symbol.ContainingType, binder);
+
             if (earlyDecodingWellKnownAttributes)
             {
                 binder = new EarlyWellKnownAttributeBinder(binder);

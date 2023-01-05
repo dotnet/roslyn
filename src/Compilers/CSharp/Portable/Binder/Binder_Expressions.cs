@@ -1468,6 +1468,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
+#if DEBUG
+            adjustIdentifierMapIfAny(node, invoked);
+#endif
+
             // If the syntax tree is ill-formed and the identifier is missing then we've already
             // given a parse error. Just return an error local and continue with analysis.
             if (node.IsMissing)
@@ -1619,6 +1623,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             lookupResult.Free();
             return expression;
+
+#if DEBUG
+            // Here we record all identifiers that we are trying to bind so that MethodCompiler.BindMethodBody
+            // could assert that we are able to syntactically locate all of them.
+            // Correctness of SynthesizedPrimaryConstructor.GetCapturedParameters depends on this.
+            void adjustIdentifierMapIfAny(SimpleNameSyntax node, bool invoked)
+            {
+                if (node is IdentifierNameSyntax id && !this.IsSemanticModelBinder)
+                {
+                    Binder current = this;
+                    while (current is not (null or InMethodBinder { IdentifierMap: not null }))
+                    {
+                        current = current.Next;
+                    }
+
+                    if (current is InMethodBinder { IdentifierMap: { } identifierMap })
+                    {
+                        // Assert that we can always figure out lookup mode from syntax
+                        Debug.Assert(SyntaxFacts.IsInvoked(id) == invoked);
+
+                        if (identifierMap.ContainsKey(id))
+                        {
+                            identifierMap[id] |= 2;
+                        }
+                        else
+                        {
+                            identifierMap.Add(id, 2);
+                        }
+                    }
+                }
+            }
+#endif
         }
 
         /// <summary>
@@ -1880,11 +1916,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
+                        var primaryCtor = parameter.ContainingSymbol as SynthesizedPrimaryConstructor;
+
+                        if (primaryCtor is not null &&
+                            (InParameterDefaultValue ||
+                             InAttributeArgument ||
+                             this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } contaningMember || // We are not in an instance member
+                             (object)contaningMember.ContainingSymbol != primaryCtor.ContainingSymbol || // The member doesn't belong to our type, i.e. from nested type
+                             ((object)contaningMember != primaryCtor && contaningMember is MethodSymbol { MethodKind: MethodKind.Constructor })) && // We are in a non-primary instance constructor
+                            !IsInsideNameof)
                         {
-                            isError = true;
-                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                            Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
                         }
+                        else
+                        {
+                            // Records never capture parameters within the type
+                            Debug.Assert(primaryCtor is null ||
+                                         primaryCtor.ContainingSymbol is NamedTypeSymbol { IsRecord: false, IsRecordStruct: false } ||
+                                         (this.ContainingMember() is FieldSymbol || (object)primaryCtor == this.ContainingMember()) ||
+                                         IsInsideNameof);
+
+                            if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
+                            {
+                                isError = true;
+                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                            }
+                            else if (primaryCtor is not null)
+                            {
+                                // Quick check if this reference itself causes the parameter capture in a field 
+                                bool capture = (this.ContainingMember() is MethodSymbol containingMethod && (object)primaryCtor != containingMethod);
+
+                                if (capture &&
+                                    (parameter.RefKind != RefKind.None || parameter.Type.IsRefLikeType) &&
+                                    !IsInsideNameof)
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                                }
+                                else if (primaryCtor is { ThisParameter.RefKind: not RefKind.None } &&
+                                         this.ContainingMemberOrLambda is MethodSymbol { MethodKind: MethodKind.AnonymousFunction or MethodKind.LocalFunction } &&
+                                         !IsInsideNameof)
+                                {
+                                    // Captured in a lambda.
+
+                                    if (capture || // Quick check if this reference itself causes the parameter capture in a field  
+                                        primaryCtor.GetCapturedParameters().ContainsKey(parameter)) // check other references in the entire type
+                                    {
+                                        Error(diagnostics, ErrorCode.ERR_ThisStructNotInAnonMeth, node);
+                                    }
+                                }
+                            }
+                        }
+
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 

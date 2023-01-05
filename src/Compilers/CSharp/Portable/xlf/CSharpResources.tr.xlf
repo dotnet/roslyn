@@ -862,6 +862,11 @@
         <target state="translated">Geçersiz nesne oluşturma</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
+        <source>Cannot use primary constructor parameter '{0}' in this context.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">'readonly' değiştiricileri '{0}' özelliğinin veya dizin oluşturucusunun her ikisiyle birlikte erişimcilerinde de değiştirilemez. Bunlardan birini kaldırın.</target>

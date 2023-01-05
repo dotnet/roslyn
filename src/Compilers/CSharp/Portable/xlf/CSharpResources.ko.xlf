@@ -862,6 +862,11 @@
         <target state="translated">잘못된 개체 만들기</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
+        <source>Cannot use primary constructor parameter '{0}' in this context.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">'{0}' 속성 또는 인덱서 및 해당 접근자 둘 다에 'readonly' 한정자를 지정할 수 없습니다. 둘 중 하나를 제거하세요.</target>

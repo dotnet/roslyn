@@ -2618,9 +2618,9 @@ record struct C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,20): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                // (4,20): error CS9500: Cannot use primary constructor parameter 'int X' in this context.
                 //     static int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 20)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2630,9 +2630,9 @@ record struct C(int X)
             Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
 
             var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Equal(SymbolKind.Property, symbol!.Kind);
-            Assert.Equal("System.Int32 C.X { get; set; }", symbol.ToTestDisplayString());
-            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
@@ -2649,9 +2649,12 @@ record struct C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,19): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                // (4,19): error CS9500: Cannot use primary constructor parameter 'int X' in this context.
                 //     const int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 19),
+                // (4,19): error CS0133: The expression being assigned to 'C.Z' must be constant
+                //     const int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "X + 1").WithArguments("C.Z").WithLocation(4, 19)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2661,9 +2664,9 @@ record struct C(int X)
             Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
 
             var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Equal(SymbolKind.Property, symbol!.Kind);
-            Assert.Equal("System.Int32 C.X { get; set; }", symbol.ToTestDisplayString());
-            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));

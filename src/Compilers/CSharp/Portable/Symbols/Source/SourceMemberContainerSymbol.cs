@@ -1019,6 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected sealed class MembersAndInitializers
         {
+            internal readonly SynthesizedPrimaryConstructor? PrimaryConstructor;
             internal readonly ImmutableArray<Symbol> NonTypeMembers;
             internal readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers;
             internal readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers;
@@ -1027,6 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal readonly bool IsNullableEnabledForStaticConstructorsAndFields;
 
             public MembersAndInitializers(
+                SynthesizedPrimaryConstructor? primaryConstructor,
                 ImmutableArray<Symbol> nonTypeMembers,
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers,
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> instanceInitializers,
@@ -1043,6 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!nonTypeMembers.Any(static s => s is TypeSymbol));
                 Debug.Assert(haveIndexers == nonTypeMembers.Any(static s => s.IsIndexer()));
 
+                this.PrimaryConstructor = primaryConstructor;
                 this.NonTypeMembers = nonTypeMembers;
                 this.StaticInitializers = staticInitializers;
                 this.InstanceInitializers = instanceInitializers;
@@ -1455,6 +1458,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 switch (m.Kind)
                 {
+                    case SymbolKind.Method:
+                        // PROTOTYPE(PrimaryConstructors): Locate other places where these fields should be asked for. 
+                        if (m is SynthesizedPrimaryConstructor primaryCtor)
+                        {
+                            foreach (var f in primaryCtor.GetBackingFields())
+                            {
+                                yield return f;
+                            }
+                        }
+                        break;
+
                     case SymbolKind.Field:
                         if (m is TupleErrorFieldSymbol)
                         {
@@ -2890,6 +2904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : mergeInitializers();
 
                 return new MembersAndInitializers(
+                    declaredMembers.PrimaryConstructor,
                     nonTypeMembers,
                     declaredMembers.StaticInitializers,
                     instanceInitializers,
@@ -3179,6 +3194,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return builder.ToImmutableAndFree();
+            }
+        }
+
+        internal SynthesizedPrimaryConstructor? PrimaryConstructor
+        {
+            get
+            {
+                var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
+                if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)
+                {
+                    return declared.PrimaryConstructor;
+                }
+
+                return GetMembersAndInitializers().PrimaryConstructor;
             }
         }
 

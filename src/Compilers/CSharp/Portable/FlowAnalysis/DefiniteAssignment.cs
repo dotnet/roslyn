@@ -646,11 +646,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 diagnostics.AddRange(this.Diagnostics);
 
-                if (CurrentSymbol is SynthesizedPrimaryConstructor)
+                if (CurrentSymbol is SynthesizedPrimaryConstructor primaryCtor)
                 {
                     foreach (ParameterSymbol parameter in MethodParameters)
                     {
-                        if (_readParameters?.Contains(parameter) != true)
+                        if (_readParameters?.Contains(parameter) != true &&
+                            !primaryCtor.GetCapturedParameters().ContainsKey(parameter))
                         {
                             // PROTOTYPE(PrimaryConstructors): Adjust message?
                             diagnostics.Add(ErrorCode.WRN_UnreadRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);

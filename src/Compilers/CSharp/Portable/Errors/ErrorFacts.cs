@@ -2273,6 +2273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.ERR_InvalidPrimaryConstructorParameterReference:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

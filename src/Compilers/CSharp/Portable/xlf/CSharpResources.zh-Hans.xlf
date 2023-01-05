@@ -862,6 +862,11 @@
         <target state="translated">对象创建无效</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
+        <source>Cannot use primary constructor parameter '{0}' in this context.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">不能在属性或索引器 "{0}" 及其访问器上指定 "readonly" 修饰符。请删除其中一个。</target>
