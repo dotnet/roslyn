@@ -14,7 +14,9 @@ internal static class WorkspaceConfigurationOptionsStorage
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
-            DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences));
+            DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences),
+            DisableReferenceManagerRecoverableMetadata: globalOptions.GetOption(DisableReferenceManagerRecoverableMetadata),
+            DisableBackgroundCompilation: globalOptions.GetOption(DisableBackgroundCompilation));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "FeatureManager/Storage", nameof(Database), WorkspaceConfigurationOptions.Default.CacheStorage,
