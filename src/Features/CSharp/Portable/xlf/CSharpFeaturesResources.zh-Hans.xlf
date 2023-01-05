@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_solution">
         <source>Enable nullable reference types in solution</source>
-        <target state="new">Enable nullable reference types in solution</target>
+        <target state="translated">在解决方案中启用可为 null 的引用类型</target>
         <note />
       </trans-unit>
       <trans-unit id="Global_using_directives">
