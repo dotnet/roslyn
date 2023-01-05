@@ -611,7 +611,7 @@ static unsafe class C
 """;
             CompileAndVerify(text,
                 options: TestOptions.UnsafeReleaseExe,
-                verify: Verification.Fails, expectedOutput: @"ABCDDD").VerifyIL("C.Main", 
+                verify: Verification.Fails, expectedOutput: @"ABCDDD").VerifyIL("C.Main",
 """
 {
   // Code size       35 (0x23)
@@ -639,7 +639,6 @@ static unsafe class C
 }
 """);
         }
-        
         [Fact]
         public void TestMixedBlockInit()
         {
