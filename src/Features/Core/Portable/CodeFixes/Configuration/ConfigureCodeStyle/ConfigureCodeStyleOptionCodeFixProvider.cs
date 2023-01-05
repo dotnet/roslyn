@@ -79,11 +79,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 // For example, if the option value is CodeStyleOption<bool>, we will have two nested actions, one for 'true' setting and one
                 // for 'false' setting. If the option value is CodeStyleOption<SomeEnum>, we will have a nested action for each enum field.
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
-                var optionSet = project.Solution.Options;
                 var hasMultipleOptions = codeStyleOptions.Length > 1;
-                foreach (var (optionKey, codeStyleOption, editorConfigLocation, perLanguageOption) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
+                foreach (var (optionKey, editorConfigLocation) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
                 {
-                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, codeStyleOption, editorConfigLocation, diagnostic, perLanguageOption, optionSet, hasMultipleOptions);
+                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, editorConfigLocation, diagnostic, hasMultipleOptions);
                     if (topLevelAction != null)
                     {
                         nestedActions.Add(topLevelAction);
@@ -106,11 +105,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             // Local functions
             TopLevelConfigureCodeStyleOptionCodeAction GetCodeActionForCodeStyleOption(
                 OptionKey optionKey,
-                ICodeStyleOption codeStyleOption,
                 IEditorConfigStorageLocation2 editorConfigLocation,
                 Diagnostic diagnostic,
-                bool isPerLanguage,
-                OptionSet optionSet,
                 bool hasMultipleOptions)
             {
                 // Add a code action for every valid value of the given code style option.
@@ -119,18 +115,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
 
                 string optionName = null;
-                if (codeStyleOption.Value is bool)
+                var defaultValue = (ICodeStyleOption)optionKey.Option.DefaultValue;
+                if (defaultValue.Value is bool)
                 {
                     foreach (var boolValue in s_boolValues)
                     {
-                        AddCodeActionWithOptionValue(codeStyleOption, boolValue);
+                        AddCodeActionWithOptionValue(defaultValue, boolValue);
                     }
                 }
-                else if (codeStyleOption.Value?.GetType() is Type t && t.IsEnum)
+                else if (defaultValue.Value?.GetType() is Type t && t.IsEnum)
                 {
                     foreach (var enumValue in Enum.GetValues(t))
                     {
-                        AddCodeActionWithOptionValue(codeStyleOption, enumValue);
+                        AddCodeActionWithOptionValue(defaultValue, enumValue);
                     }
                 }
 
@@ -163,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                         nestedActions.Add(
                             SolutionChangeAction.Create(
                                 parts.optionValue,
-                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken),
+                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, optionKey.Option.IsPerLanguage, project, cancellationToken),
                                 parts.optionValue));
                     }
                 }

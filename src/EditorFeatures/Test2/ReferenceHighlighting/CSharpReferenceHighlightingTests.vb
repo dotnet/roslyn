@@ -40,6 +40,78 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestMethodInheritance1(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class Goo
+                            {
+                                public virtual void {|Definition:$$M|}()
+                                {
+                                }
+
+                                void X()
+                                {
+                                    this.{|Reference:M|}();
+                                    new Derived().{|Reference:M|}();
+                                }
+                            }
+                        </Document>
+                        <Document>
+                            class Derived : Goo
+                            {
+                                public overriide void M()
+                                {
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestMethodInheritance2(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class Goo : Base
+                            {
+                                public override void {|Definition:$$M|}()
+                                {
+                                }
+
+                                void X()
+                                {
+                                    this.{|Reference:M|}();
+
+                                    // This result is not found, because it could never be a reference to Goo.M.
+                                    new Derived().M();
+                                }
+                            }
+                        </Document>
+                        <Document>
+                            class Base
+                            {
+                                public virtual void M()
+                                {
+                                }
+                            }
+                        </Document>
+                        <Document>
+                            class Derived : Base
+                            {
+                                public override void M()
+                                {
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVerifyHighlightsForScriptReference(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>

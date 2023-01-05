@@ -144,20 +144,10 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "main-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.5p3]"
     },
-    "release/dev17.6-vs-deps": {
+    "release/dev17.6": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

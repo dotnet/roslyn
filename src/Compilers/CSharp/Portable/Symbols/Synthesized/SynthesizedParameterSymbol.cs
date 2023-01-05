@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal virtual ConstantValue? DefaultValueFromAttributes => null;
+
         internal override bool IsIDispatchConstant
         {
             get { throw ExceptionUtilities.Unreachable(); }
@@ -187,6 +189,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+            }
+
+            var defaultValue = this.ExplicitDefaultConstantValue;
+            if (defaultValue != ConstantValue.NotAvailable &&
+                DefaultValueFromAttributes == ConstantValue.NotAvailable &&
+                this.ContainingSymbol is SynthesizedDelegateInvokeMethod or SynthesizedClosureMethod)
+            {
+                var attrData = defaultValue.SpecialType switch
+                {
+                    SpecialType.System_Decimal => compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue),
+                    SpecialType.System_DateTime => compilation.SynthesizeDateTimeConstantAttribute(defaultValue.DateTimeValue),
+                    _ => null
+                };
+                AddSynthesizedAttribute(ref attributes, attrData);
             }
         }
 
@@ -370,6 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue ?? _defaultValue;
+
+        internal override ConstantValue? DefaultValueFromAttributes => _baseParameterForAttributes?.DefaultValueFromAttributes;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {

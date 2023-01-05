@@ -57,14 +57,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
 
-            // If synthesizing a delegate, check that necessary attributes are available.
-            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod { Parameters: var synthesizedParameters })
+            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod invoke)
             {
-                if (synthesizedParameters is [.., { IsParams: true }])
+                // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
+                if (invoke.IsParams())
                 {
-                    checkWellKnownMemberAvailable(WellKnownMember.System_ParamArrayAttribute__ctor, ref useSiteInfo);
+                    checkWellKnownMemberAvailable(
+                        WellKnownMember.System_ParamArrayAttribute__ctor,
+                        ref useSiteInfo);
                 }
-                if (synthesizedParameters.Any(p => p.HasUnscopedRefAttribute))
+
+                // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                // check that the corresponding `*ConstantAttribute` is available.
+                foreach (var p in invoke.Parameters)
+                {
+                    var defaultValue = p.ExplicitDefaultConstantValue;
+                    if (defaultValue != ConstantValue.NotAvailable)
+                    {
+                        WellKnownMember? member = defaultValue.SpecialType switch
+                        {
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            _ => null
+                        };
+                        if (member != null)
+                        {
+                            checkWellKnownMemberAvailable(
+                                member.GetValueOrDefault(),
+                                ref useSiteInfo);
+                        }
+                    }
+                }
+
+                // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
+                if (invoke.Parameters.Any(p => p.HasUnscopedRefAttribute))
                 {
                     checkWellKnownMemberAvailable(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor, ref useSiteInfo);
                 }
