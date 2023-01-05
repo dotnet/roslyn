@@ -96,19 +96,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         public static string? GetEditorConfigText(this OptionsCollection options)
         {
-            var (text, _) = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
+            var text = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
             return text?.ToString();
         }
 
-        public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey2, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
+        public static SourceText? ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
         {
             if (options.Count == 0)
             {
-                var result = explicitEditorConfig is object ? SourceText.From(explicitEditorConfig, Encoding.UTF8) : null;
-                return (result, options);
+                return explicitEditorConfig is object ? SourceText.From(explicitEditorConfig, Encoding.UTF8) : null;
             }
-
-            var remainingOptions = new List<KeyValuePair<OptionKey2, object?>>();
 
             var analyzerConfig = new StringBuilder();
             if (explicitEditorConfig is object)
@@ -123,39 +120,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             analyzerConfig.AppendLine();
             analyzerConfig.AppendLine($"[*.{defaultFileExtension}]");
 
-#if CODE_STYLE
-            var optionSet = new DummyAnalyzerConfigOptions();
-#else
-            var optionSet = options.ToOptionSet();
-#endif
-
-            foreach (var (key, value) in options)
+            foreach (var (optionKey, value) in options)
             {
                 if (value is NamingStylePreferences namingStylePreferences)
                 {
-                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, key.Language!, analyzerConfig);
+                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, optionKey.Language!, analyzerConfig);
                     continue;
                 }
 
-                var editorConfigStorageLocation = key.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
-                if (editorConfigStorageLocation is null)
-                {
-                    remainingOptions.Add(KeyValuePairUtil.Create<OptionKey2, object?>(key, value));
-                    continue;
-                }
+                var editorConfigStorageLocation = optionKey.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().Single();
 
-                analyzerConfig.AppendLine(editorConfigStorageLocation.GetEditorConfigString(value, optionSet));
+                var line = editorConfigStorageLocation.GetEditorConfigString(value);
+                analyzerConfig.AppendLine(line);
             }
 
-            return (SourceText.From(analyzerConfig.ToString(), Encoding.UTF8), remainingOptions);
+            return SourceText.From(analyzerConfig.ToString(), Encoding.UTF8);
         }
-
-#if CODE_STYLE
-        internal sealed class DummyAnalyzerConfigOptions : AnalyzerConfigOptions
-        {
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-                => throw new NotImplementedException();
-        }
-#endif
     }
 }

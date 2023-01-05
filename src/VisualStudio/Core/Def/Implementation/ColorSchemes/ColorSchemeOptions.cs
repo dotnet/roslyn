@@ -13,14 +13,12 @@ internal sealed class ColorSchemeOptions
     public static readonly Option2<ColorSchemeName> ColorScheme = new(
         "ColorSchemeOptions",
         "ColorSchemeName",
-        defaultValue: ColorSchemeName.VisualStudio2019,
-        storageLocation: new RoamingProfileStorageLocation(ColorSchemeSettingKey));
+        defaultValue: ColorSchemeName.VisualStudio2019);
 
     public static readonly Option2<UseEnhancedColors> LegacyUseEnhancedColors = new(
         "ColorSchemeOptions",
         "LegacyUseEnhancedColors",
-        defaultValue: UseEnhancedColors.Default,
-        storageLocation: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
+        defaultValue: UseEnhancedColors.Default);
 
     public enum UseEnhancedColors
     {

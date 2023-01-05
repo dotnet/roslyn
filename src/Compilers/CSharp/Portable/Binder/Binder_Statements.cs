@@ -243,7 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!argument.HasAnyErrors)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
-                argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
             }
             else
             {
@@ -1103,40 +1102,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            if (localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
             {
                 localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }
 
             localSymbol.SetTypeWithAnnotations(declTypeOpt);
-
-            if (initializerOpt != null)
-            {
-                if (UseUpdatedEscapeRules && localSymbol.Scope != DeclarationScope.Unscoped)
-                {
-                    // If the local has a scoped modifier, then the lifetime is not inferred from
-                    // the initializer. Validate the escape values for the initializer instead.
-
-                    Debug.Assert(localSymbol.RefKind == RefKind.None ||
-                        localSymbol.RefEscapeScope >= GetRefEscape(initializerOpt, LocalScopeDepth));
-
-                    if (declTypeOpt.Type.IsRefLikeType)
-                    {
-                        initializerOpt = ValidateEscape(initializerOpt, localSymbol.ValEscapeScope, isByRef: false, diagnostics);
-                    }
-                }
-                else
-                {
-                    var currentScope = LocalScopeDepth;
-
-                    localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
-
-                    if (localSymbol.RefKind != RefKind.None)
-                    {
-                        localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
-                    }
-                }
-            }
 
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
 
@@ -1466,13 +1437,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(op1) : BindValueKind.RValue;
             var op2 = BindValue(rhsExpr, diagnostics, rhsKind);
 
-            if (op1.Kind == BoundKind.DiscardExpression)
+            bool discardAssignment = op1.Kind == BoundKind.DiscardExpression;
+            if (discardAssignment)
             {
                 op2 = BindToNaturalType(op2, diagnostics);
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            return BindAssignment(node, op1, op2, isRef, verifyEscapeSafety: true, diagnostics);
+            return BindAssignment(node, op1, op2, isRef, diagnostics);
         }
 
         private static BindValueKind GetRequiredRHSValueKindForRefAssignment(BoundExpression boundLeft)
@@ -1515,7 +1487,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression op1,
             BoundExpression op2,
             bool isRef,
-            bool verifyEscapeSafety,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(op1 != null);
@@ -1542,64 +1513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     op2 = BindToNaturalType(op2, diagnostics);
                 }
-
-                if (verifyEscapeSafety)
-                {
-                    if (isRef)
-                    {
-                        // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#rules-ref-reassignment
-                        // For a ref reassignment in the form `e1 = ref e2` both of the following must be true:
-                        // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
-                        // 2. `e1` must have the same *safe-to-escape* as `e2`
-
-                        var leftEscape = GetRefEscape(op1, LocalScopeDepth);
-                        var rightEscape = GetRefEscape(op2, LocalScopeDepth);
-                        if (leftEscape < rightEscape)
-                        {
-                            var errorCode = (rightEscape, this.InUnsafeRegion) switch
-                            {
-                                (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
-                                (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
-                                (_, false) => ErrorCode.ERR_RefAssignNarrower,
-                                (_, true) => ErrorCode.WRN_RefAssignNarrower
-                            };
-
-                            Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
-                            if (!this.InUnsafeRegion)
-                            {
-                                op2 = ToBadExpression(op2);
-                            }
-                        }
-                        else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
-                        {
-                            leftEscape = GetValEscape(op1, LocalScopeDepth);
-                            rightEscape = GetValEscape(op2, LocalScopeDepth);
-
-                            Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
-
-                            // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
-                            // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
-                            // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
-                            if (leftEscape > rightEscape)
-                            {
-                                Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
-
-                                var errorCode = this.InUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
-                                Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
-                                if (!this.InUnsafeRegion)
-                                {
-                                    op2 = ToBadExpression(op2);
-                                }
-                            }
-                        }
-                    }
-
-                    if (op1.Type.IsRefLikeType)
-                    {
-                        var leftEscape = GetValEscape(op1, LocalScopeDepth);
-                        op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
-                    }
-                }
             }
             else
             {
@@ -1619,6 +1532,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
+        }
+    }
+
+    partial class RefSafetyAnalysis
+    {
+        private void ValidateAssignment(
+            SyntaxNode node,
+            BoundExpression op1,
+            BoundExpression op2,
+            bool isRef,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(op1 != null);
+            Debug.Assert(op2 != null);
+
+            if (!op1.HasAnyErrors)
+            {
+                Debug.Assert(op1.Type is { });
+
+                bool hasErrors = false;
+                if (isRef)
+                {
+                    // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#rules-ref-reassignment
+                    // For a ref reassignment in the form `e1 = ref e2` both of the following must be true:
+                    // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
+                    // 2. `e1` must have the same *safe-to-escape* as `e2`
+
+                    var leftEscape = GetRefEscape(op1, _localScopeDepth);
+                    var rightEscape = GetRefEscape(op2, _localScopeDepth);
+                    if (leftEscape < rightEscape)
+                    {
+                        var errorCode = (rightEscape, _inUnsafeRegion) switch
+                        {
+                            (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                            (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                            (_, false) => ErrorCode.ERR_RefAssignNarrower,
+                            (_, true) => ErrorCode.WRN_RefAssignNarrower
+                        };
+
+                        Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                        if (!_inUnsafeRegion)
+                        {
+                            hasErrors = true;
+                        }
+                    }
+                    else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
+                    {
+                        leftEscape = GetValEscape(op1, _localScopeDepth);
+                        rightEscape = GetValEscape(op2, _localScopeDepth);
+
+                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+
+                        // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
+                        // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
+                        // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
+                        if (leftEscape > rightEscape)
+                        {
+                            Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
+
+                            var errorCode = _inUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
+                            Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                            if (!_inUnsafeRegion)
+                            {
+                                hasErrors = true;
+                            }
+                        }
+                    }
+                }
+
+                if (!hasErrors && op1.Type.IsRefLikeType)
+                {
+                    var leftEscape = GetValEscape(op1, _localScopeDepth);
+                    ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
+                }
+            }
 
             static object getName(BoundExpression expr)
             {
@@ -1639,7 +1627,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return "";
             }
         }
+    }
 
+    partial class Binder
+    {
         internal static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
         {
             if (expr is null)
@@ -1788,7 +1779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (object)sourceProperty != null &&
                     sourceProperty.IsAutoPropertyWithGetAccessor &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
         }
@@ -1858,13 +1849,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocalFunction(nameToken);
         }
 
-        /// <summary>
-        /// Returns a value that tells how many local scopes are visible, including the current.
-        /// I.E. outside of any method will be 0
-        ///      immediately inside a method - 1
-        /// </summary>
-        internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
-
         internal virtual BoundBlock BindEmbeddedBlock(BlockSyntax node, BindingDiagnosticBag diagnostics)
         {
             return BindBlock(node, diagnostics);
@@ -1907,6 +1891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
+                hasUnsafeModifier: node.Parent?.Kind() == SyntaxKind.UnsafeStatement,
                 boundStatements);
         }
 
@@ -3023,7 +3008,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         arg = CreateReturnConversion(syntax, diagnostics, arg, sigRefKind, retType);
-                        arg = ValidateEscape(arg, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
                     }
                 }
             }
@@ -3425,7 +3409,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
-                        expression = ValidateEscape(expression, Binder.ReturnOnlyScope, isByRef: refKind != RefKind.None, diagnostics);
                     }
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }

@@ -2026,13 +2026,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (isAsync)
                 {
-                    if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()))
+                    if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()) || type.OriginalDefinition.Equals(this.Compilation.ValueTaskOfTType()))
                     {
                         var namedTypeSymbol = (INamedTypeSymbol)type;
                         return namedTypeSymbol.TypeArguments[0];
                     }
 
-                    if (type.OriginalDefinition.Equals(this.Compilation.TaskType()))
+                    if (type.OriginalDefinition.Equals(this.Compilation.TaskType()) || type.OriginalDefinition.Equals(this.Compilation.ValueTaskType()))
                     {
                         return this.Compilation.GetSpecialType(SpecialType.System_Void);
                     }
