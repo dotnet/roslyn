@@ -10775,6 +10775,111 @@ class Program
                 using System.Diagnostics.CodeAnalysis;
                 class Program
                 {
+                    static ref int F(ref int x, [UnscopedRef] ref int y) => ref x;
+                    static void Main()
+                    {
+                        var d = F;
+                        Report(d);
+                    }
+                    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput:
+                """
+                <>f__AnonymousDelegate0
+                """);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+                """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                    extends [System.Runtime]System.MulticastDelegate
+                {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor (
+                            object 'object',
+                            native int 'method'
+                        ) runtime managed 
+                    {
+                    } // end of method '<>f__AnonymousDelegate0'::.ctor
+                    .method public hidebysig newslot virtual 
+                        instance int32& Invoke (
+                            int32& arg1,
+                            int32& arg2
+                        ) runtime managed 
+                    {
+                        .param [2]
+                            .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                    } // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_02()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var d = ([UnscopedRef] ref int x, ref int y) => ref x;
+                        Report(d);
+                    }
+                    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput:
+                """
+                <>f__AnonymousDelegate0
+                """);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+                """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                    extends [System.Runtime]System.MulticastDelegate
+                {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor (
+                            object 'object',
+                            native int 'method'
+                        ) runtime managed 
+                    {
+                    } // end of method '<>f__AnonymousDelegate0'::.ctor
+                    .method public hidebysig newslot virtual 
+                        instance int32& Invoke (
+                            int32& arg1,
+                            int32& arg2
+                        ) runtime managed 
+                    {
+                        .param [1]
+                            .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                    } // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_03()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
                     static ref int F1(ref int x, ref int y) => ref x;
                     static ref int F2(ref int x, [UnscopedRef] ref int y) => ref x;
                     static ref int F3([UnscopedRef] ref int x, ref int y) => ref x;
@@ -10805,40 +10910,11 @@ class Program
                 <>f__AnonymousDelegate0
                 <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
                 """);
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate1",
-                """
-                .class private auto ansi sealed '<>f__AnonymousDelegate1'
-                    extends [System.Runtime]System.MulticastDelegate
-                {
-                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Methods
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor (
-                            object 'object',
-                            native int 'method'
-                        ) runtime managed 
-                    {
-                    } // end of method '<>f__AnonymousDelegate1'::.ctor
-                    .method public hidebysig newslot virtual 
-                        instance int32& Invoke (
-                            int32& arg1,
-                            int32& arg2
-                        ) runtime managed 
-                    {
-                        .param [1]
-                            .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (
-                                01 00 00 00
-                            )
-                    } // end of method '<>f__AnonymousDelegate1'::Invoke
-                } // end of class <>f__AnonymousDelegate1
-                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
-        public void SynthesizedDelegateTypes_UnscopedRefAttribute_02()
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingType()
         {
             var attributeAssemblyName = GetUniqueName();
             var comp = CreateCompilation(UnscopedRefAttributeDefinition, targetFramework: TargetFramework.Net60, assemblyName: attributeAssemblyName);
@@ -10903,6 +10979,63 @@ class Program
                         } // end of method '<>f__AnonymousDelegate0'::Invoke
                     } // end of class <>f__AnonymousDelegate0
                     """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_01()
+        {
+            string sourceA = """
+                using System.Diagnostics.CodeAnalysis;
+                public class A
+                {
+                    public static ref int F(int x, [UnscopedRef] ref int y) => ref y;
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net70);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int i = 0;
+                        var d = A.F;
+                        d(0, ref i);
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.UnscopedRefAttribute..ctor'
+                //         var d = A.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "A.F").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(6, 17));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_02()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var d = (ref int x, [UnscopedRef] ref int y) => ref y;
+                        Console.WriteLine(d);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (7,51): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.UnscopedRefAttribute..ctor'
+                //         var d = (ref int x, [UnscopedRef] ref int y) => ref y;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "y").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(7, 51));
         }
 
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
