@@ -37,7 +37,7 @@ stages:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -49,7 +49,7 @@ stages:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -61,7 +61,7 @@ stages:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      queueName: Build.Ubuntu.1804.Amd64.Open
+      queueName: 1es-ubuntu-2004
 
 - stage: Source_Build
   dependsOn: []
@@ -79,7 +79,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
-        queueName: windows.vs2022preview.amd64.open
+        queueName: 1es-windows-2022-open
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -88,7 +88,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
 
 - stage: Windows_Release_Desktop
   dependsOn: Windows_Release_Build
@@ -100,7 +100,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -110,7 +110,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
-        queueName: windows.vs2022preview.amd64.open
+        queueName: 1es-windows-2022-open
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -119,7 +119,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
 
 - stage: Windows_Debug_CoreClr
   dependsOn: Windows_Debug_Build
@@ -131,7 +131,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job-single-machine.yml
@@ -149,7 +149,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
 
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
@@ -160,7 +160,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
 
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build
@@ -172,7 +172,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testCoreClr
-      queueName: windows.vs2022preview.amd64.open
+      queueName: 1es-windows-2022-open
 
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
@@ -184,7 +184,7 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
-      queueName: Build.Ubuntu.1804.Amd64.Open
+      queueName: 1es-ubuntu-2004
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -194,7 +194,7 @@ stages:
         testArtifactName: Transport_Artifacts_Unix_Debug
         configuration: Debug
         testArguments: --testCoreClr
-        queueName: Build.Ubuntu.1804.Amd64.Open
+        queueName: 1es-ubuntu-2004
 
   - template: eng/pipelines/test-unix-job.yml
     parameters:
@@ -203,7 +203,7 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
-      queueName: Build.Ubuntu.1804.Amd64.Open
+      queueName: 1es-ubuntu-2004
 
 - stage: Correctness
   dependsOn: []
@@ -222,7 +222,7 @@ stages:
     dependsOn: Determine_Changes
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      demands: ImageOverride -equals 1es-windows-2022-open
     timeoutInMinutes: 90
     variables:
       compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
@@ -268,7 +268,7 @@ stages:
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      demands: ImageOverride -equals 1es-windows-2022-open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
@@ -286,7 +286,7 @@ stages:
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      demands: ImageOverride -equals 1es-windows-2022-open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
@@ -328,7 +328,7 @@ stages:
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      demands: ImageOverride -equals 1es-windows-2022-open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
@@ -359,7 +359,7 @@ stages:
   - job: Correctness_Analyzers
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+      demands: ImageOverride -equals 1es-ubuntu-2004
     timeoutInMinutes: 35
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
