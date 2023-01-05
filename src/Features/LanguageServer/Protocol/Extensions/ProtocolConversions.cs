@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return text.Lines.GetTextSpan(linePositionSpan);
             }
             // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
-            catch when (FatalError.ReportAndPropagate(new Exception($"Failed GetTextSpan calculation.")))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw;
             }
