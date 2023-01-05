@@ -1554,17 +1554,19 @@ public class D
 
             var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
 
-            compilation.VerifyIL("Program.Main",
-@"
+            compilation.VerifyIL("Program.Main", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       30 (0x1e)
   .maxstack  1
+  .locals init (S1 V_0)
   IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  ldflda     ""S1 C1.field""
-  IL_000a:  constrained. ""S1""
-  IL_0010:  callvirt   ""string object.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ret
+  IL_0005:  ldfld      ""S1 C1.field""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  constrained. ""S1""
+  IL_0013:  callvirt   ""string object.ToString()""
+  IL_0018:  call       ""void System.Console.WriteLine(string)""
+  IL_001d:  ret
 }
 ");
             compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());

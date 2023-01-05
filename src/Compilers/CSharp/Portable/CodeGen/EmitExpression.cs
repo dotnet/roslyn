@@ -1632,9 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // we use a constrained virtual call. If possible, it will skip boxing.
                     if (method.IsMetadataVirtual())
                     {
-                        // NB: all methods that a struct could inherit from bases are non-mutating
-                        //     treat receiver as ReadOnly
-                        tempOpt = EmitReceiverRef(receiver, methodContainingType.IsInterface ? AddressKind.Writeable : AddressKind.ReadOnly);
+                        tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
                         callKind = CallKind.ConstrainedCallVirt;
                     }
                     else

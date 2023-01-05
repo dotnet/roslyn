@@ -514,18 +514,22 @@ class Program
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
-  // Code size       39 (0x27)
+  // Code size       47 (0x2f)
   .maxstack  1
+  .locals init (Program.S1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldobj      ""Program.S1""
   IL_0006:  box        ""Program.S1""
   IL_000b:  call       ""System.Type object.GetType()""
   IL_0010:  call       ""void System.Console.Write(object)""
   IL_0015:  ldarg.0
-  IL_0016:  constrained. ""Program.S1""
-  IL_001c:  callvirt   ""string object.ToString()""
-  IL_0021:  call       ""void System.Console.Write(string)""
-  IL_0026:  ret
+  IL_0016:  ldobj      ""Program.S1""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  constrained. ""Program.S1""
+  IL_0024:  callvirt   ""string object.ToString()""
+  IL_0029:  call       ""void System.Console.Write(string)""
+  IL_002e:  ret
 }");
         }
 
@@ -2162,30 +2166,40 @@ public struct S
             var comp = CompileAndVerify(csharp);
             comp.VerifyDiagnostics();
 
-            // ToString/GetHashCode/Equals should pass the address of 'this' (not a temp). GetType should box 'this'.
+            // GetType should box 'this'.
             comp.VerifyIL("S.M", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       82 (0x52)
   .maxstack  2
+  .locals init (S V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldobj      ""S""
   IL_0006:  box        ""S""
   IL_000b:  call       ""System.Type object.GetType()""
   IL_0010:  pop
   IL_0011:  ldarg.0
-  IL_0012:  constrained. ""S""
-  IL_0018:  callvirt   ""string object.ToString()""
-  IL_001d:  pop
-  IL_001e:  ldarg.0
-  IL_001f:  constrained. ""S""
-  IL_0025:  callvirt   ""int object.GetHashCode()""
-  IL_002a:  pop
-  IL_002b:  ldarg.0
-  IL_002c:  ldnull
-  IL_002d:  constrained. ""S""
-  IL_0033:  callvirt   ""bool object.Equals(object)""
-  IL_0038:  pop
-  IL_0039:  ret
+  IL_0012:  ldobj      ""S""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""S""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  pop
+  IL_0026:  ldarg.0
+  IL_0027:  ldobj      ""S""
+  IL_002c:  stloc.0
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  constrained. ""S""
+  IL_0035:  callvirt   ""int object.GetHashCode()""
+  IL_003a:  pop
+  IL_003b:  ldarg.0
+  IL_003c:  ldobj      ""S""
+  IL_0041:  stloc.0
+  IL_0042:  ldloca.s   V_0
+  IL_0044:  ldnull
+  IL_0045:  constrained. ""S""
+  IL_004b:  callvirt   ""bool object.Equals(object)""
+  IL_0050:  pop
+  IL_0051:  ret
 }");
         }
 

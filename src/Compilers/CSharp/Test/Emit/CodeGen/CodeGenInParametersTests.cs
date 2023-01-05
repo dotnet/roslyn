@@ -4531,6 +4531,171 @@ public struct S : IEnumerable<int>
         }
 
         [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnReadonlyField()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S s = new();
+        var d = new D(s);
+        d.M();
+        d.M();
+    }
+}
+
+public class D
+{
+    readonly S field;
+    public D(S s) { field = s; }
+
+    public void M()
+    {
+        foreach (var x in field) { }
+        System.Console.Write(field.ToString());
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsPEVerify);
+            // Note: we use a temp instead of directly doing a constrained call on readonly field
+            verifier.VerifyIL("D.M", """
+{
+  // Code size       73 (0x49)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "S D.field"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ldarg.0
+  IL_0033:  ldflda     "S D.field"
+  IL_0038:  constrained. "S"
+  IL_003e:  callvirt   "string object.ToString()"
+  IL_0043:  call       "void System.Console.Write(string)"
+  IL_0048:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnField()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S s = new();
+        var d = new D(s);
+        d.M();
+        d.M();
+    }
+}
+
+public class D
+{
+    S field;
+    public D(S s) { field = s; }
+
+    public void M()
+    {
+        foreach (var x in field) { }
+        System.Console.Write(field.ToString());
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            // Note: we do a constrained call directly on the field
+            verifier.VerifyIL("D.M", """
+{
+  // Code size       70 (0x46)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "S D.field"
+  IL_0006:  constrained. "S"
+  IL_000c:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0011:  stloc.0
+  .try
+  {
+    IL_0012:  br.s       IL_001b
+    IL_0014:  ldloc.0
+    IL_0015:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001a:  pop
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0021:  brtrue.s   IL_0014
+    IL_0023:  leave.s    IL_002f
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  brfalse.s  IL_002e
+    IL_0028:  ldloc.0
+    IL_0029:  callvirt   "void System.IDisposable.Dispose()"
+    IL_002e:  endfinally
+  }
+  IL_002f:  ldarg.0
+  IL_0030:  ldflda     "S D.field"
+  IL_0035:  constrained. "S"
+  IL_003b:  callvirt   "string object.ToString()"
+  IL_0040:  call       "void System.Console.Write(string)"
+  IL_0045:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
         public void InvokeStructToStringOverrideOnInParameter()
         {
             var text = @"
@@ -4574,5 +4739,64 @@ struct S1
 """);
         }
 
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnInParameter()
+        {
+            var libOrig_cs = """
+public struct S
+{
+    int i;
+    public void Report() { throw null; }
+}
+""";
+            var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
+
+            var libChanged_cs = """
+public struct S
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+    public void Report() { System.Console.Write("RAN "); }
+}
+""";
+            var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
+
+            var libUser_cs = """
+public class C
+{
+    public static string M(in S s)
+    {
+        return s.ToString();
+    }
+}
+""";
+            var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
+            CompileAndVerify(libUser).VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+
+            var src = """
+using System;
+
+S s = new S();
+s.Report();
+Console.Write(C.M(in s));
+Console.Write(C.M(in s));
+""";
+
+            var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
+            CompileAndVerify(comp, expectedOutput: "RAN 00");
+        }
     }
 }
