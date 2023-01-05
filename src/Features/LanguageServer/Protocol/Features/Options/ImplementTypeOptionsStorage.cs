@@ -26,13 +26,11 @@ namespace Microsoft.CodeAnalysis.ImplementType
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
             new(FeatureName,
                 "InsertionBehavior",
-                defaultValue: ImplementTypeOptions.Default.InsertionBehavior,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior"));
+                defaultValue: ImplementTypeOptions.Default.InsertionBehavior);
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
             new(FeatureName,
                 "PropertyGenerationBehavior",
-                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior"));
+                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior);
     }
 }

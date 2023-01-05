@@ -89,11 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #if DEBUG
             foreach (var option in options)
             {
-                if (option is IPerLanguageValuedOption)
-                {
-                    Debug.Assert(option.StorageLocations.OfType<RoamingProfileStorageLocation>().Single().GetKeyNameForLanguage(null).Contains("%LANGUAGE%"));
-                }
-                else if (option is ISingleValuedOption singleValuedOption)
+                if (option is ISingleValuedOption singleValuedOption)
                 {
                     Debug.Assert(option.StorageLocations.OfType<IEditorConfigStorageLocation2>().Single() is { } editorConfigLocation &&
                         (
@@ -105,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    Debug.Fail("Unexpected option type.");
+                    Debug.Assert(option is IPerLanguageValuedOption);
                 }
             }
 #endif

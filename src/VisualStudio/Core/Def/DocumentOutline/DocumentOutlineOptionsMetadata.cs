@@ -10,7 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         private const string FeatureName = "DocumentOutlineOptions";
 
-        public static readonly Option2<bool> EnableDocumentOutline = new(FeatureName, nameof(EnableDocumentOutline), defaultValue: false,
-            storageLocation: new FeatureFlagStorageLocation("Roslyn.DocumentOutline"));
+        public static readonly Option2<bool> EnableDocumentOutline = new(FeatureName, nameof(EnableDocumentOutline), defaultValue: false);
     }
 }

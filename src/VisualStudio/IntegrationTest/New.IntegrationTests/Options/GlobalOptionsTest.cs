@@ -12,7 +12,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.Options;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
@@ -33,15 +36,21 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
         var allLanguages = new[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
         var noLanguages = new[] { (string?)null };
 
-        foreach (var (option, _, _, _) in optionsInfo.GlobalOptions.Values)
+        foreach (var (configName, optionInfo) in optionsInfo)
         {
+            var option = optionInfo.Option;
             foreach (var language in option.IsPerLanguage ? allLanguages : noLanguages)
             {
+                if (!VisualStudioOptionStorage.Storages.TryGetValue(configName, out var storage))
+                {
+                    continue;
+                }
+
                 var key = new OptionKey2(option, language);
                 var currentValue = globalOptions.GetOption<object?>(key);
 
                 // do not attempt to update feature flags
-                if (option.StorageLocations.Any(s => s is FeatureFlagStorageLocation))
+                if (storage is VisualStudioOptionStorage.FeatureFlagStorage)
                 {
                     Assert.True(currentValue is bool);
                     continue;

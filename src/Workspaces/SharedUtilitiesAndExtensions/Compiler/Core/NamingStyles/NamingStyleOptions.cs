@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption2<NamingStylePreferences>(
             FeatureName, nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
-            new NamingStylePreferenceEditorConfigStorageLocation(),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences5"),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences"));
+            new NamingStylePreferenceEditorConfigStorageLocation());
 
         public static OptionKey2 GetNamingPreferencesOptionKey(string language)
             => new(NamingPreferences, language);

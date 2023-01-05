@@ -169,7 +169,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     editorConfigName,
                     s => ParseUnusedExpressionAssignmentPreference(s, defaultValue),
                     o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue)),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{name}Preference"),
                 languageName);
 
         private static Optional<CodeStyleOption2<UnusedValuePreference>> ParseUnusedExpressionAssignmentPreference(
