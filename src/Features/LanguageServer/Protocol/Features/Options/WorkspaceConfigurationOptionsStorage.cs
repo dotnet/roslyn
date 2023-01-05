@@ -13,7 +13,10 @@ internal static class WorkspaceConfigurationOptionsStorage
         => new(
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
-                                               globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag));
+                                               globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
+            DisableReferenceManagerRecoverableMetadata: globalOptions.GetOption(DisableReferenceManagerRecoverableMetadata),
+            DisableBackgroundCompilation: globalOptions.GetOption(DisableBackgroundCompilation),
+            DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "Storage", "Database", WorkspaceConfigurationOptions.Default.CacheStorage);
