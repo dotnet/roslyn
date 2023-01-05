@@ -1371,12 +1371,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (haveInstanceCandidates)
                 {
+                    BindingDiagnosticBag discarded = null;
                     if (haveStaticCandidates)
                     {
                         Error(diagnostics, ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, colorColorValueReceiver.Syntax, parameter.Name, parameter.Type, parameter);
+                        discarded = BindingDiagnosticBag.GetInstance(diagnostics);
                     }
 
-                    receiver = ReplaceTypeOrValueReceiver(receiver, useType: false, haveStaticCandidates ? BindingDiagnosticBag.Discarded : diagnostics);
+                    receiver = ReplaceTypeOrValueReceiver(receiver, useType: false, discarded ?? diagnostics);
+                    discarded?.Free();
 
                     if (haveStaticCandidates)
                     {

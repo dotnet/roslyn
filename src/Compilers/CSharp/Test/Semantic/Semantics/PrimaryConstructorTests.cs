@@ -10488,7 +10488,7 @@ public class Color
             switch (methodName)
             {
                 case "Cast":
-            source += @"
+                    source += @"
     public IEnumerable<T> Cast<T>()
     {
         System.Console.Write(""Cast"");
@@ -10498,7 +10498,7 @@ public class Color
                     break;
 
                 case "Where":
-            source += @"
+                    source += @"
     public IEnumerable<int> Where(Func<int, bool> predicate)
     {
         System.Console.Write(""Where"");
