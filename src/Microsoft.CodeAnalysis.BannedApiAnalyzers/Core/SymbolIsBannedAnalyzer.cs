@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 where sourceText != null
                 from line in sourceText.Lines
                 let text = line.ToString()
-                where !string.IsNullOrWhiteSpace(text)
+                where !string.IsNullOrWhiteSpace(text) && text[0] != '#'
                 select new BanFileEntry(text, line.Span, sourceText, additionalFile.Path);
 
             var entries = query.ToList();

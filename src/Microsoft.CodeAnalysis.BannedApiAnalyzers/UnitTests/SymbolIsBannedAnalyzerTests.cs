@@ -140,6 +140,65 @@ End Class");
             await test.RunAsync();
         }
 
+        #region Comments in BannedSymbols.txt tests
+
+        [Fact]
+        public async Task NoDiagnosticReportedForCommentLine()
+        {
+            var source = @"";
+            var bannedText = @"# this comment line will be ignored";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+            await VerifyBasicAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
+        public async Task NoDiagnosticReportedForCommentedOutBannedApiLineAsync()
+        {
+            var bannedText = @"#T:N.Banned";
+
+            var csharpSource = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = {|#0:new Banned()|};
+        }
+    }
+}";
+
+            await VerifyCSharpAnalyzerAsync(csharpSource, bannedText);
+
+            var visualBasicSource = @"
+Namespace N
+    Class Banned : End Class
+    Class C
+        Sub M()
+            Dim c As New Banned()
+        End Sub
+    End Class
+End Namespace";
+
+            await VerifyBasicAnalyzerAsync(visualBasicSource, bannedText);
+        }
+
+        [Fact]
+        public async Task NoDiagnosticReportedForCommentedOutDuplicateBannedApiLinesAsync()
+        {
+            var source = @"";
+            var bannedText = @"
+#T:System.Console
+#T:System.Console";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+            await VerifyBasicAnalyzerAsync(source, bannedText);
+        }
+
+        #endregion Comments in BannedSymbols.txt tests
+
         [Fact]
         public async Task CSharp_BannedApiFile_MessageIncludedInDiagnosticAsync()
         {
