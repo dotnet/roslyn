@@ -79,6 +79,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
+        queueName: windows.vs2022preview.amd64.open
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -87,6 +88,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
+      queueName: windows.vs2022preview.amd64.open
 
 - stage: Windows_Release_Desktop
   dependsOn: Windows_Release_Build
@@ -98,6 +100,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
+      queueName: windows.vs2022preview.amd64.open
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -107,6 +110,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
+        queueName: windows.vs2022preview.amd64.open
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -115,6 +119,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
+      queueName: windows.vs2022preview.amd64.open
 
 - stage: Windows_Debug_CoreClr
   dependsOn: Windows_Debug_Build
@@ -126,6 +131,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr
+      queueName: windows.vs2022preview.amd64.open
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job-single-machine.yml
@@ -143,6 +149,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
+      queueName: windows.vs2022preview.amd64.open
 
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
@@ -153,6 +160,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
+      queueName: windows.vs2022preview.amd64.open
 
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build
@@ -164,6 +172,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testCoreClr
+      queueName: windows.vs2022preview.amd64.open
 
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
@@ -175,6 +184,7 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
+      queueName: Build.Ubuntu.1804.Amd64.Open
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -193,6 +203,7 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
+      queueName: Build.Ubuntu.1804.Amd64.Open
 
 - stage: Correctness
   dependsOn: []
@@ -304,7 +315,7 @@ stages:
 
   - job: Correctness_TodoCheck
     pool:
-      vmImage: ubuntu-20.04
+      vmImage: ubuntu-latest
     timeoutInMinutes: 10
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
