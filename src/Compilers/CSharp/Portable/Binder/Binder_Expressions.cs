@@ -7403,7 +7403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             lookupResult.Free();
         }
 
-        private CompoundUseSiteInfo<AssemblySymbol> LookupExtensionMethods(LookupResult lookupResult, ExtensionMethodScope scope, string rightName, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupExtensionMethods(LookupResult lookupResult, ExtensionMethodScope scope, string rightName, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             LookupOptions options;
             if (arity == 0)
@@ -7416,7 +7416,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteInfo);
-            return useSiteInfo;
         }
 
         protected BoundExpression BindFieldAccess(

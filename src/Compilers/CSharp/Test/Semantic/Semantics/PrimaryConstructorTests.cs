@@ -10769,6 +10769,49 @@ struct S1(Color Color)
         }
 
         [Fact]
+        public void ParameterCapturing_059_ColorColor_MemberAccess_InstanceAndExtension_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""0"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, S1 x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"0").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute()
         {
             var source = @"

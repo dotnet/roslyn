@@ -153,24 +153,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 captured.Free();
                 return SpecializedCollections.EmptyReadOnlyDictionary<ParameterSymbol, FieldSymbol>();
             }
-            else
+
+            var result = new Dictionary<ParameterSymbol, FieldSymbol>(ReferenceEqualityComparer.Instance);
+
+            foreach (var parameter in captured)
             {
-                var result = new Dictionary<ParameterSymbol, FieldSymbol>(ReferenceEqualityComparer.Instance);
+                // PROTOTYPE(PrimaryConstructors): Figure out naming strategy
+                string name = "<" + parameter.Name + ">PC__BackingField";
 
-                foreach (var parameter in captured)
-                {
-                    // PROTOTYPE(PrimaryConstructors): Figure out naming strategy
-                    string name = "<" + parameter.Name + ">PC__BackingField";
-
-                    // PROTOTYPE(PrimaryConstructors): Ever read-only?
-                    result.Add(parameter, new SynthesizedFieldSymbol(containingType, parameter.Type, name));
-                }
-
-                captured.Free();
-                return result;
+                // PROTOTYPE(PrimaryConstructors): Ever read-only?
+                result.Add(parameter, new SynthesizedFieldSymbol(containingType, parameter.Type, name));
             }
 
-            throw ExceptionUtilities.Unreachable();
+            captured.Free();
+            return result;
 
             void addParameterNames(PooledHashSet<string> namesToCheck)
             {
