@@ -42,9 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Private ReadOnly _solution As Solution
             Private ReadOnly _replacementText As String
             Private ReadOnly _originalText As String
-            Private ReadOnly _possibleNameConflicts As ICollection(Of String)
-            Private ReadOnly _renameLocations As Dictionary(Of TextSpan, RenameLocation)
-            Private ReadOnly _conflictLocations As IEnumerable(Of TextSpan)
+            Private ReadOnly _possibleNameConflicts As ImmutableArray(Of String)
+            Private ReadOnly _renameLocations As ImmutableDictionary(Of TextSpan, RenameLocation)
+            Private ReadOnly _conflictLocations As ImmutableHashSet(Of TextSpan)
             Private ReadOnly _semanticModel As SemanticModel
             Private ReadOnly _cancellationToken As CancellationToken
             Private ReadOnly _renamedSymbol As ISymbol

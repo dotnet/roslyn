@@ -429,5 +429,11 @@ class C
 {
     delegate*<$$");
         }
+
+        [Fact]
+        public async Task TestNotInEnumBaseList()
+        {
+            await VerifyAbsenceAsync("enum E : $$");
+        }
     }
 }

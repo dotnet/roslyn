@@ -176,17 +176,25 @@ using System;
 using System.Collections;
 class C
 {
-    IEnumerable Gen()
+    IEnumerable F1()
     {
-        Span<int> s = stackalloc int[10];
-        yield return s;
+        Span<int> s1 = stackalloc int[10];
+        yield return s1;
+    }
+    IEnumerable F2()
+    {
+        Span<int> s2 = default;
+        yield return s2;
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             // Note: an escape analysis error is not given here because we already gave a conversion error.
             comp.VerifyDiagnostics(
                 // (9,22): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
-                //         yield return s;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("System.Span<int>", "object").WithLocation(9, 22));
+                //         yield return s1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("System.Span<int>", "object").WithLocation(9, 22),
+                // (14,22): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         yield return s2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s2").WithArguments("System.Span<int>", "object").WithLocation(14, 22));
         }
 
         [Theory]
@@ -889,8 +897,8 @@ class Program
                 );
         }
 
-        [Fact()]
-        public void DiscardExpressionSpan()
+        [Fact]
+        public void DiscardExpressionSpan_01()
         {
             var text = @"
 using System;
@@ -914,7 +922,7 @@ class Program
         ref var s = ref ReturnsSpan(out var _);
 
         // error
-        s = stackalloc int[1];
+        s = stackalloc int[1]; // 1
 
         // ok
         return s;
@@ -923,33 +931,33 @@ class Program
     static void Test3()
     {
         // error
-        ReturnsSpan(out var _ ) = stackalloc int[1];
+        ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
     }
 
     static ref Span<int> ReturnsSpan(out Span<int> x)
     {
         x = default;
-        return ref x;
+        return ref x; // 3
     }
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (23,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         s = stackalloc int[1];
+                //         s = stackalloc int[1]; // 1
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(23, 13),
                 // (32,35): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         ReturnsSpan(out var _ ) = stackalloc int[1];
+                //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(32, 35)
                 );
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (23,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         s = stackalloc int[1];
+                //         s = stackalloc int[1]; // 1
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(23, 13),
                 // (32,35): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         ReturnsSpan(out var _ ) = stackalloc int[1];
+                //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(32, 35),
                 // (38,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //         return ref x;
+                //         return ref x; // 3
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(38, 20)
                 );
         }
@@ -1066,6 +1074,575 @@ unsafe class Program
   IL_001b:  ret
 }
 ");
+        }
+
+        // As above with 'out _' instead of 'out var _'.
+        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_02(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static Span<int> Test2A()
+                    {
+                        ref var s2A = ref ReturnsSpan(out _);
+                        s2A = stackalloc int[1]; // 1
+                        return s2A;
+                    }
+                    static Span<int> Test2B()
+                    {
+                        Span<int> _;
+                        ref var s2B = ref ReturnsSpan(out _);
+                        s2B = stackalloc int[1]; // 2
+                        return s2B;
+                    }
+                    static void Test3A()
+                    {
+                        ReturnsSpan(out _ ) = stackalloc int[1]; // 3
+                    }
+                    static void Test3B()
+                    {
+                        Span<int> _;
+                        ReturnsSpan(out _ ) = stackalloc int[1]; // 4
+                    }
+                    static ref Span<int> ReturnsSpan(out Span<int> x)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (7,15): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s2A = stackalloc int[1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(7, 15),
+                // (14,15): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s2B = stackalloc int[1]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(14, 15),
+                // (19,31): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out _ ) = stackalloc int[1]; // 3
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(19, 31),
+                // (24,31): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out _ ) = stackalloc int[1]; // 4
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(24, 31));
+        }
+
+        // ReturnsSpan() returns ref Span<int>, callers return Span<int> by value.
+        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_03(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static Span<int> Test1()
+                    {
+                        var s1 = ReturnsSpan(out _);
+                        return s1;
+                    }
+                    static Span<int> Test2()
+                    {
+                        var s2 = ReturnsSpan(out var _);
+                        return s2;
+                    }
+                    static Span<int> Test3()
+                    {
+                        var s3 = ReturnsSpan(out Span<int> _);
+                        return s3;
+                    }
+                    static Span<int> Test4()
+                    {
+                        var s4 = ReturnsSpan(out var unused);
+                        return s4;
+                    }
+                    static Span<int> Test5()
+                    {
+                        Span<int> _;
+                        var s5 = ReturnsSpan(out _);
+                        return s5;
+                    }
+                    static Span<int> Test6(out Span<int> _)
+                    {
+                        var s6 = ReturnsSpan(out _);
+                        return s6;
+                    }
+                    static ref Span<int> ReturnsSpan(out Span<int> x)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics();
+        }
+
+        // ReturnsSpan() and callers return Span<int> by value.
+        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_04(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static Span<int> Test1()
+                    {
+                        var s1 = ReturnsSpan(out _);
+                        return s1;
+                    }
+                    static Span<int> Test2()
+                    {
+                        var s2 = ReturnsSpan(out var _);
+                        return s2;
+                    }
+                    static Span<int> Test3()
+                    {
+                        var s3 = ReturnsSpan(out Span<int> _);
+                        return s3;
+                    }
+                    static Span<int> Test4()
+                    {
+                        var s4 = ReturnsSpan(out var unused);
+                        return s4;
+                    }
+                    static Span<int> Test5()
+                    {
+                        Span<int> _;
+                        var s5 = ReturnsSpan(out _);
+                        return s5;
+                    }
+                    static Span<int> Test6(out Span<int> _)
+                    {
+                        var s6 = ReturnsSpan(out _);
+                        return s6;
+                    }
+                    static Span<int> ReturnsSpan(out Span<int> x)
+                    {
+                        x = default;
+                        return x;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics();
+        }
+
+        // ReturnsSpan() and callers return ref Span<int>.
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_05(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static ref Span<int> Test1()
+                    {
+                        var s1 = ReturnsSpan(out _);
+                        return ref s1; // 1
+                    }
+                    static ref Span<int> Test2()
+                    {
+                        var s2 = ReturnsSpan(out var _);
+                        return ref s2; // 2
+                    }
+                    static ref Span<int> Test3()
+                    {
+                        var s3 = ReturnsSpan(out Span<int> _);
+                        return ref s3; // 3
+                    }
+                    static ref Span<int> Test4()
+                    {
+                        var s4 = ReturnsSpan(out var unused);
+                        return ref s4; // 4
+                    }
+                    static ref Span<int> Test5()
+                    {
+                        Span<int> _;
+                        var s5 = ReturnsSpan(out _);
+                        return ref s5; // 5
+                    }
+                    static ref Span<int> Test6(out Span<int> _)
+                    {
+                        var s6 = ReturnsSpan(out _);
+                        return ref s6; // 6
+                    }
+                    static ref Span<int> ReturnsSpan(out Span<int> x)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8168: Cannot return local 's1' by reference because it is not a ref local
+                //         return ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s1").WithArguments("s1").WithLocation(7, 20),
+                // (12,20): error CS8168: Cannot return local 's2' by reference because it is not a ref local
+                //         return ref s2; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s2").WithArguments("s2").WithLocation(12, 20),
+                // (17,20): error CS8168: Cannot return local 's3' by reference because it is not a ref local
+                //         return ref s3; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s3").WithArguments("s3").WithLocation(17, 20),
+                // (22,20): error CS8168: Cannot return local 's4' by reference because it is not a ref local
+                //         return ref s4; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s4").WithArguments("s4").WithLocation(22, 20),
+                // (28,20): error CS8168: Cannot return local 's5' by reference because it is not a ref local
+                //         return ref s5; // 5
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s5").WithArguments("s5").WithLocation(28, 20),
+                // (33,20): error CS8168: Cannot return local 's6' by reference because it is not a ref local
+                //         return ref s6; // 6
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s6").WithArguments("s6").WithLocation(33, 20));
+        }
+
+        // ReturnsSpan() and callers return ref int.
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_06(LanguageVersion languageVersion)
+        {
+            string source = """
+                class Program
+                {
+                    static ref int Test1()
+                    {
+                        var s1 = ReturnsSpan(out _);
+                        return ref s1; // 1
+                    }
+                    static ref int Test2()
+                    {
+                        var s2 = ReturnsSpan(out var _);
+                        return ref s2; // 2
+                    }
+                    static ref int Test3()
+                    {
+                        var s3 = ReturnsSpan(out int _);
+                        return ref s3; // 3
+                    }
+                    static ref int Test4()
+                    {
+                        var s4 = ReturnsSpan(out var unused);
+                        return ref s4; // 4
+                    }
+                    static ref int Test5()
+                    {
+                        int _;
+                        var s5 = ReturnsSpan(out _);
+                        return ref s5; // 5
+                    }
+                    static ref int Test6(out int _)
+                    {
+                        var s6 = ReturnsSpan(out _);
+                        return ref s6; // 6
+                    }
+                    static ref int ReturnsSpan(out int x)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8168: Cannot return local 's1' by reference because it is not a ref local
+                //         return ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s1").WithArguments("s1").WithLocation(6, 20),
+                // (11,20): error CS8168: Cannot return local 's2' by reference because it is not a ref local
+                //         return ref s2; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s2").WithArguments("s2").WithLocation(11, 20),
+                // (16,20): error CS8168: Cannot return local 's3' by reference because it is not a ref local
+                //         return ref s3; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s3").WithArguments("s3").WithLocation(16, 20),
+                // (21,20): error CS8168: Cannot return local 's4' by reference because it is not a ref local
+                //         return ref s4; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s4").WithArguments("s4").WithLocation(21, 20),
+                // (27,20): error CS8168: Cannot return local 's5' by reference because it is not a ref local
+                //         return ref s5; // 5
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s5").WithArguments("s5").WithLocation(27, 20),
+                // (32,20): error CS8168: Cannot return local 's6' by reference because it is not a ref local
+                //         return ref s6; // 6
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s6").WithArguments("s6").WithLocation(32, 20));
+        }
+
+        [Theory]
+        [InlineData("out var _")]
+        [InlineData("out _")]
+        [InlineData("out Span<int> _")]
+        [InlineData("out var unused")]
+        [InlineData("out Span<int> unused")]
+        public void DiscardExpressionSpan_07(string outVarDeclaration)
+        {
+            string source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static Span<int> Test1()
+                    {
+                        var s1 = ReturnsSpan({{outVarDeclaration}});
+                        return s1;
+                    }
+                    static Span<int> Test2()
+                    {
+                        ref var s2 = ref ReturnsSpan({{outVarDeclaration}});
+                        s2 = stackalloc int[1]; // 1
+                        return s2;
+                    }
+                    static void Test3()
+                    {
+                        ReturnsSpan({{outVarDeclaration}}) =
+                            stackalloc int[1]; // 2
+                    }
+                    static ref Span<int> ReturnsSpan([UnscopedRef] out Span<int> x)
+                    {
+                        x = default;
+                        return ref x;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (13,14): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s2 = stackalloc int[1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(13, 14),
+                // (19,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //             stackalloc int[1]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(19, 13));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_01(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F1()
+                    {
+                        Span<int> s1 = stackalloc int[1];
+                        _ = s1;
+                    }
+                    static void F2()
+                    {
+                        Span<int> s2 = stackalloc int[1];
+                        Span<int> _;
+                        _ = s2; // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (13,13): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = s2; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(13, 13));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_02(LanguageVersion languageVersion)
+        {
+            string source = """
+                class Program
+                {
+                    static void F1(ref int x1)
+                    {
+                        int y1 = 1;
+                        _ = ref y1;
+                        _ = ref x1;
+                    }
+                    static void F2(ref int x2)
+                    {
+                        int y2 = 2;
+                        _ = ref x2;
+                        _ = ref y2;
+                    }
+                    static void F3()
+                    {
+                        int y3 = 3;
+                        ref int _ = ref y3;
+                        _ = ref y3;
+                    }
+                    static void F4(ref int x4)
+                    {
+                        int y4 = 4;
+                        ref int _ = ref x4;
+                        _ = ref y4; // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (25,9): error CS8374: Cannot ref-assign 'y4' to '_' because 'y4' has a narrower escape scope than '_'.
+                //         _ = ref y4; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "_ = ref y4").WithArguments("_", "y4").WithLocation(25, 9));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_03(LanguageVersion languageVersion)
+        {
+            var source =
+@"class Program
+{
+    static void F1()
+    {
+        (var x1, _) = F();
+        (var x2, var _) = F();
+        (var x3, R _) = F();
+        var (x4, _) = F();
+    }
+    static void F2()
+    {
+        R _;
+        (var x5, _) = F();
+    }
+    static R F() => default;
+}
+ref struct R 
+{
+    public void Deconstruct(out R x, out R y) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_04(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1()
+    {
+        Span<int> s1 = default;
+        s1.Deconstruct(out s1, out _);
+    }
+    static void F2()
+    {
+        Span<int> s2 = default;
+        (s2, _) = s2;
+    }
+    static void F3()
+    {
+        Span<int> s3 = default;
+        s3.Deconstruct(out s3, out var _);
+    }
+    static void F4()
+    {
+        Span<int> s4 = default;
+        (s4, var _) = s4;
+    }
+    static void F5()
+    {
+        Span<int> s5 = default;
+        s5.Deconstruct(out s5, out Span<int> _);
+    }
+    static void F6()
+    {
+        Span<int> s6 = default;
+        (s6, Span<int> _) = s6;
+    }
+    static void F7()
+    {
+        Span<int> s7 = default;
+        s7.Deconstruct(out s7, out var unused);
+    }
+    static void F8()
+    {
+        Span<int> s8 = default;
+        (s8, var unused) = s8;
+    }
+}
+static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y)
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(65522, "https://github.com/dotnet/roslyn/issues/65522")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_05(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1()
+    {
+        Span<int> s1 = stackalloc int[10];
+        s1.Deconstruct(out s1, out _);
+    }
+    static void F2()
+    {
+        Span<int> s2 = stackalloc int[10];
+        (s2, _) = s2;
+    }
+    static void F3()
+    {
+        Span<int> s3 = stackalloc int[10];
+        s3.Deconstruct(out s3, out var _);
+    }
+    static void F4()
+    {
+        Span<int> s4 = stackalloc int[10];
+        (s4, var _) = s4;
+    }
+    static void F5()
+    {
+        Span<int> s5 = stackalloc int[10];
+        s5.Deconstruct(out s5, out Span<int> _);
+    }
+    static void F6()
+    {
+        Span<int> s6 = stackalloc int[10];
+        (s6, Span<int> _) = s6;
+    }
+    static void F7()
+    {
+        Span<int> s7 = stackalloc int[10];
+        s7.Deconstruct(out s7, out var unused);
+    }
+    static void F8()
+    {
+        Span<int> s8 = stackalloc int[10];
+        (s8, var unused) = s8;
+    }
+}
+static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y)
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact()]
@@ -3459,6 +4036,7 @@ public ref struct S<T>
 ");
         }
 
+        [WorkItem(65522, "https://github.com/dotnet/roslyn/issues/65522")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3510,13 +4088,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, _) = local").WithArguments("(global, _) = local").WithLocation(13, 9),
                 // (13,23): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
                 //         (global, _) = local; // error 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(13, 23),
-                // (14,9): error CS8352: Cannot use variable '(local, _) = local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (local, _) = local;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(local, _) = local").WithArguments("(local, _) = local").WithLocation(14, 9),
-                // (14,22): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
-                //         (local, _) = local;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(14, 22));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(13, 23));
         }
 
         [Theory]
@@ -6121,9 +6693,9 @@ public struct Vec4
                 // (28,9): error CS8350: This combination of arguments to 'Program.M0(RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
-                // (28,12): error CS8352: Cannot use variable 'scoped RS' in this context because it may expose referenced variables outside of their declaration scope
+                // (28,12): error CS8352: Cannot use variable 'scoped RS rs3' in this context because it may expose referenced variables outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS").WithLocation(28, 12));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS rs3").WithLocation(28, 12));
         }
 
         [Fact]

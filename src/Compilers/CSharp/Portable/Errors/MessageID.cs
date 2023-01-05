@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLambda: // semantic check
                 case MessageID.IDS_FeatureQueryExpression: // semantic check
                 case MessageID.IDS_FeatureExtensionMethod:
-                case MessageID.IDS_FeaturePartialMethod:
+                case MessageID.IDS_FeaturePartialMethod: // semantic check
                 case MessageID.IDS_FeatureImplicitLocal: // Checked in the binder.
                 case MessageID.IDS_FeatureAutoImplementedProperties:
                     return LanguageVersion.CSharp3;
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGlobalNamespace: // Also affects crefs.
                 case MessageID.IDS_FeatureFixedBuffer: // semantic check
                 case MessageID.IDS_FeatureStaticClasses: // semantic check
-                case MessageID.IDS_FeaturePartialTypes:
+                case MessageID.IDS_FeaturePartialTypes: // semantic check
                 case MessageID.IDS_FeaturePropertyAccessorMods:
                 case MessageID.IDS_FeatureExternAlias: // semantic check
                 case MessageID.IDS_FeatureIterators: // semantic check

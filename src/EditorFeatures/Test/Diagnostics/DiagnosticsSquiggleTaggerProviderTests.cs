@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 .AddExcludedPartTypes(typeof(IDiagnosticService), typeof(IDiagnosticAnalyzerService))
                 .AddParts(typeof(MockDiagnosticService), typeof(MockDiagnosticAnalyzerService));
 
-        [WpfFact]
-        public async Task Test_TagSourceDiffer()
+        [WpfTheory, CombinatorialData]
+        public async Task Test_TagSourceDiffer(bool pull)
         {
             var analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
@@ -45,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             };
 
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap);
 
             var firstDocument = workspace.Documents.First();
@@ -71,10 +75,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.True(spans.First().Span.Contains(new Span(0, 1)));
         }
 
-        [WpfFact]
-        public async Task MultipleTaggersAndDispose()
+        [WpfTheory, CombinatorialData]
+        public async Task MultipleTaggersAndDispose(bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             // Make two taggers.
@@ -93,10 +100,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.False(spans.IsEmpty());
         }
 
-        [WpfFact]
-        public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
+        [WpfTheory, CombinatorialData]
+        public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported(bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, parseOptions: CSharpParseOptions.Default);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap: null, createTaggerProvider: false);
             // First, make sure all diagnostics have been reported.
             await wrapper.WaitForTags();

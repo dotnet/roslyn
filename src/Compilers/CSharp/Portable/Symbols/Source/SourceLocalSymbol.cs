@@ -35,18 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations.Boxed _type;
 
-        /// <summary>
-        /// Scope to which the local can "escape" via aliasing/ref assignment.
-        /// Not readonly because we can only know escape values after binding the initializer.
-        /// </summary>
-        protected uint _refEscapeScope;
-
-        /// <summary>
-        /// Scope to which the local's values can "escape" via ordinary assignments.
-        /// Not readonly because we can only know escape values after binding the initializer.
-        /// </summary>
-        protected uint _valEscapeScope;
-
         private SourceLocalSymbol(
             Symbol containingSymbol,
             Binder scopeBinder,
@@ -71,31 +59,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeSyntax = typeSyntax.SkipScoped(out isScoped);
             isScoped = isScoped && allowScoped;
 
-            if (allowRefKind && typeSyntax is RefTypeSyntax refTypeSyntax)
-            {
-                this._refKind = refTypeSyntax.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
-                    RefKind.RefReadOnly :
-                    RefKind.Ref;
-                this._scope = isScoped ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
-            }
-            else
-            {
-                this._refKind = RefKind.None;
-                this._scope = isScoped ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped;
-            }
+            // Diagnostics for ref-locals is reported by caller in BindDeclarationStatementParts.
+            if (allowRefKind)
+                typeSyntax.SkipRefInLocalOrReturn(diagnostics: null, out _refKind);
+
+            _scope = _refKind != RefKind.None
+                ? isScoped ? DeclarationScope.RefScoped : DeclarationScope.Unscoped
+                : isScoped ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped;
 
             this._declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
-            _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
-
-            _refEscapeScope = this._refKind == RefKind.None ?
-                                        scopeBinder.LocalScopeDepth :
-                                        Binder.CallingMethodScope; // default to returnable, unless there is initializer
-
-            // we do not know the type yet. 
-            // assume this is returnable in case we never get to know our type.
-            _valEscapeScope = Binder.CallingMethodScope;
+            _locations = ImmutableArray.Create(identifierToken.GetLocation());
         }
 
         /// <summary>
@@ -109,45 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override SyntaxNode ScopeDesignatorOpt
         {
             get { return _scopeBinder.ScopeDesignator; }
-        }
-
-        // From https://github.com/dotnet/csharplang/blob/main/csharp-11.0/proposals/low-level-struct-improvements.md:
-        //
-        // | Parameter or Local     | ref-safe-to-escape | safe-to-escape |
-        // |------------------------|--------------------|----------------|
-        // | Span<int> s            | current method     | calling method |
-        // | scoped Span<int> s     | current method     | current method |
-        // | ref Span<int> s        | calling method     | calling method |
-        // | scoped ref Span<int> s | current method     | calling method |
-
-        internal sealed override uint RefEscapeScope
-        {
-            get
-            {
-                if (!_scopeBinder.UseUpdatedEscapeRules ||
-                    _scope == DeclarationScope.Unscoped)
-                {
-                    return _refEscapeScope;
-                }
-                return _scope == DeclarationScope.RefScoped ?
-                    _scopeBinder.LocalScopeDepth :
-                    Binder.CurrentMethodScope;
-            }
-        }
-
-        internal sealed override uint ValEscapeScope
-        {
-            get
-            {
-                if (!_scopeBinder.UseUpdatedEscapeRules ||
-                    _scope == DeclarationScope.Unscoped)
-                {
-                    return _valEscapeScope;
-                }
-                return _scope == DeclarationScope.ValueScoped ?
-                    _scopeBinder.LocalScopeDepth :
-                    Binder.CallingMethodScope;
-            }
         }
 
         internal sealed override DeclarationScope Scope => _scope;
@@ -208,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(closestTypeSyntax != null);
             Debug.Assert(nodeBinder != null);
 
-            return closestTypeSyntax.SkipScoped(out _).SkipRef(out _).IsVar
+            return closestTypeSyntax.SkipScoped(out _).SkipRef().IsVar
                 ? new DeconstructionLocalSymbol(containingSymbol, scopeBinder, nodeBinder, closestTypeSyntax, identifierToken, kind, deconstruction)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: true, closestTypeSyntax, identifierToken, kind);
         }
@@ -239,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
             Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
-            return typeSyntax?.SkipScoped(out _).SkipRef(out _).IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
+            return typeSyntax?.SkipScoped(out _).SkipRef().IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: true, typeSyntax, identifierToken, kind);
         }
@@ -308,19 +244,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal virtual void SetRefEscape(uint value)
+        internal sealed override bool IsKnownToReferToTempIfReferenceType
         {
-            _refEscapeScope = value;
-        }
-
-        internal virtual void SetValEscape(uint value)
-        {
-            // either we should be setting the val escape for the first time,
-            // or not contradicting what was set before.
-            Debug.Assert(
-                _valEscapeScope == Binder.CallingMethodScope
-                || _valEscapeScope == value);
-            _valEscapeScope = value;
+            get { return false; }
         }
 
         public override Symbol ContainingSymbol
@@ -383,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                TypeSyntax typeSyntax = _typeSyntax.SkipScoped(out _).SkipRef(out _);
+                TypeSyntax typeSyntax = _typeSyntax.SkipScoped(out _).SkipRef();
 
                 if (typeSyntax.IsVar)
                 {
@@ -419,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar);
+                declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipScoped(out _).SkipRef(), diagnostics, out isVar);
             }
 
             if (isVar)
@@ -604,10 +530,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 _initializer = initializer;
                 _initializerBinder = initializerBinder;
-
-                // default to the current scope in case we need to handle self-referential error cases.
-                _refEscapeScope = _scopeBinder.LocalScopeDepth;
-                _valEscapeScope = _scopeBinder.LocalScopeDepth;
             }
 
             protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
@@ -666,20 +588,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MakeConstantTuple(inProgress: null, boundInitValue: boundInitValue);
                 return _constantTuple == null ? ImmutableBindingDiagnostic<AssemblySymbol>.Empty : _constantTuple.Diagnostics;
             }
-
-            internal override void SetRefEscape(uint value)
-            {
-                Debug.Assert(!_scopeBinder.UseUpdatedEscapeRules || _scope == DeclarationScope.Unscoped);
-                Debug.Assert(value <= _refEscapeScope);
-                _refEscapeScope = value;
-            }
-
-            internal override void SetValEscape(uint value)
-            {
-                Debug.Assert(!_scopeBinder.UseUpdatedEscapeRules || _scope == DeclarationScope.Unscoped);
-                Debug.Assert(value <= _valEscapeScope);
-                _valEscapeScope = value;
-            }
         }
 
         /// <summary>
@@ -725,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol for a deconstruction local that might require type inference.
         /// For instance, local <c>x</c> in <c>var (x, y) = ...</c> or <c>(var x, int y) = ...</c>.
         /// </summary>
-        private class DeconstructionLocalSymbol : SourceLocalSymbol
+        private sealed class DeconstructionLocalSymbol : SourceLocalSymbol
         {
             private readonly SyntaxNode _deconstruction;
             private readonly Binder _nodeBinder;
@@ -788,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private class LocalSymbolWithEnclosingContext : SourceLocalSymbol
+        private sealed class LocalSymbolWithEnclosingContext : SourceLocalSymbol
         {
             private readonly SyntaxNode _forbiddenZone;
             private readonly Binder _nodeBinder;

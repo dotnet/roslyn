@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _semanticModel = semanticModel;
         }
 
-        [return: NotNullIfNotNull("boundNode")]
+        [return: NotNullIfNotNull(nameof(boundNode))]
         public IOperation? Create(BoundNode? boundNode)
         {
             if (boundNode == null)

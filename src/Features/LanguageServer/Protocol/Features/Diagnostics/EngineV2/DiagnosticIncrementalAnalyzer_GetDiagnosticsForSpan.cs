@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // only in LSP pull diagnostics mode. In LSP push diagnostics mode,
                 // the background analysis from solution crawler handles caching these diagnostics and
                 // updating the error list simultaneously.
-                var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsLspPullDiagnostics();
 
                 // We log performance info when we are computing diagnostics for a span
                 // and also blocking for data, i.e. for lightbulb code path for "Ctrl + Dot" user command.
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     && supportsSpanBasedAnalysis
                     && _document is Document sourceDocument
                     && sourceDocument.SupportsSyntaxTree
-                    && _owner.GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    && _owner.GlobalOptions.IsLspPullDiagnostics();
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
                 if (incrementalAnalysis)

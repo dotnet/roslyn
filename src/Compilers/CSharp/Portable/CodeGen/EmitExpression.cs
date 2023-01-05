@@ -1647,14 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                // receiver is generic and method must come from the base or an interface or a generic constraint
-                // if the receiver is actually a value type it would need to be boxed.
-                // let .constrained sort this out. 
-                callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
-                            CallKind.CallVirt :
-                            CallKind.ConstrainedCallVirt;
-
-                tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
+                tempOpt = emitGenericReceiver(call, out callKind);
             }
 
             // When emitting a callvirt to a virtual method we always emit the method info of the
@@ -1730,6 +1723,166 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCallCleanup(call.Syntax, useKind, method);
 
             FreeOptTemp(tempOpt);
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            LocalDefinition emitGenericReceiver(BoundCall call, out CallKind callKind)
+            {
+                var receiver = call.ReceiverOpt;
+                var receiverType = receiver.Type;
+
+                // receiver is generic and method must come from the base or an interface or a generic constraint
+                // if the receiver is actually a value type it would need to be boxed.
+                // let .constrained sort this out. 
+                callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
+                            CallKind.CallVirt :
+                            CallKind.ConstrainedCallVirt;
+
+                LocalDefinition tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
+
+                if (callKind == CallKind.ConstrainedCallVirt && tempOpt is null && !receiverType.IsValueType &&
+                    !ReceiverIsKnownToReferToTempIfReferenceType(receiver) &&
+                    !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
+                {
+                    // A case where T is actually a class must be handled specially.
+                    // Taking a reference to a class instance is fragile because the value behind the 
+                    // reference might change while arguments are evaluated. However, the call should be
+                    // performed on the instance that is behind reference at the time we push the
+                    // reference to the stack. So, for a class we need to emit a reference to a temporary
+                    // location, rather than to the original location
+
+                    // Struct values are never nulls.
+                    // We will emit a check for such case, but the check is really a JIT-time 
+                    // constant since JIT will know if T is a struct or not.
+
+                    // if ((object)default(T) == null) 
+                    // {
+                    //     temp = receiverRef
+                    //     receiverRef = ref temp
+                    // }
+
+                    object whenNotNullLabel = null;
+
+                    if (!receiverType.IsReferenceType)
+                    {
+                        // if ((object)default(T) == null) 
+                        EmitDefaultValue(receiverType, true, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                        whenNotNullLabel = new object();
+                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
+                    }
+
+                    //     temp = receiverRef
+                    //     receiverRef = ref temp
+                    EmitLoadIndirect(receiverType, receiver.Syntax);
+                    tempOpt = AllocateTemp(receiverType, receiver.Syntax);
+                    _builder.EmitLocalStore(tempOpt);
+                    _builder.EmitLocalAddress(tempOpt);
+
+                    if (whenNotNullLabel is not null)
+                    {
+                        _builder.MarkLabel(whenNotNullLabel);
+                    }
+                }
+
+                return tempOpt;
+            }
+        }
+
+        internal static bool IsPossibleReferenceTypeReceiverOfConstrainedCall(BoundExpression receiver)
+        {
+            var receiverType = receiver.Type;
+
+            if (receiverType.IsVerifierReference() || receiverType.IsVerifierValue())
+            {
+                return false;
+            }
+
+            return !receiverType.IsValueType;
+        }
+
+        internal static bool ReceiverIsKnownToReferToTempIfReferenceType(BoundExpression receiver)
+        {
+            while (receiver is BoundSequence sequence)
+            {
+                receiver = sequence.Value;
+            }
+
+            if (receiver is
+                    BoundLocal { LocalSymbol.IsKnownToReferToTempIfReferenceType: true } or
+                    BoundComplexConditionalReceiver)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray<BoundExpression> arguments)
+        {
+            return arguments.All(isSafeToDereferenceReceiverRefAfterEvaluatingArgument);
+
+            static bool isSafeToDereferenceReceiverRefAfterEvaluatingArgument(BoundExpression expression)
+            {
+                var current = expression;
+                while (true)
+                {
+                    if (current.ConstantValue != null)
+                    {
+                        return true;
+                    }
+
+                    switch (current.Kind)
+                    {
+                        default:
+                            return false;
+                        case BoundKind.TypeExpression:
+                        case BoundKind.Parameter:
+                        case BoundKind.Local:
+                        case BoundKind.ThisReference:
+                            return true;
+                        case BoundKind.FieldAccess:
+                            {
+                                var field = (BoundFieldAccess)current;
+                                current = field.ReceiverOpt;
+                                if (current is null)
+                                {
+                                    return true;
+                                }
+
+                                break;
+                            }
+                        case BoundKind.PassByCopy:
+                            current = ((BoundPassByCopy)current).Expression;
+                            break;
+                        case BoundKind.BinaryOperator:
+                            {
+                                BoundBinaryOperator b = (BoundBinaryOperator)current;
+                                Debug.Assert(!b.OperatorKind.IsUserDefined());
+
+                                if (b.OperatorKind.IsUserDefined() || !isSafeToDereferenceReceiverRefAfterEvaluatingArgument(b.Right))
+                                {
+                                    return false;
+                                }
+
+                                current = b.Left;
+                                break;
+                            }
+                        case BoundKind.Conversion:
+                            {
+                                BoundConversion conv = (BoundConversion)current;
+                                Debug.Assert(!conv.ConversionKind.IsUserDefinedConversion());
+
+                                if (conv.ConversionKind.IsUserDefinedConversion())
+                                {
+                                    return false;
+                                }
+
+                                current = conv.Operand;
+                                break;
+                            }
+                    }
+                }
+            }
         }
 
         private bool IsReadOnlyCall(MethodSymbol method, NamedTypeSymbol methodContainingType)
@@ -1759,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // returns true when receiver is already a ref.
         // in such cases calling through a ref could be preferred over 
         // calling through indirectly loaded value.
-        private bool IsRef(BoundExpression receiver)
+        internal static bool IsRef(BoundExpression receiver)
         {
             switch (receiver.Kind)
             {
@@ -1996,7 +2149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // ReadOnlySpan may just refer to the blob, if possible.
-                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlace: false))
+                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlaceTarget: null, out _))
                 {
                     return;
                 }
@@ -2015,14 +2168,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, bool inPlace)
+        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace)
         {
             int argumentsLength = expression.Arguments.Length;
+            avoidInPlace = false;
             return ((argumentsLength == 1 &&
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)) ||
                     (argumentsLength == 3 &&
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length))) &&
-                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlace,
+                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
                            start: argumentsLength == 3 ? expression.Arguments[1] : null,
                            length: argumentsLength == 3 ? expression.Arguments[2] : null);
         }
@@ -2186,9 +2340,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     // ctor can possibly see its own assignments indirectly if there are ref parameters or __arglist
                     if (System.Linq.ImmutableArrayExtensions.All(ctor.Parameters, p => p.RefKind == RefKind.None) &&
-                        !ctor.IsVararg)
+                        !ctor.IsVararg &&
+                        TryInPlaceCtorCall(left, objCreation, used))
                     {
-                        InPlaceCtorCall(left, objCreation, used);
                         return true;
                     }
                 }
@@ -2239,22 +2393,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void InPlaceCtorCall(BoundExpression target, BoundObjectCreationExpression objCreation, bool used)
+        private bool TryInPlaceCtorCall(BoundExpression target, BoundObjectCreationExpression objCreation, bool used)
         {
             Debug.Assert(TargetIsNotOnHeap(target), "in-place construction target should not be on heap");
 
+            // ReadOnlySpan may just refer to the blob, if possible.
+            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, target, out bool avoidInPlace))
+            {
+                return true;
+            }
+
+            if (avoidInPlace)
+            {
+                // We can use an ROS wrapper around a blob if we don't initialize in-place.
+                return false;
+            }
+
             var temp = EmitAddress(target, AddressKind.Writeable);
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
-
-            // ReadOnlySpan may just refer to the blob, if possible.
-            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, inPlace: true))
-            {
-                if (used)
-                {
-                    EmitExpression(target, used: true);
-                }
-                return;
-            }
 
             var constructor = objCreation.Constructor;
             EmitArguments(objCreation.Arguments, constructor.Parameters, objCreation.ArgumentRefKindsOpt);
@@ -2269,6 +2425,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 EmitExpression(target, used: true);
             }
+
+            return true;
         }
 
         // partial ctor results are not observable when target is not on the heap.

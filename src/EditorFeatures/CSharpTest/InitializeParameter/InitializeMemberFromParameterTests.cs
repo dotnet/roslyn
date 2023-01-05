@@ -1556,7 +1556,7 @@ class C
     }
 
     public string S { get; }
-}", options: this.Option(CSharpFormattingOptions2.NewLinesForBracesInMethods, false));
+}", options: this.Option(CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Methods));
         }
 
         [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]

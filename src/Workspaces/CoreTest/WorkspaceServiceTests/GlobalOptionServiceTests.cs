@@ -94,59 +94,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         [Fact]
-        public void OptionWithNullOrWhitespace()
-        {
-            using var workspace = new AdhocWorkspace();
-            var optionService = GetOptionService(workspace.Services);
-            var optionSet = new SolutionOptionSet(optionService);
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var option = new Option<bool>("Test Feature", "", false);
-            });
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var option2 = new Option<bool>("Test Feature", null!, false);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
-                var option3 = new Option<bool>(" ", "Test Name", false);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
-                var option4 = new Option<bool>(null!, "Test Name", false);
-            });
-        }
-
-        [Fact]
         public void OptionPerLanguageOption()
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetOptionService(workspace.Services);
             var optionSet = new SolutionOptionSet(optionService);
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var option = new PerLanguageOption<bool>("Test Feature", "", false);
-            });
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var option2 = new PerLanguageOption<bool>("Test Feature", null!, false);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
-                var option3 = new PerLanguageOption<bool>(" ", "Test Name", false);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
-                var option4 = new PerLanguageOption<bool>(null!, "Test Name", false);
-            });
 
             var optionvalid = new PerLanguageOption<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(optionvalid, "CS"));

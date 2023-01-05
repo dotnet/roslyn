@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
-            // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
-            // lsp client.
-            return mode == DiagnosticMode.Push;
+            // We only support solution crawler push diagnostics.  When lsp pull diagnostics are on, ellipses
+            // suggestions are handled by the lsp client.
+            return mode == DiagnosticMode.SolutionCrawlerPush;
         }
 
         protected sealed override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
             => new RoslynErrorTag(PredefinedErrorTypeNames.HintedSuggestion, workspace, diagnostic);
 
-        protected sealed override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
+        protected sealed override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {
             // We always want suggestion tags to be two characters long.
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);

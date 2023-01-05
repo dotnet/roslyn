@@ -8886,6 +8886,108 @@ public class AA
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestTypeImportCompletionAfterScoped(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            scoped $$
+        }
+    }
+}
+</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' Make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+
+                Dim expectedText = "
+using MyNamespace;
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            scoped MyRefStruct 
+        }
+    }
+}
+"
+                state.SendTypeChars("MyR")
+                state.SendSelectCompletionItem("MyRefStruct")
+                state.SendTypeChars(" ")
+                Assert.Equal(expectedText, state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret(expectedTextBeforeCaret:="            scoped MyRefStruct ", expectedTextAfterCaret:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTypeImportCompletionAfterScopedInTopLevel(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+scoped $$
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' Make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+
+                Dim expectedText = "
+using MyNamespace;
+
+scoped MyRefStruct 
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+"
+                state.SendTypeChars("MyR")
+                state.SendSelectCompletionItem("MyRefStruct")
+                state.SendTypeChars(" ")
+                Assert.Equal(expectedText, state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret(expectedTextBeforeCaret:="scoped MyRefStruct ", expectedTextAfterCaret:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCompleteParenthesisForMethodUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
@@ -10962,6 +11064,26 @@ public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(64862, "https://github.com/dotnet/roslyn/issues/64862")>
+        Public Async Function TestAsyncMethodReturningValueTask() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System.Threading.Tasks;
+
+class Program
+{
+    async ValueTask&lt;string&gt; M2Async()
+    {
+        return new $$;
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("string", displayTextSuffix:="")
             End Using
         End Function
     End Class
