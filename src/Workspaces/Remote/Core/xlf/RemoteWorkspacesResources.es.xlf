@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_FullyQualify">
         <source>Fully qualify</source>
-        <target state="new">Fully qualify</target>
+        <target state="translated">Completo</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
