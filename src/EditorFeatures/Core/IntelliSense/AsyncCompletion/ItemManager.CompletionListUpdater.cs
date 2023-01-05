@@ -238,6 +238,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // FilterStateHelper is used to decide whether a given item should be included in the list based on the state of filter/expander buttons.
                 var filterHelper = new FilterStateHelper(_snapshotData.SelectedFilters);
 
+                using var _1 = PooledHashSet<string>.GetInstance(out var includedPreferredItems);
+                using var _2 = ArrayBuilder<MatchResult>.GetInstance(out var includedDefaults);
+                var unmatchedDefaults = _snapshotData.Defaults;
+
                 // Filter items based on the selected filters and matching.
                 var totalCount = _snapshotData.InitialSortedItemList.Count;
                 for (var currentIndex = 0; currentIndex < totalCount; currentIndex++)
@@ -245,30 +249,79 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     cancellationToken.ThrowIfCancellationRequested();
                     var item = _snapshotData.InitialSortedItemList[currentIndex];
 
+                    // All items passed in should contain a CompletionItemData object in the property bag,
+                    // which is guaranteed in `ItemManager.SortCompletionListAsync`.
+                    if (!CompletionItemData.TryGetData(item, out var itemData))
+                        throw ExceptionUtilities.Unreachable();
+
                     if (filterHelper.ShouldBeFilteredOut(item))
                         continue;
 
-                    if (CompletionItemData.TryGetData(item, out var itemData))
+                    // currentIndex is used to track the index of the VS CompletionItem in the initial sorted list to maintain a map from Roslyn item to VS item.
+                    // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
+                    // same pattern match score since `List<T>.Sort` isn't stable.
+                    if (CompletionHelper.TryCreateMatchResult(_completionHelper, itemData.RoslynItem, _filterText,
+                        roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem), _highlightMatchingPortions, currentIndex,
+                        out var matchResult))
                     {
-                        // currentIndex is used to track the index of the VS CompletionItem in the initial sorted list to maintain a map from Roslyn item to VS item.
-                        // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
-                        // same pattern match score since `List<T>.Sort` isn't stable.
-                        if (CompletionHelper.TryCreateMatchResult(_completionHelper, itemData.RoslynItem, _filterText,
-                            roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem), _highlightMatchingPortions, currentIndex,
-                            out var matchResult))
+                        list.Add(matchResult);
+
+                        // Collect all the preferred items from Pythia and regular items matched defaults provided by WLC.
+                        // We will use this info next to "promote" regular default items to "preferred" state on behalf of
+                        // WLC to provide a coherent IntelliCode completion experience.
+                        if (matchResult.CompletionItem.IsPreferredItem())
                         {
-                            list.Add(matchResult);
+                            includedPreferredItems.Add(matchResult.CompletionItem.FilterText);
                         }
-                    }
-                    else
-                    {
-                        // All items passed in should contain a CompletionItemData object in the property bag,
-                        // which is guaranteed in `ItemManager.SortCompletionListAsync`.
-                        throw ExceptionUtilities.Unreachable();
+                        else
+                        {
+                            var defaultIndex = unmatchedDefaults.IndexOf(matchResult.CompletionItem.FilterText);
+                            if (defaultIndex >= 0)
+                            {
+                                unmatchedDefaults = unmatchedDefaults.RemoveAt(defaultIndex);
+                                includedDefaults.Add(matchResult);
+                            }
+                        }
                     }
                 }
 
+                PromoteDefaultItemsToPreferredState();
                 list.Sort(MatchResult.SortingComparer);
+
+                // Go through items matched with defaults. If it doesn't have
+                // a corresponding preferred items, we will add one that mimic
+                // the "starred" item from Pythia.
+                void PromoteDefaultItemsToPreferredState()
+                {
+                    foreach (var includedDefault in includedDefaults)
+                    {
+                        var completionItem = includedDefault.CompletionItem;
+
+                        // There a preferred item matches the same default, so no need to promote this.
+                        if (includedPreferredItems.Contains(completionItem.FilterText))
+                            continue;
+
+                        var defaultIndex = _snapshotData.Defaults.IndexOf(completionItem.FilterText);
+                        var fabricatedIndex = DefaultIndexToFabricatedOriginalSortedIndex(defaultIndex);
+
+                        var promotedDefaultItemMatchResult = new MatchResult(
+                            Helpers.PromoteItem(completionItem, includedDefault.IndexInOriginalSortedOrder),
+                            includedDefault.ShouldBeConsideredMatchingFilterText,
+                            includedDefault.PatternMatch,
+                            fabricatedIndex,
+                            matchedAdditionalFilterText: includedDefault.MatchedAdditionalFilterText,
+                            includedDefault.RecentItemIndex);
+
+                        list.Add(promotedDefaultItemMatchResult);
+                    }
+                }
+
+                // This ensures promoted default items are sorted in the same relative order and (would have been) before other
+                // items from initial sorted list of all. 
+                // e.g. if Defaults.Length = 3, we set index of Defaults[0] to -3, Defaults[1] to -2, etc. where the last one is -1.
+                // All other items have original index >= 0.
+                int DefaultIndexToFabricatedOriginalSortedIndex(int i)
+                    => i - _snapshotData.Defaults.Length;
             }
 
             private ItemSelection? HandleNormalFiltering(IReadOnlyList<MatchResult> matchResults, CancellationToken cancellationToken)
@@ -376,7 +429,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private VSCompletionItem GetCorrespondingVsCompletionItem(MatchResult matchResult, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                return _snapshotData.InitialSortedItemList[matchResult.IndexInOriginalSortedOrder];
+
+                if (matchResult.IndexInOriginalSortedOrder >= 0)
+                    return _snapshotData.InitialSortedItemList[matchResult.IndexInOriginalSortedOrder];
+
+                // This is a "promoted" item added by us, so there's no corresponding VS item from initial sorted list.
+                // We need to craft one based on the data of the original item.
+                var item = matchResult.CompletionItem;
+                if (Helpers.TryGetOriginalIndexOfPromotedItem(item, out var unpromotedIndex))
+                {
+                    var unpromotedVsItem = _snapshotData.InitialSortedItemList[unpromotedIndex];
+                    var promotedVsItem = new VSCompletionItem(
+                        displayText: item.GetEntireDisplayText(),
+                        unpromotedVsItem.Source,
+                        unpromotedVsItem.Icon,
+                        unpromotedVsItem.Filters,
+                        unpromotedVsItem.Suffix,
+                        unpromotedVsItem.InsertText,
+                        unpromotedVsItem.SortText,
+                        unpromotedVsItem.FilterText,
+                        unpromotedVsItem.AutomationText,
+                        unpromotedVsItem.AttributeIcons);
+
+                    // This is guaranteed to return true here
+                    CompletionItemData.TryGetData(unpromotedVsItem, out var data);
+                    CompletionItemData.AddData(promotedVsItem, item, data.TriggerLocation);
+
+                    return promotedVsItem;
+                }
+
+                throw ExceptionUtilities.Unreachable();
             }
 
             private ItemSelection? HandleDeletionTrigger(IReadOnlyList<MatchResult> items, CancellationToken cancellationToken)
@@ -757,17 +839,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     return itemSelection;
 
                 // "Preselect" is only used when we have high confidence with the selection, so don't override it;
-                // unless it's an IntelliCode item, in which case the default item wins.
+                // unless it's a real Pythia item (i.e. not fake one from us,) in which case the default item wins.
                 var selectedItem = items[itemSelection.SelectedItemIndex].CompletionItem;
-                if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect && !selectedItem.IsPreferredItem())
-                    return itemSelection;
+                if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect)
+                {
+                    // This is a high priority item provided by Roslyn, either a regular or preferred one promoted by us
+                    // (because it matches one of the defaults even though it might not be the best default) so we want to stick with this selection. 
+                    if (!selectedItem.IsPreferredItem() || Helpers.TryGetOriginalIndexOfPromotedItem(selectedItem, out _))
+                        return itemSelection;
+                }
 
-                var tick = Environment.TickCount;
-
-                var finalSelection = GetDefaultsMatch(items, itemSelection, cancellationToken);
-
-                AsyncCompletionLogger.LogGetDefaultsMatchTicksDataPoint(Environment.TickCount - tick);
-                return finalSelection;
+                return GetDefaultsMatch(items, itemSelection, cancellationToken);
             }
 
             /// <summary>
@@ -775,19 +857,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             /// If the suggested default is no worse than current selected item (in a case-sensitive manner,) use the suggested default. Otherwise use the original selection.
             /// For example, if user typed "C", roslyn might select "CancellationToken", but with suggested default "Console" we will end up selecting "Console" instead.
             /// </summary>
-            private ItemSelection GetDefaultsMatch(IReadOnlyList<MatchResult> items, ItemSelection initialSelection, CancellationToken cancellationToken)
+            private ItemSelection GetDefaultsMatch(IReadOnlyList<MatchResult> matches, ItemSelection initialSelection, CancellationToken cancellationToken)
             {
-                // Because the items are already sorted based on pattern-matching score, try to limit the range for the items we compare default with
-                // by searching for the first "inferior" item, so we can avoid always going through the entire list.
+                // Because the items are already sorted based on pattern-matching score, try to limit the range for the items we search
+                // by stopping as soon as we encountered the top item from original default list, or at the first match that is inferior than current selection.
                 int inferiorItemIndex;
                 if (_filterText.Length == 0)
                 {
                     // Without filterText, all items are equally good match (w.r.t to the empty filterText), so we have to consider all of them.
-                    inferiorItemIndex = items.Count;
+                    inferiorItemIndex = matches.Count;
                 }
                 else
                 {
-                    var selectedItemMatch = items[initialSelection.SelectedItemIndex].PatternMatch;
+                    var selectedItemMatch = matches[initialSelection.SelectedItemIndex].PatternMatch;
 
                     // It's possible that an item doesn't match filter text but still ended up being selected, this is because we just always keep all the
                     // items in the list in some cases. For example, user brought up completion with ctrl-j or through deletion.
@@ -799,9 +881,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // -- as far as the pattern matcher is concerned -- equivalent items (items with identical PatternMatch.Kind and IsCaseSensitive).
                     // Find the last items in the range and use that to limit the items searched for from the defaults list.     
                     inferiorItemIndex = initialSelection.SelectedItemIndex;
-                    while (++inferiorItemIndex < items.Count)
+                    while (++inferiorItemIndex < matches.Count)
                     {
-                        var itemMatch = items[inferiorItemIndex].PatternMatch;
+                        var itemMatch = matches[inferiorItemIndex].PatternMatch;
                         if (!itemMatch.HasValue
                             || itemMatch.Value.Kind != selectedItemMatch.Value.Kind
                             || itemMatch.Value.IsCaseSensitive != selectedItemMatch.Value.IsCaseSensitive)
@@ -811,26 +893,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
-                foreach (var defaultText in _snapshotData.Defaults)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    // The range includes all items that are as good of a match as what we initially selected (and in descending order of matching score)
-                    // so we just need to search for the first item that matches the suggested default.
-                    for (var i = 0; i < inferiorItemIndex; ++i)
+                // The range includes all items that are as good of a match as what we initially selected (and in descending order of matching score)
+                // so we just need to search for a preferred item with best default match.
+                var bestPromotedItemSoFar = -1;
+                var bestDefaultIndex = -1;
+                for (var i = 0; i < inferiorItemIndex; ++i)
+                {
+                    var item = matches[i].CompletionItem;
+                    if (item.IsPreferredItem())
                     {
-                        if (items[i].CompletionItem.FilterText == defaultText)
+                        var defaultIndex = _snapshotData.Defaults.IndexOf(matches[i].CompletionItem.FilterText);
+
+                        // This is not a starred item that matches default
+                        if (defaultIndex < 0)
+                            continue;
+
+                        if (bestPromotedItemSoFar < 0 || defaultIndex <= bestDefaultIndex)
                         {
-                            // If user hasn't typed anything, we'd like to hard select the default item.
-                            // This way, they can easily commit the default item which matches what WLC shows.
-                            var selectionHint = _filterText.Length == 0 ? UpdateSelectionHint.Selected : initialSelection.SelectionHint;
-                            return initialSelection with { SelectedItemIndex = i, SelectionHint = selectionHint };
+                            bestPromotedItemSoFar = i;
+                            bestDefaultIndex = defaultIndex;
                         }
+
+                        // We have found the top default item, no need to proceed.
+                        if (bestDefaultIndex == 0)
+                            break;
                     }
                 }
 
                 // Don't change the original selection since there's no match to the defaults provided.
-                return initialSelection;
+                if (bestPromotedItemSoFar < 0)
+                    return initialSelection;
+
+                // If user hasn't typed anything, we'd like to hard select the default item.
+                // This way, they can easily commit the default item which matches what WLC shows.
+                var selectionHint = _filterText.Length == 0 ? UpdateSelectionHint.Selected : initialSelection.SelectionHint;
+                return initialSelection with { SelectedItemIndex = bestPromotedItemSoFar, SelectionHint = selectionHint };
             }
 
             private sealed class FilterStateHelper
