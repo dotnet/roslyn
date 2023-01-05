@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
             // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
-            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
+            if (convertedExpression.ConstantValueOpt == null && convertedExpression.Kind == BoundKind.Conversion &&
                 ((BoundConversion)convertedExpression).ConversionKind != ConversionKind.DefaultLiteral)
             {
                 if (parameterType.Type.IsNullableType())
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // represent default(struct) by a Null constant:
-            var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
+            var value = convertedExpression.ConstantValueOpt ?? ConstantValue.Null;
             return value;
         }
 

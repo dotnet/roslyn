@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression lengthAccess = VisitExpression(node.LengthOrCountAccess);
 
                     // ensure we evaluate the input before accessing length, unless it is an array length
-                    if (makeOffsetInput.ConstantValue is null && lengthAccess.Kind is not BoundKind.ArrayLength)
+                    if (makeOffsetInput.ConstantValueOpt is null && lengthAccess.Kind is not BoundKind.ArrayLength)
                     {
                         makeOffsetInput = F.StoreToTemp(makeOffsetInput, out BoundAssignmentOperator inputStore);
                         locals.Add(((BoundLocal)makeOffsetInput).LocalSymbol);
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(lengthAccess is not null);
                     Debug.Assert(loweredExpr.Type!.SpecialType == SpecialType.System_Int32);
 
-                    if (loweredExpr.ConstantValue?.Int32Value == 0)
+                    if (loweredExpr.ConstantValueOpt?.Int32Value == 0)
                     {
                         return lengthAccess;
                     }
@@ -471,8 +471,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (unloweredExpr is BoundObjectCreationExpression { Constructor: MethodSymbol constructor, Arguments: { Length: 2 } arguments, ArgsToParamsOpt: { IsDefaultOrEmpty: true }, InitializerExpressionOpt: null } &&
                      (object)constructor == _compilation.GetWellKnownTypeMember(WellKnownMember.System_Index__ctor) &&
-                     arguments[0] is { Type.SpecialType: SpecialType.System_Int32, ConstantValue.Value: int _ and >= 0 } index &&
-                     arguments[1] is { Type.SpecialType: SpecialType.System_Boolean, ConstantValue.Value: bool fromEnd })
+                     arguments[0] is { Type.SpecialType: SpecialType.System_Int32, ConstantValueOpt.Value: int _ and >= 0 } index &&
+                     arguments[1] is { Type.SpecialType: SpecialType.System_Boolean, ConstantValueOpt.Value: bool fromEnd })
             {
                 if (fromEnd)
                 {
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((rewriteFlags & captureStartOffset) != 0)
                 {
                     Debug.Assert(startMakeOffsetInput is not null);
-                    if (startMakeOffsetInput.ConstantValue is null)
+                    if (startMakeOffsetInput.ConstantValueOpt is null)
                     {
                         startMakeOffsetInput = F.StoreToTemp(startMakeOffsetInput, out BoundAssignmentOperator inputStore);
                         localsBuilder.Add(((BoundLocal)startMakeOffsetInput).LocalSymbol);
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((rewriteFlags & captureEndOffset) != 0)
                 {
                     Debug.Assert(endMakeOffsetInput is not null);
-                    if (endMakeOffsetInput.ConstantValue is null)
+                    if (endMakeOffsetInput.ConstantValueOpt is null)
                     {
                         endMakeOffsetInput = F.StoreToTemp(endMakeOffsetInput, out BoundAssignmentOperator inputStore);
                         localsBuilder.Add(((BoundLocal)endMakeOffsetInput).LocalSymbol);
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 startExpr = MakePatternIndexOffsetExpression(startMakeOffsetInput, lengthAccess, startStrategy);
 
-                if ((rewriteFlags & captureStartValue) != 0 && startExpr.ConstantValue is null)
+                if ((rewriteFlags & captureStartValue) != 0 && startExpr.ConstantValueOpt is null)
                 {
                     var startLocal = F.StoreToTemp(startExpr, out var startStore);
                     localsBuilder.Add(startLocal.LocalSymbol);
@@ -743,11 +743,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression endExpr = MakePatternIndexOffsetExpression(endMakeOffsetInput, lengthAccess, endStrategy);
 
-                if (startExpr.ConstantValue?.Int32Value == 0)
+                if (startExpr.ConstantValueOpt?.Int32Value == 0)
                 {
                     rangeSizeExpr = endExpr;
                 }
-                else if (startExpr.ConstantValue is { Int32Value: var startConst } && endExpr.ConstantValue is { Int32Value: var endConst })
+                else if (startExpr.ConstantValueOpt is { Int32Value: var startConst } && endExpr.ConstantValueOpt is { Int32Value: var endConst })
                 {
                     rangeSizeExpr = F.Literal(unchecked(endConst - startConst));
                 }

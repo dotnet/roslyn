@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ReportConstantNullCollectionExpr(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)
         {
-            if (collectionExpr.ConstantValue is { IsNull: true })
+            if (collectionExpr.ConstantValueOpt is { IsNull: true })
             {
                 // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
                 diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);

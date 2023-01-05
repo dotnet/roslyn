@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CheckOverflowAtRuntime,
                         explicitCastInCode: isCast && !wasCompilerGenerated,
                         conversionGroupOpt,
-                        convertedSwitch.ConstantValue,
+                        convertedSwitch.ConstantValueOpt,
                         destination,
                         hasErrors);
                 }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CheckOverflowAtRuntime,
                         explicitCastInCode: isCast && !wasCompilerGenerated,
                         conversionGroupOpt,
-                        convertedConditional.ConstantValue,
+                        convertedConditional.ConstantValueOpt,
                         destination,
                         hasErrors);
                 }
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         unconvertedSource.Syntax,
                         interpolationData: null,
                         BindInterpolatedStringParts(unconvertedSource, diagnostics),
-                        unconvertedSource.ConstantValue,
+                        unconvertedSource.ConstantValueOpt,
                         unconvertedSource.Type,
                         unconvertedSource.HasErrors);
                 }
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   node.Binder.CheckOverflowAtRuntime,
                                   explicitCastInCode: isCast && !wasCompilerGenerated,
                                   conversionGroupOpt,
-                                  expr.ConstantValue,
+                                  expr.ConstantValueOpt,
                                   destination)
             { WasCompilerGenerated = wasCompilerGenerated };
 
@@ -1536,7 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: Some conversions can produce errors or warnings depending on checked/unchecked.
             // TODO: Fold conversions on enums and strings too.
 
-            var sourceConstantValue = source.ConstantValue;
+            var sourceConstantValue = source.ConstantValueOpt;
             if (sourceConstantValue == null)
             {
                 if (conversion.Kind == ConversionKind.DefaultLiteral)
