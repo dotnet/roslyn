@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
                 if (invoke.IsParams())
                 {
-                    checkWellKnownMemberAvailable(
+                    Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                        Compilation,
                         WellKnownMember.System_ParamArrayAttribute__ctor,
                         ref useSiteInfo);
                 }
@@ -82,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         };
                         if (member != null)
                         {
-                            checkWellKnownMemberAvailable(
+                            Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                                Compilation,
                                 member.GetValueOrDefault(),
                                 ref useSiteInfo);
                         }
@@ -92,7 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
                 if (invoke.Parameters.Any(p => p.HasUnscopedRefAttribute))
                 {
-                    checkWellKnownMemberAvailable(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor, ref useSiteInfo);
+                    Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                        Compilation,
+                        WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                        ref useSiteInfo);
                 }
             }
 
@@ -102,14 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol.ParameterCount);
             resolution.Free();
             return conversion;
-
-            void checkWellKnownMemberAvailable(WellKnownMember member, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                Binder.GetWellKnownTypeMember(Compilation,
-                    member,
-                    out var memberUseSiteInfo);
-                useSiteInfo.Add(memberUseSiteInfo);
-            }
         }
 #nullable disable
 
