@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.Options
             if (typeof(T) == typeof(string))
                 return (EditorConfigValueSerializer<T>)(object)s_string;
 
-            throw ExceptionUtilities.UnexpectedValue(typeof(T));
+            // TODO: https://github.com/dotnet/roslyn/issues/65787
+            // Once all global options define a serializer this should be changed to:
+            // throw ExceptionUtilities.UnexpectedValue(typeof(T));
+            return EditorConfigValueSerializer<T>.Unsupported;
         }
 
         public static EditorConfigValueSerializer<string> String(string emptyStringRepresentation)
