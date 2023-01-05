@@ -24,7 +24,7 @@ To add a symbol to the banned list, just add an entry in the format below to one
 
 Lines beginning with a `#` character will be treated as comment lines and ignored.
 
-For details on ID string format, please refer to ["Documentation comments"](https://github.com/dotnet/csharplang/blob/main/spec/documentation-comments.md#id-string-format).
+For details on ID string format, please refer to ["ID string format"](https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/documentation-comments.md#d42-id-string-format).
 
 Examples of BannedSymbols.txt entries for symbols declared in the source below:
 
