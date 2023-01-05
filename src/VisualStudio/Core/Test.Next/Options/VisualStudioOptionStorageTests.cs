@@ -35,7 +35,7 @@ public class VisualStudioOptionStorageTests
 
         var languageSpecificOptionsHaveIncorrectPrefix =
             from info in infos
-            where !info.Value.Option.StorageLocations.IsEmpty // TODO: remove condition once all options have config name https://github.com/dotnet/roslyn/issues/65787
+            where info.Value.Option.Definition.IsEditorConfigOption // TODO: remove condition once all options have config name https://github.com/dotnet/roslyn/issues/65787
             where info.Key.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "CSharp" ||
                   info.Key.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "VisualBasic"
             select info;

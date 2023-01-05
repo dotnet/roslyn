@@ -715,7 +715,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             void ProcessDiagnosticIdAndOption(string diagnosticId, IOption2 option)
             {
                 var optionName = option?.OptionDefinition.ConfigName;
-                var optionValue = option?.StorageLocation.GetEditorConfigStringValue(option.DefaultValue);
+                var optionValue = option?.OptionDefinition.Serializer.GetEditorConfigStringValue(option.DefaultValue);
 
                 // Verify we have an entry for { diagnosticId, optionName }
                 if (expected.IsEmpty())

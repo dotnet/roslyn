@@ -36,17 +36,15 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                Contract.ThrowIfNull(option.StorageLocation);
-
                 if (analyzerConfigOptions.TryGetValue(option.OptionDefinition.ConfigName, out var stringValue))
                 {
                     // Avoid boxing when reading typed value:
                     if (typeof(T) != typeof(object))
                     {
-                        return ((EditorConfigStorageLocation<T>)option.StorageLocation).TryParseValue(stringValue, out value!);
+                        return ((OptionDefinition<T>)option.OptionDefinition).Serializer.TryParseValue(stringValue, out value!);
                     }
 
-                    if (option.StorageLocation.TryParseValue(stringValue, out var objectValue))
+                    if (option.OptionDefinition.Serializer.TryParseValue(stringValue, out var objectValue))
                     {
                         value = (T)objectValue!;
                         return true;

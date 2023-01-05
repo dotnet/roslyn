@@ -170,15 +170,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             var option = CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
             var publicOption = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
-            var storage = option.StorageLocation!;
-            var publicStorage = (IEditorConfigStorageLocation)publicOption.StorageLocations.Single();
-
-            Assert.True(storage.TryParseValue("true:suggestion", out var result));
+            Assert.True(option.OptionDefinition.Serializer.TryParseValue("true:suggestion", out var result));
             Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion), result);
 
-            // Note: the storage of public option returns internal representation of code style options:
-            Assert.True(publicStorage.TryParseValue("true:suggestion", out var publicResult));
-            Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion), publicResult);
+            Assert.Empty(publicOption.StorageLocations);
         }
 
         [Fact]

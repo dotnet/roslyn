@@ -5,8 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <typeparam name="T"></typeparam>
     internal partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
     {
-        public OptionDefinition OptionDefinition { get; }
+        public OptionDefinition<T> OptionDefinition { get; }
 
         /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => OptionDefinition.Group;
@@ -40,14 +38,11 @@ namespace Microsoft.CodeAnalysis.Options
         /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)OptionDefinition.DefaultValue!;
 
-        public EditorConfigStorageLocation<T>? StorageLocation { get; }
-
         public IOption2? PublicOption { get; }
 
-        internal PerLanguageOption2(OptionDefinition optionDefinition, EditorConfigStorageLocation<T>? storageLocation, IOption2? publicOption)
+        internal PerLanguageOption2(OptionDefinition<T> optionDefinition, IOption2? publicOption)
         {
             OptionDefinition = optionDefinition;
-            StorageLocation = storageLocation;
             PublicOption = publicOption;
         }
 
@@ -58,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Options
             bool isEditorConfigOption = false,
             EditorConfigStorageLocation<T>? serializer = null,
             InternalOptionStorageMapping? internalStorageMapping = null)
-            : this(new OptionDefinition<T>(group ?? OptionGroup.Default, name, defaultValue, internalStorageMapping, isEditorConfigOption),
-                  serializer ?? EditorConfigStorageLocation.Default<T>(), publicOption: null)
+            : this(new OptionDefinition<T>(defaultValue, serializer, group, name, internalStorageMapping, isEditorConfigOption), publicOption: null)
         {
             VerifyNamingConvention();
         }
@@ -68,18 +62,17 @@ namespace Microsoft.CodeAnalysis.Options
         private void VerifyNamingConvention()
         {
             // TODO: remove, once all options have editorconfig-like name https://github.com/dotnet/roslyn/issues/65787
-            if (StorageLocation is null)
+            if (!OptionDefinition.IsEditorConfigOption)
             {
                 return;
             }
 
             // options with per-language values shouldn't have language-specific prefix
-            Debug.Assert(!OptionDefinition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
-            Debug.Assert(!OptionDefinition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(!OptionDefinition.ConfigName.StartsWith(Options.OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(!OptionDefinition.ConfigName.StartsWith(Options.OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
 
         OptionDefinition IOption2.OptionDefinition => OptionDefinition;
-        IEditorConfigStorageLocation? IOption2.StorageLocation => StorageLocation;
 
 #if CODE_STYLE
         bool IOption2.IsPerLanguage => true;
@@ -89,8 +82,7 @@ namespace Microsoft.CodeAnalysis.Options
         object? IOption.DefaultValue => this.DefaultValue;
         bool IOption.IsPerLanguage => true;
 
-        ImmutableArray<OptionStorageLocation> IOption.StorageLocations
-            => (StorageLocation != null) ? ImmutableArray.Create((OptionStorageLocation)StorageLocation) : ImmutableArray<OptionStorageLocation>.Empty;
+        ImmutableArray<OptionStorageLocation> IOption.StorageLocations => ImmutableArray<OptionStorageLocation>.Empty;
 #endif
         public override string ToString() => OptionDefinition.ToString();
 

@@ -36,26 +36,30 @@ namespace Microsoft.CodeAnalysis.Options
         public InternalOptionStorageMapping? InternalStorageMapping { get; }
 
         /// <summary>
-        /// The type of the option value.
-        /// </summary>
-        public abstract Type Type { get; }
-
-        /// <summary>
         /// The untyped/boxed default value of the option.
         /// </summary>
         public object? DefaultValue { get; }
 
-        public OptionDefinition(OptionGroup group, string configName, object? defaultValue, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
+        public OptionDefinition(OptionGroup? group, string configName, object? defaultValue, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
         {
             ConfigName = configName;
-            Group = group;
+            Group = group ?? OptionGroup.Default;
             InternalStorageMapping = internalStorageMapping;
             IsEditorConfigOption = isEditorConfigOption;
             DefaultValue = defaultValue;
         }
 
-        public OptionDefinition<T> WithDefaultValue<T>(T defaultValue)
-            => new(Group, ConfigName, defaultValue, InternalStorageMapping, IsEditorConfigOption);
+        /// <summary>
+        /// The type of the option value.
+        /// </summary>
+        public abstract Type Type { get; }
+
+        public IEditorConfigStorageLocation Serializer => SerializerImpl;
+
+        protected abstract IEditorConfigStorageLocation SerializerImpl { get; }
+
+        public OptionDefinition<T> WithDefaultValue<T>(T defaultValue, EditorConfigStorageLocation<T> serializer)
+            => new(defaultValue, serializer, Group, ConfigName, InternalStorageMapping, IsEditorConfigOption);
 
         public override bool Equals(object? other)
             => Equals(other as OptionDefinition);
@@ -79,13 +83,25 @@ namespace Microsoft.CodeAnalysis.Options
     internal sealed class OptionDefinition<T> : OptionDefinition
     {
         public new T DefaultValue { get; }
+        public new EditorConfigStorageLocation<T> Serializer { get; }
 
-        public OptionDefinition(OptionGroup group, string configName, T defaultValue, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
+        public OptionDefinition(
+            T defaultValue,
+            EditorConfigStorageLocation<T>? serializer,
+            OptionGroup? group,
+            string configName,
+            InternalOptionStorageMapping? internalStorageMapping,
+            bool isEditorConfigOption)
             : base(group, configName, defaultValue, internalStorageMapping, isEditorConfigOption)
         {
             DefaultValue = defaultValue;
+            Serializer = serializer ?? EditorConfigStorageLocation.Default<T>();
         }
 
-        public override Type Type => typeof(T);
+        public override Type Type
+            => typeof(T);
+
+        protected override IEditorConfigStorageLocation SerializerImpl
+            => Serializer;
     }
 }

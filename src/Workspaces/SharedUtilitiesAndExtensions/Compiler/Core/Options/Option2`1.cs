@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Options
 
     internal partial class Option2<T> : ISingleValuedOption<T>
     {
-        public OptionDefinition OptionDefinition { get; }
+        public OptionDefinition<T> OptionDefinition { get; }
 
         /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => OptionDefinition.Group;
@@ -46,14 +46,11 @@ namespace Microsoft.CodeAnalysis.Options
         /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => OptionDefinition.Type;
 
-        public EditorConfigStorageLocation<T>? StorageLocation { get; }
-
         public IOption2? PublicOption { get; }
 
-        internal Option2(OptionDefinition definition, EditorConfigStorageLocation<T>? storageLocation, string? languageName, IOption2? publicOption)
+        internal Option2(OptionDefinition<T> definition, string? languageName, IOption2? publicOption)
         {
             OptionDefinition = definition;
-            StorageLocation = storageLocation;
             LanguageName = languageName;
             PublicOption = publicOption;
         }
@@ -66,8 +63,7 @@ namespace Microsoft.CodeAnalysis.Options
             bool isEditorConfigOption = false,
             EditorConfigStorageLocation<T>? serializer = null,
             InternalOptionStorageMapping? internalStorageMapping = null)
-            : this(new OptionDefinition<T>(group ?? OptionGroup.Default, name, defaultValue, internalStorageMapping, isEditorConfigOption),
-                  serializer ?? EditorConfigStorageLocation.Default<T>(), languageName, publicOption: null)
+            : this(new OptionDefinition<T>(defaultValue, serializer, group, name, internalStorageMapping, isEditorConfigOption), languageName, publicOption: null)
         {
             VerifyNamingConvention();
         }
@@ -76,18 +72,16 @@ namespace Microsoft.CodeAnalysis.Options
         private void VerifyNamingConvention()
         {
             // TODO: remove, once all options have editorconfig-like name https://github.com/dotnet/roslyn/issues/65787
-            if (StorageLocation is null)
+            if (!OptionDefinition.IsEditorConfigOption)
             {
                 return;
             }
 
             Debug.Assert(LanguageName is null == (OptionDefinition.ConfigName.StartsWith("dotnet_", StringComparison.Ordinal) ||
                 OptionDefinition.ConfigName is "file_header_template" or "insert_final_newline"));
-            Debug.Assert(LanguageName is LanguageNames.CSharp == OptionDefinition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
-            Debug.Assert(LanguageName is LanguageNames.VisualBasic == OptionDefinition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(LanguageName is LanguageNames.CSharp == OptionDefinition.ConfigName.StartsWith(Options.OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(LanguageName is LanguageNames.VisualBasic == OptionDefinition.ConfigName.StartsWith(Options.OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
-
-        IEditorConfigStorageLocation? IOption2.StorageLocation => StorageLocation;
 
 #if CODE_STYLE
         bool IOption2.IsPerLanguage => false;
@@ -97,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Options
         object? IOption.DefaultValue => this.DefaultValue;
         bool IOption.IsPerLanguage => false;
 
-        ImmutableArray<OptionStorageLocation> IOption.StorageLocations
-            => (StorageLocation != null) ? ImmutableArray.Create((OptionStorageLocation)StorageLocation) : ImmutableArray<OptionStorageLocation>.Empty;
+        ImmutableArray<OptionStorageLocation> IOption.StorageLocations => ImmutableArray<OptionStorageLocation>.Empty;
 #endif
 
         OptionDefinition IOption2.OptionDefinition => OptionDefinition;

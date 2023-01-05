@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Options
 #endif
     {
         OptionDefinition OptionDefinition { get; }
-        IEditorConfigStorageLocation? StorageLocation { get; }
         IOption2? PublicOption { get; }
 
 #if CODE_STYLE

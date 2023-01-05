@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -40,23 +41,23 @@ internal static class OptionsExtensions
     public static Option2<T> WithPublicOption<T, TPublicValue>(this Option2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue)
         => new(
             option.OptionDefinition,
-            option.StorageLocation,
             option.LanguageName,
             publicOption: new Option<TPublicValue>(
-                option.OptionDefinition.WithDefaultValue(toPublicValue(option.DefaultValue)),
+                // public option instances do not need to be serialized to editorconfig
+                option.OptionDefinition.WithDefaultValue(toPublicValue(option.DefaultValue), EditorConfigStorageLocation<TPublicValue>.Unsupported),
                 feature,
                 name,
-                ((IOption2)option).StorageLocations));
+                ImmutableArray<OptionStorageLocation>.Empty));
 
     public static PerLanguageOption2<T> WithPublicOption<T, TPublicValue>(this PerLanguageOption2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue)
         => new(
             option.OptionDefinition,
-            option.StorageLocation,
             publicOption: new PerLanguageOption<TPublicValue>(
-                option.OptionDefinition.WithDefaultValue(toPublicValue(option.DefaultValue)),
+                // public option instances do not need to be serialized to editorconfig
+                option.OptionDefinition.WithDefaultValue(toPublicValue(option.DefaultValue), EditorConfigStorageLocation<TPublicValue>.Unsupported),
                 feature,
                 name,
-                ((IOption2)option).StorageLocations));
+                ImmutableArray<OptionStorageLocation>.Empty));
 
     public static Option2<T> WithPublicOption<T>(this Option2<T> option, string feature, string name)
         => WithPublicOption(option, feature, name, static value => value);

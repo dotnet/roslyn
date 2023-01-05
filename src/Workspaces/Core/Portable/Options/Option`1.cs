@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal Option(string feature, string name, OptionGroup group, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
-            : this(new OptionDefinition<T>(group, feature + "_" + name, defaultValue, internalStorageMapping, isEditorConfigOption), feature, name, storageLocations)
+            : this(new OptionDefinition<T>(defaultValue, EditorConfigStorageLocation<T>.Unsupported, group, feature + "_" + name, internalStorageMapping, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 
@@ -71,9 +71,6 @@ namespace Microsoft.CodeAnalysis.Options
             _optionDefinition = optionDefinition;
             StorageLocations = storageLocations;
         }
-
-        IEditorConfigStorageLocation? IOption2.StorageLocation
-            => StorageLocations is [IEditorConfigStorageLocation location] ? location : null;
 
         object? IOption.DefaultValue => this.DefaultValue;
 

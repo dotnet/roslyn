@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Options
                     var optionKey = new OptionKey2(option, option.IsPerLanguage ? language : null);
                     if (configOptions.TryGetOption<object?>(optionKey, out var value))
                     {
-                        Contract.ThrowIfNull(option.StorageLocation);
-                        uniqueEntries.Add($"{option.OptionDefinition.ConfigName} = {option.StorageLocation.GetEditorConfigStringValue(value)}");
+                        uniqueEntries.Add($"{option.OptionDefinition.ConfigName} = {option.OptionDefinition.Serializer.GetEditorConfigStringValue(value)}");
                     }
                 }
 

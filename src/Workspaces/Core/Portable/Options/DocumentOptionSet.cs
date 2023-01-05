@@ -91,14 +91,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             // The option is in _configOptions so it must have editorconfig storage location:
-            var storage = (IEditorConfigStorageLocation)internallyDefinedOption.StorageLocations.Single();
-            if (!storage.TryParseValue(stringValue, out value))
-            {
-                value = null;
-                return false;
-            }
-
-            return true;
+            return internallyDefinedOption.Definition.Serializer.TryParse(stringValue, out value);
         }
 
         public T GetOption<T>(PerLanguageOption<T> option)
