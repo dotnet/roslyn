@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return !method.IsStatic &&
                 method.ContainingType?.IsStructType() == true &&
-                !method.IsConstructor() &&
+                method.MethodKind is (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet) &&
                 !method.IsInitOnly;
         }
 
