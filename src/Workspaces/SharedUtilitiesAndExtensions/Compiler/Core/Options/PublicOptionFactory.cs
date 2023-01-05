@@ -9,17 +9,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
-internal static class OptionsExtensions
+internal static class PublicOptionFactory
 {
 #if CODE_STYLE
 #pragma warning disable IDE0060 // Remove unused parameter
 
     // Stubs to avoid #ifdefs at call sites.
 
-    public static Option2<T> WithPublicOption<T, TPublicValue>(this Option2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue)
+    public static Option2<T> WithPublicOption<T, TPublicValue>(this Option2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue, Func<TPublicValue, T> toInternalValue)
         => option;
 
-    public static PerLanguageOption2<T> WithPublicOption<T, TPublicValue>(this PerLanguageOption2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue)
+    public static PerLanguageOption2<T> WithPublicOption<T, TPublicValue>(this PerLanguageOption2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue, Func<TPublicValue, T> toInternalValue)
         => option;
 
     public static Option2<T> WithPublicOption<T>(this Option2<T> option, string feature, string name)
@@ -37,39 +37,64 @@ internal static class OptionsExtensions
 #pragma warning restore
 #else
 #pragma warning disable RS0030 // Do not used banned APIs: Option<T>, PerLanguageOption<T>
+    private sealed class StorageMapping : OptionStorageMapping
+    {
+        private readonly Func<object?, object?> _toPublicValue;
+        private readonly Func<object?, object?> _toInternalValue;
 
-    public static Option2<T> WithPublicOption<T, TPublicValue>(this Option2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue)
+        public StorageMapping(IOption2 internalOption, Func<object?, object?> toPublicValue, Func<object?, object?> toInternalValue)
+            : base(internalOption)
+        {
+            _toPublicValue = toPublicValue;
+            _toInternalValue = toInternalValue;
+        }
+
+        public override object? ToPublicOptionValue(object? internalValue)
+            => _toPublicValue(internalValue);
+
+        public override object? UpdateInternalOptionValue(object? currentInternalValue, object? newPublicValue)
+            => _toInternalValue(newPublicValue);
+    }
+
+    private static OptionDefinition<TPublicValue> ToPublicOptionDefinition<T, TPublicValue>(this OptionDefinition<T> definition, IOption2 internalOption, Func<T, TPublicValue> toPublicValue, Func<TPublicValue, T> toInternalValue)
+        => new(
+            toPublicValue(definition.DefaultValue),
+            serializer: EditorConfigValueSerializer<TPublicValue>.Unsupported, // public option instances do not need to be serialized to editorconfig
+            definition.Group,
+            definition.ConfigName,
+            new StorageMapping(internalOption, value => toPublicValue((T)value!), value => toInternalValue((TPublicValue)value!)),
+            definition.IsEditorConfigOption);
+
+    public static Option2<T> WithPublicOption<T, TPublicValue>(this Option2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue, Func<TPublicValue, T> toInternalValue)
         => new(
             option.Definition,
             option.LanguageName,
-            publicOption: new Option<TPublicValue>(
-                // public option instances do not need to be serialized to editorconfig
-                option.Definition.WithDefaultValue(toPublicValue(option.DefaultValue), EditorConfigValueSerializer<TPublicValue>.Unsupported),
+            publicOptionFactory: internalOption => new Option<TPublicValue>(
+                option.Definition.ToPublicOptionDefinition(internalOption, toPublicValue, toInternalValue),
                 feature,
                 name,
                 ImmutableArray<OptionStorageLocation>.Empty));
 
-    public static PerLanguageOption2<T> WithPublicOption<T, TPublicValue>(this PerLanguageOption2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue)
+    public static PerLanguageOption2<T> WithPublicOption<T, TPublicValue>(this PerLanguageOption2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue, Func<TPublicValue, T> toInternalValue)
         => new(
             option.Definition,
-            publicOption: new PerLanguageOption<TPublicValue>(
-                // public option instances do not need to be serialized to editorconfig
-                option.Definition.WithDefaultValue(toPublicValue(option.DefaultValue), EditorConfigValueSerializer<TPublicValue>.Unsupported),
+            publicOptionFactory: internalOption => new PerLanguageOption<TPublicValue>(
+                option.Definition.ToPublicOptionDefinition(internalOption, toPublicValue, toInternalValue),
                 feature,
                 name,
                 ImmutableArray<OptionStorageLocation>.Empty));
 
     public static Option2<T> WithPublicOption<T>(this Option2<T> option, string feature, string name)
-        => WithPublicOption(option, feature, name, static value => value);
+        => WithPublicOption(option, feature, name, static value => value, static value => value);
 
     public static Option2<CodeStyleOption2<T>> WithPublicOption<T>(this Option2<CodeStyleOption2<T>> option, string feature, string name)
-       => WithPublicOption(option, feature, name, static value => new CodeStyleOption<T>(value));
+       => WithPublicOption(option, feature, name, static value => new CodeStyleOption<T>(value), static value => value.UnderlyingOption);
 
     public static PerLanguageOption2<T> WithPublicOption<T>(this PerLanguageOption2<T> option, string feature, string name)
-        => WithPublicOption(option, feature, name, static value => value);
+        => WithPublicOption(option, feature, name, static value => value, static value => value);
 
     public static PerLanguageOption2<CodeStyleOption2<T>> WithPublicOption<T>(this PerLanguageOption2<CodeStyleOption2<T>> option, string feature, string name)
-        => WithPublicOption(option, feature, name, static value => new CodeStyleOption<T>(value));
+        => WithPublicOption(option, feature, name, static value => new CodeStyleOption<T>(value), static value => value.UnderlyingOption);
 
     public static Option<T> ToPublicOption<T>(this Option2<T> option)
     {

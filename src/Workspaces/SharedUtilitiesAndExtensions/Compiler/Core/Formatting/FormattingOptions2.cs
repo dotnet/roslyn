@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             "FormattingOptions_SmartIndent",
             defaultValue: IndentationOptions.DefaultIndentStyle,
             group: FormattingOptionGroups.IndentationAndSpacing)
-            .WithPublicOption(PublicFeatureName, "SmartIndent", static value => (PublicIndentStyle)value);
+            .WithPublicOption(PublicFeatureName, "SmartIndent", static value => (PublicIndentStyle)value, static value => (IndentStyle)value);
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption2> Options = ImmutableArray.Create<IOption2>(

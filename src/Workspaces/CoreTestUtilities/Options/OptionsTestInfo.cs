@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-internal readonly record struct OptionsTestInfo(IOption2 Option, string? ContainingAssemblyLanguage, List<(string qualifiedName, IOption2 option)> Accessors, bool HasPublicAccessor)
+internal readonly record struct OptionsTestInfo(IOption2 Option, string? ContainingAssemblyLanguage, List<(string qualifiedName, bool isPublic, IOption2 option)> Accessors)
 {
     public static Dictionary<string, OptionsTestInfo> CollectOptions(string directory)
     {
@@ -53,21 +53,16 @@ internal readonly record struct OptionsTestInfo(IOption2 Option, string? Contain
                             var isBackingField = field.Name.EndsWith("k__BackingField");
                             var unmangledName = isBackingField ? field.Name[(field.Name.IndexOf('<') + 1)..field.Name.IndexOf('>')] : field.Name;
                             var accessor = type.FullName + "." + unmangledName;
-                            var hasPublicAccessor = type.IsPublic && (isBackingField ? type.GetProperty(unmangledName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!.GetMethod!.IsPublic : field.IsPublic);
+                            var isPublic = type.IsPublic && (isBackingField ? type.GetProperty(unmangledName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!.GetMethod!.IsPublic : field.IsPublic);
 
                             var configName = option.Definition.ConfigName;
                             if (result.TryGetValue(configName, out var optionInfo))
                             {
-                                optionInfo.Accessors.Add((accessor, option));
-
-                                if (hasPublicAccessor)
-                                {
-                                    optionInfo = optionInfo with { HasPublicAccessor = true };
-                                }
+                                optionInfo.Accessors.Add((accessor, isPublic, option));
                             }
                             else
                             {
-                                optionInfo = new OptionsTestInfo(option, language, new List<(string, IOption2)> { (accessor, option) }, hasPublicAccessor);
+                                optionInfo = new OptionsTestInfo(option, language, new List<(string, bool, IOption2)> { (accessor, isPublic, option) });
                             }
 
                             result[configName] = optionInfo;

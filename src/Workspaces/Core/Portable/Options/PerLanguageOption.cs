@@ -12,7 +12,7 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <inheritdoc cref="PerLanguageOption2{T}"/>
-    public class PerLanguageOption<T> : IPerLanguageValuedOption<T>
+    public class PerLanguageOption<T> : IPublicOption
     {
         private readonly OptionDefinition _optionDefinition;
 
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Options
                    name ?? throw new ArgumentNullException(nameof(name)),
                    defaultValue,
                    storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                   storageMapping: null,
                    isEditorConfigOption: false)
         {
         }
@@ -43,14 +44,22 @@ namespace Microsoft.CodeAnalysis.Options
                    name ?? throw new ArgumentNullException(nameof(name)),
                    defaultValue,
                    PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations)).ToImmutableArray(),
+                   storageMapping: null,
                    isEditorConfigOption: false)
         {
             // should not be used internally to create options
             Debug.Assert(storageLocations.All(l => l is not IEditorConfigValueSerializer));
         }
 
-        private PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
-            : this(new OptionDefinition<T>(defaultValue, EditorConfigValueSerializer<T>.Unsupported, group, feature + "_" + name, internalStorageMapping: null, isEditorConfigOption), feature, name, storageLocations)
+        private PerLanguageOption(
+            string feature,
+            OptionGroup group,
+            string name,
+            T defaultValue,
+            ImmutableArray<OptionStorageLocation> storageLocations,
+            OptionStorageMapping? storageMapping,
+            bool isEditorConfigOption)
+            : this(new OptionDefinition<T>(defaultValue, EditorConfigValueSerializer<T>.Unsupported, group, feature + "_" + name, storageMapping, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 
@@ -66,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         object? IOption.DefaultValue => this.DefaultValue;
 
-        IOption2? IOption2.PublicOption => null;
+        IPublicOption? IOption2.PublicOption => null;
 
         bool IOption.IsPerLanguage => true;
 

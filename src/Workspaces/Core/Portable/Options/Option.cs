@@ -12,7 +12,7 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <inheritdoc cref="Option2{T}"/>
-    public class Option<T> : ISingleValuedOption<T>
+    public class Option<T> : IPublicOption
     {
         private readonly OptionDefinition _optionDefinition;
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Options
                    OptionGroup.Default,
                    defaultValue,
                    storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
-                   internalStorageMapping: null,
+                   storageMapping: null,
                    isEditorConfigOption: false)
         {
         }
@@ -52,15 +52,22 @@ namespace Microsoft.CodeAnalysis.Options
                    OptionGroup.Default,
                    defaultValue,
                    PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations)).ToImmutableArray(),
-                   internalStorageMapping: null,
+                   storageMapping: null,
                    isEditorConfigOption: false)
         {
             // should not be used internally to create options
             Debug.Assert(storageLocations.All(l => l is not IEditorConfigValueSerializer));
         }
 
-        internal Option(string feature, string name, OptionGroup group, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
-            : this(new OptionDefinition<T>(defaultValue, EditorConfigValueSerializer<T>.Unsupported, group, feature + "_" + name, internalStorageMapping, isEditorConfigOption), feature, name, storageLocations)
+        internal Option(
+            string feature,
+            string name,
+            OptionGroup group,
+            T defaultValue,
+            ImmutableArray<OptionStorageLocation> storageLocations,
+            OptionStorageMapping? storageMapping,
+            bool isEditorConfigOption)
+            : this(new OptionDefinition<T>(defaultValue, EditorConfigValueSerializer<T>.Unsupported, group, feature + "_" + name, storageMapping, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 
@@ -76,18 +83,9 @@ namespace Microsoft.CodeAnalysis.Options
 
         bool IOption.IsPerLanguage => false;
 
-        IOption2? IOption2.PublicOption => null;
+        IPublicOption? IOption2.PublicOption => null;
 
         OptionDefinition IOption2.Definition => _optionDefinition;
-
-        string? ISingleValuedOption.LanguageName
-        {
-            get
-            {
-                Debug.Fail("It's not expected that we access LanguageName property for Option<T>. The options we use should be Option2<T>.");
-                return null;
-            }
-        }
 
         bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 

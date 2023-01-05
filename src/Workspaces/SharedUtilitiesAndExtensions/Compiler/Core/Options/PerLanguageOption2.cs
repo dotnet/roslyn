@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Options
     internal partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
     {
         public OptionDefinition<T> Definition { get; }
-        public IOption2? PublicOption { get; }
+        public IPublicOption? PublicOption { get; }
 
-        internal PerLanguageOption2(OptionDefinition<T> optionDefinition, IOption2? publicOption)
+        internal PerLanguageOption2(OptionDefinition<T> optionDefinition, Func<IOption2, IPublicOption>? publicOptionFactory)
         {
             Definition = optionDefinition;
-            PublicOption = publicOption;
+            PublicOption = publicOptionFactory?.Invoke(this);
         }
 
         public PerLanguageOption2(
@@ -41,9 +41,8 @@ namespace Microsoft.CodeAnalysis.Options
             T defaultValue,
             OptionGroup? group = null,
             bool isEditorConfigOption = false,
-            EditorConfigValueSerializer<T>? serializer = null,
-            InternalOptionStorageMapping? internalStorageMapping = null)
-            : this(new OptionDefinition<T>(defaultValue, serializer, group, name, internalStorageMapping, isEditorConfigOption), publicOption: null)
+            EditorConfigValueSerializer<T>? serializer = null)
+            : this(new OptionDefinition<T>(defaultValue, serializer, group, name, storageMapping: null, isEditorConfigOption), publicOptionFactory: null)
         {
             VerifyNamingConvention();
         }
@@ -58,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             // options with per-language values shouldn't have language-specific prefix
-            Debug.Assert(!Definition.ConfigName.StartsWith(Options.OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
-            Debug.Assert(!Definition.ConfigName.StartsWith(Options.OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(!Definition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(!Definition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
 
         OptionDefinition IOption2.Definition => Definition;

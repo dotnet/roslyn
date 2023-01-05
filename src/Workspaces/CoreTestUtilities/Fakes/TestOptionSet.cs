@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public TestOptionSet(ImmutableDictionary<OptionKey, object?> values)
         {
+            Debug.Assert(values.Values.All(IsInternalOptionValue));
             _values = values;
         }
 
@@ -22,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             => _values.TryGetValue(optionKey, out var value) ? value : optionKey.Option.DefaultValue;
 
         internal override OptionSet WithChangedOptionInternal(OptionKey optionKey, object? internalValue)
-            => new TestOptionSet(_values.SetItem(optionKey, internalValue));
+        {
+            Debug.Assert(IsInternalOptionValue(internalValue));
+            return new TestOptionSet(_values.SetItem(optionKey, internalValue));
+        }
     }
 }

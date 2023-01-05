@@ -36,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Options
     internal partial class Option2<T> : ISingleValuedOption<T>
     {
         public OptionDefinition<T> Definition { get; }
-        public IOption2? PublicOption { get; }
+        public IPublicOption? PublicOption { get; }
         public string? LanguageName { get; }
 
-        internal Option2(OptionDefinition<T> definition, string? languageName, IOption2? publicOption)
+        internal Option2(OptionDefinition<T> definition, string? languageName, Func<IOption2, IPublicOption>? publicOptionFactory)
         {
             Definition = definition;
             LanguageName = languageName;
-            PublicOption = publicOption;
+            PublicOption = publicOptionFactory?.Invoke(this);
         }
 
         public Option2(
@@ -52,9 +52,8 @@ namespace Microsoft.CodeAnalysis.Options
             OptionGroup? group = null,
             string? languageName = null,
             bool isEditorConfigOption = false,
-            EditorConfigValueSerializer<T>? serializer = null,
-            InternalOptionStorageMapping? internalStorageMapping = null)
-            : this(new OptionDefinition<T>(defaultValue, serializer, group, name, internalStorageMapping, isEditorConfigOption), languageName, publicOption: null)
+            EditorConfigValueSerializer<T>? serializer = null)
+            : this(new OptionDefinition<T>(defaultValue, serializer, group, name, storageMapping: null, isEditorConfigOption), languageName, publicOptionFactory: null)
         {
             VerifyNamingConvention();
         }
@@ -70,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Options
 
             Debug.Assert(LanguageName is null == (Definition.ConfigName.StartsWith("dotnet_", StringComparison.Ordinal) ||
                 Definition.ConfigName is "file_header_template" or "insert_final_newline"));
-            Debug.Assert(LanguageName is LanguageNames.CSharp == Definition.ConfigName.StartsWith(Options.OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
-            Debug.Assert(LanguageName is LanguageNames.VisualBasic == Definition.ConfigName.StartsWith(Options.OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(LanguageName is LanguageNames.CSharp == Definition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(LanguageName is LanguageNames.VisualBasic == Definition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
 
         public T DefaultValue => Definition.DefaultValue;

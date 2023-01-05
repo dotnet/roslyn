@@ -35,10 +35,11 @@ public class VisualStudioOptionStorageTests
 
         var languageSpecificOptionsHaveIncorrectPrefix =
             from info in infos
+            where info.Value.Option is not IPublicOption // public options do not need to follow the naming pattern
             where info.Value.Option.Definition.IsEditorConfigOption // TODO: remove condition once all options have config name https://github.com/dotnet/roslyn/issues/65787
             where info.Key.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "CSharp" ||
                   info.Key.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "VisualBasic"
-            select info;
+            select (info);
 
         Assert.Empty(languageSpecificOptionsHaveIncorrectPrefix);
 
@@ -46,7 +47,8 @@ public class VisualStudioOptionStorageTests
 
         var publicOptionsWithoutPublicAccessor =
             from info in infos
-            where info.Value.Accessors.Any(a => a.option.PublicOption != null) && !info.Value.HasPublicAccessor
+            where info.Value.Accessors.Any(a => a.option.PublicOption != null)
+            where !info.Value.Accessors.Any(a => a.isPublic)
             select info.Key;
 
         Assert.Empty(publicOptionsWithoutPublicAccessor);

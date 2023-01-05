@@ -63,7 +63,7 @@ internal sealed class LegacyGlobalOptionService : ILegacyGlobalOptionService
         ImmutableArray<KeyValuePair<OptionKey, object?>> externallyDefinedOptions)
     {
         // all values in internally defined options have internal representation:
-        Debug.Assert(internallyDefinedOptions.All(entry => OptionHelpers.IsInternalOptionValue(entry.Value)));
+        Debug.Assert(internallyDefinedOptions.All(entry => OptionSet.IsInternalOptionValue(entry.Value)));
 
         var anyExternallyDefinedOptionChanged = false;
         foreach (var (optionKey, value) in externallyDefinedOptions)

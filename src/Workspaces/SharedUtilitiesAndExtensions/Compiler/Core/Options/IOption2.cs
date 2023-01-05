@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Options
 #endif
     {
         OptionDefinition Definition { get; }
-        IOption2? PublicOption { get; }
+        IPublicOption? PublicOption { get; }
 
 #if CODE_STYLE
         bool IsPerLanguage { get; }

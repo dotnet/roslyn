@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -22,12 +24,14 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public object? GetOption(OptionKey optionKey)
         {
-            if (optionKey.Option is IOption2 { Definition.InternalStorageMapping: { } mapping })
+            if (optionKey.Option is IOption2 { Definition.StorageMapping: { } mapping })
             {
                 return mapping.ToPublicOptionValue(GetInternalOptionValue(new OptionKey(mapping.InternalOption, optionKey.Language)));
             }
 
-            return OptionHelpers.ToPublicOptionValue(GetInternalOptionValue(optionKey));
+            var result = GetInternalOptionValue(optionKey);
+            Debug.Assert(!IsInternalOptionValue(result));
+            return result;
         }
 
         /// <summary>
@@ -67,14 +71,16 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public virtual OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
-            if (optionAndLanguage.Option is IOption2 { Definition.InternalStorageMapping: { } mapping })
+            if (optionAndLanguage.Option is IOption2 { Definition.StorageMapping: { } mapping })
             {
                 var mappedOptionKey = new OptionKey(mapping.InternalOption, optionAndLanguage.Language);
                 var currentValue = GetInternalOptionValue(mappedOptionKey);
                 return WithChangedOptionInternal(mappedOptionKey, mapping.UpdateInternalOptionValue(currentValue, value));
             }
 
-            return WithChangedOptionInternal(optionAndLanguage, OptionHelpers.ToInternalOptionValue(value));
+            var result = WithChangedOptionInternal(optionAndLanguage, value);
+            Debug.Assert(!IsInternalOptionValue(result));
+            return result;
         }
 
         internal virtual OptionSet WithChangedOptionInternal(OptionKey optionKey, object? internalValue)
@@ -85,5 +91,11 @@ namespace Microsoft.CodeAnalysis.Options
             value = (T)GetInternalOptionValue(new OptionKey(optionKey.Option, optionKey.Language))!;
             return true;
         }
+
+        /// <summary>
+        /// Checks if the value is an internal representation -- does not cover all cases, just code style options.
+        /// </summary>
+        internal static bool IsInternalOptionValue(object? value)
+            => value is not ICodeStyleOption codeStyle || ReferenceEquals(codeStyle, codeStyle.AsInternalCodeStyleOption());
     }
 }

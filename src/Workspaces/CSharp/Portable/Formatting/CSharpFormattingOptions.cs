@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 group: CSharpFormattingOptionGroups.NewLine,
                 defaultValue: CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.HasFlag(flag),
                 storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
-                internalStorageMapping: new NewLineForBracesInternalStorageMapping(CSharpFormattingOptions2.NewLineBeforeOpenBrace, flag),
+                storageMapping: new NewLineForBracesInternalStorageMapping(CSharpFormattingOptions2.NewLineBeforeOpenBrace, flag),
                 isEditorConfigOption: true);
 
         private static Option<bool> CreateSpaceWithinOption(string publicName, SpacePlacementWithinParentheses flag)
@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 group: CSharpFormattingOptionGroups.Spacing,
                 defaultValue: CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.HasFlag(flag),
                 storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
-                internalStorageMapping: new SpacePlacementInternalStorageMapping(CSharpFormattingOptions2.SpaceBetweenParentheses, flag),
+                storageMapping: new SpacePlacementInternalStorageMapping(CSharpFormattingOptions2.SpaceBetweenParentheses, flag),
                 isEditorConfigOption: true);
 
-        private sealed class NewLineForBracesInternalStorageMapping : InternalOptionStorageMapping
+        private sealed class NewLineForBracesInternalStorageMapping : OptionStorageMapping
         {
             private readonly NewLineBeforeOpenBracePlacement _flag;
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 => ((NewLineBeforeOpenBracePlacement)currentInternalValue!).WithFlagValue(_flag, (bool)newPublicValue!);
         }
 
-        private sealed class SpacePlacementInternalStorageMapping : InternalOptionStorageMapping
+        private sealed class SpacePlacementInternalStorageMapping : OptionStorageMapping
         {
             private readonly SpacePlacementWithinParentheses _flag;
 

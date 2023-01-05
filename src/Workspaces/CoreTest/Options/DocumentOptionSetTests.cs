@@ -21,8 +21,8 @@ public sealed class DocumentOptionSetTests
     public void GetOption()
     {
         var underlyingSet = new TestOptionSet(ImmutableDictionary<OptionKey, object?>.Empty.Add(
-            new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp),
-            new CodeStyleOption<bool>(true, NotificationOption.Error)));
+            new OptionKey(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp),
+            new CodeStyleOption2<bool>(true, NotificationOption2.Error)));
 
         var configOptions = StructuredAnalyzerConfigOptions.Create(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
             "dotnet_style_qualification_for_event", "true:warning"));
@@ -49,8 +49,8 @@ public sealed class DocumentOptionSetTests
     public void GetOption_NoConfigOptions()
     {
         var underlyingSet = new TestOptionSet(ImmutableDictionary<OptionKey, object?>.Empty.Add(
-            new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp),
-            new CodeStyleOption<bool>(true, NotificationOption.Error)));
+            new OptionKey(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp),
+            new CodeStyleOption2<bool>(true, NotificationOption2.Error)));
 
         var set = new DocumentOptionSet(configOptions: null, underlyingSet, LanguageNames.CSharp);
 

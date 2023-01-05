@@ -31,20 +31,20 @@ namespace Microsoft.CodeAnalysis.Options
         public bool IsEditorConfigOption { get; }
 
         /// <summary>
-        /// Specifies mapping for internal options whose value is an aggregate of values of multiple public options.
+        ///  Mapping between the public option storage and internal option storage.
         /// </summary>
-        public InternalOptionStorageMapping? InternalStorageMapping { get; }
+        public OptionStorageMapping? StorageMapping { get; }
 
         /// <summary>
         /// The untyped/boxed default value of the option.
         /// </summary>
         public object? DefaultValue { get; }
 
-        public OptionDefinition(OptionGroup? group, string configName, object? defaultValue, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
+        public OptionDefinition(OptionGroup? group, string configName, object? defaultValue, OptionStorageMapping? storageMapping, bool isEditorConfigOption)
         {
             ConfigName = configName;
             Group = group ?? OptionGroup.Default;
-            InternalStorageMapping = internalStorageMapping;
+            StorageMapping = storageMapping;
             IsEditorConfigOption = isEditorConfigOption;
             DefaultValue = defaultValue;
         }
@@ -57,9 +57,6 @@ namespace Microsoft.CodeAnalysis.Options
         public IEditorConfigValueSerializer Serializer => SerializerImpl;
 
         protected abstract IEditorConfigValueSerializer SerializerImpl { get; }
-
-        public OptionDefinition<T> WithDefaultValue<T>(T defaultValue, EditorConfigValueSerializer<T> serializer)
-            => new(defaultValue, serializer, Group, ConfigName, InternalStorageMapping, IsEditorConfigOption);
 
         public override bool Equals(object? other)
             => Equals(other as OptionDefinition);
@@ -90,9 +87,9 @@ namespace Microsoft.CodeAnalysis.Options
             EditorConfigValueSerializer<T>? serializer,
             OptionGroup? group,
             string configName,
-            InternalOptionStorageMapping? internalStorageMapping,
+            OptionStorageMapping? storageMapping,
             bool isEditorConfigOption)
-            : base(group, configName, defaultValue, internalStorageMapping, isEditorConfigOption)
+            : base(group, configName, defaultValue, storageMapping, isEditorConfigOption)
         {
             DefaultValue = defaultValue;
             Serializer = serializer ?? EditorConfigValueSerializer.Default<T>();
