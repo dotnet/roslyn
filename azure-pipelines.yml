@@ -61,7 +61,7 @@ stages:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      queueName: 1es-ubuntu-2004
+      queueName: 1es-ubuntu-2004-open
 
 - stage: Source_Build
   dependsOn: []
@@ -184,7 +184,7 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
-      queueName: 1es-ubuntu-2004
+      queueName: 1es-ubuntu-2004-open
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -194,7 +194,7 @@ stages:
         testArtifactName: Transport_Artifacts_Unix_Debug
         configuration: Debug
         testArguments: --testCoreClr
-        queueName: 1es-ubuntu-2004
+        queueName: 1es-ubuntu-2004-open
 
   - template: eng/pipelines/test-unix-job.yml
     parameters:
@@ -203,7 +203,7 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
-      queueName: 1es-ubuntu-2004
+      queueName: 1es-ubuntu-2004-open
 
 - stage: Correctness
   dependsOn: []
@@ -359,7 +359,7 @@ stages:
   - job: Correctness_Analyzers
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals 1es-ubuntu-2004
+      demands: ImageOverride -equals 1es-ubuntu-2004-open
     timeoutInMinutes: 35
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
