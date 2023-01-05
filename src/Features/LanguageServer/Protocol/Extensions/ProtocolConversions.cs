@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
             catch when (FatalError.ReportAndPropagate(new Exception($"Failed GetTextSpan calculation.")))
             {
-                throw ExceptionUtilities.Unreachable();
+                throw;
             }
         }
 
