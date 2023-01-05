@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
             if (e.Option == NamingStyleOptions.NamingPreferences ||
-                e.Option.OptionDefinition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
+                e.Option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
                 e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
                 e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
                 e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption)

@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
                 .Remove(CodeStyleOptions2.ForEachExplicitCastInSource);
 
             AssertEx.Equal(
-                optionsWithUI.OrderBy(o => o.OptionDefinition.ConfigName),
-                dataSnapShot.Select(setting => setting.Key.Option).OrderBy(o => o.OptionDefinition.ConfigName));
+                optionsWithUI.OrderBy(o => o.Definition.ConfigName),
+                dataSnapShot.Select(setting => setting.Key.Option).OrderBy(o => o.Definition.ConfigName));
         }
 
         [Fact]
@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             };
 
             AssertEx.Equal(
-                expectedOptions.Select(option => option.OptionDefinition.ConfigName).OrderBy(n => n),
-                dataSnapShot.Select(item => item.Key.Option.OptionDefinition.ConfigName).OrderBy(n => n));
+                expectedOptions.Select(option => option.Definition.ConfigName).OrderBy(n => n),
+                dataSnapShot.Select(item => item.Key.Option.Definition.ConfigName).OrderBy(n => n));
         }
 
         [Fact]

@@ -365,9 +365,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 {
                     foreach (var option in codeStyleOptions)
                     {
-                        var editorConfigLocation = (IEditorConfigStorageLocation)option.StorageLocations.Single();
-                        var optionValue = editorConfigLocation.GetEditorConfigStringValue(option.DefaultValue);
-                        builder.Add((option.OptionDefinition.ConfigName, optionValue, option.IsPerLanguage));
+                        var optionValue = option.Definition.Serializer.Serialize(option.DefaultValue);
+                        builder.Add((option.Definition.ConfigName, optionValue, option.IsPerLanguage));
                     }
 
                     return builder.ToImmutable();
@@ -404,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             {
                 return (from option in options
                         where option.DefaultValue is ICodeStyleOption
-                        orderby option.OptionDefinition.ConfigName
+                        orderby option.Definition.ConfigName
                         select option).ToImmutableArray();
             }
 

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Options
             editorconfig.AppendLine($"#### {feature} ####");
             editorconfig.AppendLine();
 
-            foreach (var optionGrouping in options.GroupBy(o => o.OptionDefinition.Group).OrderBy(g => g.Key.Priority))
+            foreach (var optionGrouping in options.GroupBy(o => o.Definition.Group).OrderBy(g => g.Key.Priority))
             {
                 editorconfig.AppendLine($"# {optionGrouping.Key.Description}");
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Options
                     var optionKey = new OptionKey2(option, option.IsPerLanguage ? language : null);
                     if (configOptions.TryGetOption<object?>(optionKey, out var value))
                     {
-                        uniqueEntries.Add($"{option.OptionDefinition.ConfigName} = {option.OptionDefinition.Serializer.GetEditorConfigStringValue(value)}");
+                        uniqueEntries.Add($"{option.Definition.ConfigName} = {option.Definition.Serializer.Serialize(value)}");
                     }
                 }
 

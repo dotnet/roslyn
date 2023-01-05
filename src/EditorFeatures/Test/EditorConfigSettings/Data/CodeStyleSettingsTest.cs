@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             return new Option2<CodeStyleOption2<bool>>(
                 name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
-                serializer: new EditorConfigStorageLocation<CodeStyleOption2<bool>>(_ => defaultCodeStyle, _ => "default"),
+                serializer: new EditorConfigValueSerializer<CodeStyleOption2<bool>>(_ => defaultCodeStyle, _ => "default"),
                 isEditorConfigOption: true);
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             return new Option2<CodeStyleOption2<T>>(
                 name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
-                serializer: new EditorConfigStorageLocation<CodeStyleOption2<T>>(_ => defaultCodeStyle, _ => "default"),
+                serializer: new EditorConfigValueSerializer<CodeStyleOption2<T>>(_ => defaultCodeStyle, _ => "default"),
                 isEditorConfigOption: true);
         }
 

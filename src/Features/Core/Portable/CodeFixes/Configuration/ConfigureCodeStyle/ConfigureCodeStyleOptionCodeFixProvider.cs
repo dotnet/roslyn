@@ -108,8 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
 
                 // Try to get the parsed editorconfig string representation of the new code style option value
-                var editorConfigLocation = (IEditorConfigStorageLocation)option.StorageLocations.Single();
-                var optionName = option.OptionDefinition.ConfigName;
+                var optionName = option.Definition.ConfigName;
                 var defaultValue = (ICodeStyleOption?)option.DefaultValue;
                 Contract.ThrowIfNull(defaultValue);
 
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 {
                     // Create a new code style option value with the newValue
                     var configuredCodeStyleOption = codeStyleOption.WithValue(newValue);
-                    var optionValue = editorConfigLocation.GetEditorConfigStringValue(configuredCodeStyleOption);
+                    var optionValue = option.Definition.Serializer.Serialize(configuredCodeStyleOption);
 
                     // Add code action to configure the optionValue.
                     nestedActions.Add(

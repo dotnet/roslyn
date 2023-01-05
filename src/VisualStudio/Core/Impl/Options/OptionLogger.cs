@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             return KeyValueLogMessage.Create(m =>
             {
-                m[ConfigName] = optionKey.Option.OptionDefinition.ConfigName;
+                m[ConfigName] = optionKey.Option.Definition.ConfigName;
                 m[Language] = optionKey.Language ?? All;
                 m[Change] = CreateOptionValue(oldValue, currentValue);
             });

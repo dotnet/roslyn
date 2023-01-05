@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, out T value)
         {
-            Contract.ThrowIfFalse(option.OptionDefinition.IsEditorConfigOption);
+            Contract.ThrowIfFalse(option.Definition.IsEditorConfigOption);
 
-            if (option.OptionDefinition.Type == typeof(NamingStylePreferences))
+            if (option.Definition.Type == typeof(NamingStylePreferences))
             {
                 if (StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions))
                 {
@@ -36,15 +36,15 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                if (analyzerConfigOptions.TryGetValue(option.OptionDefinition.ConfigName, out var stringValue))
+                if (analyzerConfigOptions.TryGetValue(option.Definition.ConfigName, out var stringValue))
                 {
                     // Avoid boxing when reading typed value:
                     if (typeof(T) != typeof(object))
                     {
-                        return ((OptionDefinition<T>)option.OptionDefinition).Serializer.TryParseValue(stringValue, out value!);
+                        return ((OptionDefinition<T>)option.Definition).Serializer.TryParseValue(stringValue, out value!);
                     }
 
-                    if (option.OptionDefinition.Serializer.TryParseValue(stringValue, out var objectValue))
+                    if (option.Definition.Serializer.TryParse(stringValue, out var objectValue))
                     {
                         value = (T)objectValue!;
                         return true;

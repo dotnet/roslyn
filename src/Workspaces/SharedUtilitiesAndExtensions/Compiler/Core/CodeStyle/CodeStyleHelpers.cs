@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOption2<T> defaultValue,
             OptionGroup group,
             string? languageName = null,
-            Func<CodeStyleOption2<T>, EditorConfigStorageLocation<CodeStyleOption2<T>>>? serializerFactory = null)
+            Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
         {
-            var option = new Option2<CodeStyleOption2<T>>(name, defaultValue, group, languageName, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigStorageLocation.CodeStyle).Invoke(defaultValue));
+            var option = new Option2<CodeStyleOption2<T>>(name, defaultValue, group, languageName, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigValueSerializer.CodeStyle).Invoke(defaultValue));
             optionsBuilder.Add(option);
             return option;
         }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string name,
             T defaultValue,
             OptionGroup group,
-            EditorConfigStorageLocation<T>? serializer = null)
+            EditorConfigValueSerializer<T>? serializer = null)
         {
             var option = new Option2<T>(name, defaultValue, group, languageName: null, isEditorConfigOption: true, serializer: serializer);
             optionsBuilder.Add(option);
@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string name,
             CodeStyleOption2<T> defaultValue,
             OptionGroup group,
-            Func<CodeStyleOption2<T>, EditorConfigStorageLocation<CodeStyleOption2<T>>>? serializerFactory = null)
+            Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
         {
-            var option = new PerLanguageOption2<CodeStyleOption2<T>>(name, defaultValue, group, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigStorageLocation.CodeStyle).Invoke(defaultValue));
+            var option = new PerLanguageOption2<CodeStyleOption2<T>>(name, defaultValue, group, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigValueSerializer.CodeStyle).Invoke(defaultValue));
             optionsBuilder.Add(option);
             return option;
         }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
             });
 
-        internal static EditorConfigStorageLocation<CodeStyleOption2<UnusedValuePreference>> GetUnusedValuePreferenceSerializer(CodeStyleOption2<UnusedValuePreference> defaultValue)
+        internal static EditorConfigValueSerializer<CodeStyleOption2<UnusedValuePreference>> GetUnusedValuePreferenceSerializer(CodeStyleOption2<UnusedValuePreference> defaultValue)
             => new(parseValue: str => ParseUnusedExpressionAssignmentPreference(str, defaultValue),
                    serializeValue: value => GetUnusedExpressionAssignmentPreferenceEditorConfigString(value, defaultValue));
 

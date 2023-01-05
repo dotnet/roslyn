@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 var schemeName = _globalOptions.GetOption(ColorSchemeOptions.ColorScheme);
                 return schemeName != ColorSchemeName.None
                     ? schemeName
-                    : ColorSchemeOptions.ColorScheme.DefaultValue;
+                    : ColorSchemeOptions.ColorScheme.Definition.DefaultValue;
             }
 
             public void MigrateToColorSchemeSetting()

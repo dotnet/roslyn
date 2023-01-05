@@ -40,21 +40,21 @@ internal static class OptionsExtensions
 
     public static Option2<T> WithPublicOption<T, TPublicValue>(this Option2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue)
         => new(
-            option.OptionDefinition,
+            option.Definition,
             option.LanguageName,
             publicOption: new Option<TPublicValue>(
                 // public option instances do not need to be serialized to editorconfig
-                option.OptionDefinition.WithDefaultValue(toPublicValue(option.DefaultValue), EditorConfigStorageLocation<TPublicValue>.Unsupported),
+                option.Definition.WithDefaultValue(toPublicValue(option.DefaultValue), EditorConfigValueSerializer<TPublicValue>.Unsupported),
                 feature,
                 name,
                 ImmutableArray<OptionStorageLocation>.Empty));
 
     public static PerLanguageOption2<T> WithPublicOption<T, TPublicValue>(this PerLanguageOption2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue)
         => new(
-            option.OptionDefinition,
+            option.Definition,
             publicOption: new PerLanguageOption<TPublicValue>(
                 // public option instances do not need to be serialized to editorconfig
-                option.OptionDefinition.WithDefaultValue(toPublicValue(option.DefaultValue), EditorConfigStorageLocation<TPublicValue>.Unsupported),
+                option.Definition.WithDefaultValue(toPublicValue(option.DefaultValue), EditorConfigValueSerializer<TPublicValue>.Unsupported),
                 feature,
                 name,
                 ImmutableArray<OptionStorageLocation>.Empty));
@@ -104,7 +104,7 @@ internal static class OptionsExtensions
 
     public static bool PublicOptionDefinitionEquals(this IOption2 x, IOption2 y)
     {
-        var equals = x.OptionDefinition.ConfigName == y.OptionDefinition.ConfigName && x.OptionDefinition.Group == y.OptionDefinition.Group;
+        var equals = x.Definition.ConfigName == y.Definition.ConfigName && x.Definition.Group == y.Definition.Group;
 
         // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
         // So, we skip these fields for equality checks of code style options.

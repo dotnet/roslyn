@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         internal static ImmutableArray<IOption2> AllOptions { get; }
 
-        private static Option2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T>? serializer = null)
+        private static Option2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigValueSerializer<T>? serializer = null)
         {
             var option = new Option2<T>(name, defaultValue, group, LanguageNames.CSharp, isEditorConfigOption: true, serializer: serializer);
             s_allOptionsBuilder.Add(option);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             CSharpFormattingOptionGroups.Spacing,
             name: "csharp_space_between_parentheses",
             CSharpSyntaxFormattingOptions.SpacingDefault.ToSpacingWithinParentheses(),
-            new EditorConfigStorageLocation<SpacePlacementWithinParentheses>(
+            new EditorConfigValueSerializer<SpacePlacementWithinParentheses>(
                 parseValue: list => ParseSpacingWithinParenthesesList(list),
                 serializeValue: ToEditorConfigValue));
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option2<bool> SpacesIgnoreAroundVariableDeclaration { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, "csharp_space_around_declaration_statements",
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration),
-            new EditorConfigStorageLocation<bool>(
+            new EditorConfigValueSerializer<bool>(
                 s => DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(s),
                 v => v ? "ignore" : "false"))
             .WithPublicOption(PublicFeatureName, "SpacesIgnoreAroundVariableDeclaration");
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option2<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, "csharp_space_around_binary_operators",
             CSharpSyntaxFormattingOptions.Default.SpacingAroundBinaryOperator,
-            new EditorConfigStorageLocation<BinaryOperatorSpacingOptions>(
+            new EditorConfigValueSerializer<BinaryOperatorSpacingOptions>(
                 s => ParseEditorConfigSpacingAroundBinaryOperator(s),
                 GetSpacingAroundBinaryOperatorEditorConfigString))
             .WithPublicOption(PublicFeatureName, "SpacingAroundBinaryOperator");
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option2<LabelPositionOptions> LabelPositioning { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, "csharp_indent_labels",
             CSharpSyntaxFormattingOptions.Default.LabelPositioning,
-            new EditorConfigStorageLocation<LabelPositionOptions>(
+            new EditorConfigValueSerializer<LabelPositionOptions>(
                 s => ParseEditorConfigLabelPositioning(s),
                 GetLabelPositionOptionEditorConfigString))
             .WithPublicOption(PublicFeatureName, "LabelPositioning");
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             CSharpFormattingOptionGroups.NewLine,
             name: "csharp_new_line_before_open_brace",
             CSharpSyntaxFormattingOptions.NewLinesDefault.ToNewLineBeforeOpenBracePlacement(),
-            new EditorConfigStorageLocation<NewLineBeforeOpenBracePlacement>(
+            new EditorConfigValueSerializer<NewLineBeforeOpenBracePlacement>(
                 parseValue: list => ParseNewLineBeforeOpenBracePlacementList(list),
                 serializeValue: ToEditorConfigValue));
 

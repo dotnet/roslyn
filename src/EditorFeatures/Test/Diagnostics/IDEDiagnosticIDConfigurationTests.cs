@@ -672,7 +672,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             foreach (var (diagnosticId, options) in diagnosticIdAndOptions)
             {
                 var hasEditorConfigCodeStyleOptions = false;
-                foreach (var option in options.OrderBy(o => o.OptionDefinition.ConfigName))
+                foreach (var option in options.OrderBy(o => o.Definition.ConfigName))
                 {
                     ProcessDiagnosticIdAndOption(diagnosticId, option);
                     hasEditorConfigCodeStyleOptions = true;
@@ -714,8 +714,8 @@ dotnet_diagnostic.JSON002.severity = %value%
             // Local functions
             void ProcessDiagnosticIdAndOption(string diagnosticId, IOption2 option)
             {
-                var optionName = option?.OptionDefinition.ConfigName;
-                var optionValue = option?.OptionDefinition.Serializer.GetEditorConfigStringValue(option.DefaultValue);
+                var optionName = option?.Definition.ConfigName;
+                var optionValue = option?.Definition.Serializer.Serialize(option.DefaultValue);
 
                 // Verify we have an entry for { diagnosticId, optionName }
                 if (expected.IsEmpty())

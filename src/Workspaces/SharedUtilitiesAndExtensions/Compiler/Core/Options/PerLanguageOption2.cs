@@ -27,22 +27,12 @@ namespace Microsoft.CodeAnalysis.Options
     /// <typeparam name="T"></typeparam>
     internal partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
     {
-        public OptionDefinition<T> OptionDefinition { get; }
-
-        /// <inheritdoc cref="OptionDefinition.Group"/>
-        internal OptionGroup Group => OptionDefinition.Group;
-
-        /// <inheritdoc cref="OptionDefinition.Type"/>
-        public Type Type => OptionDefinition.Type;
-
-        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
-        public T DefaultValue => (T)OptionDefinition.DefaultValue!;
-
+        public OptionDefinition<T> Definition { get; }
         public IOption2? PublicOption { get; }
 
         internal PerLanguageOption2(OptionDefinition<T> optionDefinition, IOption2? publicOption)
         {
-            OptionDefinition = optionDefinition;
+            Definition = optionDefinition;
             PublicOption = publicOption;
         }
 
@@ -51,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Options
             T defaultValue,
             OptionGroup? group = null,
             bool isEditorConfigOption = false,
-            EditorConfigStorageLocation<T>? serializer = null,
+            EditorConfigValueSerializer<T>? serializer = null,
             InternalOptionStorageMapping? internalStorageMapping = null)
             : this(new OptionDefinition<T>(defaultValue, serializer, group, name, internalStorageMapping, isEditorConfigOption), publicOption: null)
         {
@@ -62,31 +52,32 @@ namespace Microsoft.CodeAnalysis.Options
         private void VerifyNamingConvention()
         {
             // TODO: remove, once all options have editorconfig-like name https://github.com/dotnet/roslyn/issues/65787
-            if (!OptionDefinition.IsEditorConfigOption)
+            if (!Definition.IsEditorConfigOption)
             {
                 return;
             }
 
             // options with per-language values shouldn't have language-specific prefix
-            Debug.Assert(!OptionDefinition.ConfigName.StartsWith(Options.OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
-            Debug.Assert(!OptionDefinition.ConfigName.StartsWith(Options.OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(!Definition.ConfigName.StartsWith(Options.OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
+            Debug.Assert(!Definition.ConfigName.StartsWith(Options.OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
 
-        OptionDefinition IOption2.OptionDefinition => OptionDefinition;
+        OptionDefinition IOption2.Definition => Definition;
+        public T DefaultValue => Definition.DefaultValue;
 
 #if CODE_STYLE
         bool IOption2.IsPerLanguage => true;
 #else
         string IOption.Feature => "config";
-        string IOption.Name => OptionDefinition.ConfigName;
-        object? IOption.DefaultValue => this.DefaultValue;
+        string IOption.Name => Definition.ConfigName;
+        object? IOption.DefaultValue => Definition.DefaultValue;
         bool IOption.IsPerLanguage => true;
-
+        Type IOption.Type => Definition.Type;
         ImmutableArray<OptionStorageLocation> IOption.StorageLocations => ImmutableArray<OptionStorageLocation>.Empty;
 #endif
-        public override string ToString() => OptionDefinition.ToString();
+        public override string ToString() => Definition.ToString();
 
-        public override int GetHashCode() => OptionDefinition.GetHashCode();
+        public override int GetHashCode() => Definition.GetHashCode();
 
         public override bool Equals(object? obj) => Equals(obj as IOption2);
 
@@ -97,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return true;
             }
 
-            return OptionDefinition == other?.OptionDefinition;
+            return Definition == other?.Definition;
         }
     }
 }

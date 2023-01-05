@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             group As OptionGroup,
             name As String,
             defaultValue As CodeStyleOption2(Of T),
-            Optional serializerFactory As Func(Of CodeStyleOption2(Of T), EditorConfigStorageLocation(Of CodeStyleOption2(Of T))) = Nothing) As Option2(Of CodeStyleOption2(Of T))
+            Optional serializerFactory As Func(Of CodeStyleOption2(Of T), EditorConfigValueSerializer(Of CodeStyleOption2(Of T))) = Nothing) As Option2(Of CodeStyleOption2(Of T))
             Return s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, LanguageNames.VisualBasic, serializerFactory)
         End Function
 

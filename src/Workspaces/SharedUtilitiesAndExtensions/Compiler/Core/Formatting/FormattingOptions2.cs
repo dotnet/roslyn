@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static PerLanguageOption2<bool> UseTabs = new PerLanguageOption2<bool>(
             "indent_style", LineFormattingOptions.Default.UseTabs, FormattingOptionGroups.IndentationAndSpacing, isEditorConfigOption: true,
-            serializer: new EditorConfigStorageLocation<bool>(str => str == "tab", value => value ? "tab" : "space"))
+            serializer: new EditorConfigValueSerializer<bool>(str => str == "tab", value => value ? "tab" : "space"))
             .WithPublicOption(PublicFeatureName, "UseTabs");
 
         public static PerLanguageOption2<int> TabSize = new PerLanguageOption2<int>(
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static PerLanguageOption2<string> NewLine = new PerLanguageOption2<string>(
             "end_of_line", LineFormattingOptions.Default.NewLine, FormattingOptionGroups.NewLine, isEditorConfigOption: true,
-            serializer: new EditorConfigStorageLocation<string>(
+            serializer: new EditorConfigValueSerializer<string>(
                 parseValue: value => value.Trim() switch
                 {
                     "lf" => "\n",

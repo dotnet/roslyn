@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Options
             // Naming style option is not public. We should not call this API internally.
             Contract.ThrowIfTrue(internallyDefinedOption.Type == typeof(NamingStylePreferences));
 
-            if (!_configOptions.TryGetValue(internallyDefinedOption.OptionDefinition.ConfigName, out var stringValue))
+            if (!_configOptions.TryGetValue(internallyDefinedOption.Definition.ConfigName, out var stringValue))
             {
                 value = null;
                 return false;

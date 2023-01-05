@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                 return true;
             }
 
-            if (_readFallbacks.TryGetValue(optionKey.Option.OptionDefinition.ConfigName, out var lazyReadFallback))
+            if (_readFallbacks.TryGetValue(optionKey.Option.Definition.ConfigName, out var lazyReadFallback))
             {
                 var fallbackResult = lazyReadFallback.Value.TryRead(optionKey.Language, (storageKey, storageType) => TryReadOptionValue(optionKey, storageKey, storageType));
                 if (fallbackResult.HasValue)

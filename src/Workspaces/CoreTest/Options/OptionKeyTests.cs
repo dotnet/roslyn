@@ -82,13 +82,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             var option1 = new Option2<bool>(name: "name", defaultValue: false);
             Assert.Equal("config", ((IOption)option1).Feature);
             Assert.Equal("name", ((IOption)option1).Name);
-            Assert.Equal("name", option1.OptionDefinition.ConfigName);
+            Assert.Equal("name", option1.Definition.ConfigName);
             Assert.Equal("name", option1.ToString());
 
             var option2 = new PerLanguageOption2<bool>(name: "name", defaultValue: false);
             Assert.Equal("config", ((IOption)option2).Feature);
             Assert.Equal("name", ((IOption)option2).Name);
-            Assert.Equal("name", option2.OptionDefinition.ConfigName);
+            Assert.Equal("name", option2.Definition.ConfigName);
             Assert.Equal("name", option2.ToString());
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             var option = CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
             var publicOption = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
-            Assert.True(option.OptionDefinition.Serializer.TryParseValue("true:suggestion", out var result));
+            Assert.True(option.Definition.Serializer.TryParseValue("true:suggestion", out var result));
             Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion), result);
 
             Assert.Empty(publicOption.StorageLocations);
@@ -179,13 +179,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
         [Fact]
         public void IsEditorConfigOption()
         {
-            Assert.All(FormattingOptions2.Options, o => Assert.True(o.OptionDefinition.IsEditorConfigOption));
-            Assert.False(FormattingOptions2.SmartIndent.OptionDefinition.IsEditorConfigOption);
+            Assert.All(FormattingOptions2.Options, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.False(FormattingOptions2.SmartIndent.Definition.IsEditorConfigOption);
 
-            Assert.All(CSharpFormattingOptions2.AllOptions, o => Assert.True(o.OptionDefinition.IsEditorConfigOption));
+            Assert.All(CSharpFormattingOptions2.AllOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
 
-            Assert.True(NamingStyleOptions.NamingPreferences.OptionDefinition.IsEditorConfigOption);
-            Assert.True(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.OptionDefinition.IsEditorConfigOption);
+            Assert.True(NamingStyleOptions.NamingPreferences.Definition.IsEditorConfigOption);
+            Assert.True(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.Definition.IsEditorConfigOption);
         }
     }
 }

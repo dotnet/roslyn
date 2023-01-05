@@ -20,15 +20,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
         private static PerLanguageOption2<CodeStyleOption2<T>> CreatePerLanguageOption<T>(
-            OptionGroup group, string name, CodeStyleOption2<T> defaultValue, Func<CodeStyleOption2<T>, EditorConfigStorageLocation<CodeStyleOption2<T>>>? serializerFactory = null)
+            OptionGroup group, string name, CodeStyleOption2<T> defaultValue, Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
             => s_allOptionsBuilder.CreatePerLanguageEditorConfigOption(name, defaultValue, group, serializerFactory);
 
         private static Option2<CodeStyleOption2<T>> CreateOption<T>(
-            OptionGroup group, string name, CodeStyleOption2<T> defaultValue, Func<CodeStyleOption2<T>, EditorConfigStorageLocation<CodeStyleOption2<T>>>? serializerFactory = null)
+            OptionGroup group, string name, CodeStyleOption2<T> defaultValue, Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
             => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, languageName: null, serializerFactory);
 
         private static Option2<T> CreateOption<T>(
-            OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T>? serializer = null)
+            OptionGroup group, string name, T defaultValue, EditorConfigValueSerializer<T>? serializer = null)
             => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, serializer);
 
         /// <remarks>
@@ -234,13 +234,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOptionGroups.Usings,
             "file_header_template",
             DocumentFormattingOptions.Default.FileHeaderTemplate,
-            EditorConfigStorageLocation.String(emptyStringRepresentation: "unset"));
+            EditorConfigValueSerializer.String(emptyStringRepresentation: "unset"));
 
         internal static readonly Option2<string> RemoveUnnecessarySuppressionExclusions = CreateOption(
             CodeStyleOptionGroups.Suppressions,
             "dotnet_remove_unnecessary_suppression_exclusions",
             IdeCodeStyleOptions.CommonOptions.Default.RemoveUnnecessarySuppressionExclusions,
-            EditorConfigStorageLocation.String(emptyStringRepresentation: "none"));
+            EditorConfigValueSerializer.String(emptyStringRepresentation: "none"));
 
         private static readonly BidirectionalMap<string, ParenthesesPreference> s_parenthesesPreferenceMap =
             new(new[]

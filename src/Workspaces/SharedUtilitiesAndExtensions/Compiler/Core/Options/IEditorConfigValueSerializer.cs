@@ -6,13 +6,13 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal interface IEditorConfigStorageLocation
+    internal interface IEditorConfigValueSerializer
     {
-        bool TryParseValue(string value, out object? result);
+        bool TryParse(string value, out object? result);
 
         /// <summary>
         /// Gets the editorconfig string representation for the specified <paramref name="value"/>. 
         /// </summary>
-        string GetEditorConfigStringValue(object? value);
+        string Serialize(object? value);
     }
 }

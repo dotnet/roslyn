@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             Updater.QueueUpdate(Key.Option, UpdateValue(value));
         }
 
-        public string Category => Key.Option.OptionDefinition.Group.Description;
+        public string Category => Key.Option.Definition.Group.Description;
         public bool IsDefinedInEditorConfig => Location.LocationKind != LocationKind.VisualStudio;
 
         public static Setting<TValue> Create<TValue>(

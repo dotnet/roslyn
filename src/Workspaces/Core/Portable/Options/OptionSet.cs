@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public object? GetOption(OptionKey optionKey)
         {
-            if (optionKey.Option is IOption2 { OptionDefinition.InternalStorageMapping: { } mapping })
+            if (optionKey.Option is IOption2 { Definition.InternalStorageMapping: { } mapping })
             {
                 return mapping.ToPublicOptionValue(GetInternalOptionValue(new OptionKey(mapping.InternalOption, optionKey.Language)));
             }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public virtual OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
-            if (optionAndLanguage.Option is IOption2 { OptionDefinition.InternalStorageMapping: { } mapping })
+            if (optionAndLanguage.Option is IOption2 { Definition.InternalStorageMapping: { } mapping })
             {
                 var mappedOptionKey = new OptionKey(mapping.InternalOption, optionAndLanguage.Language);
                 var currentValue = GetInternalOptionValue(mappedOptionKey);

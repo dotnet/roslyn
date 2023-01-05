@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 "test_option1=5",
                 "test_option2=6",
-            }, changedOptions.Select(e => $"{e.Option.OptionDefinition.ConfigName}={e.Value}"));
+            }, changedOptions.Select(e => $"{e.Option.Definition.ConfigName}={e.Value}"));
 
             values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey2(option1), new OptionKey2(option2), new OptionKey2(option3)));
             Assert.Equal(5, values[0]);

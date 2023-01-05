@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             OptionGroup group,
             string name,
             CodeStyleOption2<T> defaultValue,
-            Func<CodeStyleOption2<T>, EditorConfigStorageLocation<CodeStyleOption2<T>>>? serializerFactory = null)
+            Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
             => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, LanguageNames.CSharp, serializerFactory);
 
         public static readonly Option2<CodeStyleOption2<bool>> VarForBuiltInTypes = CreateOption(

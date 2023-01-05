@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             // Underscores in WPF mean that the next character is the access key for keyboard navigation
             // but thats not why our option names have underscores. Also removing them looks nicer.
-            var optionDisplay = option.OptionDefinition.ConfigName.Replace('_', ' ') + GetLanguage(languageName) + GetAdditionalText(additional);
+            var optionDisplay = option.Definition.ConfigName.Replace('_', ' ') + GetLanguage(languageName) + GetAdditionalText(additional);
 
             if (option.Type == typeof(bool))
             {

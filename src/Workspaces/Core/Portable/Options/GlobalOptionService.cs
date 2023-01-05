@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Options
         private object? GetOption_NoLock(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
         {
             // The option must be internally defined and it can't be a legacy option whose value is mapped to another option:
-            Debug.Assert(optionKey.Option is IOption2 { OptionDefinition.InternalStorageMapping: null });
+            Debug.Assert(optionKey.Option is IOption2 { Definition.InternalStorageMapping: null });
 
             if (_currentValues.TryGetValue(optionKey, out var value))
             {

@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public abstract Type Type { get; }
 
-        public IEditorConfigStorageLocation Serializer => SerializerImpl;
+        public IEditorConfigValueSerializer Serializer => SerializerImpl;
 
-        protected abstract IEditorConfigStorageLocation SerializerImpl { get; }
+        protected abstract IEditorConfigValueSerializer SerializerImpl { get; }
 
-        public OptionDefinition<T> WithDefaultValue<T>(T defaultValue, EditorConfigStorageLocation<T> serializer)
+        public OptionDefinition<T> WithDefaultValue<T>(T defaultValue, EditorConfigValueSerializer<T> serializer)
             => new(defaultValue, serializer, Group, ConfigName, InternalStorageMapping, IsEditorConfigOption);
 
         public override bool Equals(object? other)
@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.Options
     internal sealed class OptionDefinition<T> : OptionDefinition
     {
         public new T DefaultValue { get; }
-        public new EditorConfigStorageLocation<T> Serializer { get; }
+        public new EditorConfigValueSerializer<T> Serializer { get; }
 
         public OptionDefinition(
             T defaultValue,
-            EditorConfigStorageLocation<T>? serializer,
+            EditorConfigValueSerializer<T>? serializer,
             OptionGroup? group,
             string configName,
             InternalOptionStorageMapping? internalStorageMapping,
@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.Options
             : base(group, configName, defaultValue, internalStorageMapping, isEditorConfigOption)
         {
             DefaultValue = defaultValue;
-            Serializer = serializer ?? EditorConfigStorageLocation.Default<T>();
+            Serializer = serializer ?? EditorConfigValueSerializer.Default<T>();
         }
 
         public override Type Type
             => typeof(T);
 
-        protected override IEditorConfigStorageLocation SerializerImpl
+        protected override IEditorConfigValueSerializer SerializerImpl
             => Serializer;
     }
 }

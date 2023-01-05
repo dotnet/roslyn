@@ -59,9 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 
             static (string option, string value, Language language) GetOptionValueAndLanguage(IOption2 option, object value)
             {
-                var storageLocation = (IEditorConfigStorageLocation)option.StorageLocations.Single();
-                var optionName = option.OptionDefinition.ConfigName;
-                var optionValue = storageLocation.GetEditorConfigStringValue(value);
+                var optionName = option.Definition.ConfigName;
+                var optionValue = option.Definition.Serializer.Serialize(value);
 
                 if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
                 {

@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.Options
                    isEditorConfigOption: false)
         {
             // should not be used internally to create options
-            Debug.Assert(storageLocations.All(l => l is not IEditorConfigStorageLocation));
+            Debug.Assert(storageLocations.All(l => l is not IEditorConfigValueSerializer));
         }
 
         internal Option(string feature, string name, OptionGroup group, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, InternalOptionStorageMapping? internalStorageMapping, bool isEditorConfigOption)
-            : this(new OptionDefinition<T>(defaultValue, EditorConfigStorageLocation<T>.Unsupported, group, feature + "_" + name, internalStorageMapping, isEditorConfigOption), feature, name, storageLocations)
+            : this(new OptionDefinition<T>(defaultValue, EditorConfigValueSerializer<T>.Unsupported, group, feature + "_" + name, internalStorageMapping, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         IOption2? IOption2.PublicOption => null;
 
-        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
+        OptionDefinition IOption2.Definition => _optionDefinition;
 
         string? ISingleValuedOption.LanguageName
         {

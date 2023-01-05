@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Specifies that an option should be read from an .editorconfig file.
     /// </summary>
-    internal sealed class EditorConfigStorageLocation<T> : IEditorConfigStorageLocation
+    internal sealed class EditorConfigValueSerializer<T> : IEditorConfigValueSerializer
     {
-        public static readonly EditorConfigStorageLocation<T> Unsupported = new(
+        public static readonly EditorConfigValueSerializer<T> Unsupported = new(
             parseValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"),
             serializeValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"));
 
         private readonly Func<string, Optional<T>> _parseValue;
         private readonly Func<T, string> _serializeValue;
 
-        public EditorConfigStorageLocation(
+        public EditorConfigValueSerializer(
             Func<string, Optional<T>> parseValue,
             Func<T, string> serializeValue)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Options
             _serializeValue = serializeValue;
         }
 
-        bool IEditorConfigStorageLocation.TryParseValue(string value, out object? result)
+        bool IEditorConfigValueSerializer.TryParse(string value, out object? result)
         {
             if (TryParseValue(value, out var typedResult))
             {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Options
             return editorConfigStringForValue;
         }
 
-        string IEditorConfigStorageLocation.GetEditorConfigStringValue(object? value)
+        string IEditorConfigValueSerializer.Serialize(object? value)
             => GetEditorConfigStringValue((T)value!);
     }
 }

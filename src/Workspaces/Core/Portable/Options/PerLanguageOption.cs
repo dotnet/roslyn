@@ -46,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Options
                    isEditorConfigOption: false)
         {
             // should not be used internally to create options
-            Debug.Assert(storageLocations.All(l => l is not IEditorConfigStorageLocation));
+            Debug.Assert(storageLocations.All(l => l is not IEditorConfigValueSerializer));
         }
 
         private PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations, bool isEditorConfigOption)
-            : this(new OptionDefinition<T>(defaultValue, EditorConfigStorageLocation<T>.Unsupported, group, feature + "_" + name, internalStorageMapping: null, isEditorConfigOption), feature, name, storageLocations)
+            : this(new OptionDefinition<T>(defaultValue, EditorConfigValueSerializer<T>.Unsupported, group, feature + "_" + name, internalStorageMapping: null, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Options
             StorageLocations = storageLocations;
         }
 
-        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
+        OptionDefinition IOption2.Definition => _optionDefinition;
 
         object? IOption.DefaultValue => this.DefaultValue;
 

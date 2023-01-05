@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Options
         , IOption
 #endif
     {
-        OptionDefinition OptionDefinition { get; }
+        OptionDefinition Definition { get; }
         IOption2? PublicOption { get; }
 
 #if CODE_STYLE

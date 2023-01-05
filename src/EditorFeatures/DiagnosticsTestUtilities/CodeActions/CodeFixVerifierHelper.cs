@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             foreach (var (optionKey, value) in options)
             {
-                Assert.True(optionKey.Option.OptionDefinition.IsEditorConfigOption);
+                Assert.True(optionKey.Option.Definition.IsEditorConfigOption);
 
                 if (value is NamingStylePreferences namingStylePreferences)
                 {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     continue;
                 }
 
-                analyzerConfig.AppendLine($"{optionKey.Option.OptionDefinition.ConfigName} = {optionKey.Option.OptionDefinition.Serializer.GetEditorConfigStringValue(value)}");
+                analyzerConfig.AppendLine($"{optionKey.Option.Definition.ConfigName} = {optionKey.Option.Definition.Serializer.Serialize(value)}");
             }
 
             return SourceText.From(analyzerConfig.ToString(), Encoding.UTF8);

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public void Add<T>(OptionKey2 optionKey, T value)
         {
             // Can only add internally defined option whose storage is not mapped to another option:
-            Debug.Assert(optionKey.Option is IOption2 { OptionDefinition.InternalStorageMapping: null });
+            Debug.Assert(optionKey.Option is IOption2 { Definition.InternalStorageMapping: null });
             _options.Add(optionKey, value);
         }
 
